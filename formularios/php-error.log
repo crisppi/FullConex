@@ -1,0 +1,1 @@
+[03-Sep-2025 19:56:53 America/Sao_Paulo] PHP Deprecated:  strlen(): Passing null to parameter #1 ($string) of type string is deprecated in /Applications/AMPPS/www/full17.2/dao/internacaoDao.php on line 2927

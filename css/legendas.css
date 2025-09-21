@@ -1,0 +1,468 @@
+/* elemento legenda aberto capeante */
+
+.legenda-aberto {
+    position: relative;
+    display: inline-block;
+}
+
+.legenda-aberto::before {
+    content: "Capeantes Abertos";
+    position: absolute;
+    background-color: rgba(93, 91, 91, 0.7);
+    color: #fff;
+    padding: 3px;
+    border-radius: 3px;
+    bottom: 100%;
+    left: 100%;
+    font-size: .8em;
+    transform: translateX(-50%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+.legenda-aberto:hover::before {
+    opacity: 1;
+}
+
+
+/* elemento legenda inciar capeante */
+
+.legenda-iniciar {
+    position: relative;
+    display: inline-block;
+}
+
+.legenda-iniciar::before {
+    content: "Capeantes a iniciar";
+    position: absolute;
+    background-color: rgba(93, 91, 91, 0.7);
+    color: #fff;
+    padding: 3px;
+    border-radius: 3px;
+    bottom: 100%;
+    left: 100%;
+    font-size: .8em;
+    transform: translateX(-50%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+.legenda-iniciar:hover::before {
+    opacity: 1;
+}
+
+
+/* elemento legenda check Medico  */
+
+.legenda-medico {
+    position: relative;
+    display: inline-block;
+}
+
+.legenda-medico::before {
+    content: "Auditado pelo médico";
+    position: absolute;
+    background-color: rgba(93, 91, 91, 0.7);
+    color: #fff;
+    padding: 3px;
+    border-radius: 3px;
+    bottom: 100%;
+    left: 100%;
+    font-size: .8em;
+    transform: translateX(-50%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+
+.legenda-editar-intern {
+    position: relative;
+    display: inline-block;
+}
+
+.legenda-editar-intern::before {
+    content: "EDITAR";
+    position: absolute;
+    background-color: rgba(93, 91, 91, 0.7);
+    color: #fff;
+    padding: 3px;
+    border-radius: 3px;
+    bottom: 100%;
+    left: 100%;
+    font-size: .8em;
+    transform: translateX(-50%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+.legenda-medico:hover::before {
+    opacity: 1;
+}
+
+
+/* elemento legenda check Enfermagem  */
+
+.legenda-enfermagem {
+    position: relative;
+    display: inline-block;
+}
+
+.legenda-enfermagem::before {
+    content: "Auditado pela Enfermagem";
+    position: absolute;
+    background-color: rgba(93, 91, 91, 0.7);
+    color: #fff;
+    padding: 3px;
+    border-radius: 3px;
+    bottom: 100%;
+    left: 100%;
+    font-size: .8em;
+    transform: translateX(-50%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+.legenda-enfermagem:hover::before {
+    opacity: 1;
+}
+
+
+/* elemento legenda check administrativo  */
+
+.legenda-administrativo {
+    position: relative;
+    display: inline-block;
+}
+
+.legenda-administrativo::before {
+    content: "Auditado pela administrativo";
+    position: absolute;
+    background-color: rgba(93, 91, 91, 0.7);
+    color: #fff;
+    padding: 3px;
+    border-radius: 3px;
+    bottom: 100%;
+    left: 100%;
+    font-size: .8em;
+    transform: translateX(-50%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+.legenda-administrativo:hover::before {
+    opacity: 1;
+}
+
+
+/* elemento legenda check finalizada  */
+
+.legenda-finalizada {
+    position: relative;
+    display: inline-block;
+}
+
+.legenda-finalizada::before {
+    content: "Senha finalizada";
+    position: absolute;
+    background-color: rgba(93, 91, 91, 0.7);
+    color: #fff;
+    padding: 3px;
+    border-radius: 3px;
+    bottom: 100%;
+    left: 100%;
+    font-size: .8em;
+    transform: translateX(-50%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+.legenda-finalizada:hover::before {
+    opacity: 1;
+}
+
+
+/* elemento legenda em auditoria  */
+
+.legenda-em-auditoria {
+    position: relative;
+    display: inline-block;
+}
+
+.legenda-em-auditoria::before {
+    content: "Contas em auditoria";
+    position: absolute;
+    background-color: rgba(93, 91, 91, 0.7);
+    color: #fff;
+    padding: 3px;
+    border-radius: 3px;
+    bottom: 100%;
+    left: 100%;
+    font-size: .8em;
+    transform: translateX(-50%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+.legenda-em-auditoria:hover::before {
+    opacity: 1;
+}
+
+
+/* elemento legenda aberto  */
+
+.legenda-aberto {
+    position: relative;
+    display: inline-block;
+}
+
+.legenda-aberto::before {
+    content: "Contas abertas";
+    position: absolute;
+    background-color: rgba(93, 91, 91, 0.7);
+    color: #fff;
+    padding: 3px;
+    border-radius: 3px;
+    bottom: 100%;
+    left: 100%;
+    font-size: .8em;
+    transform: translateX(-50%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+.legenda-aberto:hover::before {
+    opacity: 1;
+}
+
+
+/* elemento legenda visita  */
+
+.legenda-visita {
+    position: relative;
+    display: inline-block;
+}
+
+.legenda-visita::before {
+    content: "Lançar visita nova";
+    position: absolute;
+    background-color: rgba(93, 91, 91, 0.7);
+    color: #fff;
+    padding: 3px;
+    border-radius: 3px;
+    bottom: 100%;
+    left: 100%;
+    font-size: .8em;
+    transform: translateX(-50%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+.legenda-visita:hover::before {
+    opacity: 1;
+}
+
+
+/* elemento legenda visita Inicial*/
+
+.legenda-visita-inicial {
+    position: relative;
+    display: inline-block;
+}
+
+.legenda-visita-inicial::before {
+    content: "Lançar 1a visita";
+    position: absolute;
+    background-color: rgba(93, 91, 91, 0.7);
+    color: #fff;
+    padding: 3px;
+    border-radius: 3px;
+    bottom: 100%;
+    left: 100%;
+    font-size: .8em;
+    transform: translateX(-50%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+.legenda-visita-inicial:hover::before {
+    opacity: 1;
+}
+
+
+/* elemento legenda alta  */
+
+.legenda-alta {
+    position: relative;
+    display: inline-block;
+}
+
+.legenda-alta::before {
+    content: "Lançar alta";
+    position: absolute;
+    background-color: rgba(93, 91, 91, 0.7);
+    color: #fff;
+    padding: 3px;
+    border-radius: 3px;
+    bottom: 100%;
+    left: 100%;
+    font-size: .8em;
+    transform: translateX(-50%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+.legenda-alta:hover::before {
+    opacity: 1;
+}
+
+
+/* elemento legenda ver visita  */
+
+.legenda-ver-visita {
+    position: relative;
+    display: inline-block;
+}
+
+.legenda-ver-visita::before {
+    content: "Ver visita";
+    position: absolute;
+    background-color: rgba(93, 91, 91, 0.7);
+    color: #fff;
+    padding: 3px;
+    border-radius: 3px;
+    bottom: 100%;
+    left: 100%;
+    font-size: .8em;
+    transform: translateX(-50%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+.legenda-ver-visita:hover::before {
+    opacity: 1;
+}
+
+
+/* elemento legenda gestao  */
+
+.legenda-gestao {
+    position: relative;
+    display: inline-block;
+}
+
+.legenda-gestao::before {
+    content: "Ver gestão";
+    position: absolute;
+    background-color: rgba(93, 91, 91, 0.7);
+    color: #fff;
+    padding: 3px;
+    border-radius: 3px;
+    bottom: 100%;
+    left: 100%;
+    font-size: .8em;
+    transform: translateX(-50%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+.legenda-gestao:hover::before {
+    opacity: 1;
+}
+
+
+/* elemento legenda parcial  */
+
+.legenda-parcial {
+    position: relative;
+    display: inline-block;
+}
+
+.legenda-parcial::before {
+    content: "Nova Parcial";
+    position: absolute;
+    background-color: rgba(93, 91, 91, 0.7);
+    color: #fff;
+    padding: 3px;
+    border-radius: 3px;
+    bottom: 100%;
+    left: 100%;
+    font-size: .8em;
+    transform: translateX(-50%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+.legenda-parcial:hover::before {
+    opacity: 1;
+}
+
+
+/* elemento legenda filtro  */
+
+.legenda-filtro {
+    position: relative;
+    display: inline-block;
+}
+
+.legenda-filtro::before {
+    content: "Pesquisa";
+    position: absolute;
+    background-color: rgba(93, 91, 91, 0.7);
+    color: #fff;
+    padding: 3px;
+    border-radius: 3px;
+    bottom: 100%;
+    left: 100%;
+    font-size: .8em;
+    transform: translateX(-50%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+.legenda-filtro:hover::before {
+    opacity: 1;
+}
+
+
+/* elemento legenda encerrado  */
+
+.legenda-encerrado {
+    position: relative;
+    display: inline-block;
+}
+
+.legenda-encerrado::before {
+    content: "Capeante encerrado";
+    position: absolute;
+    background-color: rgba(93, 91, 91, 0.7);
+    color: #fff;
+    padding: 3px;
+    border-radius: 3px;
+    bottom: 100%;
+    left: 100%;
+    font-size: .8em;
+    transform: translateX(-50%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+.legenda-encerrado:hover::before {
+    opacity: 1;
+}

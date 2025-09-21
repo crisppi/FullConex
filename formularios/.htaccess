@@ -1,0 +1,23 @@
+RewriteEngine On
+RewriteBase /full17.2/
+
+ #aqui criamos uma condição para que os arquivos sejam ignorados nas regras abaixo
+RewriteCond %{REQUEST_FILENAME} !-f
+  #aqui criamos uma condição para que diretórios sejam ignorados nas regras abaixo
+RewriteCond %{REQUEST_FILENAME} !-d
+
+#aqui ignoramos o uso de barra no final
+RewriteRule ^(.+)\/?$ $1 [R,L]
+
+# Redireciona URLs amigáveis para a URL real
+RewriteRule ^show_internacao$ show_internacao.php?id_internacao=$1 [QSA,L,NC]
+
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^menu/?$ /menu.php [NC,L]
+    
+    RewriteCond %{SCRIPT_FILENAME} !-f
+    RewriteCond %{SCRIPT_FILENAME} !-d
+    RewriteRule ^(.*)$ menu.php?param=$1
+</IfModule>

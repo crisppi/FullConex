@@ -1,0 +1,90 @@
+[2025-08-03 02:44:08] 🔄 Sincronização iniciada.
+[2025-08-03 02:44:08] 🔍 Buscando registros com updated_at >= 2025-08-02 22:44:08
+[2025-08-03 02:44:09] ✅ Tabela tb_acomodacao: 25 registros sincronizados.
+[2025-08-03 02:44:09] 📭 Tabela tb_alta: 0 registros encontrados.
+[2025-08-03 02:44:09] ✅ Tabela tb_antecedente: 14 registros sincronizados.
+[2025-08-03 02:44:09] ✅ Tabela tb_capeante: 18 registros sincronizados.
+[2025-08-03 02:44:09] ✅ Tabela tb_censo: 1 registros sincronizados.
+[2025-08-03 02:44:31] ✅ Tabela tb_cid: 2045 registros sincronizados.
+[2025-08-03 02:44:32] ✅ Tabela tb_detalhes: 10 registros sincronizados.
+[2025-08-03 02:44:32] ✅ Tabela tb_estipulante: 15 registros sincronizados.
+[2025-08-03 02:44:32] ✅ Tabela tb_gestao: 4 registros sincronizados.
+[2025-08-03 02:44:32] ✅ Tabela tb_hospital: 33 registros sincronizados.
+[2025-08-03 02:44:33] ✅ Tabela tb_hospitalUser: 34 registros sincronizados.
+[2025-08-03 02:44:33] 📭 Tabela tb_imagens: 0 registros encontrados.
+[2025-08-03 02:44:33] ✅ Tabela tb_intern_antec: 10 registros sincronizados.
+[2025-08-03 02:44:33] ✅ Tabela tb_internacao: 18 registros sincronizados.
+[2025-08-03 02:44:33] ✅ Tabela tb_internacao_arquivo: 2 registros sincronizados.
+[2025-08-03 02:44:33] 📭 Tabela tb_log_historico: 0 registros encontrados.
+[2025-08-03 02:44:35] ✅ Tabela tb_mensagem: 177 registros sincronizados.
+[2025-08-03 02:44:35] ✅ Tabela tb_negociacao: 3 registros sincronizados.
+[2025-08-03 02:44:35] 📭 Tabela tb_paciente: 0 registros encontrados.
+[2025-08-03 02:44:35] ✅ Tabela tb_patologia: 24 registros sincronizados.
+[2025-08-03 02:44:36] ✅ Tabela tb_prorrogacao: 18 registros sincronizados.
+[2025-08-03 02:44:36] ✅ Tabela tb_seguradora: 17 registros sincronizados.
+[2025-08-03 02:44:36] ✅ Tabela tb_tuss: 17 registros sincronizados.
+[2025-08-03 02:45:43] 🔄 Sincronização iniciada.
+[2025-08-03 02:45:43] 🔍 Buscando registros com updated_at >= 2025-08-02 22:45:43
+[2025-08-03 02:45:43] ✅ Tabela tb_acomodacao: 25 registros sincronizados.
+[2025-08-03 02:45:43] 📭 Tabela tb_alta: 0 registros encontrados.
+[2025-08-03 02:45:43] ✅ Tabela tb_antecedente: 14 registros sincronizados.
+[2025-08-03 02:45:44] ✅ Tabela tb_capeante: 18 registros sincronizados.
+[2025-08-03 02:45:44] ✅ Tabela tb_censo: 1 registros sincronizados.
+[2025-08-03 02:45:45] ✅ Tabela tb_tuss_ans: 6467 registros sincronizados.
+[2025-08-03 02:45:45] ✅ Tabela tb_user: 17 registros sincronizados.
+[2025-08-03 02:45:46] ✅ Tabela tb_uti: 9 registros sincronizados.
+[2025-08-03 02:45:46] ✅ Tabela tb_visita: 26 registros sincronizados.
+[2025-08-03 02:45:46] ✅ Sincronização finalizada.
+[2025-08-03 02:46:04] ✅ Tabela tb_cid: 2045 registros sincronizados.
+[2025-08-03 02:46:05] ✅ Tabela tb_detalhes: 10 registros sincronizados.
+[2025-08-03 02:46:05] ✅ Tabela tb_estipulante: 15 registros sincronizados.
+[2025-08-03 02:46:05] ✅ Tabela tb_gestao: 4 registros sincronizados.
+[2025-08-03 02:46:05] ✅ Tabela tb_hospital: 33 registros sincronizados.
+[2025-08-03 02:46:06] ✅ Tabela tb_hospitalUser: 34 registros sincronizados.
+[2025-08-03 02:46:06] 📭 Tabela tb_imagens: 0 registros encontrados.
+[2025-08-03 02:46:06] ✅ Tabela tb_intern_antec: 10 registros sincronizados.
+[2025-08-03 02:46:06] ✅ Tabela tb_internacao: 18 registros sincronizados.
+[2025-08-03 02:46:06] ✅ Tabela tb_internacao_arquivo: 2 registros sincronizados.
+[2025-08-03 02:46:06] 📭 Tabela tb_log_historico: 0 registros encontrados.
+[2025-08-03 02:46:08] ✅ Tabela tb_mensagem: 177 registros sincronizados.
+[2025-08-03 02:46:08] ✅ Tabela tb_negociacao: 3 registros sincronizados.
+[2025-08-03 02:46:08] 📭 Tabela tb_paciente: 0 registros encontrados.
+[2025-08-03 02:46:08] ✅ Tabela tb_patologia: 24 registros sincronizados.
+[2025-08-03 02:46:08] ✅ Tabela tb_prorrogacao: 18 registros sincronizados.
+[2025-08-03 02:46:09] ✅ Tabela tb_seguradora: 17 registros sincronizados.
+[2025-08-03 02:46:09] ✅ Tabela tb_tuss: 17 registros sincronizados.
+[2025-08-03 02:47:16] ✅ Tabela tb_tuss_ans: 6467 registros sincronizados.
+[2025-08-03 02:47:16] ✅ Tabela tb_user: 17 registros sincronizados.
+[2025-08-03 02:47:17] ✅ Tabela tb_uti: 9 registros sincronizados.
+[2025-08-03 02:47:17] ✅ Tabela tb_visita: 26 registros sincronizados.
+[2025-08-03 02:47:17] ✅ Sincronização finalizada.
+[2025-08-03 04:49:33] 🔄 Sincronização iniciada.
+[2025-08-03 04:49:33] 🔍 Buscando registros com updated_at >= 2025-08-03 00:49:33
+[2025-08-03 04:49:33] ✅ Tabela tb_acomodacao: 25 registros sincronizados.
+[2025-08-03 04:49:34] 📭 Tabela tb_alta: 0 registros encontrados.
+[2025-08-03 04:49:34] ✅ Tabela tb_antecedente: 14 registros sincronizados.
+[2025-08-03 04:49:34] ✅ Tabela tb_capeante: 18 registros sincronizados.
+[2025-08-03 04:49:34] ✅ Tabela tb_censo: 1 registros sincronizados.
+[2025-08-03 04:49:57] ✅ Tabela tb_cid: 2045 registros sincronizados.
+[2025-08-03 04:49:57] ✅ Tabela tb_detalhes: 10 registros sincronizados.
+[2025-08-03 04:49:57] ✅ Tabela tb_estipulante: 15 registros sincronizados.
+[2025-08-03 04:49:57] ✅ Tabela tb_gestao: 4 registros sincronizados.
+[2025-08-03 04:49:58] ✅ Tabela tb_hospital: 33 registros sincronizados.
+[2025-08-03 04:49:58] ✅ Tabela tb_hospitalUser: 34 registros sincronizados.
+[2025-08-03 04:49:58] 📭 Tabela tb_imagens: 0 registros encontrados.
+[2025-08-03 04:49:58] ✅ Tabela tb_intern_antec: 10 registros sincronizados.
+[2025-08-03 04:49:59] ✅ Tabela tb_internacao: 18 registros sincronizados.
+[2025-08-03 04:49:59] ✅ Tabela tb_internacao_arquivo: 2 registros sincronizados.
+[2025-08-03 04:49:59] ✅ Tabela tb_log_historico: 1 registros sincronizados.
+[2025-08-03 04:50:01] ✅ Tabela tb_mensagem: 177 registros sincronizados.
+[2025-08-03 04:50:01] ✅ Tabela tb_negociacao: 3 registros sincronizados.
+[2025-08-03 04:50:01] 📭 Tabela tb_paciente: 0 registros encontrados.
+[2025-08-03 04:50:01] ✅ Tabela tb_patologia: 24 registros sincronizados.
+[2025-08-03 04:50:01] ✅ Tabela tb_prorrogacao: 18 registros sincronizados.
+[2025-08-03 04:50:02] ✅ Tabela tb_seguradora: 17 registros sincronizados.
+[2025-08-03 04:50:02] ✅ Tabela tb_tuss: 17 registros sincronizados.
+[2025-08-03 04:51:14] ✅ Tabela tb_tuss_ans: 6467 registros sincronizados.
+[2025-08-03 04:51:15] ✅ Tabela tb_user: 17 registros sincronizados.
+[2025-08-03 04:51:15] ✅ Tabela tb_uti: 9 registros sincronizados.
+[2025-08-03 04:51:15] ✅ Tabela tb_visita: 26 registros sincronizados.
+[2025-08-03 04:51:15] ✅ Sincronização finalizada.

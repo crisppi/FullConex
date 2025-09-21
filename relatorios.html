@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/powerbi-client@2.19.1/dist/powerbi.min.js"></script>
+  <style>
+    html, body, #reportContainer {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="reportContainer"></div>
+  <script>
+    const models = window['powerbi-client'].models;
+
+    const embedConfiguration = {
+      type: 'report',
+      id: 'fcde6f5f-d266-4630-bc9a-09625aed4985', // seu reportId
+      embedUrl: 'https://app.powerbi.com/reportEmbed?reportId=fcde6f5f-d266-4630-bc9a-09625aed4985&groupId=SEU_GROUP_ID',
+      accessToken: 'SEU_TOKEN_EMBED',
+      tokenType: models.TokenType.Embed,
+      permissions: models.Permissions.All,
+      settings: {
+        panes: {
+          filters: { visible: false },
+          pageNavigation: { visible: false }
+        },
+        navContentPaneEnabled: false,
+        bars: {
+          statusBar: { visible: false }
+        },
+        layoutType: models.LayoutType.Custom,
+        customLayout: {
+          displayOption: models.DisplayOption.FitToPage,
+          displayNavContentPane: false
+        }
+      }
+    };
+
+    powerbi.embed(document.getElementById('reportContainer'), embedConfiguration);
+  </script>
+</body>
+</html>

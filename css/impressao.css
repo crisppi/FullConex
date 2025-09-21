@@ -1,0 +1,86 @@
+@media print {
+
+    /* Reduzir margens */
+    @page {
+        margin: 10mm;
+    }
+
+    /* Ajustar margens e padding globais */
+    body {
+        margin: 0;
+        padding: 0;
+        font-size: 11pt;
+        /* Reduzir tamanho da fonte */
+        line-height: 1;
+        /* Compactar espaçamento entre linhas */
+        color: #000;
+    }
+
+    /* Reduzir espaçamentos em elementos */
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    p,
+    div {
+        margin: 0;
+        padding: 0.5em 0;
+    }
+
+    /* Remover quebras de página desnecessárias */
+    * {
+        page-break-inside: avoid !important;
+    }
+
+    /* Ajustar largura e conteúdo para caber */
+    .content,
+    main {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    /* Configurar tabelas para evitar quebras */
+    table {
+        page-break-inside: avoid !important;
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    thead {
+        display: table-header-group;
+    }
+
+    tbody {
+        display: table-row-group;
+    }
+
+    /* Reduzir tamanho das imagens */
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    /* Ocultar elementos irrelevantes */
+    .no-print,
+    nav,
+    footer,
+    aside,
+    .sidebar {
+        display: none !important;
+    }
+
+    /* Ajustar margens entre seções */
+    section,
+    article {
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Reduzir largura de colunas ou elementos */
+    .column {
+        float: none;
+        width: auto;
+    }
+}

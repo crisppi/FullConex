@@ -1,0 +1,185 @@
+.sidebar {
+    /* max-height: 550px; */
+    /* Altura máxima da barra lateral */
+    height: 100%;
+    /* Faz com que a sidebar e a área de chat preencham a altura total */
+    padding: 15px;
+    border-right: 1px solid #ddd;
+    background-color: #f7f7f7;
+    overflow-y: auto;
+    /* Adiciona a barra de rolagem se o conteúdo exceder a altura */
+}
+
+.user-list {
+    list-style: none;
+    /* Remove as bolinhas da lista */
+    padding: 0;
+    margin: 0;
+}
+
+.user-list li {
+    width: 100%;
+    /* Faz com que o <li> ocupe toda a largura da <ul> */
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #ddd;
+}
+
+.user-list li a {
+    text-decoration: none;
+    color: inherit;
+    /* Mantém a cor do texto como padrão */
+    display: block;
+    width: 100%;
+    /* Faz com que o link ocupe toda a largura da <li> */
+}
+
+.user-list li a:hover {
+    background-color: #5bd9f3;
+    /* display: block; */
+    padding: 5px;
+    border-radius:5px;
+}
+
+.user-photo {
+    width: 40px;
+    /* Tamanho da foto do usuário */
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+    object-fit: cover;
+    /* Garante que a foto fique cortada corretamente */
+}
+
+.chat-container {
+    height: 100%;
+    /* Faz com que a sidebar e a área de chat preencham a altura total */
+    padding: 20px;
+    border-radius: 10px;
+    overflow-y: auto;
+    /* Permite rolagem caso o conteúdo exceda a altura */
+}
+
+.message-box {
+    height: calc(100% - 170px);
+    /* Ajuste a altura da área de mensagens para ocupar o espaço disponível */
+    overflow-y: auto;
+    /* Adiciona barra de rolagem para mensagens longas */
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.message {
+    margin-bottom: 10px;
+}
+
+.message.sent {
+    text-align: right;
+}
+
+.message.received {
+    text-align: left;
+}
+
+.message .text {
+    display: inline-block;
+    padding: 8px;
+    border-radius: 10px;
+    background-color: #e9ecef;
+}
+
+.message.sent .text {
+    background-color: #DCF8C6;
+}
+
+.message.received .text {
+    background-color: #d0e8ff;
+    
+}
+
+.chat-header {
+    padding: 10px 0;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 20px;
+}
+
+.user-photo-chat {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    text-align: left;
+}
+
+.user-list .badge {
+    font-size: 0.7rem;
+    /* Tamanho da badge */
+}
+
+.user-list .text-truncate {
+    white-space: nowrap;
+    /* Impede quebra de linha */
+    overflow: hidden;
+    /* Esconde o texto excedente */
+    text-overflow: ellipsis;
+    /* Adiciona '...' no final do texto truncado */
+    max-width: 200px;
+    /* Limita a largura para garantir truncamento */
+}
+
+.user-list .text-muted.small {
+    font-size: 0.85rem;
+    /* Define um tamanho de fonte menor para a data e mensagem */
+}
+
+.row {
+    height: 70vh;
+    /* Define a altura da linha como 100% da altura da tela */
+}
+
+.chat-container .input-group {
+    padding: 10px;
+}
+
+.message {
+    position: relative;  /* Para alinhar o conteúdo dentro da mensagem */
+    padding: 10px;       /* Espaçamento dentro da mensagem */
+    border-radius: 8px;  /* Bordas arredondadas como no WhatsApp */
+    max-width: 45%;      /* Limitar a largura das mensagens */
+    margin-bottom: 10px;
+    word-wrap: break-word; /* Para evitar que textos longos quebrem o layout */
+}
+
+.message.sent {
+    background-color: #DCF8C6; /* Verde claro para mensagens enviadas */
+    margin-left: auto;
+    text-align: left; /* Texto alinhado à esquerda para mensagens enviadas */
+}
+
+.message.received {
+    background-color: #d0e8ff;
+    margin-right: auto;
+    text-align: left; /* Texto alinhado à esquerda para mensagens recebidas */
+}
+
+.message .text {
+    display: inline-block;
+    margin-right: 35px;  /* Espaço reservado para a data */
+}
+
+.message .message-date {
+    position: absolute;
+    bottom: 5px;
+    right: 10px;  /* Alinha a data no canto inferior direito da mensagem */
+    font-size: 0.75rem;  /* Tamanho pequeno */
+    color: #888;  /* Cor cinza suave, como no WhatsApp */
+}

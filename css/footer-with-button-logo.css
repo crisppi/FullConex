@@ -1,0 +1,128 @@
+#myFooter {
+    color: rgb(35, 34, 34);
+    padding-top: 30px;
+    /* background-color: rgb(241, 240, 240); */
+    box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.2);
+    font-size: .7em;
+    font-weight: normal;
+    /* padding: 5px; */
+    margin-left: 5px;
+    margin-bottom: 10px;
+}
+
+#myFooter .footer-copyright {
+    background-color: #35bae1;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    text-align: center;
+}
+
+#myFooter .footer-copyrightFull {
+    background-color: #3d0252;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    text-align: center;
+}
+
+#myFooter .row {
+    margin-bottom: 60px;
+}
+
+#myFooter .navbar-brand {
+    margin-top: 45px;
+    height: 65px;
+}
+
+#myFooter .footer-copyright p {
+    margin: 10px;
+    color: rgb(251, 245, 245);
+    font-weight: 500;
+}
+
+#myFooter .footer-copyrightFull p {
+    margin: 10px;
+    color: rgb(251, 245, 245);
+    font-weight: 500;
+}
+
+#myFooter ul {
+    list-style-type: none;
+    padding-left: 0;
+    line-height: 1.7;
+}
+
+#myFooter h5 {
+    font-size: 18px;
+    color: rgb(30, 29, 29);
+    font-weight: bold;
+    margin-top: 30px;
+    /* font-family: var(--bs-font-sans-serif); */
+}
+
+#myFooter h2 a {
+    font-size: 50px;
+    text-align: center;
+    color: rgb(243, 239, 239);
+    /* font-family: var(--bs-font-sans-serif); */
+}
+
+#myFooter a {
+    color: rgb(30, 29, 29);
+    text-decoration: none;
+    /* font-family: var(--bs-font-sans-serif); */
+}
+
+#myFooter a:hover,
+#myFooter a:focus {
+    text-decoration: none;
+    /* font-weight: bold; */
+    color: #BE4342;
+}
+
+#myFooter .social-networks {
+    text-align: center;
+    padding-top: 30px;
+    padding-bottom: 16px;
+}
+
+#myFooter .social-networks a {
+    font-size: 32px;
+    color: rgb(30, 29, 29);
+    padding: 10px;
+    transition: 0.2s;
+}
+
+#myFooter .social-networks a:hover {
+    text-decoration: none;
+}
+
+#myFooter .facebook:hover {
+    color: #0077e2;
+}
+
+#myFooter .instagram:hover {
+    color: purple;
+}
+
+#myFooter .twitter:hover {
+    color: #00aced;
+}
+
+#myFooter .btn {
+    color: white;
+    background-color: #380137;
+    border-radius: 20px;
+    border: none;
+    width: 10 0px;
+    display: block;
+    margin: 0 auto;
+    margin-top: 10px;
+    line-height: 25px;
+    /* font-family: var(--bs-font-sans-serif); */
+}
+
+@media screen and (max-width: 767px) {
+    #myFooter {
+        text-align: center;
+    }
+}

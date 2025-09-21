@@ -1,0 +1,44 @@
+@media print {
+    body {
+        font-size: 10pt;
+        /* Reduz o tamanho padrão da fonte */
+        line-height: 1.2;
+        /* Reduz o espaçamento entre linhas */
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        font-size: 12pt;
+        /* Reduz os títulos */
+        line-height: 1.2;
+    }
+
+    p,
+    span,
+    .texto1,
+    .texto2 {
+        font-size: 7pt !important;
+        /* Fonte menor para textos */
+        line-height: 1 !important;
+    }
+
+    .card-title,
+    .bold {
+        font-size: 10pt;
+        /* Ajusta elementos com classes específicas */
+    }
+
+    .btn {
+        display: none !important;
+        /* Oculta botões desnecessários */
+    }
+
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+}

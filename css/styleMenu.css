@@ -1,0 +1,142 @@
+:root {
+    --select-border: #777;
+    --select-focus: blue;
+    --select-arrow: var(--select-border);
+}
+
+
+/* lista lista_menu */
+
+.lista_menu {
+    width: 30%;
+    text-decoration: none;
+    list-style-type: none;
+    margin-top: 50px;
+    /* font-family: var(--bs-font-sans-serif); */
+}
+
+.hidden {
+    display: none;
+}
+
+.visible {
+    display: block;
+}
+
+.logo-novo {
+    max-width: 100%;
+    height: auto;
+    width: auto\9;
+    max-height: 100px;
+    min-height: 50px;
+}
+
+.titulo_header {
+    /* text-shadow: 0.1em 0.1em #333; */
+    color: gray;
+}
+
+.menu_header {
+    background-color: #35bae1;
+    display: flex;
+    justify-content: space-between;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.menu_header h4 {
+    color: rgb(255, 255, 255);
+    /* text-shadow: #bbbaba 2px 3px 2px; */
+    font-weight: 500;
+    /* font-family: var(--bs-font-sans-serif); */
+    padding: 5px;
+    width: 30%;
+}
+
+.menu_header_i {
+    margin-left: 10px;
+}
+
+.lista_menu h4 {
+    color: rgb(255, 255, 255);
+    /* text-shadow: #bbbaba 2px 3px 2px; */
+    font-weight: 700;
+    /* font-family: var(--bs-font-sans-serif); */
+    padding: 5px;
+}
+
+li {
+    list-style-type: none;
+}
+
+.lista_menu a {
+    color: #181818;
+    font-weight: 700;
+    font-size: 1em;
+    padding-bottom: 10px;
+    text-decoration: none;
+    list-style-type: none;
+    margin-bottom: 10px;
+}
+
+.lista_menu li a {
+    color: #3A3A3A;
+    /* text-shadow: #bbbaba 2px 3px 2px; */
+    font-weight: 500;
+    font-size: 1em;
+    padding-bottom: 20px;
+    text-decoration: none;
+    list-style-type: none;
+}
+
+.lista_menu a:hover {
+    color: #BE4342;
+    /* font-size: 1.1em; */
+    transition: 1;
+}
+
+.menu_pesquisa {
+    background-color: rgb(220, 217, 217);
+    margin-bottom: 10px;
+}
+
+.menu_pesquisa input[type="text"] {
+    background-color: rgb(241, 240, 240);
+    box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.2);
+    font-size: .7em;
+    font-weight: normal;
+    padding: 5px;
+    margin-left: 5px;
+    margin-bottom: 10px;
+}
+
+.nav_bar_custom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* background-color: #eceaea !important; */
+    color: #fff;
+    padding: 0px !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    /* Box shadow elegante */
+}
+
+.modal-backdrop {
+    display: none;
+}
+
+.modal {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+
+/* .iconClass {
+    position: relative;
+}
+
+.iconClass span {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    display: block;
+} */
