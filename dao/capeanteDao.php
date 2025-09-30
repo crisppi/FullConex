@@ -695,4 +695,64 @@ class capeanteDAO implements capeanteDAOInterface
             'periodo_anterior_fim'  => $ultimo['data_final_capeante']   ?? null,
         ];
     }
+    public function getHospitaisParaUsuario(int $userId, string $cargo): array
+    {
+        // Lista de cargos que devem ter a visão filtrada por hospital
+        $cargosComFiltro = [
+            'Adm',
+            'adm',
+            'Administrador',
+            'administrador',
+            'Hospital',
+            'hospital'
+        ];
+
+        if (!in_array($cargo, $cargosComFiltro)) {
+            // Médicos, Enfermeiros, etc., verão todos os hospitais
+            $sql = "SELECT DISTINCT ho.id_hospital, ho.nome_hosp FROM tb_hospital ho ORDER BY ho.nome_hosp ASC";
+            $stmt = $this->conn->prepare($sql);
+        } else {
+            // Adm, Hospital, etc., buscam apenas os associados
+            $sql = "SELECT DISTINCT ho.id_hospital, ho.nome_hosp
+                    FROM tb_hospital ho
+                    INNER JOIN tb_hospitalUser hu ON ho.id_hospital = hu.fk_hospital_user
+                    WHERE hu.fk_usuario_hosp = :userId
+                    ORDER BY ho.nome_hosp ASC";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindValue(':userId', $userId, PDO::PARAM_INT);
+        }
+
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Este é um método de exemplo para buscar os dados para a lista.
+    // Adapte o SELECT conforme a sua necessidade real.
+    public function buscarCapeantesFiltrados($where = '', $limit = 'LIMIT 25')
+    {
+        $sql = "
+            SELECT 
+                ca.id_capeante,
+                pa.nome_pac,
+                ho.nome_hosp,
+                ca.data_inicial_capeante,
+                ca.data_final_capeante,
+                ca.valor_final_capeante,
+                ca.encerrado_cap
+            FROM tb_capeante ca
+            LEFT JOIN tb_internacao ac ON ca.fk_int_capeante = ac.id_internacao
+            LEFT JOIN tb_paciente pa ON ac.fk_paciente_int = pa.id_paciente
+            LEFT JOIN tb_hospital ho ON ac.fk_hospital_int = ho.id_hospital
+        ";
+
+        if (!empty($where)) {
+            $sql .= " WHERE " . $where;
+        }
+
+        $sql .= " ORDER BY ca.id_capeante DESC $limit";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

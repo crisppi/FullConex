@@ -209,35 +209,33 @@ class internacaoDAO implements internacaoDAOInterface
         $stmt->bindParam(":fk_patologia_int", $internacao->fk_patologia_int);
         $stmt->bindParam(":fk_patologia2", $internacao->fk_patologia2);
         $stmt->bindParam(":data_intern_int", $internacao->data_intern_int);
-        $stmt->bindParam(":internado_int", $internacao->internado_int);
         $stmt->bindParam(":acoes_int", $internacao->acoes_int, PDO::PARAM_STR);
+        $stmt->bindParam(":internado_int", $internacao->internado_int);
         $stmt->bindParam(":modo_internacao_int", $internacao->modo_internacao_int);
         $stmt->bindParam(":tipo_admissao_int", $internacao->tipo_admissao_int);
-        $stmt->bindParam(":especialidade_int", $internacao->especialidade_int);
-        $stmt->bindParam(":data_create_int", $internacao->data_create_int);
-        $stmt->bindParam(":usuario_create_int", $internacao->usuario_create_int);
+        $stmt->bindParam(":titular_int", $internacao->titular_int);
+        $stmt->bindParam(":crm_int", $internacao->crm_int);
         $stmt->bindParam(":data_visita_int", $internacao->data_visita_int);
         $stmt->bindParam(":grupo_patologia_int", $internacao->grupo_patologia_int);
+        $stmt->bindParam(":data_create_int", $internacao->data_create_int);
+        $stmt->bindParam(":usuario_create_int", $internacao->usuario_create_int);
         $stmt->bindParam(":primeira_vis_int", $internacao->primeira_vis_int);
         $stmt->bindParam(":visita_no_int", $internacao->visita_no_int);
-        $stmt->bindParam(":visita_med_int", $internacao->visita_med_int);
         $stmt->bindParam(":visita_enf_int", $internacao->visita_enf_int);
-        $stmt->bindParam(":senha_int", $internacao->senha_int, PDO::PARAM_STR);
+        $stmt->bindParam(":visita_med_int", $internacao->visita_med_int);
+        $stmt->bindParam(":senha_int", $internacao->senha_int);
         $stmt->bindParam(":acomodacao_int", $internacao->acomodacao_int);
         $stmt->bindParam(":visita_auditor_prof_med", $internacao->visita_auditor_prof_med);
         $stmt->bindParam(":visita_auditor_prof_enf", $internacao->visita_auditor_prof_enf);
-        $stmt->bindParam(":titular_int", $internacao->titular_int);
-        $stmt->bindParam(":crm_int", $internacao->crm_int, PDO::PARAM_STR);
-        $stmt->bindParam(":acoes_int", $internacao->acoes_int, PDO::PARAM_STR);
+        $stmt->bindParam(":fk_usuario_int", $internacao->fk_usuario_int);
         $stmt->bindParam(":censo_int", $internacao->censo_int);
-        $stmt->bindParam(":programacao_int", $internacao->programacao_int, PDO::PARAM_STR);
+        $stmt->bindParam(":especialidade_int", $internacao->especialidade_int);
+        $stmt->bindParam(":programacao_int", $internacao->programacao_int);
         $stmt->bindParam(":origem_int", $internacao->origem_int);
         $stmt->bindParam(":int_pertinente_int", $internacao->int_pertinente_int);
         $stmt->bindParam(":rel_pertinente_int", $internacao->rel_pertinente_int);
         $stmt->bindParam(":hora_intern_int", $internacao->hora_intern_int);
-        $stmt->bindParam(":fk_usuario_int", $internacao->fk_usuario_int);
         $stmt->bindParam(":num_atendimento_int", $internacao->num_atendimento_int);
-
 
         $stmt->execute();
 
@@ -282,8 +280,7 @@ class internacaoDAO implements internacaoDAOInterface
         rel_pertinente_int = :rel_pertinente_int,
         programacao_int = :programacao_int,
         hora_intern_int = :hora_intern_int,
-        num_atendimento_int = :num_atendimento_int,
-
+        num_atendimento_int = :num_atendimento_int
 
         WHERE id_internacao = :id_internacao
     ");
@@ -1314,106 +1311,103 @@ class internacaoDAO implements internacaoDAOInterface
         //MONTA A QUERY
         $query = $this->conn->query(
             'SELECT 
-    ac.id_internacao, 
-    ac.acoes_int, 
-    ac.data_intern_int,
-    ac.hora_intern_int, 
-    ac.data_visita_int, 
-    ac.rel_int, 
-    ac.fk_paciente_int, 
-    ac.usuario_create_int, 
-    ac.fk_hospital_int, 
-    ac.modo_internacao_int, 
-    ac.tipo_admissao_int,
-    ac.especialidade_int, 
-    ac.titular_int, 
-    ac.crm_int, 
-    ac.grupo_patologia_int, 
-    ac.acomodacao_int, 
-    ac.fk_patologia_int, 
-    ac.fk_patologia2, 
-    ac.internado_int,
-    ac.visita_no_int,
-    ac.primeira_vis_int,
-    ac.origem_int,
-    ac.senha_int,
-    pa.id_paciente,
-    pa.nome_pac,
-    ho.id_hospital,
-    ho.nome_hosp, 
-    hos.fk_hospital_user,
-    hos.fk_usuario_hosp,
-    se.id_usuario,
-    se.usuario_user,
-    ut.fk_internacao_uti,
-    ut.id_uti,
-    ca.id_capeante,
-    ca.data_inicial_capeante,
-    ca.data_final_capeante,
-    ca.diarias_capeante,
-    ca.lote_cap,
-    ca.fk_int_capeante,
-    ca.glosa_diaria,
-    ca.glosa_honorarios,
-    ca.glosa_matmed,
-    ca.glosa_oxig,
-    ca.glosa_sadt,
-    ca.glosa_taxas,
-    ca.glosa_opme,
-    ca.pacote,
-    ca.parcial_capeante,
-    ca.parcial_num,
-    ca.valor_diarias,
-    ca.valor_glosa_enf,
-    ca.valor_glosa_med,
-    ca.valor_glosa_total,
-    ca.valor_honorarios,
-    ca.valor_matmed,
-    ca.valor_oxig,
-    ca.valor_sadt,
-    ca.valor_taxa,
-    ca.valor_opme,
-    ca.senha_finalizada,
-    ca.glosa_total,
-    ca.valor_apresentado_capeante,
-    ca.valor_final_capeante,
-    ca.adm_check,
-    ca.med_check,
-    ca.enfer_check,
-    ca.aberto_cap,
-    ca.em_auditoria_cap,
-    ca.encerrado_cap,
-    ca.negociado_desconto_cap,
-    ca.desconto_valor_cap,
-    ca.conta_parada_cap,
-    ca.parada_motivo_cap,
-    ca.fk_id_aud_enf,
-    ca.fk_id_aud_med,
-    ca.fk_id_aud_adm,
-    ca.fk_id_aud_hosp,
-    ca.conta_faturada_cap   
+        ac.id_internacao, 
+        ac.acoes_int, 
+        ac.data_intern_int,
+        ac.hora_intern_int, 
+        ac.data_visita_int, 
+        ac.rel_int, 
+        ac.fk_paciente_int, 
+        ac.usuario_create_int, 
+        ac.fk_hospital_int, 
+        ac.modo_internacao_int, 
+        ac.tipo_admissao_int,
+        ac.especialidade_int, 
+        ac.titular_int, 
+        ac.crm_int, 
+        ac.grupo_patologia_int, 
+        ac.acomodacao_int, 
+        ac.fk_patologia_int, 
+        ac.fk_patologia2, 
+        ac.internado_int,
+        ac.visita_no_int,
+        ac.primeira_vis_int,
+        ac.origem_int,
+        ac.senha_int,
+        pa.id_paciente,
+        pa.nome_pac,
+        ho.id_hospital,
+        ho.nome_hosp, 
+        hos.fk_hospital_user,
+        hos.fk_usuario_hosp,
+        se.id_usuario,
+        se.usuario_user,
+        ut.fk_internacao_uti,
+        ut.id_uti,
+        ca.id_capeante,
+        ca.data_inicial_capeante,
+        ca.data_final_capeante,
+        ca.diarias_capeante,
+        ca.lote_cap,
+        ca.fk_int_capeante,
+        ca.glosa_diaria,
+        ca.glosa_honorarios,
+        ca.glosa_matmed,
+        ca.glosa_oxig,
+        ca.glosa_sadt,
+        ca.glosa_taxas,
+        ca.glosa_opme,
+        ca.pacote,
+        ca.parcial_capeante,
+        ca.parcial_num,
+        ca.valor_diarias,
+        ca.valor_glosa_enf,
+        ca.valor_glosa_med,
+        ca.valor_glosa_total,
+        ca.valor_honorarios,
+        ca.valor_matmed,
+        ca.valor_oxig,
+        ca.valor_sadt,
+        ca.valor_taxa,
+        ca.valor_opme,
+        ca.senha_finalizada,
+        ca.glosa_total,
+        ca.valor_apresentado_capeante,
+        ca.valor_final_capeante,
+        ca.adm_check,
+        ca.med_check,
+        ca.enfer_check,
+        ca.aberto_cap,
+        ca.em_auditoria_cap,
+        ca.encerrado_cap,
+        ca.negociado_desconto_cap,
+        ca.desconto_valor_cap,
+        ca.conta_parada_cap,
+        ca.parada_motivo_cap,
+        ca.fk_id_aud_enf,
+        ca.fk_id_aud_med,
+        ca.fk_id_aud_adm,
+        ca.fk_id_aud_hosp,
+        ca.conta_faturada_cap   
 
-    FROM tb_internacao ac 
+        FROM tb_internacao ac 
 
-        LEFT JOIN tb_hospital AS ho ON  
-        ac.fk_hospital_int = ho.id_hospital
+            LEFT JOIN tb_hospital AS ho ON  
+            ac.fk_hospital_int = ho.id_hospital
 
-        LEFT JOIN tb_hospitalUser AS hos ON
-        hos.fk_hospital_user = ho.id_hospital
+            LEFT JOIN tb_hospitalUser AS hos ON
+            hos.fk_hospital_user = ho.id_hospital
+                
+            LEFT JOIN tb_user AS se ON  
+            se.id_usuario = hos.fk_usuario_hosp
+
+            LEFT join tb_paciente AS pa ON
+            ac.fk_paciente_int = pa.id_paciente 
+
+            left join tb_capeante AS ca ON
+            ac.id_internacao = ca.fk_int_capeante 
             
-		LEFT JOIN tb_user AS se ON  
-        se.id_usuario = hos.fk_usuario_hosp
-
-        LEFT JOIN tb_uti AS ut ON  
-        ac.id_internacao = ut.fk_internacao_uti
-
-        LEFT join tb_paciente AS pa ON
-        ac.fk_paciente_int = pa.id_paciente 
-
-        left join tb_capeante AS ca ON
-        ac.id_internacao = ca.fk_int_capeante 
-        
-        ' . $where . '' . $order . ' ' . $limit
+            ' . $where . '' . $order . ' ' . $limit
         );
         // print_r($query);
         // exit;
@@ -1424,7 +1418,152 @@ class internacaoDAO implements internacaoDAOInterface
         return $hospital;
     }
 
+    public function selectAllInternacaoCap2(?int $userFiltro, ?string $where, ?string $order, ?string $limit): array
+    {
+        $whereParts = [];
+        if ($where) {
+            $whereParts[] = "($where)";
+        }
 
+        // filtro de acesso (sem JOIN → não duplica)
+        if (!empty($userFiltro)) {
+            $whereParts[] = "EXISTS (
+                SELECT 1
+                  FROM tb_hospitalUser hu
+                 WHERE hu.fk_hospital_user = ac.fk_hospital_int
+                   AND hu.fk_usuario_hosp  = :userFiltro
+            )";
+        }
+
+        $whereSQL = $whereParts ? "WHERE " . implode(' AND ', $whereParts) : "";
+
+        // subselect capeante: 1 por internação (último id)
+        $sql = "
+            SELECT
+                ac.id_internacao,
+                ac.acoes_int,
+                ac.data_intern_int,
+                ac.hora_intern_int,
+                ac.data_visita_int,
+                ac.fk_hospital_int,
+                ac.fk_patologia_int,
+                ac.fk_patologia2,
+                ac.internado_int,
+                ac.visita_no_int,
+                ac.primeira_vis_int,
+                ac.senha_int,
+
+                pa.id_paciente,
+                pa.nome_pac,
+
+                ho.id_hospital,
+                ho.nome_hosp,
+
+                ca.id_capeante,
+                ca.data_inicial_capeante,
+                ca.data_final_capeante,
+                ca.diarias_capeante,
+                ca.lote_cap,
+                ca.fk_int_capeante,
+                ca.glosa_diaria,
+                ca.glosa_honorarios,
+                ca.glosa_matmed,
+                ca.glosa_oxig,
+                ca.glosa_sadt,
+                ca.glosa_taxas,
+                ca.glosa_opme,
+                ca.pacote,
+                ca.parcial_capeante,
+                ca.parcial_num,
+                ca.valor_diarias,
+                ca.valor_glosa_enf,
+                ca.valor_glosa_med,
+                ca.valor_glosa_total,
+                ca.valor_honorarios,
+                ca.valor_matmed,
+                ca.valor_oxig,
+                ca.valor_sadt,
+                ca.valor_taxa,
+                ca.valor_opme,
+                ca.senha_finalizada,
+                ca.glosa_total,
+                ca.valor_apresentado_capeante,
+                ca.valor_final_capeante,
+                ca.adm_check,
+                ca.med_check,
+                ca.enfer_check,
+                ca.aberto_cap,
+                ca.em_auditoria_cap,
+                ca.encerrado_cap,
+                ca.negociado_desconto_cap,
+                ca.desconto_valor_cap,
+                ca.conta_parada_cap,
+                ca.parada_motivo_cap,
+                ca.fk_id_aud_enf,
+                ca.fk_id_aud_med,
+                ca.fk_id_aud_adm,
+                ca.fk_id_aud_hosp,
+                ca.conta_faturada_cap
+
+            FROM tb_internacao ac
+            JOIN tb_paciente pa  ON pa.id_paciente  = ac.fk_paciente_int
+            JOIN tb_hospital ho  ON ho.id_hospital  = ac.fk_hospital_int
+
+            LEFT JOIN (
+                SELECT c.*
+                  FROM tb_capeante c
+                  JOIN (
+                        SELECT fk_int_capeante, MAX(id_capeante) AS max_id
+                          FROM tb_capeante
+                      GROUP BY fk_int_capeante
+                  ) u ON u.fk_int_capeante = c.fk_int_capeante
+                     AND u.max_id          = c.id_capeante
+            ) ca ON ca.fk_int_capeante = ac.id_internacao
+
+            $whereSQL
+            " . ($order ? "ORDER BY $order" : "ORDER BY ac.data_intern_int DESC, ac.id_internacao DESC") . "
+            " . ($limit ? "LIMIT $limit" : "") . "
+        ";
+
+        $stmt = $this->conn->prepare($sql);
+        if (!empty($userFiltro)) {
+            $stmt->bindValue(':userFiltro', $userFiltro, PDO::PARAM_INT);
+        }
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    public function countInternacaoCap2(?int $userFiltro, ?string $where): int
+    {
+        $whereParts = [];
+        if ($where) {
+            $whereParts[] = "($where)";
+        }
+        if (!empty($userFiltro)) {
+            $whereParts[] = "EXISTS (
+                SELECT 1
+                  FROM tb_hospitalUser hu
+                 WHERE hu.fk_hospital_user = ac.fk_hospital_int
+                   AND hu.fk_usuario_hosp  = :userFiltro
+            )";
+        }
+        $whereSQL = $whereParts ? "WHERE " . implode(' AND ', $whereParts) : "";
+
+        $sql = "
+            SELECT COUNT(*) AS total
+              FROM tb_internacao ac
+              JOIN tb_paciente pa ON pa.id_paciente = ac.fk_paciente_int
+              JOIN tb_hospital ho ON ho.id_hospital = ac.fk_hospital_int
+            $whereSQL
+        ";
+
+        $stmt = $this->conn->prepare($sql);
+        if (!empty($userFiltro)) {
+            $stmt->bindValue(':userFiltro', $userFiltro, PDO::PARAM_INT);
+        }
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)($row['total'] ?? 0);
+    }
     // ********* \\ ********
     // ********* MODELO PARA CRIACAO DE CAPEANTE PARCIAL ********
     // ********* \\ ********
@@ -1438,86 +1577,86 @@ class internacaoDAO implements internacaoDAOInterface
         //MONTA A QUERY
         $query = $this->conn->query(
             'SELECT 
-    ac.id_internacao, 
-    ac.acoes_int, 
-    ac.data_intern_int, 
-    ac.data_visita_int, 
-    ac.rel_int, 
-    ac.fk_paciente_int, 
-    ac.usuario_create_int, 
-    ac.fk_hospital_int, 
-    ac.modo_internacao_int, 
-    ac.tipo_admissao_int,
-    ac.especialidade_int, 
-    ac.titular_int, 
-    ac.crm_int, 
-    ac.senha_int,
-    ac.grupo_patologia_int, 
-    ac.acomodacao_int, 
-    ac.fk_patologia_int, 
-    ac.fk_patologia2, 
-    ac.internado_int,
-    ac.visita_no_int,
-    ac.primeira_vis_int,
-    ac.hora_intern_int,
-    ac.origem_int,
-    pa.id_paciente,
-    pa.nome_pac,
-    ho.id_hospital,
-    ho.nome_hosp, 
-    hos.fk_hospital_user,
-    hos.fk_usuario_hosp,
-    se.id_usuario,
-    se.usuario_user,
-    ut.fk_internacao_uti,
-    ut.id_uti,
-    ca.id_capeante,
-    ca.data_inicial_capeante,
-    ca.data_final_capeante,
-    ca.diarias_capeante,
-    ca.fk_int_capeante,
-    ca.glosa_diaria,
-    ca.glosa_honorarios,
-    ca.glosa_matmed,
-    ca.glosa_oxig,
-    ca.glosa_sadt,
-    ca.glosa_taxas,
-    ca.pacote,
-    ca.parcial_capeante,
-    ca.parcial_num,
-    ca.valor_diarias,
-    ca.valor_glosa_enf,
-    ca.valor_glosa_med,
-    ca.valor_glosa_total,
-    ca.valor_honorarios,
-    ca.valor_matmed,
-    ca.valor_oxig,
-    ca.valor_sadt,
-    ca.valor_taxa,
-    ca.senha_finalizada,
-    ca.glosa_total,
-    ca.valor_apresentado_capeante,
-    ca.valor_final_capeante,
-    ca.adm_check,
-    ca.med_check,
-    ca.enfer_check,
-    ca.aberto_cap,
-    ca.em_auditoria_cap,
-    ca.encerrado_cap,
-    ca.negociado_desconto_cap,
-    ca.desconto_valor_cap,
-    ca.conta_parada_cap,
-    ca.parada_motivo_cap,
-    ca.fk_id_aud_enf,
-    ca.fk_id_aud_med,
-    ca.fk_id_aud_adm,
-    ca.fk_id_aud_hosp,
-    ca.lote_cap,
-    ca.glosa_opme,
-    ca.valor_opme,
-    ca.conta_faturada_cap
+        ac.id_internacao, 
+        ac.acoes_int, 
+        ac.data_intern_int, 
+        ac.data_visita_int, 
+        ac.rel_int, 
+        ac.fk_paciente_int, 
+        ac.usuario_create_int, 
+        ac.fk_hospital_int, 
+        ac.modo_internacao_int, 
+        ac.tipo_admissao_int,
+        ac.especialidade_int, 
+        ac.titular_int, 
+        ac.crm_int, 
+        ac.senha_int,
+        ac.grupo_patologia_int, 
+        ac.acomodacao_int, 
+        ac.fk_patologia_int, 
+        ac.fk_patologia2, 
+        ac.internado_int,
+        ac.visita_no_int,
+        ac.primeira_vis_int,
+        ac.hora_intern_int,
+        ac.origem_int,
+        pa.id_paciente,
+        pa.nome_pac,
+        ho.id_hospital,
+        ho.nome_hosp, 
+        hos.fk_hospital_user,
+        hos.fk_usuario_hosp,
+        se.id_usuario,
+        se.usuario_user,
+        ut.fk_internacao_uti,
+        ut.id_uti,
+        ca.id_capeante,
+        ca.data_inicial_capeante,
+        ca.data_final_capeante,
+        ca.diarias_capeante,
+        ca.fk_int_capeante,
+        ca.glosa_diaria,
+        ca.glosa_honorarios,
+        ca.glosa_matmed,
+        ca.glosa_oxig,
+        ca.glosa_sadt,
+        ca.glosa_taxas,
+        ca.pacote,
+        ca.parcial_capeante,
+        ca.parcial_num,
+        ca.valor_diarias,
+        ca.valor_glosa_enf,
+        ca.valor_glosa_med,
+        ca.valor_glosa_total,
+        ca.valor_honorarios,
+        ca.valor_matmed,
+        ca.valor_oxig,
+        ca.valor_sadt,
+        ca.valor_taxa,
+        ca.senha_finalizada,
+        ca.glosa_total,
+        ca.valor_apresentado_capeante,
+        ca.valor_final_capeante,
+        ca.adm_check,
+        ca.med_check,
+        ca.enfer_check,
+        ca.aberto_cap,
+        ca.em_auditoria_cap,
+        ca.encerrado_cap,
+        ca.negociado_desconto_cap,
+        ca.desconto_valor_cap,
+        ca.conta_parada_cap,
+        ca.parada_motivo_cap,
+        ca.fk_id_aud_enf,
+        ca.fk_id_aud_med,
+        ca.fk_id_aud_adm,
+        ca.fk_id_aud_hosp,
+        ca.lote_cap,
+        ca.glosa_opme,
+        ca.valor_opme,
+        ca.conta_faturada_cap
 
-    FROM tb_internacao ac 
+        FROM tb_internacao ac 
 
         LEFT JOIN tb_hospital AS ho ON  
         ac.fk_hospital_int = ho.id_hospital
@@ -1547,6 +1686,141 @@ class internacaoDAO implements internacaoDAOInterface
 
         return $hospital;
     }
+
+    public function selectAllInternacaoNewCap_min3_access(
+        ?int $userIdFiltro,
+        ?string $where = null,
+        ?string $order = null,
+        ?string $limit = null
+    ): array {
+        // Base select
+        $sql = "
+        SELECT
+            ac.id_internacao,
+            ac.data_intern_int,
+            ac.fk_paciente_int,
+            ac.fk_hospital_int,
+            p.id_paciente,
+            p.nome_pac,
+            ho.id_hospital,
+            ho.nome_hosp,
+
+            -- último capeante (se existir)
+            lc.id_capeante,
+            lc.fk_int_capeante,
+            lc.data_inicial_capeante,
+            lc.data_final_capeante,
+            lc.valor_apresentado_capeante,
+            lc.valor_final_capeante,
+            lc.glosa_total,
+            lc.senha_finalizada,
+            lc.encerrado_cap,
+            lc.aberto_cap,
+            lc.em_auditoria_cap,
+            lc.lote_cap,
+            lc.conta_faturada_cap,
+            lc.parcial_capeante,
+            lc.parcial_num,
+            lc.diarias_capeante,
+            lc.valor_glosa_enf,
+            lc.valor_glosa_med,
+
+            -- campos adicionais usados na view (se não existirem na sua tabela capeante, remova)
+            lc.valor_diarias,
+            lc.glosa_diaria,
+            lc.valor_oxig,
+            lc.glosa_oxig,
+            lc.valor_taxa,
+            lc.glosa_taxas,
+            lc.valor_matmed,
+            lc.glosa_matmed,
+            lc.valor_sadt,
+            lc.glosa_sadt,
+            lc.valor_honorarios,
+            lc.glosa_honorarios,
+            lc.valor_opme,
+            lc.glosa_opme,
+            lc.desconto_valor_cap,
+
+            -- flags/usuarios (ajuste se vierem de outra tabela)
+            lc.adm_check,
+            lc.med_check,
+            lc.enfer_check,
+            lc.fk_id_aud_med,
+            lc.fk_id_aud_enf,
+
+            -- exemplo: se tiver senha da internação em outra tabela, traga aqui
+            ac.senha_int
+        FROM tb_internacao ac
+        INNER JOIN tb_paciente  p  ON p.id_paciente  = ac.fk_paciente_int
+        INNER JOIN tb_hospital  ho ON ho.id_hospital = ac.fk_hospital_int
+
+        -- subquery: último capeante por internacao
+        LEFT JOIN (
+            SELECT c.*
+            FROM tb_capeante c
+            INNER JOIN (
+                SELECT fk_int_capeante, MAX(id_capeante) AS max_id
+                FROM tb_capeante
+                GROUP BY fk_int_capeante
+            ) ult ON ult.fk_int_capeante = c.fk_int_capeante
+                 AND ult.max_id = c.id_capeante
+        ) lc ON lc.fk_int_capeante = ac.id_internacao
+    ";
+
+        // Condicional: só juntar hospitalUser se houver filtro por usuário
+        if ($userIdFiltro !== null) {
+            $sql .= "
+            INNER JOIN tb_hospitalUser hu
+                    ON hu.fk_hospital_user = ho.id_hospital
+                   AND hu.fk_usuario_hosp  = :uid
+        ";
+        }
+
+        // WHERE
+        $whereSql = '';
+        if (!empty($where)) {
+            // segurança básica: evita WHERE começando com AND etc
+            $where = trim($where);
+            if (stripos($where, 'where') === 0) {
+                $whereSql = " " . $where . " ";
+            } else {
+                $whereSql = " WHERE " . $where . " ";
+            }
+        }
+        $sql .= $whereSql;
+
+        // Evitar duplicação por joins: agrupa por internação
+        $sql .= " GROUP BY ac.id_internacao ";
+
+        // ORDER
+        if (!empty($order)) {
+            // mapeie valores permitidos se quiser mais seguro
+            $sql .= " ORDER BY " . $order . " ";
+        } else {
+            // padrão por data internação desc + id desc
+            $sql .= " ORDER BY ac.data_intern_int DESC, ac.id_internacao DESC ";
+        }
+
+        // LIMIT
+        if (!empty($limit)) {
+            $sql .= " " . $limit . " ";
+        }
+
+        $stmt = $this->conn->prepare($sql);
+        if ($userIdFiltro !== null) {
+            $stmt->bindValue(':uid', $userIdFiltro, PDO::PARAM_INT);
+        }
+        $stmt->execute();
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return is_array($rows) ? $rows : [];
+    }
+
+
+
+
+
 
     public function QtdInternacaoCap($where = null, $order = null, $limit = null)
     {
@@ -2878,25 +3152,25 @@ class internacaoDAO implements internacaoDAOInterface
     al_anterior.data_alta_alt AS data_alta_anterior,
     ac.data_intern_int AS data_internacao_atual,
     DATEDIFF(ac.data_intern_int, al_anterior.data_alta_alt) AS dias_reinternacao
-FROM 
+    FROM 
     tb_internacao ac
-INNER JOIN 
-    tb_hospital ho ON ac.fk_hospital_int = ho.id_hospital
-INNER JOIN 
-    tb_paciente pa ON ac.fk_paciente_int = pa.id_paciente
-INNER JOIN 
-    tb_internacao ac_anterior ON ac_anterior.fk_paciente_int = ac.fk_paciente_int 
-        AND ac_anterior.fk_hospital_int = ac.fk_hospital_int 
-        AND ac_anterior.data_intern_int < ac.data_intern_int
-INNER JOIN 
-    tb_alta al_anterior ON ac_anterior.id_internacao = al_anterior.fk_id_int_alt
-WHERE 
-    DATEDIFF(ac.data_intern_int, al_anterior.data_alta_alt) <= 2
-    AND al_anterior.data_alta_alt IS NOT NULL
-    AND ac.data_intern_int > al_anterior.data_alta_alt -- Internação ocorre após a alta anterior
-ORDER BY 
-    pa.nome_pac, ac.data_intern_int;
-        
+    INNER JOIN 
+        tb_hospital ho ON ac.fk_hospital_int = ho.id_hospital
+    INNER JOIN 
+        tb_paciente pa ON ac.fk_paciente_int = pa.id_paciente
+    INNER JOIN 
+        tb_internacao ac_anterior ON ac_anterior.fk_paciente_int = ac.fk_paciente_int 
+            AND ac_anterior.fk_hospital_int = ac.fk_hospital_int 
+            AND ac_anterior.data_intern_int < ac.data_intern_int
+    INNER JOIN 
+        tb_alta al_anterior ON ac_anterior.id_internacao = al_anterior.fk_id_int_alt
+    WHERE 
+        DATEDIFF(ac.data_intern_int, al_anterior.data_alta_alt) <= 2
+        AND al_anterior.data_alta_alt IS NOT NULL
+        AND ac.data_intern_int > al_anterior.data_alta_alt -- Internação ocorre após a alta anterior
+    ORDER BY 
+        pa.nome_pac, ac.data_intern_int;
+            
         ' . $where . '  ' . $order . ' ' . $limit);
 
         $stmt->execute();
@@ -2919,22 +3193,22 @@ ORDER BY
     al_anterior.data_alta_alt AS data_alta_anterior,
     ac.data_intern_int AS data_internacao_atual,
     DATEDIFF(ac.data_intern_int, al_anterior.data_alta_alt) AS dias_reinternacao
-FROM 
-    tb_internacao ac
-INNER JOIN 
-    tb_hospital ho ON ac.fk_hospital_int = ho.id_hospital
-INNER JOIN 
-    tb_paciente pa ON ac.fk_paciente_int = pa.id_paciente
-INNER JOIN 
-    tb_internacao ac_anterior ON ac_anterior.fk_paciente_int = ac.fk_paciente_int 
-        AND ac_anterior.fk_hospital_int = ac.fk_hospital_int 
-        AND ac_anterior.data_intern_int < ac.data_intern_int
-INNER JOIN 
-    tb_alta al_anterior ON ac_anterior.id_internacao = al_anterior.fk_id_int_alt
-WHERE 
-    DATEDIFF(ac.data_intern_int, al_anterior.data_alta_alt) <= 2
-    AND al_anterior.data_alta_alt IS NOT NULL
-    AND ac.data_intern_int > al_anterior.data_alta_alt'
+    FROM 
+        tb_internacao ac
+    INNER JOIN 
+        tb_hospital ho ON ac.fk_hospital_int = ho.id_hospital
+    INNER JOIN 
+        tb_paciente pa ON ac.fk_paciente_int = pa.id_paciente
+    INNER JOIN 
+        tb_internacao ac_anterior ON ac_anterior.fk_paciente_int = ac.fk_paciente_int 
+            AND ac_anterior.fk_hospital_int = ac.fk_hospital_int 
+            AND ac_anterior.data_intern_int < ac.data_intern_int
+    INNER JOIN 
+        tb_alta al_anterior ON ac_anterior.id_internacao = al_anterior.fk_id_int_alt
+    WHERE 
+        DATEDIFF(ac.data_intern_int, al_anterior.data_alta_alt) <= 2
+        AND al_anterior.data_alta_alt IS NOT NULL
+        AND ac.data_intern_int > al_anterior.data_alta_alt'
                 . $where_gerais_reint
         );
 

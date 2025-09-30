@@ -491,4 +491,44 @@ class UserDAO implements UserDAOInterface
 
         return $QtdTotalUser;
     }
+    public function findAtivosByCargos(array $cargos): array
+    {
+        if (empty($cargos)) return [];
+
+        // normaliza para minúsculas
+        $cargos = array_values(array_unique(array_map(
+            fn($c) => mb_strtolower(trim((string)$c), 'UTF-8'),
+            $cargos
+        )));
+
+        // monta placeholders
+        $placeholders = implode(',', array_fill(0, count($cargos), '?'));
+
+        // usa LOWER(cargo_user) para comparação case-insensitive
+        $sql = "
+            SELECT id_usuario, usuario_user, cargo_user, ativo_user
+            FROM tb_user
+            WHERE ativo_user IN ('s','S','1','true','TRUE','ativo','ATIVO')
+              AND LOWER(cargo_user) IN ($placeholders)
+            ORDER BY usuario_user ASC
+        ";
+
+        $stmt = $this->conn->prepare($sql);
+        foreach ($cargos as $i => $cargo) {
+            $stmt->bindValue($i + 1, $cargo);
+        }
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Retorna médicos auditores e enfermeiros auditores ATIVOS.
+     * Campos: id_usuario, usuario_user, cargo_user, ativo_user.
+     */
+    public function findMedicosEnfermeiros(): array
+    {
+        $cargos = ['med_auditor', 'medico_auditor', 'enf_auditor', 'enfer_auditor'];
+        return $this->findAtivosByCargos($cargos);
+    }
 }
