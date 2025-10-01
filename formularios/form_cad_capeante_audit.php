@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
@@ -61,10 +62,19 @@ $cargoSessao = (string)($_SESSION['cargo'] ?? '');
 $userIdSess  = (int)($_SESSION['id_usuario'] ?? 0);
 
 $rolesComFiltro = [
-    'Med_auditor','Med_Auditor','med_auditor','medico_auditor',
-    'Enf_Auditor','enf_auditor','enfer_auditor',
-    'Adm','adm','Administrador','administrador',
-    'Hospital','hospital'
+    'Med_auditor',
+    'Med_Auditor',
+    'med_auditor',
+    'medico_auditor',
+    'Enf_Auditor',
+    'enf_auditor',
+    'enfer_auditor',
+    'Adm',
+    'adm',
+    'Administrador',
+    'administrador',
+    'Hospital',
+    'hospital'
 ];
 $precisaFiltro = in_array($cargoSessao, $rolesComFiltro, true);
 
@@ -176,7 +186,7 @@ if ($type === 'create') {
     if ($idIntCtx > 0 && !empty($ultimo)) {
         $iniBR = $fmtDateBR($ultimo['data_inicial_capeante'] ?? null);
         $fimBR = $fmtDateBR($ultimo['data_final_capeante']   ?? null);
-        if     ($iniBR && $fimBR) $textoPeriodoAnterior = "Último Parcial — Período {$iniBR} a {$fimBR}";
+        if ($iniBR && $fimBR) $textoPeriodoAnterior = "Último Parcial — Período {$iniBR} a {$fimBR}";
         elseif ($iniBR)           $textoPeriodoAnterior = "Último Parcial — Período iniciado em {$iniBR}";
         elseif ($fimBR)           $textoPeriodoAnterior = "Último Parcial — Período até {$fimBR}";
         else                      $textoPeriodoAnterior = "Último Parcial — (período anterior não disponível)";
@@ -213,7 +223,7 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
 <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
 
-<div class="container-fluid" id="main-container">
+<div class="container-fluid" id="main-container" style="background:#f5f6f8; min-height:100vh; padding:16px 12px;">
     <div class="progress mb-4">
         <div class="progress-bar bg-success" role="progressbar" id="progressBar" style="width: 33%;" aria-valuenow="33"
             aria-valuemin="0" aria-valuemax="100">
@@ -346,14 +356,15 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                                             <?php foreach ($usuariosAtivos as $u):
                                                 if ($isMed($u['cargo_user'] ?? '')):
                                                     $id  = (int)($u['id_usuario'] ?? 0);
-                                                    $nome= (string)($u['usuario_user'] ?? '');
+                                                    $nome = (string)($u['usuario_user'] ?? '');
                                                     $cargoRaw = (string)($u['cargo_user'] ?? '');
-                                                    $cargoFmt = ucwords(mb_strtolower(str_replace(['_', '-'],' ',$cargoRaw),'UTF-8'));
+                                                    $cargoFmt = ucwords(mb_strtolower(str_replace(['_', '-'], ' ', $cargoRaw), 'UTF-8'));
                                                     $sel = ($id === $medSelecionado) ? 'selected' : '';
                                             ?>
                                             <option value="<?= $id ?>" <?= $sel ?>>[<?= $h($cargoFmt) ?>]
                                                 <?= $h($nome) ?></option>
-                                            <?php endif; endforeach; ?>
+                                            <?php endif;
+                                            endforeach; ?>
                                         </select>
                                     </div>
 
@@ -367,14 +378,15 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                                             <?php foreach ($usuariosAtivos as $u):
                                                 if ($isEnf($u['cargo_user'] ?? '')):
                                                     $id  = (int)($u['id_usuario'] ?? 0);
-                                                    $nome= (string)($u['usuario_user'] ?? '');
+                                                    $nome = (string)($u['usuario_user'] ?? '');
                                                     $cargoRaw = (string)($u['cargo_user'] ?? '');
-                                                    $cargoFmt = ucwords(mb_strtolower(str_replace(['_', '-'],' ',$cargoRaw),'UTF-8'));
+                                                    $cargoFmt = ucwords(mb_strtolower(str_replace(['_', '-'], ' ', $cargoRaw), 'UTF-8'));
                                                     $sel = ($id === $enfSelecionado) ? 'selected' : '';
                                             ?>
                                             <option value="<?= $id ?>" <?= $sel ?>>[<?= $h($cargoFmt) ?>]
                                                 <?= $h($nome) ?></option>
-                                            <?php endif; endforeach; ?>
+                                            <?php endif;
+                                            endforeach; ?>
                                         </select>
                                     </div>
                                 </div>
