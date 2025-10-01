@@ -2,7 +2,6 @@
 ob_start(); // Output Buffering Start
 
 require_once("templates/header.php");
-
 require_once("models/message.php");
 
 include_once("models/internacao.php");
@@ -32,8 +31,16 @@ $cargoSessao = $_SESSION['cargo'] ?? '';
 $nivelSessao = $_SESSION['nivel'] ?? null;
 $userId      = $_SESSION['id_usuario'] ?? null;
 
-// Diretor: cargo contém "diretor" (case-insensitive) OU nivel == 1
-$isDiretor = (stripos((string)$cargoSessao, 'diretor') !== false) || ((string)$nivelSessao === '1');
+// Sessão / Papel / Diretor ou Gestor
+$cargoSessao = $_SESSION['cargo'] ?? '';
+$nivelSessao = $_SESSION['nivel'] ?? null;
+
+// "diretor" OU "gestor" no cargo (case-insensitive)
+$temCargoAmplificado = (stripos((string)$cargoSessao, 'diretor') !== false)
+    || (stripos((string)$cargoSessao, 'gestor')  !== false);
+
+// Nível 1 ou 4 também vê tudo
+$isDiretor = $temCargoAmplificado || in_array((string)$nivelSessao, ['1', '4'], true);
 
 // =====================================================================
 // Inicialização
@@ -57,9 +64,11 @@ $patologiaDao     = new patologiaDAO($conn, $BASE_URL);
 // =====================================================================
 // GET (filtros)
 // =====================================================================
-$limite_pag       = filter_input(INPUT_GET, 'limite_pag') ? filter_input(INPUT_GET, 'limite_pag') : 10;
-$limite           = filter_input(INPUT_GET, 'limite')     ? filter_input(INPUT_GET, 'limite')     : 10;
-$ordenar          = filter_input(INPUT_GET, 'ordenar')    ? filter_input(INPUT_GET, 'ordenar')    : 1;
+$limite_pag = filter_input(INPUT_GET, 'limite_pag', FILTER_VALIDATE_INT);
+$limite     = filter_input(INPUT_GET, 'limite',     FILTER_VALIDATE_INT);
+if (!$limite || $limite < 1) $limite = 10;
+
+$ordenar          = filter_input(INPUT_GET, 'ordenar') ?: '';
 
 $pesquisa_nome       = filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS);
 $pesquisa_pac        = filter_input(INPUT_GET, 'pesquisa_pac',  FILTER_SANITIZE_SPECIAL_CHARS);
@@ -74,9 +83,7 @@ $data_intern_int     = filter_input(INPUT_GET, 'data_intern_int') ?: NULL;
 $data_intern_int_max = filter_input(INPUT_GET, 'data_intern_int_max') ?: NULL;
 $id_hosp             = filter_input(INPUT_GET, 'id_hosp', FILTER_SANITIZE_NUMBER_INT) ?: null;
 
-if (empty($data_intern_int_max)) {
-    $data_intern_int_max = date('Y-m-d'); // compatível com SQL
-}
+if (empty($data_intern_int_max)) $data_intern_int_max = date('Y-m-d');
 
 $encerrado_cap       = "";
 $em_auditoria_cap    = 'n';
@@ -107,33 +114,32 @@ if (!$isDiretor && empty($id_hosp) && count($hospitals) === 1) {
 }
 
 // =====================================================================
-// WHERE (filtro principal) – a lista é de CAPEANTE, mas filtramos por campos relacionados
+// WHERE (filtro principal) – agora com aliases corretos
 // =====================================================================
 $condicoes = [
-    // Hospital escolhido
     strlen((string)$id_hosp) ? 'ho.id_hospital = ' . (int)$id_hosp : NULL,
 
-    // Filtros usuais
     strlen($pesquisa_nome) ? 'ho.nome_hosp LIKE "%' . $pesquisa_nome . '%"' : NULL,
     strlen($pesquisa_pac)  ? 'pa.nome_pac  LIKE "%' . $pesquisa_pac  . '%"' : NULL,
     strlen($lote)          ? 'ca.lote_cap = "' . $lote . '"'                 : NULL,
     strlen($idcapeante)    ? 'ca.id_capeante LIKE "%' . $idcapeante . '%"'   : NULL,
-    strlen($senha_fin)     ? 'senha_finalizada = "' . $senha_fin . '"'       : NULL,
-    'encerrado_cap = "n"',
-    strlen($med_check)     ? 'med_check = "'   . $med_check . '"'            : NULL,
-    strlen($enf_check)     ? 'enfer_check = "' . $enf_check . '"'            : NULL,
-    strlen($adm_check)     ? 'adm_check = "'   . $adm_check . '"'            : NULL,
-    strlen($senha_int)     ? 'senha_int LIKE "%' . $senha_int . '%"'         : NULL,
-    strlen($data_intern_int) ? 'data_intern_int BETWEEN "' . $data_intern_int . '" AND "' . $data_intern_int_max . '"' : NULL,
 
-    // restringe por dono do hospital quando não for diretor
+    // <<< prefixados corretamente
+    strlen($senha_fin)   ? 'ca.senha_finalizada = "' . $senha_fin . '"' : NULL,
+    'ca.encerrado_cap = "n"',
+    strlen($med_check)   ? 'ca.med_check = "'   . $med_check . '"'     : NULL,
+    strlen($enf_check)   ? 'ca.enfer_check = "' . $enf_check . '"'     : NULL,
+    strlen($adm_check)   ? 'ca.adm_check = "'   . $adm_check . '"'     : NULL,
+    strlen($senha_int)   ? 'ac.senha_int LIKE "%' . $senha_int . '%"'  : NULL,
+    strlen($data_intern_int) ? 'ac.data_intern_int BETWEEN "' . $data_intern_int . '" AND "' . $data_intern_int_max . '"' : NULL,
+
     (!$isDiretor && strlen((string)$userId)) ? 'hos.fk_usuario_hosp = "' . $userId . '"' : NULL
 ];
 
 $condicoes = array_filter($condicoes);
 $where = implode(' AND ', $condicoes);
 
-// URL base de paginação
+// URL base de paginação (inclui &limite=)
 $url = 'list_internacao_cap.php?'
     . 'id_hosp=' . urlencode((string)$id_hosp)
     . '&pesquisa_nome=' . urlencode((string)$pesquisa_nome)
@@ -146,47 +152,47 @@ $url = 'list_internacao_cap.php?'
     . '&adm_check=' . urlencode((string)$adm_check)
     . '&senha_int=' . urlencode((string)$senha_int)
     . '&data_intern_int=' . urlencode((string)$data_intern_int)
-    . '&data_intern_int_max=' . urlencode((string)$data_intern_int_max);
+    . '&data_intern_int_max=' . urlencode((string)$data_intern_int_max)
+    . '&limite=' . (int)$limite;
 
 // =====================================================================
-// Consulta TOTAL (bruto) + TOTAL DEDUP por id_capeante
+// TOTAL exato de CAPEANTES (contas) com os MESMOS filtros
 // =====================================================================
-$QtdTotalIntDao = new internacaoDAO($conn, $BASE_URL);
-$qtdArray       = $QtdTotalIntDao->selectAllInternacaoCapList($where, $order, $obLimite);
-
-// TOTAL deduplicado por id_capeante
-$__ids_total = [];
-foreach ((array)$qtdArray as $row) {
-    if (isset($row['id_capeante'])) {
-        $__ids_total[(string)$row['id_capeante']] = true;
-    } else {
-        // Se vier linha sem id_capeante, conta também para não “perder” itens
-        $__ids_total['__sem_id__' . spl_object_id((object)$row)] = true;
-    }
-}
-$qtdIntItens = count($__ids_total);
+$sqlTotal = "
+    SELECT COUNT(DISTINCT ca.id_capeante) AS total
+    FROM tb_internacao ac
+    LEFT JOIN tb_hospital AS ho   ON ac.fk_hospital_int   = ho.id_hospital
+    LEFT JOIN tb_hospitalUser hos ON hos.fk_hospital_user = ho.id_hospital
+    LEFT JOIN tb_user AS se       ON se.id_usuario        = hos.fk_usuario_hosp
+    LEFT JOIN tb_uti AS ut        ON ac.id_internacao     = ut.fk_internacao_uti
+    LEFT JOIN tb_paciente AS pa   ON ac.fk_paciente_int   = pa.id_paciente 
+    LEFT JOIN tb_capeante AS ca   ON ac.id_internacao     = ca.fk_int_capeante
+    " . (strlen($where) ? 'WHERE ' . $where : '') . "
+";
+$rowTotal   = $conn->query($sqlTotal)->fetch(PDO::FETCH_ASSOC);
+$qtdIntItens = (int)($rowTotal['total'] ?? 0);
 
 // =====================================================================
 // Paginação + consulta da página
 // =====================================================================
-$totalcasos     = ceil(max($qtdIntItens, 1) / max((int)$limite, 1));
+$totalcasos     = max(1, (int)ceil($qtdIntItens / max((int)$limite, 1)));
 $pesqInternado  = null;
 
-$order          = $ordenar;
-$obPagination   = new pagination($qtdIntItens, $_GET['pag'] ?? 1, $limite ?? 10);
+$order          = $ordenar; // use o que veio do select
+$obPagination   = new pagination((int)$qtdIntItens, (int)($_GET['pag'] ?? 1), (int)$limite);
 $obLimite       = $obPagination->getLimit();
 
 $query          = $internacao->selectAllInternacaoCapList($where, $order, $obLimite);
 
 // =====================================================================
-// DEDUP da página por id_capeante (para não repetir linhas no render)
+// DEDUP da página por id_capeante (mantido; não deve remover nada)
 // =====================================================================
 $__seen_cape   = [];
 $__render_rows = [];
 foreach ((array)$query as $row) {
     $idc = $row['id_capeante'] ?? null;
     if ($idc === null) {
-        $__render_rows[] = $row; // mantém, embora não devesse acontecer
+        $__render_rows[] = $row;
         continue;
     }
     if (!isset($__seen_cape[$idc])) {
@@ -227,7 +233,10 @@ if ($qtdIntItens > $limite) {
         integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
 
     <div class="complete-table">
-
+        <?PHP
+        // Debug opcional:
+        // echo 'TOTAL='.$qtdIntItens.' PAGES='.$totalcasos;
+        ?>
         <div id="navbarToggleExternalContent" class="table-filters">
             <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
             <form id="select-internacao-form" method="GET" action="list_internacao_cap.php">
@@ -237,7 +246,8 @@ if ($qtdIntItens > $limite) {
                     <div class="form-group col-sm-3" style="padding:2px !important;padding-left:16px !important;">
                         <select class="form-control form-control-sm"
                             style="margin-top:7px; font-size:.8em; color:#878787" name="id_hosp" id="id_hosp">
-                            <option value=""><?= $isDiretor ? 'Todos os Hospitais' : 'Selecione o Hospital' ?></option>
+                            <option value=""><?= $isDiretor ? 'Todos os Hospitais' : 'Selecione o Hospital' ?>
+                            </option>
                             <?php foreach ($hospitals as $h): ?>
                             <option value="<?= (int)$h['id_hospital'] ?>"
                                 <?= ((string)$id_hosp === (string)$h['id_hospital']) ? 'selected' : '' ?>>
@@ -275,10 +285,10 @@ if ($qtdIntItens > $limite) {
                         <select class="form-control mb-3 form-control-sm"
                             style="margin-top:7px;font-size:.8em; color:#878787" id="limite" name="limite">
                             <option value="">Reg/pág</option>
-                            <option value="5" <?= $limite == '5'  ? 'selected' : null ?>>5</option>
-                            <option value="10" <?= $limite == '10' ? 'selected' : null ?>>10</option>
-                            <option value="20" <?= $limite == '20' ? 'selected' : null ?>>20</option>
-                            <option value="50" <?= $limite == '50' ? 'selected' : null ?>>50</option>
+                            <option value="5" <?= (int)$limite === 5  ? 'selected' : null ?>>5</option>
+                            <option value="10" <?= (int)$limite === 10 ? 'selected' : null ?>>10</option>
+                            <option value="20" <?= (int)$limite === 20 ? 'selected' : null ?>>20</option>
+                            <option value="50" <?= (int)$limite === 50 ? 'selected' : null ?>>50</option>
                         </select>
                     </div>
 
@@ -287,16 +297,14 @@ if ($qtdIntItens > $limite) {
                             style="margin-top:7px;font-size:.8em; color:#878787" id="ordenar" name="ordenar">
                             <option value="">Classificar por</option>
                             <option value="id_internacao" <?= $ordenar == 'id_internacao'  ? 'selected' : '' ?>>
-                                Internação
-                            </option>
+                                Internação</option>
                             <option value="id_capeante" <?= $ordenar == 'id_capeante'    ? 'selected' : '' ?>>
-                                No.capeante
+                                No.capeante</option>
+                            <option value="senha_int" <?= $ordenar == 'senha_int'      ? 'selected' : '' ?>>Senha
                             </option>
-                            <option value="senha_int" <?= $ordenar == 'senha_int'       ? 'selected' : '' ?>>Senha
+                            <option value="nome_pac" <?= $ordenar == 'nome_pac'       ? 'selected' : '' ?>>Paciente
                             </option>
-                            <option value="nome_pac" <?= $ordenar == 'nome_pac'        ? 'selected' : '' ?>>Paciente
-                            </option>
-                            <option value="nome_hosp" <?= $ordenar == 'nome_hosp'       ? 'selected' : '' ?>>Hospital
+                            <option value="nome_hosp" <?= $ordenar == 'nome_hosp'      ? 'selected' : '' ?>>Hospital
                             </option>
                             <option value="data_intern_int" <?= $ordenar == 'data_intern_int' ? 'selected' : '' ?>>Data
                                 Internação</option>
@@ -490,7 +498,7 @@ if ($qtdIntItens > $limite) {
                             <?php if ($current_block > $first_block): ?>
                             <li class="page-item">
                                 <a class="page-link" id="blocoNovo" href="#"
-                                    onclick="loadContent('<?= $url ?>&pag=1&bl=0&limite=<?= (int)$limite ?>&ordernar=<?= htmlspecialchars((string)$ordenar) ?>')">
+                                    onclick="loadContent('<?= $url ?>&pag=1&bl=0&limite=<?= (int)$limite ?>&ordenar=<?= htmlspecialchars((string)$ordenar) ?>')">
                                     <i class="fa-solid fa-angles-left"></i></a>
                             </li>
                             <?php endif; ?>
@@ -498,7 +506,7 @@ if ($qtdIntItens > $limite) {
                             <?php if ($current_block <= $last_block && $last_block > 1 && $current_block != 1): ?>
                             <li class="page-item">
                                 <a class="page-link" href="#"
-                                    onclick="loadContent('<?= $url ?>&pag=<?= max(1, $paginaAtual - 1) ?>&bl=<?= max(0, $blocoAtual - 5) ?>&limite=<?= (int)$limite ?>&ordernar=<?= htmlspecialchars((string)$ordenar) ?>')">
+                                    onclick="loadContent('<?= $url ?>&pag=<?= max(1, $paginaAtual - 1) ?>&bl=<?= max(0, $blocoAtual - 5) ?>&limite=<?= (int)$limite ?>&ordenar=<?= htmlspecialchars((string)$ordenar) ?>')">
                                     <i class="fa-solid fa-angle-left"></i></a>
                             </li>
                             <?php endif; ?>
@@ -506,7 +514,7 @@ if ($qtdIntItens > $limite) {
                             <?php for ($i = $first_page_in_block; $i <= $last_page_in_block; $i++): ?>
                             <li class="page-item <?= (($_GET['pag'] ?? 1) == $i) ? "active" : "" ?>">
                                 <a class="page-link" href="#"
-                                    onclick="loadContent('<?= $url ?>&pag=<?= $i ?>&bl=<?= $blocoAtual ?>&limite=<?= (int)$limite ?>&ordenar=<?= htmlspecialchars((string)$ordenar) ?>')">
+                                    onclick="loadContent('<?= $url ?>&pag=<?= $i ?>&bl=<?= (int)$blocoAtual ?>&limite=<?= (int)$limite ?>&ordenar=<?= htmlspecialchars((string)$ordenar) ?>')">
                                     <?= $i ?>
                                 </a>
                             </li>
@@ -515,7 +523,7 @@ if ($qtdIntItens > $limite) {
                             <?php if ($current_block < $last_block): ?>
                             <li class="page-item">
                                 <a class="page-link" id="blocoNovo" href="#"
-                                    onclick="loadContent('<?= $url ?>&pag=<?= $paginaAtual + 1 ?>&bl=<?= $blocoAtual + 5 ?>&limite=<?= (int)$limite ?>&ordernar=<?= htmlspecialchars((string)$ordenar) ?>')">
+                                    onclick="loadContent('<?= $url ?>&pag=<?= $paginaAtual + 1 ?>&bl=<?= $blocoAtual + 5 ?>&limite=<?= (int)$limite ?>&ordenar=<?= htmlspecialchars((string)$ordenar) ?>')">
                                     <i class="fa-solid fa-angle-right"></i></a>
                             </li>
                             <?php endif; ?>
@@ -523,7 +531,7 @@ if ($qtdIntItens > $limite) {
                             <?php if ($current_block < $last_block): ?>
                             <li class="page-item">
                                 <a class="page-link" id="blocoNovo" href="#"
-                                    onclick="loadContent('<?= $url ?>&pag=<?= count($paginas) ?>&bl=<?= ($last_block - 1) * 5 ?>&limite=<?= (int)$limite ?>&ordernar=<?= htmlspecialchars((string)$ordenar) ?>')">
+                                    onclick="loadContent('<?= $url ?>&pag=<?= count($paginas) ?>&bl=<?= ($last_block - 1) * 5 ?>&limite=<?= (int)$limite ?>&ordenar=<?= htmlspecialchars((string)$ordenar) ?>')">
                                     <i class="fa-solid fa-angles-right"></i></a>
                             </li>
                             <?php endif; ?>
@@ -571,7 +579,7 @@ $(document).ready(function() {
 // Carregamento inicial
 $(document).ready(function() {
     loadContent(
-        'list_internacao_cap.php?id_hosp=<?= urlencode((string)$id_hosp) ?>&pesquisa_pac=<?= urlencode((string)$pesquisa_pac) ?>&data_inter_int=<?= urlencode((string)$data_intern_int) ?>&med_check=&enfer_check=&pag=1&bl=0&limite=<?= (int)$limite ?>'
+        'list_internacao_cap.php?id_hosp=<?= urlencode((string)$id_hosp) ?>&pesquisa_pac=<?= urlencode((string)$pesquisa_pac) ?>&data_intern_int=<?= urlencode((string)$data_intern_int) ?>&med_check=&enfer_check=&pag=1&bl=0&limite=<?= (int)$limite ?>&ordenar=<?= htmlspecialchars((string)$ordenar) ?>'
     );
 });
 </script>
@@ -588,16 +596,13 @@ $(document).ready(function() {
 <script src="./js/input-estilo.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous">
-</script>
+    integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"></script>
 
-<script>
-src = "https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js";
-</script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
 <script src="./js/ajaxNav.js"></script>
 <script src="./scripts/cadastro/general.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-maskmoney/3.0.2/jquery.maskMoney.min.js"></script>
