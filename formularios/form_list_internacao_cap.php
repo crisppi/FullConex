@@ -26,34 +26,6 @@ include_once("dao/usuarioDao.php");
 include_once("models/pagination.php");
 
 // =====================================================================
-// DEBUG helpers (ativar com ?debug=1)
-// =====================================================================
-$__DEBUG = isset($_GET['debug']) && $_GET['debug'] == '1';
-
-if (!function_exists('__print_debug')) {
-    function __print_debug($label, $data)
-    {
-        echo "<pre style='margin:8px;padding:8px;border:1px solid #ccc;background:#fafafa;white-space:pre-wrap'>";
-        echo "<b>{$label}</b>\n";
-        var_dump($data);
-        echo "</pre>";
-    }
-}
-if (!function_exists('__dupes_by_key')) {
-    function __dupes_by_key(array $rows, $key)
-    {
-        $map = [];
-        foreach ($rows as $r) {
-            $k = $r[$key] ?? null;
-            if ($k !== null) $map[$k] = ($map[$k] ?? 0) + 1;
-        }
-        $dupes = [];
-        foreach ($map as $k => $cnt) if ($cnt > 1) $dupes[$k] = $cnt;
-        return $dupes;
-    }
-}
-
-// =====================================================================
 // Sessão / Papel / Diretor
 // =====================================================================
 $cargoSessao = $_SESSION['cargo'] ?? '';
@@ -177,16 +149,10 @@ $url = 'list_internacao_cap.php?'
     . '&data_intern_int_max=' . urlencode((string)$data_intern_int_max);
 
 // =====================================================================
-// Consulta TOTAL (bruto) + DEBUG + TOTAL DEDUP por id_capeante
+// Consulta TOTAL (bruto) + TOTAL DEDUP por id_capeante
 // =====================================================================
 $QtdTotalIntDao = new internacaoDAO($conn, $BASE_URL);
 $qtdArray       = $QtdTotalIntDao->selectAllInternacaoCapList($where, $order, $obLimite);
-
-// DEBUG do RAW TOTAL
-if ($__DEBUG) {
-    __print_debug('RAW TOTAL (selectAllInternacaoCapList)', $qtdArray);
-    __print_debug('DUPLICATAS por id_capeante (RAW TOTAL)', __dupes_by_key((array)$qtdArray, 'id_capeante'));
-}
 
 // TOTAL deduplicado por id_capeante
 $__ids_total = [];
@@ -211,12 +177,6 @@ $obPagination   = new pagination($qtdIntItens, $_GET['pag'] ?? 1, $limite ?? 10)
 $obLimite       = $obPagination->getLimit();
 
 $query          = $internacao->selectAllInternacaoCapList($where, $order, $obLimite);
-
-// DEBUG da página RAW
-if ($__DEBUG) {
-    __print_debug('RAW PAGE (selectAllInternacaoCapList)', $query);
-    __print_debug('DUPLICATAS por id_capeante (RAW PAGE)', __dupes_by_key((array)$query, 'id_capeante'));
-}
 
 // =====================================================================
 // DEDUP da página por id_capeante (para não repetir linhas no render)
@@ -279,10 +239,10 @@ if ($qtdIntItens > $limite) {
                             style="margin-top:7px; font-size:.8em; color:#878787" name="id_hosp" id="id_hosp">
                             <option value=""><?= $isDiretor ? 'Todos os Hospitais' : 'Selecione o Hospital' ?></option>
                             <?php foreach ($hospitals as $h): ?>
-                                <option value="<?= (int)$h['id_hospital'] ?>"
-                                    <?= ((string)$id_hosp === (string)$h['id_hospital']) ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars((string)$h['nome_hosp']) ?>
-                                </option>
+                            <option value="<?= (int)$h['id_hospital'] ?>"
+                                <?= ((string)$id_hosp === (string)$h['id_hospital']) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars((string)$h['nome_hosp']) ?>
+                            </option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -326,9 +286,11 @@ if ($qtdIntItens > $limite) {
                         <select class="form-control form-control-sm"
                             style="margin-top:7px;font-size:.8em; color:#878787" id="ordenar" name="ordenar">
                             <option value="">Classificar por</option>
-                            <option value="id_internacao" <?= $ordenar == 'id_internacao'  ? 'selected' : '' ?>>Internação
+                            <option value="id_internacao" <?= $ordenar == 'id_internacao'  ? 'selected' : '' ?>>
+                                Internação
                             </option>
-                            <option value="id_capeante" <?= $ordenar == 'id_capeante'    ? 'selected' : '' ?>>No.capeante
+                            <option value="id_capeante" <?= $ordenar == 'id_capeante'    ? 'selected' : '' ?>>
+                                No.capeante
                             </option>
                             <option value="senha_int" <?= $ordenar == 'senha_int'       ? 'selected' : '' ?>>Senha
                             </option>
@@ -421,98 +383,98 @@ if ($qtdIntItens > $limite) {
                     </thead>
                     <tbody>
                         <?php foreach ($__render_rows as $intern): extract($intern); ?>
-                            <tr style="font-size:13px">
-                                <td scope="row" class="col-id"><b><?= $intern["id_internacao"]; ?></b></td>
-                                <td scope="row" class="col-id"><b><?= $intern["id_capeante"]; ?></b></td>
-                                <td scope="row" class="nome-coluna-table"><b><?= $intern["nome_hosp"] ?></b></td>
-                                <td scope="row"><?= $intern["nome_pac"] ?></td>
-                                <td scope="row"><?= $intern["senha_int"] ?></td>
-                                <td scope="row"><?= date('d/m/Y', strtotime($intern["data_intern_int"])) ?></td>
+                        <tr style="font-size:13px">
+                            <td scope="row" class="col-id"><b><?= $intern["id_internacao"]; ?></b></td>
+                            <td scope="row" class="col-id"><b><?= $intern["id_capeante"]; ?></b></td>
+                            <td scope="row" class="nome-coluna-table"><b><?= $intern["nome_hosp"] ?></b></td>
+                            <td scope="row"><?= $intern["nome_pac"] ?></td>
+                            <td scope="row"><?= $intern["senha_int"] ?></td>
+                            <td scope="row"><?= date('d/m/Y', strtotime($intern["data_intern_int"])) ?></td>
 
-                                <td scope="row">
-                                    <?php if (($intern["med_check"] ?? 'n') === "s") { ?>
-                                        <a class="legenda-medico"><span class="bi bi-check-circle"
-                                                style="font-size:1.1rem;font-weight:1000;color:rgb(0,78,86);"></span></a>
-                                    <?php } ?>
-                                </td>
-                                <td scope="row">
-                                    <?php if (($intern["enfer_check"] ?? 'n') === "s") { ?>
-                                        <a class="legenda-enfermagem" style="font-weight:bold"><span class="bi bi-check-circle"
-                                                style="font-size:1.1rem;font-weight:bold;color:rgb(234,128,55);"></span></a>
-                                    <?php } ?>
-                                </td>
-                                <td scope="row">
-                                    <?php if (($intern["adm_check"] ?? 'n') === "s") { ?>
-                                        <a class="legenda-administrativo"><span class="bi bi-check-circle"
-                                                style="font-size:1.1rem;font-weight:1000;color:rgb(25,78,255);"></span></a>
-                                    <?php } ?>
-                                </td>
-                                <td scope="row"><?= $intern["parcial_num"]; ?></td>
-                                <td scope="row">
-                                    <?php if (($intern["senha_finalizada"] ?? 'n') === "s") { ?>
-                                        <a class="legenda-finalizada"><span class="bi bi-briefcase"
-                                                style="font-size:1.1rem;font-weight:800;color:rgb(255,25,55);"></span></a>
-                                    <?php } ?>
-                                </td>
-                                <td scope="row">
-                                    <?php if (($intern["aberto_cap"] ?? 'n') === "s") { ?>
-                                        <a class="legenda-aberto"><span class="bi bi-book"
-                                                style="font-size:1.1rem;color:blue;font-weight:800"></span></a>
-                                    <?php } ?>
-                                </td>
-                                <td scope="row">
-                                    <?php if (($intern["encerrado_cap"] ?? 'n') === "s") { ?>
-                                        <a class="legenda-aberto"><span class="bi bi-briefcase"
-                                                style="font-size:1.1rem;color:green;font-weight:800;"></span></a>
-                                    <?php } ?>
-                                </td>
-                                <td scope="row">
-                                    <?php if (($intern["em_auditoria_cap"] ?? 'n') === "s") { ?>
-                                        <a class="legenda-em-auditoria"><span class="bi bi-pencil-square"
-                                                style="font-size:1.1rem;font-weight:800;color:orange;"></span></a>
-                                    <?php } ?>
-                                </td>
+                            <td scope="row">
+                                <?php if (($intern["med_check"] ?? 'n') === "s") { ?>
+                                <a class="legenda-medico"><span class="bi bi-check-circle"
+                                        style="font-size:1.1rem;font-weight:1000;color:rgb(0,78,86);"></span></a>
+                                <?php } ?>
+                            </td>
+                            <td scope="row">
+                                <?php if (($intern["enfer_check"] ?? 'n') === "s") { ?>
+                                <a class="legenda-enfermagem" style="font-weight:bold"><span class="bi bi-check-circle"
+                                        style="font-size:1.1rem;font-weight:bold;color:rgb(234,128,55);"></span></a>
+                                <?php } ?>
+                            </td>
+                            <td scope="row">
+                                <?php if (($intern["adm_check"] ?? 'n') === "s") { ?>
+                                <a class="legenda-administrativo"><span class="bi bi-check-circle"
+                                        style="font-size:1.1rem;font-weight:1000;color:rgb(25,78,255);"></span></a>
+                                <?php } ?>
+                            </td>
+                            <td scope="row"><?= $intern["parcial_num"]; ?></td>
+                            <td scope="row">
+                                <?php if (($intern["senha_finalizada"] ?? 'n') === "s") { ?>
+                                <a class="legenda-finalizada"><span class="bi bi-briefcase"
+                                        style="font-size:1.1rem;font-weight:800;color:rgb(255,25,55);"></span></a>
+                                <?php } ?>
+                            </td>
+                            <td scope="row">
+                                <?php if (($intern["aberto_cap"] ?? 'n') === "s") { ?>
+                                <a class="legenda-aberto"><span class="bi bi-book"
+                                        style="font-size:1.1rem;color:blue;font-weight:800"></span></a>
+                                <?php } ?>
+                            </td>
+                            <td scope="row">
+                                <?php if (($intern["encerrado_cap"] ?? 'n') === "s") { ?>
+                                <a class="legenda-aberto"><span class="bi bi-briefcase"
+                                        style="font-size:1.1rem;color:green;font-weight:800;"></span></a>
+                                <?php } ?>
+                            </td>
+                            <td scope="row">
+                                <?php if (($intern["em_auditoria_cap"] ?? 'n') === "s") { ?>
+                                <a class="legenda-em-auditoria"><span class="bi bi-pencil-square"
+                                        style="font-size:1.1rem;font-weight:800;color:orange;"></span></a>
+                                <?php } ?>
+                            </td>
 
-                                <td class="action">
-                                    <?php if (($intern['encerrado_cap'] ?? 'n') !== "s"): ?>
-                                        <?php if (($intern['em_auditoria_cap'] ?? 'n') === "s"): ?>
-                                            <a class="legenda-em-auditoria" href="#"
-                                                onclick="edit('<?= $BASE_URL ?>cad_capeante_audit.php?id_capeante=<?= $intern['id_capeante'] ?>')">
-                                                <i class="bi bi-file-text" style="color:#db5a0f;font-size:1.1em;margin:0 5px"></i>
-                                                <span style="color:#db5a0f;">Analisar</span>
-                                            </a>
-                                        <?php else: ?>
-                                            <a class="legenda-iniciar" href="#"
-                                                onclick="edit('<?= $BASE_URL ?>cad_capeante_audit.php?id_capeante=<?= $intern['id_capeante'] ?>')">
-                                                <i class="bi bi-file-text"
-                                                    style="color:rgb(25,78,255);font-size:1.1em;font-weight:bold;margin:0 5px"></i>
-                                                <span>Iniciar</span>
-                                            </a>
-                                        <?php endif; ?>
-                                    <?php else: ?>
-                                        <a class="legenda-encerrado" href="#">
-                                            <i class="bi"
-                                                style="color:black;text-decoration:none;font-size:1.1em;font-weight:bold;margin:0 5px">
-                                                Encerrado</i>
-                                        </a>
-                                    <?php endif; ?>
+                            <td class="action">
+                                <?php if (($intern['encerrado_cap'] ?? 'n') !== "s"): ?>
+                                <?php if (($intern['em_auditoria_cap'] ?? 'n') === "s"): ?>
+                                <a class="legenda-em-auditoria" href="#"
+                                    onclick="edit('<?= $BASE_URL ?>cad_capeante_audit.php?id_capeante=<?= $intern['id_capeante'] ?>')">
+                                    <i class="bi bi-file-text" style="color:#db5a0f;font-size:1.1em;margin:0 5px"></i>
+                                    <span style="color:#db5a0f;">Analisar</span>
+                                </a>
+                                <?php else: ?>
+                                <a class="legenda-iniciar" href="#"
+                                    onclick="edit('<?= $BASE_URL ?>cad_capeante_audit.php?id_capeante=<?= $intern['id_capeante'] ?>')">
+                                    <i class="bi bi-file-text"
+                                        style="color:rgb(25,78,255);font-size:1.1em;font-weight:bold;margin:0 5px"></i>
+                                    <span>Iniciar</span>
+                                </a>
+                                <?php endif; ?>
+                                <?php else: ?>
+                                <a class="legenda-encerrado" href="#">
+                                    <i class="bi"
+                                        style="color:black;text-decoration:none;font-size:1.1em;font-weight:bold;margin:0 5px">
+                                        Encerrado</i>
+                                </a>
+                                <?php endif; ?>
 
-                                    <a class="legenda-parcial"
-                                        href="<?= $BASE_URL ?>cad_capeante_audit.php?id_internacao=<?= $intern["id_internacao"] ?>&type=create">
-                                        <i class="legenda-parcial bi bi-file-text"
-                                            style="color:green;text-decoration:none;font-size:10px;font-weight:bold;margin:0 5px">
-                                            Parcial</i>
-                                    </a>
-                                </td>
-                            </tr>
+                                <a class="legenda-parcial"
+                                    href="<?= $BASE_URL ?>cad_capeante_audit.php?id_internacao=<?= $intern["id_internacao"] ?>&type=create">
+                                    <i class="legenda-parcial bi bi-file-text"
+                                        style="color:green;text-decoration:none;font-size:10px;font-weight:bold;margin:0 5px">
+                                        Parcial</i>
+                                </a>
+                            </td>
+                        </tr>
                         <?php endforeach; ?>
 
                         <?php if ($qtdIntItens == 0): ?>
-                            <tr>
-                                <td colspan="15" scope="row" class="col-id" style='font-size:15px'>
-                                    Não foram encontrados registros
-                                </td>
-                            </tr>
+                        <tr>
+                            <td colspan="15" scope="row" class="col-id" style='font-size:15px'>
+                                Não foram encontrados registros
+                            </td>
+                        </tr>
                         <?php endif ?>
                     </tbody>
                 </table>
@@ -520,52 +482,52 @@ if ($qtdIntItens > $limite) {
                 <div style="display:flex;margin:10px 25px 25px 25px;align-items:center;gap:16px;">
                     <div class="pagination" style="margin:10px auto;">
                         <?php if (!empty($havePages) && $havePages): ?>
-                            <ul class="pagination">
-                                <?php
+                        <ul class="pagination">
+                            <?php
                                 $blocoAtual   = isset($_GET['bl']) ? (int)$_GET['bl'] : 0;
                                 $paginaAtual  = isset($_GET['pag']) ? (int)$_GET['pag'] : 1;
                                 ?>
-                                <?php if ($current_block > $first_block): ?>
-                                    <li class="page-item">
-                                        <a class="page-link" id="blocoNovo" href="#"
-                                            onclick="loadContent('<?= $url ?>&pag=1&bl=0&limite=<?= (int)$limite ?>&ordernar=<?= htmlspecialchars((string)$ordenar) ?>')">
-                                            <i class="fa-solid fa-angles-left"></i></a>
-                                    </li>
-                                <?php endif; ?>
+                            <?php if ($current_block > $first_block): ?>
+                            <li class="page-item">
+                                <a class="page-link" id="blocoNovo" href="#"
+                                    onclick="loadContent('<?= $url ?>&pag=1&bl=0&limite=<?= (int)$limite ?>&ordernar=<?= htmlspecialchars((string)$ordenar) ?>')">
+                                    <i class="fa-solid fa-angles-left"></i></a>
+                            </li>
+                            <?php endif; ?>
 
-                                <?php if ($current_block <= $last_block && $last_block > 1 && $current_block != 1): ?>
-                                    <li class="page-item">
-                                        <a class="page-link" href="#"
-                                            onclick="loadContent('<?= $url ?>&pag=<?= max(1, $paginaAtual - 1) ?>&bl=<?= max(0, $blocoAtual - 5) ?>&limite=<?= (int)$limite ?>&ordernar=<?= htmlspecialchars((string)$ordenar) ?>')">
-                                            <i class="fa-solid fa-angle-left"></i></a>
-                                    </li>
-                                <?php endif; ?>
+                            <?php if ($current_block <= $last_block && $last_block > 1 && $current_block != 1): ?>
+                            <li class="page-item">
+                                <a class="page-link" href="#"
+                                    onclick="loadContent('<?= $url ?>&pag=<?= max(1, $paginaAtual - 1) ?>&bl=<?= max(0, $blocoAtual - 5) ?>&limite=<?= (int)$limite ?>&ordernar=<?= htmlspecialchars((string)$ordenar) ?>')">
+                                    <i class="fa-solid fa-angle-left"></i></a>
+                            </li>
+                            <?php endif; ?>
 
-                                <?php for ($i = $first_page_in_block; $i <= $last_page_in_block; $i++): ?>
-                                    <li class="page-item <?= (($_GET['pag'] ?? 1) == $i) ? "active" : "" ?>">
-                                        <a class="page-link" href="#"
-                                            onclick="loadContent('<?= $url ?>&pag=<?= $i ?>&bl=<?= $blocoAtual ?>&limite=<?= (int)$limite ?>&ordenar=<?= htmlspecialchars((string)$ordenar) ?>')">
-                                            <?= $i ?>
-                                        </a>
-                                    </li>
-                                <?php endfor; ?>
+                            <?php for ($i = $first_page_in_block; $i <= $last_page_in_block; $i++): ?>
+                            <li class="page-item <?= (($_GET['pag'] ?? 1) == $i) ? "active" : "" ?>">
+                                <a class="page-link" href="#"
+                                    onclick="loadContent('<?= $url ?>&pag=<?= $i ?>&bl=<?= $blocoAtual ?>&limite=<?= (int)$limite ?>&ordenar=<?= htmlspecialchars((string)$ordenar) ?>')">
+                                    <?= $i ?>
+                                </a>
+                            </li>
+                            <?php endfor; ?>
 
-                                <?php if ($current_block < $last_block): ?>
-                                    <li class="page-item">
-                                        <a class="page-link" id="blocoNovo" href="#"
-                                            onclick="loadContent('<?= $url ?>&pag=<?= $paginaAtual + 1 ?>&bl=<?= $blocoAtual + 5 ?>&limite=<?= (int)$limite ?>&ordernar=<?= htmlspecialchars((string)$ordenar) ?>')">
-                                            <i class="fa-solid fa-angle-right"></i></a>
-                                    </li>
-                                <?php endif; ?>
+                            <?php if ($current_block < $last_block): ?>
+                            <li class="page-item">
+                                <a class="page-link" id="blocoNovo" href="#"
+                                    onclick="loadContent('<?= $url ?>&pag=<?= $paginaAtual + 1 ?>&bl=<?= $blocoAtual + 5 ?>&limite=<?= (int)$limite ?>&ordernar=<?= htmlspecialchars((string)$ordenar) ?>')">
+                                    <i class="fa-solid fa-angle-right"></i></a>
+                            </li>
+                            <?php endif; ?>
 
-                                <?php if ($current_block < $last_block): ?>
-                                    <li class="page-item">
-                                        <a class="page-link" id="blocoNovo" href="#"
-                                            onclick="loadContent('<?= $url ?>&pag=<?= count($paginas) ?>&bl=<?= ($last_block - 1) * 5 ?>&limite=<?= (int)$limite ?>&ordernar=<?= htmlspecialchars((string)$ordenar) ?>')">
-                                            <i class="fa-solid fa-angles-right"></i></a>
-                                    </li>
-                                <?php endif; ?>
-                            </ul>
+                            <?php if ($current_block < $last_block): ?>
+                            <li class="page-item">
+                                <a class="page-link" id="blocoNovo" href="#"
+                                    onclick="loadContent('<?= $url ?>&pag=<?= count($paginas) ?>&bl=<?= ($last_block - 1) * 5 ?>&limite=<?= (int)$limite ?>&ordernar=<?= htmlspecialchars((string)$ordenar) ?>')">
+                                    <i class="fa-solid fa-angles-right"></i></a>
+                            </li>
+                            <?php endif; ?>
+                        </ul>
                         <?php endif; ?>
                     </div>
 
@@ -584,43 +546,43 @@ if ($qtdIntItens > $limite) {
 </div>
 
 <script>
-    // AJAX para submit do formulário de pesquisa
-    $(document).ready(function() {
-        $('#select-internacao-form').submit(function(e) {
-            e.preventDefault();
-            var formData = $(this).serialize();
-            $.ajax({
-                url: $(this).attr('action'),
-                type: $(this).attr('method') || 'GET',
-                data: formData,
-                success: function(response) {
-                    var tempElement = document.createElement('div');
-                    tempElement.innerHTML = response;
-                    var tableContent = tempElement.querySelector('#table-content');
-                    $('#table-content').html(tableContent);
-                },
-                error: function() {
-                    alert('Ocorreu um erro ao enviar o formulário.');
-                }
-            });
+// AJAX para submit do formulário de pesquisa
+$(document).ready(function() {
+    $('#select-internacao-form').submit(function(e) {
+        e.preventDefault();
+        var formData = $(this).serialize();
+        $.ajax({
+            url: $(this).attr('action'),
+            type: $(this).attr('method') || 'GET',
+            data: formData,
+            success: function(response) {
+                var tempElement = document.createElement('div');
+                tempElement.innerHTML = response;
+                var tableContent = tempElement.querySelector('#table-content');
+                $('#table-content').html(tableContent);
+            },
+            error: function() {
+                alert('Ocorreu um erro ao enviar o formulário.');
+            }
         });
     });
+});
 
-    // Carregamento inicial
-    $(document).ready(function() {
-        loadContent(
-            'list_internacao_cap.php?id_hosp=<?= urlencode((string)$id_hosp) ?>&pesquisa_pac=<?= urlencode((string)$pesquisa_pac) ?>&data_inter_int=<?= urlencode((string)$data_intern_int) ?>&med_check=&enfer_check=&pag=1&bl=0&limite=<?= (int)$limite ?>'
-        );
-    });
+// Carregamento inicial
+$(document).ready(function() {
+    loadContent(
+        'list_internacao_cap.php?id_hosp=<?= urlencode((string)$id_hosp) ?>&pesquisa_pac=<?= urlencode((string)$pesquisa_pac) ?>&data_inter_int=<?= urlencode((string)$data_intern_int) ?>&med_check=&enfer_check=&pag=1&bl=0&limite=<?= (int)$limite ?>'
+    );
+});
 </script>
 
 <script>
-    $(document).ready(function() {
-        // Se existir o campo em algum template
-        if ($('#encerrado_cap').length) {
-            $('#encerrado_cap').val('n');
-        }
-    });
+$(document).ready(function() {
+    // Se existir o campo em algum template
+    if ($('#encerrado_cap').length) {
+        $('#encerrado_cap').val('n');
+    }
+});
 </script>
 
 <script src="./js/input-estilo.js"></script>
@@ -634,7 +596,7 @@ if ($qtdIntItens > $limite) {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    src = "https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js";
+src = "https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js";
 </script>
 <script src="./js/ajaxNav.js"></script>
 <script src="./scripts/cadastro/general.js"></script>

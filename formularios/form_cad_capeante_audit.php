@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
@@ -14,9 +13,19 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 // ======================================================================
 // DAOs / Models
 // ======================================================================
-
 require_once "models/usuario.php";
 require_once "dao/usuarioDao.php";
+
+/**
+ * Alias de compatibilidade: se o projeto definir usuarioDAO/UsuarioDAO,
+ * permite continuar instanciando como userDAO sem quebrar.
+ */
+if (!class_exists('userDAO') && class_exists('usuarioDAO')) {
+    class_alias('usuarioDAO', 'userDAO');
+}
+if (!class_exists('userDAO') && class_exists('UsuarioDAO')) {
+    class_alias('UsuarioDAO', 'userDAO');
+}
 
 // Instâncias
 $internacao_geral = new internacaoDAO($conn, $BASE_URL);
@@ -52,19 +61,10 @@ $cargoSessao = (string)($_SESSION['cargo'] ?? '');
 $userIdSess  = (int)($_SESSION['id_usuario'] ?? 0);
 
 $rolesComFiltro = [
-    'Med_auditor',
-    'Med_Auditor',
-    'med_auditor',
-    'medico_auditor',
-    'Enf_Auditor',
-    'enf_auditor',
-    'enfer_auditor',
-    'Adm',
-    'adm',
-    'Administrador',
-    'administrador',
-    'Hospital',
-    'hospital'
+    'Med_auditor','Med_Auditor','med_auditor','medico_auditor',
+    'Enf_Auditor','enf_auditor','enfer_auditor',
+    'Adm','adm','Administrador','administrador',
+    'Hospital','hospital'
 ];
 $precisaFiltro = in_array($cargoSessao, $rolesComFiltro, true);
 
@@ -91,7 +91,7 @@ $intern = [];
 $ultimo = []; // sempre definido
 
 if ($type === 'create' && $id_internacao) {
-    $where = "ac.id_internacao = " . (int)$id_internacao;
+    $where  = "ac.id_internacao = " . (int)$id_internacao;
     $intern = $internacao_geral->selectAllInternacaoCap2($userFiltro, $where, $order, $obLimite);
 
     // infos de parciais (seguem seus métodos)
@@ -101,7 +101,7 @@ if ($type === 'create' && $id_internacao) {
     // último período para o texto "período anterior"
     $ultimo = $capeante_geral->getUltimoCapeantePeriodoByInternacao($hi($id_internacao)) ?: [];
 } elseif ($type !== 'create' && $id_capeante) {
-    $where = "ca.id_capeante = " . (int)$id_capeante;
+    $where  = "ca.id_capeante = " . (int)$id_capeante;
     $intern = $internacao_geral->selectAllInternacaoCap2($userFiltro, $where, $order, $obLimite);
 }
 
@@ -176,19 +176,22 @@ if ($type === 'create') {
     if ($idIntCtx > 0 && !empty($ultimo)) {
         $iniBR = $fmtDateBR($ultimo['data_inicial_capeante'] ?? null);
         $fimBR = $fmtDateBR($ultimo['data_final_capeante']   ?? null);
-        if ($iniBR && $fimBR)        $textoPeriodoAnterior = "Último Parcial — Período {$iniBR} a {$fimBR}";
-        elseif ($iniBR)              $textoPeriodoAnterior = "Último Parcial — Período iniciado em {$iniBR}";
-        elseif ($fimBR)              $textoPeriodoAnterior = "Último Parcial — Período até {$fimBR}";
-        else                         $textoPeriodoAnterior = "Último Parcial — (período anterior não disponível)";
+        if     ($iniBR && $fimBR) $textoPeriodoAnterior = "Último Parcial — Período {$iniBR} a {$fimBR}";
+        elseif ($iniBR)           $textoPeriodoAnterior = "Último Parcial — Período iniciado em {$iniBR}";
+        elseif ($fimBR)           $textoPeriodoAnterior = "Último Parcial — Período até {$fimBR}";
+        else                      $textoPeriodoAnterior = "Último Parcial — (período anterior não disponível)";
     }
 }
 
 // ======================================================================
 // CADASTRO CENTRAL (estado inicial)
+// Regras:
+// - Já deixa “Sim” por padrão.
+// - Se houver fk_id_aud_med/enf no banco, mantém.
 // ======================================================================
-$cadastroCentralDefault = ($val('cadastro_central_cap') === 's') ? 's' : ($type === 'create' ? 's' : 'n');
 $medSelecionado = $hi($val('fk_id_aud_med'));
 $enfSelecionado = $hi($val('fk_id_aud_enf'));
+$cadastroCentralDefault = 's'; // força “Sim” por padrão
 
 $isMed = static function ($cargo) {
     $c = mb_strtolower((string)$cargo, 'UTF-8');
@@ -217,7 +220,7 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
             Etapa 1 de 3
         </div>
     </div>
-    <?php print_r($intern) ?>
+
     <form action="<?= $h($BASE_URL) ?>process_capeante.php" id="multi-step-form" method="POST"
         enctype="multipart/form-data">
         <?php if ($type === "create"): ?>
@@ -228,7 +231,7 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
         <input type="hidden" name="id_capeante" value="<?= $hi($val('id_capeante')) ?>">
         <?php endif; ?>
 
-        <!-- flags de cargo -->
+        <!-- flags de cargo (mantidos) -->
         <input type="hidden" id="adm_capeante" name="adm_capeante"
             value="<?= ($_SESSION['cargo'] ?? '') === 'Adm' ? 's' : '' ?>">
         <input type="hidden" id="aud_enf_capeante" name="aud_enf_capeante"
@@ -236,7 +239,7 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
         <input type="hidden" id="aud_med_capeante" name="aud_med_capeante"
             value="<?= ($_SESSION['cargo'] ?? '') === 'Med_auditor' ? 's' : '' ?>">
 
-        <!-- checks -->
+        <!-- checks (mantidos) -->
         <input type="hidden" id="adm_check" name="adm_check"
             value="<?= (($_SESSION['cargo'] ?? '') === 'Adm') ? 's' : $h($val('adm_check')) ?>">
         <input type="hidden" id="med_check" name="med_check"
@@ -244,11 +247,7 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
         <input type="hidden" id="enfer_check" name="enfer_check"
             value="<?= (($_SESSION['cargo'] ?? '') === 'Enf_Auditor') ? 's' : $h($val('enfer_check')) ?>">
 
-        <!-- ids de usuários -->
-        <input type="hidden" id="fk_id_aud_enf" name="fk_id_aud_enf"
-            value="<?= (($_SESSION['cargo'] ?? '') === 'Enf_Auditor') ? $hi($_SESSION['id_usuario'] ?? 0) : $hi($val('fk_id_aud_enf')) ?>">
-        <input type="hidden" id="fk_id_aud_med" name="fk_id_aud_med"
-            value="<?= (($_SESSION['cargo'] ?? '') === 'Med_auditor') ? $hi($_SESSION['id_usuario'] ?? 0) : $hi($val('fk_id_aud_med')) ?>">
+        <!-- ids de usuários (NÃO incluir hidden para fk_id_aud_enf/med p/ não sobrescrever os selects) -->
         <input type="hidden" id="fk_id_aud_adm" name="fk_id_aud_adm"
             value="<?= (($_SESSION['cargo'] ?? '') === 'Adm') ? $hi($_SESSION['id_usuario'] ?? 0) : $hi($val('fk_id_aud_adm')) ?>">
         <input type="hidden" id="fk_id_aud_hosp" name="fk_id_aud_hosp"
@@ -274,99 +273,39 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
             <br>
             <div class="form-group row">
                 <div id="view-contact-container" class="container-fluid d-flex align-items-center">
-                    <div class="d-flex" style="flex-grow:1; gap:20px;">
-                        <div class="d-flex flex-column" style="flex-grow:1;">
-                            <div><span class="card-title bold" style="font-weight:600;">Código Capeante:</span> <span
-                                    class="card-title bold"
+
+                    <!-- GRID FLEX COM WRAP -->
+                    <div class="d-flex" style="flex-grow:1; gap:20px; flex-wrap:wrap; width:100%;">
+
+                        <!-- COLUNA ESQUERDA -->
+                        <div class="d-flex flex-column" style="flex:1 1 280px; min-width:280px;">
+                            <div><span class="card-title bold" style="font-weight:600;">Código Capeante:</span>
+                                <span class="card-title bold"
                                     style="font-weight:500;"><?= $h($val('id_capeante')) ?></span>
                             </div>
-                            <div><span class="card-title bold" style="font-weight:600;">Código Internação :</span> <span
-                                    class="card-title bold"
+                            <div><span class="card-title bold" style="font-weight:600;">Código Internação :</span>
+                                <span class="card-title bold"
                                     style="font-weight:500;"><?= $h($val('id_internacao') ?: $id_internacao) ?></span>
                             </div>
-                            <div><span class="card-title bold" style="font-weight:600;">Data Internação:</span> <span
-                                    class="card-title bold"
-                                    style="font-weight:500;"><?= $fmtDateBR($val('data_intern_int')) ?></span></div>
-                            <div><span class="card-title bold" style="font-weight:600;">Senha:</span> <span
-                                    class="card-title bold" style="font-weight:500;"><?= $h($val('senha_int')) ?></span>
+                            <div><span class="card-title bold" style="font-weight:600;">Data Internação:</span>
+                                <span class="card-title bold"
+                                    style="font-weight:500;"><?= $fmtDateBR($val('data_intern_int')) ?></span>
                             </div>
-
-                            <!-- Cadastro Central -->
-                            <div class="col-12">
-                                <div id="cadastro-central-wrapper" class="border rounded-3 p-3 mb-3"
-                                    style="border:2px solid #0d6efd;background:#f8fbff;">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <i class="bi bi-people-fill me-2"></i>
-                                        <strong class="text-primary" style="font-size:1rem;">Cadastro Central</strong>
-                                    </div>
-
-                                    <div class="row g-3 align-items-end">
-                                        <div class="col-md-3">
-                                            <label for="cadastro_central_cap" class="form-label">Ativar</label>
-                                            <select class="form-control" id="cadastro_central_cap"
-                                                name="cadastro_central_cap">
-                                                <option value="n"
-                                                    <?= $cadastroCentralDefault === 'n' ? 'selected' : '' ?>>
-                                                    Não
-                                                </option>
-                                                <option value="s"
-                                                    <?= $cadastroCentralDefault === 's' ? 'selected' : '' ?>>
-                                                    Sim
-                                                </option>
-                                            </select>
-                                        </div>
-
-                                        <div id="box-cadcentral-med" class="col-md-4" style="min-width:280px;">
-                                            <label class="form-label" for="cad_central_med_id">Médico (Cadastro
-                                                Central)</label>
-                                            <select class="form-control form-control-sm" id="cad_central_med_id"
-                                                name="cad_central_med_id" style="height:45px;">
-                                                <option value="">Selecione</option>
-                                                <?php foreach ($usuariosAtivos as $u): if ($isMed($u['cargo_user'] ?? '')):
-                                                        $id = (int)($u['id_usuario'] ?? 0);
-                                                        $nome = (string)($u['usuario_user'] ?? '');
-                                                        $cargoRaw = (string)($u['cargo_user'] ?? '');
-                                                        $cargoFmt = ucwords(mb_strtolower(str_replace(['_', '-'], ' ', $cargoRaw), 'UTF-8'));
-                                                        $sel = $id === $medSelecionado ? 'selected' : '';
-                                                ?>
-                                                <option value="<?= $id ?>" <?= $sel ?>>[<?= $h($cargoFmt) ?>]
-                                                    <?= $h($nome) ?></option>
-                                                <?php endif;
-                                                endforeach; ?>
-                                            </select>
-                                        </div>
-
-                                        <div id="box-cadcentral-enf" class="col-md-5" style="min-width:280px;">
-                                            <label class="form-label" for="cad_central_enf_id">Enfermeiro(a) (Cadastro
-                                                Central)</label>
-                                            <select class="form-control form-control-sm" id="cad_central_enf_id"
-                                                name="cad_central_enf_id" style="height:45px;">
-                                                <option value="">Selecione</option>
-                                                <?php foreach ($usuariosAtivos as $u): if ($isEnf($u['cargo_user'] ?? '')):
-                                                        $id = (int)($u['id_usuario'] ?? 0);
-                                                        $nome = (string)($u['usuario_user'] ?? '');
-                                                        $cargoRaw = (string)($u['cargo_user'] ?? '');
-                                                        $cargoFmt = ucwords(mb_strtolower(str_replace(['_', '-'], ' ', $cargoRaw), 'UTF-8'));
-                                                        $sel = $id === $enfSelecionado ? 'selected' : '';
-                                                ?>
-                                                <option value="<?= $id ?>" <?= $sel ?>>[<?= $h($cargoFmt) ?>]
-                                                    <?= $h($nome) ?></option>
-                                                <?php endif;
-                                                endforeach; ?>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
+                            <div><span class="card-title bold" style="font-weight:600;">Senha:</span>
+                                <span class="card-title bold"
+                                    style="font-weight:500;"><?= $h($val('senha_int')) ?></span>
                             </div>
-                            <!-- /Cadastro Central -->
                         </div>
 
-                        <div class="d-flex flex-column" style="flex-grow:1;">
-                            <div><span class="card-title bold" style="font-weight:600;">Hospital:</span> <span
-                                    class="card-title bold" style="font-weight:500;"><?= $h($val('nome_hosp')) ?></span>
+                        <!-- COLUNA DIREITA -->
+                        <div class="d-flex flex-column" style="flex:1 1 280px; min-width:280px;">
+                            <div><span class="card-title bold" style="font-weight:600;">Hospital:</span>
+                                <span class="card-title bold"
+                                    style="font-weight:500;"><?= $h($val('nome_hosp')) ?></span>
                             </div>
-                            <div><span class="card-title bold" style="font-weight:600;">Paciente:</span> <span
-                                    class="card-title bold" style="font-weight:500;"><?= $h($val('nome_pac')) ?></span>
+                            <div><span class="card-title bold" style="font-weight:600;">Paciente:</span>
+                                <span class="card-title bold"
+                                    style="font-weight:500;"><?= $h($val('nome_pac')) ?></span>
                             </div>
                             <div><span class="card-title bold" style="font-weight:600;">Parcial:</span>
                                 <span class="card-title bold" style="font-weight:500;">
@@ -375,8 +314,76 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                                 </span>
                             </div>
                         </div>
+
+                        <!-- CADASTRO CENTRAL FULL-WIDTH -->
+                        <div style="flex:0 0 100%; width:100%;">
+                            <div id="cadastro-central-wrapper" class="border rounded-3 p-3 mb-3"
+                                style="border:2px solid #0d6efd;background:#f8fbff;">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-people-fill me-2"></i>
+                                    <strong class="text-primary" style="font-size:1rem;">Cadastro Central</strong>
+                                </div>
+
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-md-3">
+                                        <label for="cadastro_central_cap" class="form-label">Ativar</label>
+                                        <select class="form-control" id="cadastro_central_cap"
+                                            name="cadastro_central_cap">
+                                            <option value="n" <?= $cadastroCentralDefault === 'n' ? 'selected' : '' ?>>
+                                                Não</option>
+                                            <option value="s" <?= $cadastroCentralDefault === 's' ? 'selected' : '' ?>>
+                                                Sim</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Médico -->
+                                    <div id="box-cadcentral-med" class="col-md-4" style="min-width:280px;">
+                                        <label class="form-label" for="cad_central_med_id">Médico (Cadastro
+                                            Central)</label>
+                                        <select class="form-control form-control-sm" id="cad_central_med_id"
+                                            name="fk_id_aud_med" style="height:45px;">
+                                            <option value="">Selecione</option>
+                                            <?php foreach ($usuariosAtivos as $u):
+                                                if ($isMed($u['cargo_user'] ?? '')):
+                                                    $id  = (int)($u['id_usuario'] ?? 0);
+                                                    $nome= (string)($u['usuario_user'] ?? '');
+                                                    $cargoRaw = (string)($u['cargo_user'] ?? '');
+                                                    $cargoFmt = ucwords(mb_strtolower(str_replace(['_', '-'],' ',$cargoRaw),'UTF-8'));
+                                                    $sel = ($id === $medSelecionado) ? 'selected' : '';
+                                            ?>
+                                            <option value="<?= $id ?>" <?= $sel ?>>[<?= $h($cargoFmt) ?>]
+                                                <?= $h($nome) ?></option>
+                                            <?php endif; endforeach; ?>
+                                        </select>
+                                    </div>
+
+                                    <!-- Enfermeiro -->
+                                    <div id="box-cadcentral-enf" class="col-md-5" style="min-width:280px;">
+                                        <label class="form-label" for="cad_central_enf_id">Enfermeiro(a) (Cadastro
+                                            Central)</label>
+                                        <select class="form-control form-control-sm" id="cad_central_enf_id"
+                                            name="fk_id_aud_enf" style="height:45px;">
+                                            <option value="">Selecione</option>
+                                            <?php foreach ($usuariosAtivos as $u):
+                                                if ($isEnf($u['cargo_user'] ?? '')):
+                                                    $id  = (int)($u['id_usuario'] ?? 0);
+                                                    $nome= (string)($u['usuario_user'] ?? '');
+                                                    $cargoRaw = (string)($u['cargo_user'] ?? '');
+                                                    $cargoFmt = ucwords(mb_strtolower(str_replace(['_', '-'],' ',$cargoRaw),'UTF-8'));
+                                                    $sel = ($id === $enfSelecionado) ? 'selected' : '';
+                                            ?>
+                                            <option value="<?= $id ?>" <?= $sel ?>>[<?= $h($cargoFmt) ?>]
+                                                <?= $h($nome) ?></option>
+                                            <?php endif; endforeach; ?>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- /CADASTRO CENTRAL -->
                     </div>
 
+                    <!-- badges à direita -->
                     <div class="d-flex ms-auto">
                         <?php if (($val('med_check') ?? 'n') === 's'): ?>
                         <span class="bi bi-check-circle"
@@ -385,10 +392,10 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                         <?php endif; ?>
                         <?php if (($val('enfer_check') ?? 'n') === 's'): ?>
                         <span class="bi bi-check-circle"
-                            style="font-size:1.1rem;font-weight:600;color:#EA8037;">Auditado
-                            Enfermeiro</span>
+                            style="font-size:1.1rem;font-weight:600;color:#EA8037;">Auditado Enfermeiro</span>
                         <?php endif; ?>
                     </div>
+
                 </div>
             </div>
             <hr>
@@ -452,6 +459,7 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                     <div class="invalid-feedback notif4">Glosa maior que o valor total.</div>
                 </div>
             </div>
+
             <hr>
             <button type="button" id="btn-next-1" class="btn btn-primary" onclick="nextStep(2)">Próximo <i
                     class="fas fa-arrow-right"></i></button>
@@ -486,8 +494,7 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                         <?php endif; ?>
                         <?php if (($val('enfer_check') ?? 'n') === 's'): ?>
                         <span class="bi bi-check-circle"
-                            style="font-size:1.1rem;font-weight:600;color:#EA8037;">Auditado
-                            Enfermeiro</span>
+                            style="font-size:1.1rem;font-weight:600;color:#EA8037;">Auditado Enfermeiro</span>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -496,14 +503,14 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
             <div class="row">
                 <div class="form-group col-md-6">
                     <label style="font-size:15px">Total de Valores:</label><label id="diff_valor"
-                        style="color:#a83232;margin-left:6px;font-size:15px"></label><i
-                        style="color:green;margin-left:1px;font-size:1.2em" id="nodiff_valor" class="fas fa-check"></i>
+                        style="color:#a83232;margin-left:6px;font-size:15px"></label>
+                    <i style="color:green;margin-left:1px;font-size:1.2em" id="nodiff_valor" class="fas fa-check"></i>
                     <p id="total-valores" style="font-weight:bold;">R$ 0,00</p>
                 </div>
                 <div class="form-group col-md-6">
                     <label style="font-size:15px">Total de Glosas:</label><label id="diff_valor_glosa"
-                        style="color:#a83232;margin-left:6px;font-size:15px"></label><i
-                        style="color:green;margin-left:1px;font-size:1.2em" id="nodiff_valor_glosa"
+                        style="color:#a83232;margin-left:6px;font-size:15px"></label>
+                    <i style="color:green;margin-left:1px;font-size:1.2em" id="nodiff_valor_glosa"
                         class="fas fa-check"></i>
                     <p id="total-glosas" style="font-weight:bold;">R$ 0,00</p>
                 </div>
@@ -623,6 +630,7 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
         </div>
 
         <!-- Step 3 -->
+        <!-- Step 3 -->
         <div id="step-3" class="step" style="display:none;">
             <h3>Passo 3: Informações Adicionais</h3>
             <br>
@@ -630,14 +638,17 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                 <div id="view-contact-container" class="container-fluid d-flex align-items-center">
                     <div class="d-flex" style="flex-grow:1; gap:20px;">
                         <div class="d-flex flex-column" style="flex-grow:1;">
-                            <div><span class="card-title bold" style="font-weight:600;">Código Capeante:</span> <span
-                                    class="card-title bold"
+                            <div>
+                                <span class="card-title bold" style="font-weight:600;">Código Capeante:</span>
+                                <span class="card-title bold"
                                     style="font-weight:500;"><?= $h($val('id_capeante')) ?></span>
                             </div>
                         </div>
                         <div class="d-flex flex-column" style="flex-grow:1;">
-                            <div><span class="card-title bold" style="font-weight:600;">Paciente:</span> <span
-                                    class="card-title bold" style="font-weight:500;"><?= $h($val('nome_pac')) ?></span>
+                            <div>
+                                <span class="card-title bold" style="font-weight:600;">Paciente:</span>
+                                <span class="card-title bold"
+                                    style="font-weight:500;"><?= $h($val('nome_pac')) ?></span>
                             </div>
                         </div>
                     </div>
@@ -650,21 +661,23 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                         <?php endif; ?>
                         <?php if (($val('enfer_check') ?? 'n') === 's'): ?>
                         <span class="bi bi-check-circle"
-                            style="font-size:1.1rem;font-weight:600;color:#EA8037;">Auditado
-                            Enfermeiro</span>
+                            style="font-size:1.1rem;font-weight:600;color:#EA8037;">Auditado Enfermeiro</span>
                         <?php endif; ?>
                     </div>
                 </div>
             </div>
 
             <div class="row">
-                <div class="form-group col-md-6 mb-3">
+                <!-- Pacote menor -->
+                <div class="form-group col-md-3 mb-3">
                     <label for="pacote">Pacote</label>
                     <select class="form-control" id="pacote" name="pacote">
-                        <option value="n" <?= (($val('pacote') ?? 'n') === 'n') ? 'selected' : '' ?>>Não</option>
-                        <option value="s" <?= (($val('pacote') ?? 'n') === 's') ? 'selected' : '' ?>>Sim</option>
+                        <?php $pacoteVal = ($val('pacote') ?? 'n'); ?>
+                        <option value="n" <?= $pacoteVal === 'n' ? 'selected' : '' ?>>Não</option>
+                        <option value="s" <?= $pacoteVal === 's' ? 'selected' : '' ?>>Sim</option>
                     </select>
                 </div>
+
                 <div class="form-group col-md-3 mb-3">
                     <label for="parcial_capeante">Parcial</label>
                     <select class="form-control" id="parcial_capeante" name="parcial_capeante">
@@ -683,20 +696,23 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
             </div>
 
             <div class="row">
+                <!-- Senha Finalizada padrão N -->
                 <div class="form-group col-md-6 mb-3">
                     <label for="senha_finalizada">Senha Finalizada</label>
+                    <?php $senhaVal = ($val('senha_finalizada') ?? 'n'); ?>
                     <select class="form-control" id="senha_finalizada" name="senha_finalizada">
-                        <option value="n" <?= (($val('senha_finalizada') ?? 'n') === 'n') ? 'selected' : '' ?>>Não
-                        </option>
-                        <option value="s" <?= (($val('senha_finalizada') ?? 'n') === 's') ? 'selected' : '' ?>>Sim
-                        </option>
+                        <option value="n" <?= $senhaVal === 'n' ? 'selected' : '' ?>>Não</option>
+                        <option value="s" <?= $senhaVal === 's' ? 'selected' : '' ?>>Sim</option>
                     </select>
                 </div>
+
+                <!-- Encerrado padrão N -->
                 <div class="form-group col-md-6 mb-3">
                     <label for="encerrado_cap">Capeante Encerrado</label>
+                    <?php $encVal = ($val('encerrado_cap') ?? 'n'); ?>
                     <select class="form-control" id="encerrado_cap" name="encerrado_cap">
-                        <option value="n" <?= (($val('encerrado_cap') ?? 'n') === 'n') ? 'selected' : '' ?>>Não</option>
-                        <option value="s" <?= (($val('encerrado_cap') ?? 'n') === 's') ? 'selected' : '' ?>>Sim</option>
+                        <option value="n" <?= $encVal === 'n' ? 'selected' : '' ?>>Não</option>
+                        <option value="s" <?= $encVal === 's' ? 'selected' : '' ?>>Sim</option>
                     </select>
                 </div>
             </div>
@@ -755,6 +771,7 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
             </div>
             <div style="width:500px;display:none" class="alert" id="alert" role="alert"></div>
         </div>
+
     </form>
 </div>
 
@@ -869,7 +886,7 @@ function prevStep(n) {
     }
 })();
 
-// Toggle Cadastro Central (mostra/oculta selects)
+// Toggle Cadastro Central (mostra/oculta selects) — padrão: SIM/visível
 (function cadCentralToggle() {
     const sel = document.getElementById('cadastro_central_cap');
     const boxM = document.getElementById('box-cadcentral-med');
@@ -887,6 +904,9 @@ function prevStep(n) {
         med.disabled = !on;
         enf.disabled = !on;
     };
+
+    // força SIM visualmente no load (sem alterar valor vindo do server)
+    sel.value = sel.value || 's';
     apply();
     sel.addEventListener('change', apply);
 })();

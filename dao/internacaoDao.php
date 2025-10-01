@@ -1428,102 +1428,115 @@ class internacaoDAO implements internacaoDAOInterface
         // filtro de acesso (sem JOIN → não duplica)
         if (!empty($userFiltro)) {
             $whereParts[] = "EXISTS (
-                SELECT 1
-                  FROM tb_hospitalUser hu
-                 WHERE hu.fk_hospital_user = ac.fk_hospital_int
-                   AND hu.fk_usuario_hosp  = :userFiltro
-            )";
+            SELECT 1
+              FROM tb_hospitalUser hu
+             WHERE hu.fk_hospital_user = ac.fk_hospital_int
+               AND hu.fk_usuario_hosp  = :userFiltro
+        )";
         }
 
         $whereSQL = $whereParts ? "WHERE " . implode(' AND ', $whereParts) : "";
 
         // subselect capeante: 1 por internação (último id)
         $sql = "
-            SELECT
-                ac.id_internacao,
-                ac.acoes_int,
-                ac.data_intern_int,
-                ac.hora_intern_int,
-                ac.data_visita_int,
-                ac.fk_hospital_int,
-                ac.fk_patologia_int,
-                ac.fk_patologia2,
-                ac.internado_int,
-                ac.visita_no_int,
-                ac.primeira_vis_int,
-                ac.senha_int,
+        SELECT
+            ac.id_internacao,
+            ac.acoes_int,
+            ac.data_intern_int,
+            ac.hora_intern_int,
+            ac.data_visita_int,
+            ac.fk_hospital_int,
+            ac.fk_patologia_int,
+            ac.fk_patologia2,
+            ac.internado_int,
+            ac.visita_no_int,
+            ac.primeira_vis_int,
+            ac.senha_int,
 
-                pa.id_paciente,
-                pa.nome_pac,
+            pa.id_paciente,
+            pa.nome_pac,
 
-                ho.id_hospital,
-                ho.nome_hosp,
+            ho.id_hospital,
+            ho.nome_hosp,
 
-                ca.id_capeante,
-                ca.data_inicial_capeante,
-                ca.data_final_capeante,
-                ca.diarias_capeante,
-                ca.lote_cap,
-                ca.fk_int_capeante,
-                ca.glosa_diaria,
-                ca.glosa_honorarios,
-                ca.glosa_matmed,
-                ca.glosa_oxig,
-                ca.glosa_sadt,
-                ca.glosa_taxas,
-                ca.glosa_opme,
-                ca.pacote,
-                ca.parcial_capeante,
-                ca.parcial_num,
-                ca.valor_diarias,
-                ca.valor_glosa_enf,
-                ca.valor_glosa_med,
-                ca.valor_glosa_total,
-                ca.valor_honorarios,
-                ca.valor_matmed,
-                ca.valor_oxig,
-                ca.valor_sadt,
-                ca.valor_taxa,
-                ca.valor_opme,
-                ca.senha_finalizada,
-                ca.glosa_total,
-                ca.valor_apresentado_capeante,
-                ca.valor_final_capeante,
-                ca.adm_check,
-                ca.med_check,
-                ca.enfer_check,
-                ca.aberto_cap,
-                ca.em_auditoria_cap,
-                ca.encerrado_cap,
-                ca.negociado_desconto_cap,
-                ca.desconto_valor_cap,
-                ca.conta_parada_cap,
-                ca.parada_motivo_cap,
-                ca.fk_id_aud_enf,
-                ca.fk_id_aud_med,
-                ca.fk_id_aud_adm,
-                ca.fk_id_aud_hosp,
-                ca.conta_faturada_cap
+            ca.id_capeante,
+            ca.data_inicial_capeante,
+            ca.data_final_capeante,
+            ca.diarias_capeante,
+            ca.lote_cap,
+            ca.fk_int_capeante,
+            ca.glosa_diaria,
+            ca.glosa_honorarios,
+            ca.glosa_matmed,
+            ca.glosa_oxig,
+            ca.glosa_sadt,
+            ca.glosa_taxas,
+            ca.glosa_opme,
+            ca.pacote,
+            ca.parcial_capeante,
+            ca.parcial_num,
+            ca.valor_diarias,
+            ca.valor_glosa_enf,
+            ca.valor_glosa_med,
+            ca.valor_glosa_total,
+            ca.valor_honorarios,
+            ca.valor_matmed,
+            ca.valor_oxig,
+            ca.valor_sadt,
+            ca.valor_taxa,
+            ca.valor_opme,
+            ca.senha_finalizada,
+            ca.glosa_total,
+            ca.valor_apresentado_capeante,
+            ca.valor_final_capeante,
+            ca.adm_check,
+            ca.med_check,
+            ca.enfer_check,
+            ca.aberto_cap,
+            ca.em_auditoria_cap,
+            ca.encerrado_cap,
+            ca.negociado_desconto_cap,
+            ca.desconto_valor_cap,
+            ca.conta_parada_cap,
+            ca.parada_motivo_cap,
+            ca.fk_id_aud_enf,
+            ca.fk_id_aud_med,
+            ca.fk_id_aud_adm,
+            ca.fk_id_aud_hosp,
+            ca.conta_faturada_cap,
 
-            FROM tb_internacao ac
-            JOIN tb_paciente pa  ON pa.id_paciente  = ac.fk_paciente_int
-            JOIN tb_hospital ho  ON ho.id_hospital  = ac.fk_hospital_int
+            -- ==== NOMES DOS AUDITORES (JOIN EM tb_usuario) ====
+            um.usuario_user AS nome_aud_med,
+            ue.usuario_user AS nome_aud_enf,
+            ua.usuario_user AS nome_aud_adm
+            -- se quiser e existir: um.cargo_user AS cargo_aud_med, etc.
 
-            LEFT JOIN (
-                SELECT c.*
-                  FROM tb_capeante c
-                  JOIN (
-                        SELECT fk_int_capeante, MAX(id_capeante) AS max_id
-                          FROM tb_capeante
-                      GROUP BY fk_int_capeante
-                  ) u ON u.fk_int_capeante = c.fk_int_capeante
-                     AND u.max_id          = c.id_capeante
-            ) ca ON ca.fk_int_capeante = ac.id_internacao
+        FROM tb_internacao ac
+        JOIN tb_paciente pa  ON pa.id_paciente  = ac.fk_paciente_int
+        JOIN tb_hospital ho  ON ho.id_hospital  = ac.fk_hospital_int
 
-            $whereSQL
-            " . ($order ? "ORDER BY $order" : "ORDER BY ac.data_intern_int DESC, ac.id_internacao DESC") . "
-            " . ($limit ? "LIMIT $limit" : "") . "
-        ";
+        LEFT JOIN (
+            SELECT c.*
+              FROM tb_capeante c
+              JOIN (
+                    SELECT fk_int_capeante, MAX(id_capeante) AS max_id
+                      FROM tb_capeante
+                  GROUP BY fk_int_capeante
+              ) u ON u.fk_int_capeante = c.fk_int_capeante
+                 AND u.max_id          = c.id_capeante
+        ) ca ON ca.fk_int_capeante = ac.id_internacao
+
+        -- auditores
+        LEFT JOIN tb_user um ON um.id_usuario = ca.fk_id_aud_med
+        LEFT JOIN tb_user ue ON ue.id_usuario = ca.fk_id_aud_enf
+        LEFT JOIN tb_user ua ON ua.id_usuario = ca.fk_id_aud_adm
+        -- se precisar também do usuário do hospital:
+        -- LEFT JOIN tb_user uh ON uh.id_usuario = ca.fk_id_aud_hosp
+
+        $whereSQL
+        " . ($order ? "ORDER BY $order" : "ORDER BY ac.data_intern_int DESC, ac.id_internacao DESC") . "
+        " . ($limit ? "LIMIT $limit" : "") . "
+    ";
 
         $stmt = $this->conn->prepare($sql);
         if (!empty($userFiltro)) {
@@ -1532,6 +1545,7 @@ class internacaoDAO implements internacaoDAOInterface
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
     public function countInternacaoCap2(?int $userFiltro, ?string $where): int
     {
         $whereParts = [];
