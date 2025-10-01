@@ -223,7 +223,7 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
 <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
 
-<div class="container-fluid" id="main-container" style="background:#f5f6f8; min-height:100vh; padding:16px 12px;">
+<div class="container-fluid" id="main-container" style="background:#f5f6f8; min-height:100vh; ">
     <div class="progress mb-4">
         <div class="progress-bar bg-success" role="progressbar" id="progressBar" style="width: 33%;" aria-valuenow="33"
             aria-valuemin="0" aria-valuemax="100">
