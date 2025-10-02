@@ -34,7 +34,7 @@ $userId      = $_SESSION['id_usuario'] ?? null;
 $temCargoAmplificado = (stripos((string)$cargoSessao, 'diretor') !== false)
     || (stripos((string)$cargoSessao, 'gestor')  !== false);
 
-$isDiretor = $temCargoAmplificado || in_array((string)$nivelSessao, ['1', '4'], true);
+$isDiretor = $temCargoAmplificado || in_array((string)$nivelSessao, ['4', '5'], true);
 
 // =====================================================================
 // Inicialização

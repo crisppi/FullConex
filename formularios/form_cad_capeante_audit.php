@@ -201,7 +201,37 @@ if ($type === 'create') {
 // ======================================================================
 $medSelecionado = $hi($val('fk_id_aud_med'));
 $enfSelecionado = $hi($val('fk_id_aud_enf'));
-$cadastroCentralDefault = 's'; // força “Sim” por padrão
+// $cadastroCentralDefault = 's'; // força “Sim” por padrão
+
+
+$cargoSessao = $_SESSION['cargo'] ?? '';
+
+// Retorna true se o usuário for med_auditor, enf_auditor ou adm (case-insensitive)
+// Aceita variações com espaço ou hífen: "med auditor", "med-auditor", etc.
+function isProfissionalAssistencial(string $cargo): bool
+{
+    $norm = mb_strtolower(trim($cargo), 'UTF-8');
+    // normaliza separadores para underscore
+    $norm = preg_replace('/[\s\-]+/', '_', $norm);
+
+    // matches exatos após normalização
+    if (in_array($norm, ['med_auditor', 'enf_auditor', 'adm'], true)) {
+        return true;
+    }
+
+    // fallback por regex (aceita “med*_auditor” e “enf*_auditor”)
+    return (bool) preg_match('/^(med|enf)_?auditor$|^adm$/i', $norm);
+}
+
+// Força 's' para NÃO profissionais; para profissionais, default 'n'
+$cadastroCentralDefault = isProfissionalAssistencial($cargoSessao) ? 'n' : 's';
+
+// (Opcional) permitir que profissionais escolham manualmente via POST/GET:
+// $entrada = $_POST['cadastro_central'] ?? $_GET['cadastro_central'] ?? null;
+// if (isProfissionalAssistencial($cargoSessao)) {
+//     $cadastroCentralDefault = ($entrada === 's') ? 's' : 'n';
+// }
+
 
 $isMed = static function ($cargo) {
     $c = mb_strtolower((string)$cargo, 'UTF-8');
@@ -223,7 +253,7 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
 <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
 
-<div class="container-fluid" id="main-container" style="background:#f5f6f8; min-height:100vh; ">
+<div class="container-fluid px-0" id="main-container" style="background:#f5f6f8; min-height:100vh; ">
     <div class="progress mb-4">
         <div class="progress-bar bg-success" role="progressbar" id="progressBar" style="width: 33%;" aria-valuenow="33"
             aria-valuemin="0" aria-valuemax="100">
