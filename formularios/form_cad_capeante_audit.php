@@ -355,7 +355,7 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                             </div>
                         </div>
 
-                        <!-- CADASTRO CENTRAL FULL-WIDTH -->
+                        <!-- CADASTRO CENTRAL  -->
                         <div style="flex:0 0 100%; width:100%;">
                             <div id="cadastro-central-wrapper" class="border rounded-3 p-3 mb-3"
                                 style="border:2px solid #0d6efd;background:#f8fbff;">
@@ -367,7 +367,7 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                                 <div class="row g-3 align-items-end">
                                     <div class="col-md-3">
                                         <label for="cadastro_central_cap" class="form-label">Ativar</label>
-                                        <select class="form-control" id="cadastro_central_cap"
+                                        <select class="form-control form-select-sm" id="cadastro_central_cap"
                                             name="cadastro_central_cap">
                                             <option value="n" <?= $cadastroCentralDefault === 'n' ? 'selected' : '' ?>>
                                                 Não</option>
@@ -380,8 +380,8 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                                     <div id="box-cadcentral-med" class="col-md-4" style="min-width:280px;">
                                         <label class="form-label" for="cad_central_med_id">Médico (Cadastro
                                             Central)</label>
-                                        <select class="form-control form-control-sm" id="cad_central_med_id"
-                                            name="fk_id_aud_med" style="height:45px;">
+                                        <select class="form-control form-select-sm" id="cad_central_med_id"
+                                            name="fk_id_aud_med">
                                             <option value="">Selecione</option>
                                             <?php foreach ($usuariosAtivos as $u):
                                                 if ($isMed($u['cargo_user'] ?? '')):
@@ -402,8 +402,8 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                                     <div id="box-cadcentral-enf" class="col-md-5" style="min-width:280px;">
                                         <label class="form-label" for="cad_central_enf_id">Enfermeiro(a) (Cadastro
                                             Central)</label>
-                                        <select class="form-control form-control-sm" id="cad_central_enf_id"
-                                            name="fk_id_aud_enf" style="height:45px;">
+                                        <select class="form-control form-select-sm" id="cad_central_enf_id"
+                                            name="fk_id_aud_enf">
                                             <option value="">Selecione</option>
                                             <?php foreach ($usuariosAtivos as $u):
                                                 if ($isEnf($u['cargo_user'] ?? '')):
@@ -672,7 +672,6 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
         </div>
 
         <!-- Step 3 -->
-        <!-- Step 3 -->
         <div id="step-3" class="step" style="display:none;">
             <h3>Passo 3: Informações Adicionais</h3>
             <br>
@@ -710,7 +709,6 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
             </div>
 
             <div class="row">
-                <!-- Pacote menor -->
                 <div class="form-group col-md-3 mb-3">
                     <label for="pacote">Pacote</label>
                     <select class="form-control" id="pacote" name="pacote">
@@ -958,5 +956,5 @@ function prevStep(n) {
 <script src="js/stepper.js"></script>
 <script src="js/scriptPdf.js" defer></script>
 <script src="js/valoresCapeante.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"></script> -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-maskmoney/3.0.2/jquery.maskMoney.min.js"></script>
