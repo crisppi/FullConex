@@ -46,22 +46,21 @@ try {
     if (!is_array($todos)) $todos = [];
 
     foreach ($todos as $u) {
-        // Se o seu método usa outros nomes de chaves, ajuste aqui:
-        $id    = $u['id_usuario']  ?? null;
-        $nome  = $u['usuario_user']   ?? null;
-        $email = $u['email_user']  ?? null;
-        $cargo = $u['cargo_user']  ?? '';
+        $id    = $u['id_usuario']   ?? null;
+        $nome  = $u['usuario_user'] ?? null;
+        $email = $u['email_user']   ?? null;
+        $cargo = $u['cargo_user']   ?? '';
 
         if (!$id) continue;
 
         $row = [
-            'id_usuario' => $id,
-            'usuario_user'  => $nome,
-            'email_user' => $email,
-            'cargo_user' => $cargo,
+            'id_usuario'   => $id,
+            'usuario_user' => $nome,
+            'email_user'   => $email,
+            'cargo_user'   => $cargo,
         ];
 
-        $c = strtoupper($cargo ?? '');
+        $c = mb_strtoupper((string)$cargo, 'UTF-8');
         if (strpos($c, 'MED') === 0) {
             $medicosAud[] = $row;
         } elseif (strpos($c, 'ENF') === 0) {
@@ -74,6 +73,10 @@ try {
 // debug opcional no fonte (Ctrl+U)
 echo "\n<!-- via findMedicosEnfermeiros | med=" . count($medicosAud) . " enf=" . count($enfsAud) . " -->\n";
 
+/* ===== Mostrar Cadastro Central APENAS se NÃO for médico nem enfermeiro ===== */
+$normCargo = mb_strtolower(str_replace([' ', '-'], '_', (string)$cargoSessao), 'UTF-8');
+$mostrarCadastroCentral = !in_array($normCargo, ['med_auditor','medico_auditor','enf_auditor','enfer_auditor'], true);
+
 /* === OBS: variáveis esperadas do seu contexto ===
  * $listHopitaisPerfil, $pacientes, $patologias, $dados_alta, $dados_acomodacao,
  * $dados_especialidade, $dados_grupo_pat, $origem, $antecedentes, $ultimoReg, etc.
@@ -81,9 +84,35 @@ echo "\n<!-- via findMedicosEnfermeiros | med=" . count($medicosAud) . " enf=" .
 ?>
 <link href="<?= $BASE_URL ?>css/style.css" rel="stylesheet">
 
-<div class="row">
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<!-- FIX: z-index do dropdown do header -->
+<style>
+.navbar .dropdown-menu {
+    z-index: 1055;
+}
+</style>
 
+<!-- FIX: Shim para header Bootstrap 4 -> 5 (data-toggle -> data-bs-toggle) -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('[data-toggle="dropdown"]').forEach(function(el) {
+        el.setAttribute('data-bs-toggle', 'dropdown');
+    });
+    document.querySelectorAll('[data-toggle="collapse"]').forEach(function(el) {
+        el.setAttribute('data-bs-toggle', 'collapse');
+    });
+    document.querySelectorAll('[data-target]').forEach(function(el) {
+        if (!el.getAttribute('data-bs-target')) {
+            el.setAttribute('data-bs-target', el.getAttribute('data-target'));
+        }
+    });
+});
+</script>
+
+<!-- FIX: jQuery atualizado (evita conflitos com BS5 e plugins) -->
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"
+    integrity="sha256-o88Awf4m9Zr+1Wf3N3QzY8v1Xq2qYh3G6Z5/2Qp3uHk=" crossorigin="anonymous"></script>
+
+<div class="row">
     <div class="form-group row">
         <h4 class="text-center w-100"
             style="margin:-7px 10px;background-color:#5e2363;color:#fff;padding:13px 0;border-radius:.25rem;">
@@ -232,7 +261,8 @@ echo "\n<!-- via findMedicosEnfermeiros | med=" . count($medicosAud) . " enf=" .
 
         </div>
 
-        <!-- ===== CADASTRO CENTRAL (sempre visível) ===== -->
+        <!-- ===== CADASTRO CENTRAL (só aparece se NÃO for med/enf) ===== -->
+        <?php if ($mostrarCadastroCentral): ?>
         <div id="cadastro-central-wrapper" class="form-group row"
             style="margin-top:8px;display:block !important;border:2px dashed #8a2be2;padding:10px;border-radius:8px;">
             <div class="form-group col-sm-12" style="margin-bottom:6px;">
@@ -257,7 +287,7 @@ echo "\n<!-- via findMedicosEnfermeiros | med=" . count($medicosAud) . " enf=" .
                         <?php foreach ($medicosAud as $m): ?>
                         <option value="<?= (int)$m['id_usuario'] ?>"
                             data-email="<?= htmlspecialchars($m['email_user'] ?? '') ?>">
-                            <?= htmlspecialchars($m['usuario_user'] ?? $m['nome_user'] ?? ('#' . $m['id_usuario'])) ?>
+                            <?= htmlspecialchars($m['usuario_user'] ?? ('#' . $m['id_usuario'])) ?>
                         </option>
                         <?php endforeach; ?>
                     </select>
@@ -270,7 +300,7 @@ echo "\n<!-- via findMedicosEnfermeiros | med=" . count($medicosAud) . " enf=" .
                         <?php foreach ($enfsAud as $e): ?>
                         <option value="<?= (int)$e['id_usuario'] ?>"
                             data-email="<?= htmlspecialchars($e['email_user'] ?? '') ?>">
-                            <?= htmlspecialchars($e['usuario_user'] ?? $e['nome_user'] ?? ('#' . $e['id_usuario'])) ?>
+                            <?= htmlspecialchars($e['usuario_user'] ?? ('#' . $e['id_usuario'])) ?>
                         </option>
                         <?php endforeach; ?>
                     </select>
@@ -278,6 +308,7 @@ echo "\n<!-- via findMedicosEnfermeiros | med=" . count($medicosAud) . " enf=" .
             </div>
 
         </div>
+        <?php endif; ?>
         <!-- ===== /CADASTRO CENTRAL ===== -->
 
         <div class="row">
@@ -778,12 +809,15 @@ function reduzirText(textareaId, originalRows) {
 </script>
 
 <script>
-$(document).ready(function() {
-    $('.selectpicker').selectpicker();
-    $('.selectpicker').selectpicker('refresh');
-    $('.selectpicker').on('loaded.bs.select', function() {
-        $('.bs-searchbox input').attr('placeholder', 'Digite para pesquisar...');
-    });
+// selectpicker só se o plugin existir (evita quebrar tudo)
+$(function() {
+    if ($.fn.selectpicker) {
+        $('.selectpicker').selectpicker();
+        $('.selectpicker').selectpicker('refresh');
+        $('.selectpicker').on('loaded.bs.select', function() {
+            $('.bs-searchbox input').attr('placeholder', 'Digite para pesquisar...');
+        });
+    }
 });
 </script>
 
@@ -1075,9 +1109,11 @@ $("#myForm").submit(function(event) {
             });
             document.getElementById("hospital_selected").value = hospitalSelected;
 
-            $('#fk_paciente_int').val('').selectpicker('refresh');
-            $('#fk_patologia2').val('').selectpicker('refresh');
-            $('#fk_patologia_int').val('').selectpicker('refresh');
+            $('#fk_paciente_int').val('').selectpicker && $('#fk_paciente_int').selectpicker(
+                'refresh');
+            $('#fk_patologia2').val('').selectpicker && $('#fk_patologia2').selectpicker('refresh');
+            $('#fk_patologia_int').val('').selectpicker && $('#fk_patologia_int').selectpicker(
+                'refresh');
 
             const adicionarValor = parseInt(document.querySelector("#proximoId_int").textContent ||
                 '0', 10) + 1;
@@ -1229,7 +1265,7 @@ $(document).ready(function() {
     const boxMed = document.getElementById('box_resp_med');
     const boxEnf = document.getElementById('box_resp_enf');
     const selMed = document.getElementById('resp_med_id');
-    const selEnf = document.getElementById('resp_enf_id');
+    theSelEnf = document.getElementById('resp_enf_id');
 
     const fkUsuario = document.getElementById('fk_usuario_int');
     const flgMed = document.getElementById('visita_med_int');
@@ -1253,7 +1289,7 @@ $(document).ready(function() {
     function clearAll() {
         resetToSessionUser();
         if (selMed) selMed.value = '';
-        if (selEnf) selEnf.value = '';
+        if (theSelEnf) theSelEnf.value = '';
     }
 
     resetToSessionUser();
@@ -1285,7 +1321,7 @@ $(document).ready(function() {
         if (emailEnf) emailEnf.value = '';
     });
 
-    selEnf?.addEventListener('change', function() {
+    theSelEnf?.addEventListener('change', function() {
         const opt = this.selectedOptions[0];
         if (!opt?.value) {
             resetToSessionUser();
@@ -1298,6 +1334,7 @@ $(document).ready(function() {
         if (emailMed) emailMed.value = '';
     });
 })();
+
 // ===== Cadastro Central - atualiza flags e e-mails pelos selects =====
 (function() {
     const respTipo = document.getElementById('resp_tipo');
@@ -1312,7 +1349,6 @@ $(document).ready(function() {
     const emailMed = document.getElementById('visita_auditor_prof_med');
     const emailEnf = document.getElementById('visita_auditor_prof_enf');
 
-    // (opcional) manter o usuário logado como fallback
     const idSessao = "<?= $_SESSION['id_usuario'] ?? '' ?>";
 
     function limparFlagsEmails() {
@@ -1322,9 +1358,7 @@ $(document).ready(function() {
         if (emailEnf) emailEnf.value = '';
     }
 
-    // Quando escolher o TIPO (med / enf)
     respTipo?.addEventListener('change', function() {
-        // limpa selects e flags
         if (selMed) selMed.value = '';
         if (selEnf) selEnf.value = '';
         limparFlagsEmails();
@@ -1332,32 +1366,27 @@ $(document).ready(function() {
         if (this.value === 'med') {
             boxMed.style.display = 'block';
             boxEnf.style.display = 'none';
-            // marca que a visita é médica (ainda sem responsável até escolher)
             if (flgMed) flgMed.value = 's';
             if (flgEnf) flgEnf.value = 'n';
-            // enquanto não escolher, mantém fk como usuário logado (ou vazio se preferir)
-            if (fkUsuario) fkUsuario.value = idSessao; // ou '' se quiser forçar escolha
+            if (fkUsuario) fkUsuario.value = idSessao;
         } else if (this.value === 'enf') {
             boxMed.style.display = 'none';
             boxEnf.style.display = 'block';
             if (flgMed) flgMed.value = 'n';
             if (flgEnf) flgEnf.value = 's';
-            if (fkUsuario) fkUsuario.value = idSessao; // ou ''
+            if (fkUsuario) fkUsuario.value = idSessao;
         } else {
-            // Sem tipo: esconde ambos e zera tudo
             boxMed.style.display = 'none';
             boxEnf.style.display = 'none';
-            if (fkUsuario) fkUsuario.value = idSessao; // ou ''
+            if (fkUsuario) fkUsuario.value = idSessao;
             limparFlagsEmails();
         }
     });
 
-    // Ao escolher o MÉDICO
     selMed?.addEventListener('change', function() {
         const opt = this.selectedOptions[0];
         if (!opt?.value) {
-            // se desmarcar, mantemos a flag de tipo e limpamos e-mail; fk volta pro fallback
-            if (fkUsuario) fkUsuario.value = idSessao; // ou ''
+            if (fkUsuario) fkUsuario.value = idSessao;
             if (emailMed) emailMed.value = '';
             return;
         }
@@ -1368,11 +1397,10 @@ $(document).ready(function() {
         if (emailEnf) emailEnf.value = '';
     });
 
-    // Ao escolher o ENFERMEIRO
     selEnf?.addEventListener('change', function() {
         const opt = this.selectedOptions[0];
         if (!opt?.value) {
-            if (fkUsuario) fkUsuario.value = idSessao; // ou ''
+            if (fkUsuario) fkUsuario.value = idSessao;
             if (emailEnf) emailEnf.value = '';
             return;
         }
@@ -1383,89 +1411,8 @@ $(document).ready(function() {
         if (emailMed) emailMed.value = '';
     });
 })();
-</script>
-<script>
-(function() {
-    const respTipo = document.getElementById('resp_tipo');
-    const boxMed = document.getElementById('box_resp_med');
-    const boxEnf = document.getElementById('box_resp_enf');
-    const selMed = document.getElementById('resp_med_id');
-    const selEnf = document.getElementById('resp_enf_id');
 
-    const fkUsuario = document.getElementById('fk_usuario_int');
-    const flgMed = document.getElementById('visita_med_int');
-    const flgEnf = document.getElementById('visita_enf_int');
-
-    // >>> campos HIDDEN de e-mail <<<
-    const emailEnfHidden = document.getElementById('visita_auditor_prof_enf');
-    const emailMedHidden = document.getElementById('visita_auditor_prof_med');
-
-    const idSessao = "<?= $_SESSION['id_usuario'] ?? '' ?>";
-
-    function limparEmails() {
-        if (emailEnfHidden) emailEnfHidden.value = '';
-        if (emailMedHidden) emailMedHidden.value = '';
-    }
-
-    function limparFlags() {
-        if (flgMed) flgMed.value = 'n';
-        if (flgEnf) flgEnf.value = 'n';
-    }
-
-    respTipo?.addEventListener('change', function() {
-        if (selMed) selMed.value = '';
-        if (selEnf) selEnf.value = '';
-        limparEmails();
-        limparFlags();
-
-        if (this.value === 'med') {
-            boxMed.style.display = 'block';
-            boxEnf.style.display = 'none';
-            if (flgMed) flgMed.value = 's';
-            if (fkUsuario) fkUsuario.value = idSessao; // ou '' para forçar seleção
-        } else if (this.value === 'enf') {
-            boxMed.style.display = 'none';
-            boxEnf.style.display = 'block';
-            if (flgEnf) flgEnf.value = 's';
-            if (fkUsuario) fkUsuario.value = idSessao; // ou ''
-        } else {
-            boxMed.style.display = 'none';
-            boxEnf.style.display = 'none';
-            if (fkUsuario) fkUsuario.value = idSessao; // ou ''
-        }
-    });
-
-    // médico selecionado → preenche email do médico (hidden)
-    selMed?.addEventListener('change', function() {
-        const opt = this.selectedOptions[0];
-        if (!opt?.value) {
-            if (fkUsuario) fkUsuario.value = idSessao; // ou ''
-            if (emailMedHidden) emailMedHidden.value = '';
-            return;
-        }
-        if (fkUsuario) fkUsuario.value = opt.value;
-        if (flgMed) flgMed.value = 's';
-        if (flgEnf) flgEnf.value = 'n';
-        if (emailMedHidden) emailMedHidden.value = opt.getAttribute('data-email') || '';
-        if (emailEnfHidden) emailEnfHidden.value = '';
-    });
-
-    // enfermeiro selecionado → preenche email do enfermeiro (hidden)
-    selEnf?.addEventListener('change', function() {
-        const opt = this.selectedOptions[0];
-        if (!opt?.value) {
-            if (fkUsuario) fkUsuario.value = idSessao; // ou ''
-            if (emailEnfHidden) emailEnfHidden.value = '';
-            return;
-        }
-        if (fkUsuario) fkUsuario.value = opt.value;
-        if (flgMed) flgMed.value = 'n';
-        if (flgEnf) flgEnf.value = 's';
-        if (emailEnfHidden) emailEnfHidden.value = opt.getAttribute('data-email') || '';
-        if (emailMedHidden) emailMedHidden.value = '';
-    });
-})();
-
+// Mostrar/ocultar selects do Cadastro Central com classes BS
 document.addEventListener('DOMContentLoaded', function() {
     var tipo = document.getElementById('resp_tipo');
     var boxMed = document.getElementById('box_resp_med');
@@ -1474,9 +1421,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function hideAll() {
         [boxMed, boxEnf].forEach(function(el) {
             if (!el) return;
-            el.classList.add('d-none'); // bootstrap hide
-            el.hidden = true; // atributo hidden
-            el.style.display = ''; // limpa estilo inline (se houver)
+            el.classList.add('d-none');
+            el.hidden = true;
+            el.style.display = '';
         });
     }
 
@@ -1484,7 +1431,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!el) return;
         el.classList.remove('d-none');
         el.hidden = false;
-        el.style.display = ''; // garante que não ficou display:none inline
+        el.style.display = '';
     }
 
     hideAll(); // começa oculto
@@ -1497,82 +1444,17 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// Segurança extra: antes de enviar, garante coerência das flags/IDs
 (function() {
-    const tipo = document.getElementById('resp_tipo');
-    const selMed = document.getElementById('resp_med_id');
-    const selEnf = document.getElementById('resp_enf_id');
-
     const fkAudMed = document.getElementById('fk_id_aud_med');
     const fkAudEnf = document.getElementById('fk_id_aud_enf');
 
-    const emailMedH = document.getElementById('visita_auditor_prof_med');
-    const emailEnfH = document.getElementById('visita_auditor_prof_enf');
-
     const aberto = document.getElementById('aberto_cap');
     const emAud = document.getElementById('em_auditoria_cap');
-    const encerrado = document.getElementById('encerrado_cap');
 
-    const usuarioCreate = document.getElementById('usuario_create_cap');
-
-    function zeraAuditores() {
-        if (fkAudMed) fkAudMed.value = '';
-        if (fkAudEnf) fkAudEnf.value = '';
-        if (emailMedH) emailMedH.value = '';
-        if (emailEnfH) emailEnfH.value = '';
-    }
-
-    // helper: quando selecionar um option, aplica ID + e-mail e ajusta flags
-    function aplicarSelecao(opt, cargo) {
-        const id = opt?.value || '';
-        const email = opt?.getAttribute('data-email') || '';
-
-        zeraAuditores();
-
-        if (cargo === 'med') {
-            if (fkAudMed) fkAudMed.value = id;
-            if (emailMedH) emailMedH.value = email;
-        } else if (cargo === 'enf') {
-            if (fkAudEnf) fkAudEnf.value = id;
-            if (emailEnfH) emailEnfH.value = email;
-        }
-
-        // Flags de status do capeante: em auditoria
-        if (aberto) aberto.value = 'n';
-        if (emAud) emAud.value = 's';
-        if (encerrado) encerrado.value = 'n';
-
-        // Se quiser que o "criador" seja o responsável escolhido, descomente:
-        // if (usuarioCreate) usuarioCreate.value = email;
-    }
-
-    // ao trocar o tipo, só limpa; a seleção real é no select do profissional
-    tipo?.addEventListener('change', function() {
-        zeraAuditores();
-    });
-
-    selMed?.addEventListener('change', function() {
-        const opt = this.selectedOptions[0];
-        if (!opt?.value) {
-            zeraAuditores();
-            return;
-        }
-        aplicarSelecao(opt, 'med');
-    });
-
-    selEnf?.addEventListener('change', function() {
-        const opt = this.selectedOptions[0];
-        if (!opt?.value) {
-            zeraAuditores();
-            return;
-        }
-        aplicarSelecao(opt, 'enf');
-    });
-
-    // Segurança extra: antes de enviar, garante coerência das flags/IDs
     document.getElementById('myForm')?.addEventListener('submit', function() {
         const temMed = fkAudMed && fkAudMed.value;
         const temEnf = fkAudEnf && fkAudEnf.value;
-
         if (temMed || temEnf) {
             if (aberto) aberto.value = 'n';
             if (emAud) emAud.value = 's';
@@ -1581,7 +1463,6 @@ document.addEventListener('DOMContentLoaded', function() {
 })();
 </script>
 
+<!-- Bootstrap 5 bundle (inclui Popper v2). Mantenha APENAS este; não carregue Popper 1.x separado -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous">
-</script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
+    integrity="sha384-gtEjrD/SeCtmISJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>

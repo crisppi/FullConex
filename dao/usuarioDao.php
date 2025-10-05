@@ -531,4 +531,11 @@ class UserDAO implements UserDAOInterface
         $cargos = ['med_auditor', 'medico_auditor', 'enf_auditor', 'enfer_auditor'];
         return $this->findAtivosByCargos($cargos);
     }
+
+    public function findAdministrativos(): array
+    {
+        // cobre variações comuns de cadastro
+        $cargos = ['administrativo', 'adm', 'administrador'];
+        return $this->findAtivosByCargos($cargos);
+    }
 }

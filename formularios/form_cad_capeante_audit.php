@@ -16,6 +16,12 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 // ======================================================================
 require_once "models/usuario.php";
 require_once "dao/usuarioDao.php";
+// Instancia o DAO se ainda não existir
+if (!isset($usuarioDao) || !($usuarioDao instanceof UserDAO)) {
+    $usuarioDao = new UserDAO($conn, $BASE_URL);
+}
+$usuariosAtivos = $usuarioDao->findMedicosEnfermeiros(); // médico/enfermeiro
+$usuariosAdm    = $usuarioDao->findAdministrativos();    // administrativos
 
 /**
  * Alias de compatibilidade: se o projeto definir usuarioDAO/UsuarioDAO,
@@ -195,43 +201,22 @@ if ($type === 'create') {
 
 // ======================================================================
 // CADASTRO CENTRAL (estado inicial)
-// Regras:
-// - Já deixa “Sim” por padrão.
-// - Se houver fk_id_aud_med/enf no banco, mantém.
 // ======================================================================
 $medSelecionado = $hi($val('fk_id_aud_med'));
 $enfSelecionado = $hi($val('fk_id_aud_enf'));
-// $cadastroCentralDefault = 's'; // força “Sim” por padrão
-
 
 $cargoSessao = $_SESSION['cargo'] ?? '';
 
-// Retorna true se o usuário for med_auditor, enf_auditor ou adm (case-insensitive)
-// Aceita variações com espaço ou hífen: "med auditor", "med-auditor", etc.
 function isProfissionalAssistencial(string $cargo): bool
 {
     $norm = mb_strtolower(trim($cargo), 'UTF-8');
-    // normaliza separadores para underscore
     $norm = preg_replace('/[\s\-]+/', '_', $norm);
-
-    // matches exatos após normalização
     if (in_array($norm, ['med_auditor', 'enf_auditor', 'adm'], true)) {
         return true;
     }
-
-    // fallback por regex (aceita “med*_auditor” e “enf*_auditor”)
     return (bool) preg_match('/^(med|enf)_?auditor$|^adm$/i', $norm);
 }
-
-// Força 's' para NÃO profissionais; para profissionais, default 'n'
 $cadastroCentralDefault = isProfissionalAssistencial($cargoSessao) ? 'n' : 's';
-
-// (Opcional) permitir que profissionais escolham manualmente via POST/GET:
-// $entrada = $_POST['cadastro_central'] ?? $_GET['cadastro_central'] ?? null;
-// if (isProfissionalAssistencial($cargoSessao)) {
-//     $cadastroCentralDefault = ($entrada === 's') ? 's' : 'n';
-// }
-
 
 $isMed = static function ($cargo) {
     $c = mb_strtolower((string)$cargo, 'UTF-8');
@@ -241,6 +226,11 @@ $isEnf = static function ($cargo) {
     $c = mb_strtolower((string)$cargo, 'UTF-8');
     return in_array($c, ['enf_auditor', 'enfer_auditor'], true);
 };
+$isAdm = static function ($cargo) {
+    $c = mb_strtolower((string)$cargo, 'UTF-8');
+    return in_array($c, ['adm', 'administrador', 'administrativo'], true);
+};
+$mostrarCadastroCentral = !($isMed($cargoSessao) || $isEnf($cargoSessao));
 
 $agora = date('Y-m-d H:i:s');
 $lastFinalDateHidden = '';
@@ -271,27 +261,41 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
         <input type="hidden" name="id_capeante" value="<?= $hi($val('id_capeante')) ?>">
         <?php endif; ?>
 
-        <!-- flags de cargo (mantidos) -->
-        <input type="hidden" id="adm_capeante" name="adm_capeante"
-            value="<?= ($_SESSION['cargo'] ?? '') === 'Adm' ? 's' : '' ?>">
-        <input type="hidden" id="aud_enf_capeante" name="aud_enf_capeante"
-            value="<?= ($_SESSION['cargo'] ?? '') === 'Enf_Auditor' ? 's' : '' ?>">
-        <input type="hidden" id="aud_med_capeante" name="aud_med_capeante"
-            value="<?= ($_SESSION['cargo'] ?? '') === 'Med_auditor' ? 's' : '' ?>">
+        <!-- flags de cargo (VISÍVEIS) -->
+        <input type="text" id="adm_capeante" name="adm_capeante"
+            value="<?= ($_SESSION['cargo'] ?? '') === 'Adm' ? 's' : '' ?>" readonly>
 
-        <!-- checks (mantidos) -->
-        <input type="hidden" id="adm_check" name="adm_check"
-            value="<?= (($_SESSION['cargo'] ?? '') === 'Adm') ? 's' : $h($val('adm_check')) ?>">
-        <input type="hidden" id="med_check" name="med_check"
-            value="<?= (($_SESSION['cargo'] ?? '') === 'Med_auditor') ? 's' : $h($val('med_check')) ?>">
-        <input type="hidden" id="enfer_check" name="enfer_check"
-            value="<?= (($_SESSION['cargo'] ?? '') === 'Enf_Auditor') ? 's' : $h($val('enfer_check')) ?>">
+        <input type="text" id="aud_enf_capeante" name="aud_enf_capeante"
+            value="<?= ($_SESSION['cargo'] ?? '') === 'Enf_Auditor' ? 's' : '' ?>" readonly>
 
-        <!-- ids de usuários (NÃO incluir hidden para fk_id_aud_enf/med p/ não sobrescrever os selects) -->
-        <input type="hidden" id="fk_id_aud_adm" name="fk_id_aud_adm"
-            value="<?= (($_SESSION['cargo'] ?? '') === 'Adm') ? $hi($_SESSION['id_usuario'] ?? 0) : $hi($val('fk_id_aud_adm')) ?>">
-        <input type="hidden" id="fk_id_aud_hosp" name="fk_id_aud_hosp"
-            value="<?= (($_SESSION['cargo'] ?? '') === 'Hospital') ? $hi($_SESSION['id_usuario'] ?? 0) : $hi($val('fk_id_aud_hosp')) ?>">
+        <input type="text" id="aud_med_capeante" name="aud_med_capeante"
+            value="<?= ($_SESSION['cargo'] ?? '') === 'Med_auditor' ? 's' : '' ?>" readonly>
+
+        <!-- checks (VISÍVEIS) -->
+        <input type="text" id="adm_check" name="adm_check"
+            value="<?= (($_SESSION['cargo'] ?? '') === 'Adm') ? 's' : $h($val('adm_check')) ?>" readonly>
+
+        <input type="text" id="med_check" name="med_check"
+            value="<?= (($_SESSION['cargo'] ?? '') === 'Med_auditor') ? 's' : $h($val('med_check')) ?>" readonly>
+
+        <input type="text" id="enfer_check" name="enfer_check"
+            value="<?= (($_SESSION['cargo'] ?? '') === 'Enf_Auditor') ? 's' : $h($val('enfer_check')) ?>" readonly>
+
+        <!-- FKs (VISÍVEIS) -->
+        <input type="text" id="fk_id_aud_adm" name="fk_id_aud_adm"
+            value="<?= (($_SESSION['cargo'] ?? '') === 'Adm') ? $hi($_SESSION['id_usuario'] ?? 0) : $hi($val('fk_id_aud_adm')) ?>"
+            readonly>
+
+        <input type="text" id="fk_id_aud_enf" name="fk_id_aud_enf"
+            value="<?= (($_SESSION['cargo'] ?? '') === 'Enf_Auditor') ? $hi($_SESSION['id_usuario'] ?? 0) : $hi($val('fk_id_aud_enf')) ?>"
+            readonly>
+
+        <input type="text" id="fk_id_aud_med" name="fk_id_aud_med"
+            value="<?= (($_SESSION['cargo'] ?? '') === 'Med_auditor') ? $hi($_SESSION['id_usuario'] ?? 0) : $hi($val('fk_id_aud_med')) ?>"
+            readonly>
+
+        <!-- nível do usuário -->
+        <input type="hidden" id="nivel_user" value="<?= (int)($_SESSION['nivel'] ?? 0) ?>">
 
         <!-- chaves -->
         <input type="hidden" id="fk_int_capeante" name="fk_int_capeante"
@@ -312,10 +316,11 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
             <h3>Passo 1: Informações Básicas</h3>
             <br>
             <div class="form-group row">
-                <div id="view-contact-container" class="container-fluid d-flex align-items-center">
+                <!-- ALTERADO: align-items-start flex-wrap -->
+                <div id="view-contact-container" class="container-fluid d-flex align-items-start flex-wrap">
 
-                    <!-- GRID FLEX COM WRAP -->
-                    <div class="d-flex" style="flex-grow:1; gap:20px; flex-wrap:wrap; width:100%;">
+                    <!-- ALTERADO: wrapper ocupa 100% -->
+                    <div class="d-flex w-100" style="flex:1 1 100%; gap:20px; flex-wrap:wrap;">
 
                         <!-- COLUNA ESQUERDA -->
                         <div class="d-flex flex-column" style="flex:1 1 280px; min-width:280px;">
@@ -356,8 +361,10 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                         </div>
 
                         <!-- CADASTRO CENTRAL  -->
+                        <?php if ($mostrarCadastroCentral): ?>
                         <div style="flex:0 0 100%; width:100%;">
-                            <div id="cadastro-central-wrapper" class="border rounded-3 p-3 mb-3"
+                            <!-- ALTERADO: w-100 -->
+                            <div id="cadastro-central-wrapper" class="w-100 border rounded-3 p-3 mb-3"
                                 style="border:2px solid #0d6efd;background:#f8fbff;">
                                 <div class="d-flex align-items-center mb-2">
                                     <i class="bi bi-people-fill me-2"></i>
@@ -365,7 +372,7 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                                 </div>
 
                                 <div class="row g-3 align-items-end">
-                                    <div class="col-md-3">
+                                    <div class="col-12 col-lg-2">
                                         <label for="cadastro_central_cap" class="form-label">Ativar</label>
                                         <select class="form-control form-select-sm" id="cadastro_central_cap"
                                             name="cadastro_central_cap">
@@ -377,52 +384,65 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                                     </div>
 
                                     <!-- Médico -->
-                                    <div id="box-cadcentral-med" class="col-md-4" style="min-width:280px;">
-                                        <label class="form-label" for="cad_central_med_id">Médico (Cadastro
-                                            Central)</label>
+                                    <div id="box-cadcentral-med" class="col-12 col-lg-3">
+                                        <label class="form-label" for="cad_central_med_id">Médico (a) </label>
                                         <select class="form-control form-select-sm" id="cad_central_med_id"
                                             name="fk_id_aud_med">
                                             <option value="">Selecione</option>
-                                            <?php foreach ($usuariosAtivos as $u):
-                                                if ($isMed($u['cargo_user'] ?? '')):
-                                                    $id  = (int)($u['id_usuario'] ?? 0);
-                                                    $nome = (string)($u['usuario_user'] ?? '');
-                                                    $cargoRaw = (string)($u['cargo_user'] ?? '');
-                                                    $cargoFmt = ucwords(mb_strtolower(str_replace(['_', '-'], ' ', $cargoRaw), 'UTF-8'));
-                                                    $sel = ($id === $medSelecionado) ? 'selected' : '';
-                                            ?>
-                                            <option value="<?= $id ?>" <?= $sel ?>>[<?= $h($cargoFmt) ?>]
+                                            <?php foreach ($usuariosAtivos as $u): if ($isMed($u['cargo_user'] ?? '')):
+                                                        $id = (int)($u['id_usuario'] ?? 0);
+                                                        $nome = (string)($u['usuario_user'] ?? '');
+                                                        $sel = ($id === $medSelecionado) ? 'selected' : ''; ?>
+                                            <option value="<?= $id ?>" <?= $sel ?>>
                                                 <?= $h($nome) ?></option>
                                             <?php endif;
-                                            endforeach; ?>
+                                                endforeach; ?>
                                         </select>
                                     </div>
 
                                     <!-- Enfermeiro -->
-                                    <div id="box-cadcentral-enf" class="col-md-5" style="min-width:280px;">
-                                        <label class="form-label" for="cad_central_enf_id">Enfermeiro(a) (Cadastro
-                                            Central)</label>
+                                    <div id="box-cadcentral-enf" class="col-12 col-lg-3">
+                                        <label class="form-label" for="cad_central_enf_id">Enfermeiro(a) </label>
                                         <select class="form-control form-select-sm" id="cad_central_enf_id"
                                             name="fk_id_aud_enf">
                                             <option value="">Selecione</option>
-                                            <?php foreach ($usuariosAtivos as $u):
-                                                if ($isEnf($u['cargo_user'] ?? '')):
-                                                    $id  = (int)($u['id_usuario'] ?? 0);
-                                                    $nome = (string)($u['usuario_user'] ?? '');
-                                                    $cargoRaw = (string)($u['cargo_user'] ?? '');
-                                                    $cargoFmt = ucwords(mb_strtolower(str_replace(['_', '-'], ' ', $cargoRaw), 'UTF-8'));
-                                                    $sel = ($id === $enfSelecionado) ? 'selected' : '';
-                                            ?>
-                                            <option value="<?= $id ?>" <?= $sel ?>>[<?= $h($cargoFmt) ?>]
+                                            <?php foreach ($usuariosAtivos as $u): if ($isEnf($u['cargo_user'] ?? '')):
+                                                        $id = (int)($u['id_usuario'] ?? 0);
+                                                        $nome = (string)($u['usuario_user'] ?? '');
+
+                                                        $sel = ($id === $enfSelecionado) ? 'selected' : ''; ?>
+                                            <option value="<?= $id ?>" <?= $sel ?>>
                                                 <?= $h($nome) ?></option>
                                             <?php endif;
-                                            endforeach; ?>
+                                                endforeach; ?>
                                         </select>
                                     </div>
+                                    <!-- Administrador -->
+                                    <div id="box-cadcentral-enf" class="col-12 col-lg-3">
+                                        <label class="form-label" for="cad_central_enf_id">Administrativo (a) </label>
+                                        <select class="form-control form-select-sm" id="cad_central_adm_id">
+                                            <option value="">Selecione</option>
+                                            <?php
+                                                $admSelecionado = (int)($val('fk_id_aud_adm') ?? 0);
+                                                foreach ($usuariosAdm as $u):
+                                                    $id   = (int)($u['id_usuario'] ?? 0);
+                                                    $nome = (string)($u['usuario_user'] ?? '');
+                                                    $sel = ($id === $admSelecionado) ? 'selected' : ''; ?>
+                                            <option value="<?= $id ?>" <?= $sel ?>>
+                                                <?= $h($nome) ?>
+                                            </option>
+                                            <?php endforeach; ?>
+                                        </select>
+
+                                    </div>
                                 </div>
+
                             </div>
                         </div>
                         <!-- /CADASTRO CENTRAL -->
+                        <?php endif; ?>
+
+
                     </div>
 
                     <!-- badges à direita -->
@@ -512,7 +532,8 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
             <h3>Passo 2: Valores e Glosas</h3>
             <br>
             <div class="form-group row">
-                <div id="view-contact-container" class="container-fluid d-flex align-items-center">
+                <!-- também ajustado para consistência -->
+                <div id="view-contact-container" class="container-fluid d-flex align-items-start flex-wrap">
                     <div class="d-flex" style="flex-grow:1; gap:20px;">
                         <div class="d-flex flex-column" style="flex-grow:1;">
                             <div><span class="card-title bold" style="font-weight:600;">Código Capeante:</span>
@@ -676,7 +697,8 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
             <h3>Passo 3: Informações Adicionais</h3>
             <br>
             <div class="form-group row">
-                <div id="view-contact-container" class="container-fluid d-flex align-items-center">
+                <!-- também ajustado -->
+                <div id="view-contact-container" class="container-fluid d-flex align-items-start flex-wrap">
                     <div class="d-flex" style="flex-grow:1; gap:20px;">
                         <div class="d-flex flex-column" style="flex-grow:1;">
                             <div>
@@ -926,29 +948,99 @@ function prevStep(n) {
     }
 })();
 
-// Toggle Cadastro Central (mostra/oculta selects) — padrão: SIM/visível
+// Toggle Cadastro Central (mostra/oculta selects)
 (function cadCentralToggle() {
     const sel = document.getElementById('cadastro_central_cap');
     const boxM = document.getElementById('box-cadcentral-med');
     const boxE = document.getElementById('box-cadcentral-enf');
+    const boxA = document.getElementById('box-cadcentral-adm'); // opcional (pode não existir)
     const med = document.getElementById('cad_central_med_id');
     const enf = document.getElementById('cad_central_enf_id');
-    if (!sel || !boxM || !boxE || !med || !enf) return;
+    const adm = document.getElementById('cad_central_adm_id'); // opcional
+
+    if (!sel) return;
 
     const apply = () => {
         const on = sel.value === 's';
-        [boxM, boxE].forEach(b => {
-            b.style.display = on ? 'block' : 'none';
-            b.setAttribute('aria-hidden', on ? 'false' : 'true');
+        [boxM, boxE, boxA].forEach(b => {
+            if (b) {
+                b.style.display = on ? 'block' : 'none';
+                b.setAttribute('aria-hidden', on ? 'false' : 'true');
+            }
         });
-        med.disabled = !on;
-        enf.disabled = !on;
+        if (med) med.disabled = !on;
+        if (enf) enf.disabled = !on;
+        if (adm) adm.disabled = !on;
     };
 
-    // força SIM visualmente no load (sem alterar valor vindo do server)
     sel.value = sel.value || 's';
     apply();
     sel.addEventListener('change', apply);
+})();
+
+// SINCRONISMO: nível 4/5 seta flags ("s") e FKs conforme seleção do Cadastro Central
+(function syncFlagsFromCentralSelections() {
+    const NIVEL = parseInt(document.getElementById('nivel_user')?.value || '0', 10);
+    if (![4, 5].includes(NIVEL)) return; // só Secretaria/Diretor
+
+    const cadAtivar = document.getElementById('cadastro_central_cap');
+    const selMed = document.getElementById('cad_central_med_id');
+    const selEnf = document.getElementById('cad_central_enf_id');
+    const selAdm = document.getElementById('cad_central_adm_id'); // pode não existir
+
+    const fldAdmCap = document.getElementById('adm_capeante');
+    const fldEnfCap = document.getElementById('aud_enf_capeante');
+    const fldMedCap = document.getElementById('aud_med_capeante');
+
+    const fldAdmChk = document.getElementById('adm_check');
+    const fldEnfChk = document.getElementById('enfer_check');
+    const fldMedChk = document.getElementById('med_check');
+
+    const fkAdm = document.getElementById('fk_id_aud_adm');
+    const fkEnf = document.getElementById('fk_id_aud_enf');
+    const fkMed = document.getElementById('fk_id_aud_med');
+
+    const getHas = (el) => !!(el && el.value && String(el.value).trim() !== '');
+
+    const apply = () => {
+        const ativo = cadAtivar && cadAtivar.value === 's';
+        const hasMed = ativo && getHas(selMed);
+        const hasEnf = ativo && getHas(selEnf);
+        const hasAdm = ativo && getHas(selAdm);
+
+        if (fldMedCap) fldMedCap.value = hasMed ? 's' : '';
+        if (fldEnfCap) fldEnfCap.value = hasEnf ? 's' : '';
+        if (fldAdmCap) fldAdmCap.value = hasAdm ? 's' : '';
+
+        if (fldMedChk) fldMedChk.value = hasMed ? 's' : '';
+        if (fldEnfChk) fldEnfChk.value = hasEnf ? 's' : '';
+        if (fldAdmChk) fldAdmChk.value = hasAdm ? 's' : '';
+
+        if (fkMed) fkMed.value = hasMed ? selMed.value : '';
+        if (fkEnf) fkEnf.value = hasEnf ? selEnf.value : '';
+        if (fkAdm && selAdm) fkAdm.value = hasAdm ? selAdm.value : '';
+
+        if (!ativo) { // desativou o cadastro central -> zera tudo
+            if (fldMedCap) fldMedCap.value = '';
+            if (fldEnfCap) fldEnfCap.value = '';
+            if (fldAdmCap) fldAdmCap.value = '';
+            if (fldMedChk) fldMedChk.value = '';
+            if (fldEnfChk) fldEnfChk.value = '';
+            if (fldAdmChk) fldAdmChk.value = '';
+            if (fkMed) fkMed.value = '';
+            if (fkEnf) fkEnf.value = '';
+            if (fkAdm) fkAdm.value = '';
+        }
+    };
+
+    ['change', 'blur'].forEach(evt => {
+        if (cadAtivar) cadAtivar.addEventListener(evt, apply);
+        if (selMed) selMed.addEventListener(evt, apply);
+        if (selEnf) selEnf.addEventListener(evt, apply);
+        if (selAdm) selAdm.addEventListener(evt, apply);
+    });
+
+    apply(); // inicial
 })();
 </script>
 
