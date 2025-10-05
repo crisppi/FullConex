@@ -13,7 +13,6 @@ header("Content-type: text/html; charset=utf-8");
 // ini_set('display_startup_errors', 1);
 // error_reporting(E_ALL);
 
-
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -55,6 +54,64 @@ header("Content-type: text/html; charset=utf-8");
     <link href="<?= $BASE_URL ?>css/legendas.css" rel="stylesheet">
     <link href="<?= $BASE_URL ?>css/styleMenu.css" rel="stylesheet">
     <link href="<?= $BASE_URL ?>css/style_show_internacao.css" rel="stylesheet">
+
+    <!-- ======= APENAS DESIGN (logos alinhados e simétricos) ======= -->
+    <style>
+        /* Ajustes controlados por variáveis */
+        :root {
+            /* Altura visual do FullCare (compensa borda branca) */
+            --fullcare-h: 56px;
+            /* Altura do ConexAud (texto mais delgado) */
+            --conexaud-h: 28px;
+            /* Espaço entre os logos */
+            --logos-space: 14px;
+        }
+
+        @media (max-width: 1199.98px) {
+            :root {
+                --fullcare-h: 52px;
+                --conexaud-h: 26px;
+                --logos-space: 12px;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            :root {
+                --fullcare-h: 48px;
+                --conexaud-h: 24px;
+                --logos-space: 10px;
+            }
+        }
+
+        /* Mantém a brand como flex para alinhar os dois logos horizontalmente */
+        .navbar .navbar-brand {
+            display: inline-flex;
+            align-items: center;
+            line-height: 1;
+        }
+
+        /* FullCare com altura exata e espaçamento consistente */
+        .navbar .navbar-brand .logo-novo {
+            height: var(--fullcare-h) !important;
+            width: auto !important;
+            max-height: none !important;
+            min-height: 0 !important;
+            display: block;
+            margin-right: var(--logos-space) !important;
+        }
+
+        /* ConexAud injetado ao lado SEM mexer no HTML */
+        .navbar .navbar-brand::after {
+            content: "";
+            display: inline-block;
+            height: var(--conexaud-h);
+            /* Proporção aprox. 330x50 = 6.6:1 -> largura deriva da altura */
+            width: calc(var(--conexaud-h) * 6.6);
+            background: url('<?= $BASE_URL ?>img/LogoConexAud.png') no-repeat center / contain;
+            vertical-align: middle;
+            opacity: .98;
+        }
+    </style>
 </head>
 
 
@@ -68,7 +125,7 @@ header("Content-type: text/html; charset=utf-8");
             </div>
             <div class="container-fluid">
                 <a class="navbar-brand" href="index.php">
-                    <img src="img/logo_novo.png" class="logo-novo" style="max-width: 100%;
+                    <img src="img/logoFullCare.png" class="logo-novo" style="max-width: 100%;
     height: auto;
     width: auto\9;
     max-height: 100px;
@@ -88,302 +145,303 @@ header("Content-type: text/html; charset=utf-8");
                         <!-- Ícone de mensagem -->
                         <?php if ($_SESSION['nivel'] == -1) { ?>
 
-                        <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_cap_fin.php"> <span
-                                    id="boot-icon" class="bi bi-shield-check fw-bold"
-                                    style="font-size: 1rem; margin-right:5px;color: rgb(21, 56, 210);"> </span>
-                                Contas Para Validar
-                            </a>
-                        </li>
+                            <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_cap_fin.php"> <span
+                                        id="boot-icon" class="bi bi-shield-check fw-bold"
+                                        style="font-size: 1rem; margin-right:5px;color: rgb(21, 56, 210);"> </span>
+                                    Contas Para Validar
+                                </a>
+                            </li>
                         <?php }; ?>
                         <?php if ($_SESSION['nivel'] > 0) { ?>
 
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                                <i style="font-size: 1rem;margin-right:5px; color:#5e2363;" name="type" value="edite"
-                                    class="bi bi-stack edit-icon"></i>
-                                Menu
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>menu_app.php"><i
-                                            class="bi bi-person"
-                                            style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
-                                        Dashboard</a></li>
-                                <!-- <li><a class="dropdown-item" href="<?php $BASE_URL ?>menu.php"><span
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i style="font-size: 1rem;margin-right:5px; color:#5e2363;" name="type" value="edite"
+                                        class="bi bi-stack edit-icon"></i>
+                                    Menu
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
+                                    <li><a class="dropdown-item" href="<?php $BASE_URL ?>menu_app.php"><i
+                                                class="bi bi-person"
+                                                style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
+                                            Dashboard</a></li>
+                                    <!-- <li><a class="dropdown-item" href="<?php $BASE_URL ?>menu.php"><span
                                             class="bi bi-hospital"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(67, 125, 525);"></span>
                                         Menu</a></li> -->
-                            </ul>
-                        </li>
+                                </ul>
+                            </li>
                         <?php }; ?>
 
                         <?php if ($_SESSION['nivel'] > 3) { ?>
-                        <li id="drop1" class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="<?php $BASE_URL ?>list_paciente.php"
-                                id="navbarScrollingDropdown" role="button" data-bs-toggle="dropdown"
-                                aria-expanded="false">
-                                <i style="font-size: 1rem;margin-right:5px; color:#5e2363;" name="type" value="edite"
-                                    class="bi bi-people-fill edit-icon"></i>
-                                Usuários
-                            </a>
-                            <ul class="dropdown-menu" id="dropMenu1" aria-labelledby="navbarScrollingDropdown">
-                                <!-- <li><a class="dropdown-item" href="<?php $BASE_URL ?>cad_usuario.php"><i class="bi bi-person-add" style="font-size: 1rem; margin-right:5px; color: rgb(15, 155, 76);"></i> Cadastro Usuário</a></li>
+                            <li id="drop1" class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="<?php $BASE_URL ?>list_paciente.php"
+                                    id="navbarScrollingDropdown" role="button" data-bs-toggle="dropdown"
+                                    aria-expanded="false">
+                                    <i style="font-size: 1rem;margin-right:5px; color:#5e2363;" name="type" value="edite"
+                                        class="bi bi-people-fill edit-icon"></i>
+                                    Usuários
+                                </a>
+                                <ul class="dropdown-menu" id="dropMenu1" aria-labelledby="navbarScrollingDropdown">
+                                    <!-- <li><a class="dropdown-item" href="<?php $BASE_URL ?>cad_usuario.php"><i class="bi bi-person-add" style="font-size: 1 rem; margin-right:5px; color: rgb(15, 155, 76);"></i> Cadastro Usuário</a></li>
                   <li>
                   <li><a class="dropdown-item" href="<?php $BASE_URL ?>cad_hospitalUser.php"><i class="bi bi-person-add" style="font-size: 1rem; margin-right:5px; color: rgb(15, 15, 276);"></i> Cadastro
                       Hospital/Usuário</a></li>
                   <li>
                     <hr class="dropdown-divider">
                   </li> -->
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_usuario.php"><i
-                                            class="bi bi-file-medical"
-                                            style="font-size: 1rem; margin-right:5px; color: rgb(155, 95, 76);"></i>
-                                        Pesquisa Usuários</a></li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_hospitalUser.php"><i
-                                            class="bi bi-person-badge"
-                                            style="font-size: 1rem; margin-right:5px; color: rgb(15, 155, 176);"></i>
-                                        Hospital por Usuário</a>
-                                </li>
-                            </ul>
-                        </li>
+                                    <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_usuario.php"><i
+                                                class="bi bi-file-medical"
+                                                style="font-size: 1rem; margin-right:5px; color: rgb(155, 95, 76);"></i>
+                                            Pesquisa Usuários</a></li>
+                                    <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_hospitalUser.php"><i
+                                                class="bi bi-person-badge"
+                                                style="font-size: 1rem; margin-right:5px; color: rgb(15, 155, 176);"></i>
+                                            Hospital por Usuário</a>
+                                    </li>
+                                </ul>
+                            </li>
 
                         <?php }; ?>
                         <?php if ($_SESSION['nivel'] > 3) { ?>
 
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                                <i style="font-size: 1rem;margin-right:5px; color:#5e2363;" name="type" value="edite"
-                                    class="fa-solid fa-pen-to-square edit-icon"></i>
-                                Cadastros
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_paciente.php"><i
-                                            class="bi bi-person"
-                                            style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
-                                        Pacientes</a></li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_hospital.php"><span
-                                            class="bi bi-hospital"
-                                            style="font-size: 1rem;margin-right:5px; color: rgb(67, 125, 525);"></span>
-                                        Hospitais</a></li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_seguradora.php"><span
-                                            class=" bi bi-heart-pulse"
-                                            style="font-size: 1rem;margin-right:5px; color: rgb(178, 156, 55);"></span>
-                                        Seguradora</a></li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_estipulante.php"><i
-                                            class="bi bi-building"
-                                            style="font-size: 1rem;margin-right:5px; color: rgb(213, 12, 155);"></i>
-                                        Estipulante</a></li>
-                                <li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i style="font-size: 1rem;margin-right:5px; color:#5e2363;" name="type" value="edite"
+                                        class="fa-solid fa-pen-to-square edit-icon"></i>
+                                    Cadastros
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
+                                    <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_paciente.php"><i
+                                                class="bi bi-person"
+                                                style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
+                                            Pacientes</a></li>
+                                    <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_hospital.php"><span
+                                                class="bi bi-hospital"
+                                                style="font-size: 1rem;margin-right:5px; color: rgb(67, 125, 525);"></span>
+                                            Hospitais</a></li>
+                                    <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_seguradora.php"><span
+                                                class=" bi bi-heart-pulse"
+                                                style="font-size: 1rem;margin-right:5px; color: rgb(178, 156, 55);"></span>
+                                            Seguradora</a></li>
+                                    <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_estipulante.php"><i
+                                                class="bi bi-building"
+                                                style="font-size:  1rem;margin-right:5px; color: rgb(213, 12, 155);"></i>
+                                            Estipulante</a></li>
+                                    <li>
 
-                                    <hr class="dropdown-divider">
-                                </li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_acomodacao.php"><i
-                                            class=" bi bi-clipboard-heart"
-                                            style="font-size: 1rem;margin-right:5px; color: rgb(145, 156, 55);"></i>
-                                        Acomodação</a></li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_patologia.php"><span
-                                            class=" bi bi-virus"
-                                            style="font-size: 1rem;margin-right:5px; color: rgb(178, 155, 155);"></span>
-                                        Patologia</a></li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_antecedente.php"><i
-                                            class="bi bi-people"
-                                            style="font-size: 1rem;margin-right:5px; color: rgb(178, 156, 55);"></i>
-                                        Antecedente</a></li>
-                            </ul>
-                        </li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_acomodacao.php"><i
+                                                class=" bi bi-clipboard-heart"
+                                                style="font-size: 1rem;margin-right:5px; color: rgb(145, 156, 55);"></i>
+                                            Acomodação</a></li>
+                                    <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_patologia.php"><span
+                                                class=" bi bi-virus"
+                                                style="font-size: 1rem;margin-right:5px; color: rgb(178, 155, 155);"></span>
+                                            Patologia</a></li>
+                                    <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_antecedente.php"><i
+                                                class="bi bi-people"
+                                                style="font-size: 1rem;margin-right:5px; color: rgb(178, 156, 55);"></i>
+                                            Antecedente</a></li>
+                                </ul>
+                            </li>
                         <?php }; ?>
 
                         <?php if ($_SESSION['nivel'] >= 3) { ?>
 
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarScrollingDropdown" role="button"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                                <i style="font-size: 1rem;margin-right:5px; color:#5e2363;" name="type" value="edite"
-                                    class="fa-solid fa-calendar edit-icon"></i>
-                                Produção
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarScrollingDropdown" role="button"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i style="font-size: 1rem;margin-right:5px; color:#5e2363;" name="type" value="edite"
+                                        class="fa-solid fa-calendar edit-icon"></i>
+                                    Produção
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
 
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>cad_internacao.php"><i
-                                            class="bi bi-calendar2-date"
-                                            style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i> Nova
-                                        Internação</a></li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_censo.php"><i
-                                            class="bi bi-book"
-                                            style="font-size: 1rem;margin-right:5px; color: rgb(222, 156, 55);"></i>
-                                        Censo</a></li>
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>
+                                    <li><a class="dropdown-item" href="<?php $BASE_URL ?>cad_internacao.php"><i
+                                                class="bi bi-calendar2-date"
+                                                style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i> Nova
+                                            Internação</a></li>
+                                    <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_censo.php"><i
+                                                class="bi bi-book"
+                                                style="font-size: 1rem;margin-right:5px; color: rgb(222, 156, 55);"></i>
+                                            Censo</a></li>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
 
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao.php"> <i
-                                            class="bi bi-calendar2-date"
-                                            style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
+                                    <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao.php"> <i
+                                                class="bi bi-calendar2-date"
+                                                style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
 
-                                        Internação</a></li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_uti.php"> <i
-                                            class="bi bi-clipboard-heart"
-                                            style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
-                                        Internação UTI</a>
-                                </li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_gestao.php"><i
-                                            class="bi bi-postcard-heart"
-                                            style="font-size: 1rem;margin-right:5px; color: rgb(144, 17, 194);"></i>
-                                        Gestão</a></li>
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>
-                                <!-- <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_uti_alta.php"><span
+                                            Internação</a></li>
+                                    <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_uti.php"> <i
+                                                class="bi bi-clipboard-heart"
+                                                style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
+                                            Internação UTI</a>
+                                    </li>
+                                    <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_gestao.php"><i
+                                                class="bi bi-postcard-heart"
+                                                style="font-size: 1rem;margin-right:5px; color: rgb(144, 17, 194);"></i>
+                                            Gestão</a></li>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <!-- <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_uti_alta.php"><span
                                             id="boot-icon3" class="bi bi-box-arrow-left"
                                             style="font-size: 1rem; margin-right:5px; color: rgb(167, 25, 55);"></span>
                                         Alta UTI</a></li> -->
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_alta.php"><span
-                                            id="boot-icon3" class="bi bi-postcard-heart"
-                                            style="font-size: 1rem; margin-right:5px; color: rgb(16, 15, 155);"></span>
-                                        Altas</a>
-                                </li>
-                            </ul>
-                        </li>
+                                    <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_alta.php"><span
+                                                id="boot-icon3" class="bi bi-postcard-heart"
+                                                style="font-size: 1rem; margin-right:5px; color: rgb(16, 15, 155);"></span>
+                                            Altas</a>
+                                    </li>
+                                </ul>
+                            </li>
                         <?php }; ?>
                         <?php if ($_SESSION['nivel'] >= 3) { ?>
 
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                                <i style="font-size: 1rem;margin-right:5px; color:#5e2363;" name="type" value="edite"
-                                    class="fa-solid fa-list edit-icon"></i>
-                                Listas
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i style="font-size: 1rem;margin-right:5px; color:#5e2363;" name="type" value="edite"
+                                        class="fa-solid fa-list edit-icon"></i>
+                                    Listas
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
 
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_censo.php"><i
-                                            class="bi bi-book"
-                                            style="font-size: 1rem;margin-right:5px; color: rgb(222, 156, 55);"></i>
-                                        Censo</a></li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao.php"> <i
-                                            class="bi bi-calendar2-date"
-                                            style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
-                                        Internação</a></li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_uti.php"> <i
-                                            class="bi bi-clipboard-heart"
-                                            style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
-                                        Internação UTI</a>
-                                </li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_gestao.php"><i
-                                            class="bi bi-postcard-heart"
-                                            style="font-size: 1rem;margin-right:5px; color: rgb(144, 17, 194);"></i>
-                                        Gestão</a></li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_alta.php"><i
-                                            class="bi bi-postcard-heart"
-                                            style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
-                                        Altas</a></li>
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_ciclo.php"><i
-                                            class="bi bi-postcard-heart"
-                                            style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
-                                        Ciclo do Paciente</a></li>
+                                    <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_censo.php"><i
+                                                class="bi bi-book"
+                                                style="font-size: 1rem;margin-right:5px; color: rgb(222, 156, 55);"></i>
+                                            Censo</a></li>
+                                    <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao.php"> <i
+                                                class="bi bi-calendar2-date"
+                                                style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
+                                            Internação</a></li>
+                                    <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_uti.php"> <i
+                                                class="bi bi-clipboard-heart"
+                                                style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
+                                            Internação UTI</a>
+                                    </li>
+                                    <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_gestao.php"><i
+                                                class="bi bi-postcard-heart"
+                                                style="font-size: 1rem;margin-right:5px; color: rgb(144, 17, 194);"></i>
+                                            Gestão</a></li>
+                                    <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_alta.php"><i
+                                                class="bi bi-postcard-heart"
+                                                style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
+                                            Altas</a></li>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_ciclo.php"><i
+                                                class="bi bi-postcard-heart"
+                                                style="font-size:  1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
+                                            Ciclo do Paciente</a></li>
 
-                            </ul>
-                        </li>
+                                </ul>
+                            </li>
                         <?php }; ?>
                         <li class="nav-item dropdown">
                             <?php if ($_SESSION['nivel'] >= 3) { ?>
 
-                            <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                                <i style="font-size: 1rem;margin-right:5px; color:#5e2363;" name="type" value="edite"
-                                    class="fa-solid fa-file-invoice edit-icon"></i>
-                                Contas
-                            </a>
+                                <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i style="font-size: 1rem;margin-right:5px; color:#5e2363;" name="type" value="edite"
+                                        class="fa-solid fa-file-invoice edit-icon"></i>
+                                    Contas
+                                </a>
 
-                            <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_cap.php"><span
-                                            id="boot-icon1" class="bi bi-currency-dollar"
-                                            style="font-size: 1rem; margin-right:5px; color: rgb(77, 155, 67);">
-                                        </span> Contas para Auditar</a></li>
-                                <li>
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_cap_fin.php"> <span
-                                            id="boot-icon" class="bi bi-shield-check fw-bold"
-                                            style="font-size: 1rem; margin-right:5px;color: rgb(21, 56, 210);"> </span>
-                                        Contas Finalizadas
-                                    </a>
-                                </li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_senha_fin.php">
-                                        <span id="boot-icon" class="bi bi-bookmark-check"
-                                            style="font-size: 1rem; margin-right:5px;color: rgb(213, 56, 210);"> </span>
-                                        Senhas Finalizadas
-                                    </a>
-                                </li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_cap_par.php"><span
-                                            id="boot-icon1" class="bi bi-slash-circle"
-                                            style="font-size: 1rem; margin-right:5px; color: rgb(77, 155, 67);">
-                                        </span> Contas Paradas</a></li>
-                                <li>
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>
-                                <li><a class="dropdown-item"
-                                        href="<?php $BASE_URL ?>list_internacao_cap_jornada.php"><span id="boot-icon1"
-                                            class="bi bi-card-list"
-                                            style="font-size: 1rem; margin-right:5px; color: rgba(112, 6, 38, 1);">
-                                        </span> Jornada da Conta</a></li>
-                                <li>
+                                <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
+                                    <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_cap.php"><span
+                                                id="boot-icon1" class="bi bi-currency-dollar"
+                                                style="font-size: 1rem; margin-right:5px; color: rgb(77, 155, 67);">
+                                            </span> Contas para Auditar</a></li>
+                                    <li>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_cap_fin.php"> <span
+                                                id="boot-icon" class="bi bi-shield-check fw-bold"
+                                                style="font-size: 1rem; margin-right:5px;color: rgb(21, 56, 210);"> </span>
+                                            Contas Finalizadas
+                                        </a>
+                                    </li>
+                                    <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_senha_fin.php">
+                                            <span id="boot-icon" class="bi bi-bookmark-check"
+                                                style="font-size:  1rem; margin-right:5px;color: rgb(213, 56, 210);">
+                                            </span>
+                                            Senhas Finalizadas
+                                        </a>
+                                    </li>
+                                    <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_cap_par.php"><span
+                                                id="boot-icon1" class="bi bi-slash-circle"
+                                                style="font-size: 1rem; margin-right:5px; color: rgb(77, 155, 67);">
+                                            </span> Contas Paradas</a></li>
+                                    <li>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li><a class="dropdown-item"
+                                            href="<?php $BASE_URL ?>list_internacao_cap_jornada.php"><span id="boot-icon1"
+                                                class="bi bi-card-list"
+                                                style="font-size: 1rem; margin-right:5px; color: rgba(112, 6, 38, 1);">
+                                            </span> Jornada da Conta</a></li>
+                                    <li>
                                     <?php }; ?>
 
-                            </ul>
+                                </ul>
                         </li>
                         <?php if ($_SESSION['nivel'] >= 2) { ?>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                                <i style="font-size: 1rem;margin-right:5px; color:#5e2363;" name="type" value="edite"
-                                    class="fa-solid fa-pills edit-icon"></i>
-                                DRG
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
-                                <li><a class="dropdown-item"
-                                        href="<?php $BASE_URL ?>list_internacao_patologia.php"><span id="boot-icon1"
-                                            class="bi bi-capsule-pill"
-                                            style="font-size: 1rem; margin-right:5px; color: rgb(77, 155, 67);"> </span>
-                                        Pesquisa internações
-                                    </a></li>
-                                <li>
-                            </ul>
-                        </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i style="font-size: 1rem;margin-right:5px; color:#5e2363;" name="type" value="edite"
+                                        class="fa-solid fa-pills edit-icon"></i>
+                                    DRG
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
+                                    <li><a class="dropdown-item"
+                                            href="<?php $BASE_URL ?>list_internacao_patologia.php"><span id="boot-icon1"
+                                                class="bi bi-capsule-pill"
+                                                style="font-size: 1rem; margin-right:5px; color: rgb(77, 155, 67);"> </span>
+                                            Pesquisa internações
+                                        </a></li>
+                                    <li>
+                                </ul>
+                            </li>
                         <?php }; ?>
                         <?php if ($_SESSION['nivel'] > 3) { ?>
 
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                                <i style="font-size: 1rem;margin-right:5px; color:#5e2363;" name="type" value="edite"
-                                    class="fa-solid fa-print edit-icon"></i>
-                                Relatórios
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>relatorios.php"><span
-                                            id="boot-icon1" class="bi bi-clipboard-data"
-                                            style="font-size: 1rem; margin-right:5px; color: rgb(77, 155, 67);">
-                                        </span> Relatórios </a></li>
-                                <li>
-                                <li><a class="dropdown-item"
-                                        href="https://app.powerbi.com/reportEmbed?reportId=162595d1-241c-45dc-b282-e5134dc77636&autoAuth=true&ctid=5d8203ef-bc77-4057-86a0-56d58ebd6258">
-                                        <span id="boot-icon1" class="bi bi-clipboard-data"
-                                            style="font-size: 1rem; margin-right:5px; color: rgb(77, 155, 67);">
-                                        </span> Relatórios - APP</a></li>
-                                <li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>relatorios_capeante.php"><span
-                                            id="boot-icon1" class="bi bi-clipboard-data"
-                                            style="font-size: 1rem; margin-right:5px; color: rgb(77, 155, 67);">
-                                        </span> Relatórios Capeantes</a></li>
-                                <li>
-                            </ul>
-                        </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i style="font-size:  1rem;margin-right:5px; color:#5e2363;" name="type" value="edite"
+                                        class="fa-solid fa-print edit-icon"></i>
+                                    Relatórios
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
+                                    <li><a class="dropdown-item" href="<?php $BASE_URL ?>relatorios.php"><span
+                                                id="boot-icon1" class="bi bi-clipboard-data"
+                                                style="font-size: 1rem; margin-right:5px; color: rgb(77, 155, 67);">
+                                            </span> Relatórios </a></li>
+                                    <li>
+                                    <li><a class="dropdown-item"
+                                            href="https://app.powerbi.com/reportEmbed?reportId=162595d1-241c-45dc-b282-e5134dc77636&autoAuth=true&ctid=5d8203ef-bc77-4057-86a0-56d58ebd6258">
+                                            <span id="boot-icon1" class="bi bi-clipboard-data"
+                                                style="font-size: 1rem; margin-right:5px; color: rgb(77, 155, 67);">
+                                            </span> Relatórios - APP</a></li>
+                                    <li>
+                                    <li><a class="dropdown-item" href="<?php $BASE_URL ?>relatorios_capeante.php"><span
+                                                id="boot-icon1" class="bi bi-clipboard-data"
+                                                style="font-size: 1rem; margin-right:5px; color: rgb(77, 155, 67);">
+                                            </span> Relatórios Capeantes</a></li>
+                                    <li>
+                                </ul>
+                            </li>
 
                         <?php }; ?>
                     </ul>
@@ -404,9 +462,9 @@ header("Content-type: text/html; charset=utf-8");
                     <a href="show_chat.php" class="bi bi-chat-dots"
                         style="font-size: 1.5rem; color: #5e2363; position: relative;">
                         <?php if ($mensagensNaoLidasCount > 0): ?>
-                        <span class="badge badge-danger" style="position: absolute; top: -5px; right: -10px;">
-                            <?= $mensagensNaoLidasCount ?>
-                        </span>
+                            <span class="badge badge-danger" style="position: absolute; top: -5px; right: -10px;">
+                                <?= $mensagensNaoLidasCount ?>
+                            </span>
                         <?php endif; ?>
                     </a>
                 </div>
@@ -499,91 +557,91 @@ header("Content-type: text/html; charset=utf-8");
 <script src="js/stepper.js"></script>
 </script>
 <script>
-// Base para links absolutos
-const BASE_URL = '<?= $BASE_URL ?>';
+    // Base para links absolutos
+    const BASE_URL = '<?= $BASE_URL ?>';
 
-// openModalPac compatível com BS 5.0+ e fallback p/ jQuery (BS4)
-// Agora extrai apenas o conteúdo de #main-container da página carregada
-if (typeof window.openModalPac !== 'function') {
-    window.openModalPac = function(url, titulo = 'Cadastro') {
-        const modalEl = document.getElementById('globalModal');
-        if (!modalEl) {
-            console.warn('[openModalPac] #globalModal não encontrado. Navegando para:', url);
-            window.location.href = url;
-            return;
-        }
-
-        const body = modalEl.querySelector('.modal-body');
-        const titleEl = modalEl.querySelector('.modal-title');
-        if (titleEl) titleEl.textContent = titulo;
-        body.innerHTML = '<div class="p-4 text-center text-muted">Carregando...</div>';
-
-        // Bootstrap 5.0/5.1: não tem getOrCreateInstance
-        let bsModal = null;
-        if (window.bootstrap && bootstrap.Modal) {
-            if (typeof bootstrap.Modal.getInstance === 'function') {
-                bsModal = bootstrap.Modal.getInstance(modalEl);
+    // openModalPac compatível com BS 5.0+ e fallback p/ jQuery (BS4)
+    // Agora extrai apenas o conteúdo de #main-container da página carregada
+    if (typeof window.openModalPac !== 'function') {
+        window.openModalPac = function(url, titulo = 'Cadastro') {
+            const modalEl = document.getElementById('globalModal');
+            if (!modalEl) {
+                console.warn('[openModalPac] #globalModal não encontrado. Navegando para:', url);
+                window.location.href = url;
+                return;
             }
-            if (!bsModal) {
-                bsModal = new bootstrap.Modal(modalEl); // 5.0/5.1 OK
+
+            const body = modalEl.querySelector('.modal-body');
+            const titleEl = modalEl.querySelector('.modal-title');
+            if (titleEl) titleEl.textContent = titulo;
+            body.innerHTML = '<div class="p-4 text-center text-muted">Carregando...</div>';
+
+            // Bootstrap 5.0/5.1: não tem getOrCreateInstance
+            let bsModal = null;
+            if (window.bootstrap && bootstrap.Modal) {
+                if (typeof bootstrap.Modal.getInstance === 'function') {
+                    bsModal = bootstrap.Modal.getInstance(modalEl);
+                }
+                if (!bsModal) {
+                    bsModal = new bootstrap.Modal(modalEl); // 5.0/5.1 OK
+                }
+                bsModal.show();
+            } else if (window.$ && typeof $('#globalModal').modal === 'function') {
+                // fallback jQuery/BS4
+                $('#globalModal').modal('show');
             }
-            bsModal.show();
-        } else if (window.$ && typeof $('#globalModal').modal === 'function') {
-            // fallback jQuery/BS4
-            $('#globalModal').modal('show');
-        }
 
-        fetch(url, {
-                credentials: 'same-origin'
-            })
-            .then(r => r.text())
-            .then(html => {
-                // tenta extrair só o #main-container do HTML carregado
-                const temp = document.createElement('div');
-                temp.innerHTML = html;
+            fetch(url, {
+                    credentials: 'same-origin'
+                })
+                .then(r => r.text())
+                .then(html => {
+                    // tenta extrair só o #main-container do HTML carregado
+                    const temp = document.createElement('div');
+                    temp.innerHTML = html;
 
-                // procura #main-container
-                let inner = temp.querySelector('#main-container');
+                    // procura #main-container
+                    let inner = temp.querySelector('#main-container');
 
-                // fallback: se não achar, tenta <main> ou o conteúdo do <body>
-                if (!inner) inner = temp.querySelector('main');
-                if (!inner) inner = temp.querySelector('body');
+                    // fallback: se não achar, tenta <main> ou o conteúdo do <body>
+                    if (!inner) inner = temp.querySelector('main');
+                    if (!inner) inner = temp.querySelector('body');
 
-                // se mesmo assim não houver, injeta tudo
-                body.innerHTML = inner ? inner.innerHTML : html;
+                    // se mesmo assim não houver, injeta tudo
+                    body.innerHTML = inner ? inner.innerHTML : html;
 
-                // Se a página carregada usa selectpicker, tenta atualizar
-                try {
-                    if (window.$ && typeof $('.selectpicker').selectpicker === 'function') {
-                        $('.selectpicker', body).selectpicker();
-                        $('.selectpicker', body).selectpicker('refresh');
-                    }
-                } catch (_) {}
-            })
-            .catch(err => {
-                console.error(err);
-                body.innerHTML = '<div class="p-4 text-danger">Falha ao carregar conteúdo do modal.</div>';
-            });
-    };
-}
-
-// --- debounce simples ---
-function debounce(fn, wait) {
-    let t;
-    return function(...args) {
-        clearTimeout(t);
-        t = setTimeout(() => fn.apply(this, args), wait);
+                    // Se a página carregada usa selectpicker, tenta atualizar
+                    try {
+                        if (window.$ && typeof $('.selectpicker').selectpicker === 'function') {
+                            $('.selectpicker', body).selectpicker();
+                            $('.selectpicker', body).selectpicker('refresh');
+                        }
+                    } catch (_) {}
+                })
+                .catch(err => {
+                    console.error(err);
+                    body.innerHTML = '<div class="p-4 text-danger">Falha ao carregar conteúdo do modal.</div>';
+                });
+        };
     }
-}
 
-const $input = $('#inp-search-paciente');
-const $menu = $('#search-results-dropdown');
+    // --- debounce simples ---
+    function debounce(fn, wait) {
+        let t;
+        return function(...args) {
+            clearTimeout(t);
+            t = setTimeout(() => fn.apply(this, args), wait);
+        }
+    }
 
-// Renderiza itens no dropdown
-function renderResults(items) {
-    if (!items || !items.length) {
-        const termo = $input.val().trim();
-        $menu.html(`
+    const $input = $('#inp-search-paciente');
+    const $menu = $('#search-results-dropdown');
+
+    // Renderiza itens no dropdown
+    function renderResults(items) {
+        if (!items || !items.length) {
+            const termo = $input.val().trim();
+            $menu.html(`
         <div class="dropdown-item text-muted">Nada encontrado</div>
         <a href="#" id="create-new-pac" class="dropdown-item d-flex justify-content-between align-items-center">
             <div>
@@ -593,10 +651,10 @@ function renderResults(items) {
             <i class="bi bi-plus-circle"></i>
         </a>
         `).show();
-        return;
-    }
+            return;
+        }
 
-    const html = items.map((p, idx) => `
+        const html = items.map((p, idx) => `
         <a href="hub_paciente.php?id_paciente=${encodeURIComponent(p.id_paciente)}"
             class="dropdown-item d-flex justify-content-between align-items-center ${idx === 0 ? 'active' : ''}"
             data-id="${p.id_paciente}">
@@ -607,96 +665,96 @@ function renderResults(items) {
             <i class="bi bi-arrow-return-right"></i>
         </a>
         `).join('');
-    $menu.html(html).show();
-}
-
-
-// Faz a busca
-const doSearch = debounce(function() {
-    const q = $input.val().trim();
-    if (q.length < 2) {
-        $menu.hide();
-        return;
+        $menu.html(html).show();
     }
-    $.getJSON('ajax/pacientes_search.php', {
-            q
-        })
-        .done(res => {
-            console.log('[BUSCA OK]', res);
-            renderResults(res);
-        })
-        .fail((jqXHR, textStatus, errorThrown) => {
-            console.error('[BUSCA ERRO]', {
-                status: jqXHR.status,
-                textStatus,
-                errorThrown,
-                responseText: jqXHR.responseText
-            });
-            $menu
-                .html(
-                    `<div class="dropdown-item text-danger">
+
+
+    // Faz a busca
+    const doSearch = debounce(function() {
+        const q = $input.val().trim();
+        if (q.length < 2) {
+            $menu.hide();
+            return;
+        }
+        $.getJSON('ajax/pacientes_search.php', {
+                q
+            })
+            .done(res => {
+                console.log('[BUSCA OK]', res);
+                renderResults(res);
+            })
+            .fail((jqXHR, textStatus, errorThrown) => {
+                console.error('[BUSCA ERRO]', {
+                    status: jqXHR.status,
+                    textStatus,
+                    errorThrown,
+                    responseText: jqXHR.responseText
+                });
+                $menu
+                    .html(
+                        `<div class="dropdown-item text-danger">
             Erro ao buscar (${jqXHR.status} / ${textStatus})<br>
                 <small>${errorThrown}</small>
         </div>`
-                )
-                .show();
-        });
+                    )
+                    .show();
+            });
 
-}, 250);
+    }, 250);
 
-$input.on('input', doSearch);
+    $input.on('input', doSearch);
 
-// Fecha dropdown ao clicar fora
-$(document).on('click', function(e) {
-    if (!$(e.target).closest('#global-patient-search').length) {
+    // Fecha dropdown ao clicar fora
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('#global-patient-search').length) {
+            $menu.hide();
+        }
+    });
+
+    // Teclas: ↑ ↓ Enter Esc
+    $input.on('keydown', function(e) {
+        const $items = $menu.find('.dropdown-item');
+        if (!$items.length || $menu.is(':hidden')) return;
+
+        let $current = $items.filter('.active');
+        let idx = $items.index($current);
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            $current.removeClass('active');
+            idx = (idx + 1) % $items.length;
+            $items.eq(idx).addClass('active')[0].scrollIntoView({
+                block: 'nearest'
+            });
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            $current.removeClass('active');
+            idx = (idx - 1 + $items.length) % $items.length;
+            $items.eq(idx).addClass('active')[0].scrollIntoView({
+                block: 'nearest'
+            });
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            const href = ($current.length ? $current : $items.eq(0)).attr('href');
+            if (href) window.location.href = href;
+        } else if (e.key === 'Escape') {
+            $menu.hide();
+        }
+    });
+
+    // Clique em item
+    $menu.on('click', '.dropdown-item', function(e) {
+        // deixa o link funcionar (navegar)
+    });
+    $menu.on('click', '#create-new-pac', function(e) {
+        e.preventDefault();
+        const termo = $input.val().trim();
+        // Se quiser pré-preencher:
+        // const url = BASE_URL + 'cad_paciente.php' + (termo ? ('?nome_pac=' + encodeURIComponent(termo)) : '');
+        const url = BASE_URL + 'cad_paciente.php';
+        openModalPac(url, 'Cadastrar novo paciente'); // <— só isso
         $menu.hide();
-    }
-});
-
-// Teclas: ↑ ↓ Enter Esc
-$input.on('keydown', function(e) {
-    const $items = $menu.find('.dropdown-item');
-    if (!$items.length || $menu.is(':hidden')) return;
-
-    let $current = $items.filter('.active');
-    let idx = $items.index($current);
-
-    if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        $current.removeClass('active');
-        idx = (idx + 1) % $items.length;
-        $items.eq(idx).addClass('active')[0].scrollIntoView({
-            block: 'nearest'
-        });
-    } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        $current.removeClass('active');
-        idx = (idx - 1 + $items.length) % $items.length;
-        $items.eq(idx).addClass('active')[0].scrollIntoView({
-            block: 'nearest'
-        });
-    } else if (e.key === 'Enter') {
-        e.preventDefault();
-        const href = ($current.length ? $current : $items.eq(0)).attr('href');
-        if (href) window.location.href = href;
-    } else if (e.key === 'Escape') {
-        $menu.hide();
-    }
-});
-
-// Clique em item
-$menu.on('click', '.dropdown-item', function(e) {
-    // deixa o link funcionar (navegar)
-});
-$menu.on('click', '#create-new-pac', function(e) {
-    e.preventDefault();
-    const termo = $input.val().trim();
-    // Se quiser pré-preencher:
-    // const url = BASE_URL + 'cad_paciente.php' + (termo ? ('?nome_pac=' + encodeURIComponent(termo)) : '');
-    const url = BASE_URL + 'cad_paciente.php';
-    openModalPac(url, 'Cadastrar novo paciente'); // <— só isso
-    $menu.hide();
-});
+    });
 </script>
 
 </html>
