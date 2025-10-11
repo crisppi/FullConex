@@ -254,11 +254,11 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
     <form action="<?= $h($BASE_URL) ?>process_capeante.php" id="multi-step-form" method="POST"
         enctype="multipart/form-data">
         <?php if ($type === "create"): ?>
-            <input type="hidden" name="type" value="create">
-            <input type="hidden" name="id_capeante" value="">
+        <input type="hidden" name="type" value="create">
+        <input type="hidden" name="id_capeante" value="">
         <?php else: ?>
-            <input type="hidden" name="type" value="update">
-            <input type="hidden" name="id_capeante" value="<?= $hi($val('id_capeante')) ?>">
+        <input type="hidden" name="type" value="update">
+        <input type="hidden" name="id_capeante" value="<?= $hi($val('id_capeante')) ?>">
         <?php endif; ?>
 
         <!-- flags de cargo  -->
@@ -362,84 +362,84 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
 
                         <!-- CADASTRO CENTRAL  -->
                         <?php if ($mostrarCadastroCentral): ?>
-                            <div style="flex:0 0 100%; width:100%;">
-                                <!-- ALTERADO: w-100 -->
-                                <div id="cadastro-central-wrapper" class="w-100 border rounded-3 p-3 mb-3"
-                                    style="border:2px solid #0d6efd;background:#f8fbff;">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <i class="bi bi-people-fill me-2"></i>
-                                        <strong class="text-primary" style="font-size:1rem;">Cadastro Central</strong>
+                        <div style="flex:0 0 100%; width:100%;">
+                            <!-- ALTERADO: w-100 -->
+                            <div id="cadastro-central-wrapper" class="w-100 border rounded-3 p-3 mb-3"
+                                style="border:2px solid #0d6efd;background:#f8fbff;">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-people-fill me-2"></i>
+                                    <strong class="text-primary" style="font-size:1rem;">Cadastro Central</strong>
+                                </div>
+
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-12 col-lg-2">
+                                        <label for="cadastro_central_cap" class="form-label">Ativar</label>
+                                        <select class="form-control form-select-sm" id="cadastro_central_cap"
+                                            name="cadastro_central_cap">
+                                            <option value="n" <?= $cadastroCentralDefault === 'n' ? 'selected' : '' ?>>
+                                                Não</option>
+                                            <option value="s" <?= $cadastroCentralDefault === 's' ? 'selected' : '' ?>>
+                                                Sim</option>
+                                        </select>
                                     </div>
 
-                                    <div class="row g-3 align-items-end">
-                                        <div class="col-12 col-lg-2">
-                                            <label for="cadastro_central_cap" class="form-label">Ativar</label>
-                                            <select class="form-control form-select-sm" id="cadastro_central_cap"
-                                                name="cadastro_central_cap">
-                                                <option value="n" <?= $cadastroCentralDefault === 'n' ? 'selected' : '' ?>>
-                                                    Não</option>
-                                                <option value="s" <?= $cadastroCentralDefault === 's' ? 'selected' : '' ?>>
-                                                    Sim</option>
-                                            </select>
-                                        </div>
-
-                                        <!-- Médico -->
-                                        <div id="box-cadcentral-med" class="col-12 col-lg-3">
-                                            <label class="form-label" for="cad_central_med_id">Médico (a) </label>
-                                            <select class="form-control form-select-sm" id="cad_central_med_id"
-                                                name="fk_id_aud_med">
-                                                <option value="">Selecione</option>
-                                                <?php foreach ($usuariosAtivos as $u): if ($isMed($u['cargo_user'] ?? '')):
+                                    <!-- Médico -->
+                                    <div id="box-cadcentral-med" class="col-12 col-lg-3">
+                                        <label class="form-label" for="cad_central_med_id">Médico (a) </label>
+                                        <select class="form-control form-select-sm" id="cad_central_med_id"
+                                            name="fk_id_aud_med">
+                                            <option value="">Selecione</option>
+                                            <?php foreach ($usuariosAtivos as $u): if ($isMed($u['cargo_user'] ?? '')):
                                                         $id = (int)($u['id_usuario'] ?? 0);
                                                         $nome = (string)($u['usuario_user'] ?? '');
                                                         $sel = ($id === $medSelecionado) ? 'selected' : ''; ?>
-                                                        <option value="<?= $id ?>" <?= $sel ?>>
-                                                            <?= $h($nome) ?></option>
-                                                <?php endif;
+                                            <option value="<?= $id ?>" <?= $sel ?>>
+                                                <?= $h($nome) ?></option>
+                                            <?php endif;
                                                 endforeach; ?>
-                                            </select>
-                                        </div>
+                                        </select>
+                                    </div>
 
-                                        <!-- Enfermeiro -->
-                                        <div id="box-cadcentral-enf" class="col-12 col-lg-3">
-                                            <label class="form-label" for="cad_central_enf_id">Enfermeiro(a) </label>
-                                            <select class="form-control form-select-sm" id="cad_central_enf_id"
-                                                name="fk_id_aud_enf">
-                                                <option value="">Selecione</option>
-                                                <?php foreach ($usuariosAtivos as $u): if ($isEnf($u['cargo_user'] ?? '')):
+                                    <!-- Enfermeiro -->
+                                    <div id="box-cadcentral-enf" class="col-12 col-lg-3">
+                                        <label class="form-label" for="cad_central_enf_id">Enfermeiro(a) </label>
+                                        <select class="form-control form-select-sm" id="cad_central_enf_id"
+                                            name="fk_id_aud_enf">
+                                            <option value="">Selecione</option>
+                                            <?php foreach ($usuariosAtivos as $u): if ($isEnf($u['cargo_user'] ?? '')):
                                                         $id = (int)($u['id_usuario'] ?? 0);
                                                         $nome = (string)($u['usuario_user'] ?? '');
 
                                                         $sel = ($id === $enfSelecionado) ? 'selected' : ''; ?>
-                                                        <option value="<?= $id ?>" <?= $sel ?>>
-                                                            <?= $h($nome) ?></option>
-                                                <?php endif;
+                                            <option value="<?= $id ?>" <?= $sel ?>>
+                                                <?= $h($nome) ?></option>
+                                            <?php endif;
                                                 endforeach; ?>
-                                            </select>
-                                        </div>
-                                        <!-- Administrador -->
-                                        <div id="box-cadcentral-enf" class="col-12 col-lg-3">
-                                            <label class="form-label" for="cad_central_enf_id">Administrativo (a) </label>
-                                            <select class="form-control form-select-sm" id="cad_central_adm_id">
-                                                <option value="">Selecione</option>
-                                                <?php
+                                        </select>
+                                    </div>
+                                    <!-- Administrador -->
+                                    <div id="box-cadcentral-adm" class="col-12 col-lg-3">
+                                        <label class="form-label" for="cad_central_adm_id">Administrativo (a) </label>
+                                        <select class="form-control form-select-sm" id="cad_central_adm_id">
+                                            <option value="">Selecione</option>
+                                            <?php
                                                 $admSelecionado = (int)($val('fk_id_aud_adm') ?? 0);
                                                 foreach ($usuariosAdm as $u):
                                                     $id   = (int)($u['id_usuario'] ?? 0);
                                                     $nome = (string)($u['usuario_user'] ?? '');
                                                     $sel = ($id === $admSelecionado) ? 'selected' : ''; ?>
-                                                    <option value="<?= $id ?>" <?= $sel ?>>
-                                                        <?= $h($nome) ?>
-                                                    </option>
-                                                <?php endforeach; ?>
-                                            </select>
+                                            <option value="<?= $id ?>" <?= $sel ?>>
+                                                <?= $h($nome) ?>
+                                            </option>
+                                            <?php endforeach; ?>
+                                        </select>
 
-                                        </div>
                                     </div>
-
                                 </div>
+
                             </div>
-                            <!-- /CADASTRO CENTRAL -->
+                        </div>
+                        <!-- /CADASTRO CENTRAL -->
                         <?php endif; ?>
 
 
@@ -448,13 +448,13 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                     <!-- badges à direita -->
                     <div class="d-flex ms-auto">
                         <?php if (($val('med_check') ?? 'n') === 's'): ?>
-                            <span class="bi bi-check-circle"
-                                style="font-size:1.1rem;font-weight:600;color:#004E56;margin-right:10px;">Auditado
-                                Médico</span>
+                        <span class="bi bi-check-circle"
+                            style="font-size:1.1rem;font-weight:600;color:#004E56;margin-right:10px;">Auditado
+                            Médico</span>
                         <?php endif; ?>
                         <?php if (($val('enfer_check') ?? 'n') === 's'): ?>
-                            <span class="bi bi-check-circle"
-                                style="font-size:1.1rem;font-weight:600;color:#EA8037;">Auditado Enfermeiro</span>
+                        <span class="bi bi-check-circle"
+                            style="font-size:1.1rem;font-weight:600;color:#EA8037;">Auditado Enfermeiro</span>
                         <?php endif; ?>
                     </div>
 
@@ -551,13 +551,13 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
 
                     <div class="d-flex ms-auto">
                         <?php if (($val('med_check') ?? 'n') === 's'): ?>
-                            <span class="bi bi-check-circle"
-                                style="font-size:1.1rem;font-weight:600;color:#004E56;margin-right:10px;">Auditado
-                                Médico</span>
+                        <span class="bi bi-check-circle"
+                            style="font-size:1.1rem;font-weight:600;color:#004E56;margin-right:10px;">Auditado
+                            Médico</span>
                         <?php endif; ?>
                         <?php if (($val('enfer_check') ?? 'n') === 's'): ?>
-                            <span class="bi bi-check-circle"
-                                style="font-size:1.1rem;font-weight:600;color:#EA8037;">Auditado Enfermeiro</span>
+                        <span class="bi bi-check-circle"
+                            style="font-size:1.1rem;font-weight:600;color:#EA8037;">Auditado Enfermeiro</span>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -718,13 +718,13 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
 
                     <div class="d-flex ms-auto">
                         <?php if (($val('med_check') ?? 'n') === 's'): ?>
-                            <span class="bi bi-check-circle"
-                                style="font-size:1.1rem;font-weight:600;color:#004E56;margin-right:10px;">Auditado
-                                Médico</span>
+                        <span class="bi bi-check-circle"
+                            style="font-size:1.1rem;font-weight:600;color:#004E56;margin-right:10px;">Auditado
+                            Médico</span>
                         <?php endif; ?>
                         <?php if (($val('enfer_check') ?? 'n') === 's'): ?>
-                            <span class="bi bi-check-circle"
-                                style="font-size:1.1rem;font-weight:600;color:#EA8037;">Auditado Enfermeiro</span>
+                        <span class="bi bi-check-circle"
+                            style="font-size:1.1rem;font-weight:600;color:#EA8037;">Auditado Enfermeiro</span>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -838,210 +838,210 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
 </div>
 
 <script>
-    function baixarPDF(idCapeante, idInternacao) {
-        const iframe = document.getElementById("iframeDownload");
-        iframe.src = `process_capeante_pdf.php?id_capeante=${idCapeante}&fk_int_capeante=${idInternacao}&save_only=1`;
-        mostrarMensagem('Capeante salvo com sucesso!', '#28a745');
-    }
+function baixarPDF(idCapeante, idInternacao) {
+    const iframe = document.getElementById("iframeDownload");
+    iframe.src = `process_capeante_pdf.php?id_capeante=${idCapeante}&fk_int_capeante=${idInternacao}&save_only=1`;
+    mostrarMensagem('Capeante salvo com sucesso!', '#28a745');
+}
 
-    function enviarPDF(idCapeante, idInternacao) {
-        fetch(`process_capeante_pdf.php?id_capeante=${idCapeante}&fk_int_capeante=${idInternacao}`);
-        mostrarMensagem('Email enviado com sucesso!', 'green');
-    }
+function enviarPDF(idCapeante, idInternacao) {
+    fetch(`process_capeante_pdf.php?id_capeante=${idCapeante}&fk_int_capeante=${idInternacao}`);
+    mostrarMensagem('Email enviado com sucesso!', 'green');
+}
 
-    function mostrarMensagem(texto, cor) {
-        const div = document.getElementById('mensagemStatus');
-        div.textContent = texto;
-        div.style.backgroundColor = cor;
-        div.style.color = 'white';
-        div.style.display = 'block';
-        setTimeout(() => {
-            div.style.display = 'none';
-        }, 5000);
-    }
+function mostrarMensagem(texto, cor) {
+    const div = document.getElementById('mensagemStatus');
+    div.textContent = texto;
+    div.style.backgroundColor = cor;
+    div.style.color = 'white';
+    div.style.display = 'block';
+    setTimeout(() => {
+        div.style.display = 'none';
+    }, 5000);
+}
 
-    // Stepper
-    function nextStep(n) {
-        document.getElementById('step-' + (n - 1)).style.display = 'none';
-        document.getElementById('step-' + n).style.display = 'block';
-        document.getElementById('progressBar').style.width = (n * 33) + '%';
-        document.getElementById('progressBar').textContent = 'Etapa ' + n + ' de 3';
-    }
+// Stepper
+function nextStep(n) {
+    document.getElementById('step-' + (n - 1)).style.display = 'none';
+    document.getElementById('step-' + n).style.display = 'block';
+    document.getElementById('progressBar').style.width = (n * 33) + '%';
+    document.getElementById('progressBar').textContent = 'Etapa ' + n + ' de 3';
+}
 
-    function prevStep(n) {
-        document.getElementById('step-' + (n + 1)).style.display = 'none';
-        document.getElementById('step-' + n).style.display = 'block';
-        document.getElementById('progressBar').style.width = (n * 33) + '%';
-        document.getElementById('progressBar').textContent = 'Etapa ' + n + ' de 3';
-    }
+function prevStep(n) {
+    document.getElementById('step-' + (n + 1)).style.display = 'none';
+    document.getElementById('step-' + n).style.display = 'block';
+    document.getElementById('progressBar').style.width = (n * 33) + '%';
+    document.getElementById('progressBar').textContent = 'Etapa ' + n + ' de 3';
+}
 
-    // Regra: Data inicial nova > fim da última parcial
-    (function enforceStartAfterLastPartial() {
-        const inputInicio = document.getElementById('data_inicial_capeante');
-        const inputFim = document.getElementById('data_final_capeante');
-        const lastFinalEl = document.getElementById('last_final_date');
-        const feedbackEl = document.querySelector('.invalid-feedback.notif1');
-        if (!inputInicio || !lastFinalEl) return;
+// Regra: Data inicial nova > fim da última parcial
+(function enforceStartAfterLastPartial() {
+    const inputInicio = document.getElementById('data_inicial_capeante');
+    const inputFim = document.getElementById('data_final_capeante');
+    const lastFinalEl = document.getElementById('last_final_date');
+    const feedbackEl = document.querySelector('.invalid-feedback.notif1');
+    if (!inputInicio || !lastFinalEl) return;
 
-        const lastFinalStr = (lastFinalEl.value || '').trim();
-        if (!lastFinalStr) return;
+    const lastFinalStr = (lastFinalEl.value || '').trim();
+    if (!lastFinalStr) return;
 
-        const parseYMD = (s) => {
-            const [y, m, d] = s.split('-').map(Number);
-            if (!y || !m || !d) return null;
-            return new Date(y, m - 1, d);
-        };
-        const formatYMD = (d) => {
-            const pad = (n) => String(n).padStart(2, '0');
-            return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-        };
-        const addDays = (d, days) => {
-            const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-            x.setDate(x.getDate() + days);
-            return x;
-        };
+    const parseYMD = (s) => {
+        const [y, m, d] = s.split('-').map(Number);
+        if (!y || !m || !d) return null;
+        return new Date(y, m - 1, d);
+    };
+    const formatYMD = (d) => {
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    };
+    const addDays = (d, days) => {
+        const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        x.setDate(x.getDate() + days);
+        return x;
+    };
 
-        const lastFinal = parseYMD(lastFinalStr);
-        if (!lastFinal) return;
+    const lastFinal = parseYMD(lastFinalStr);
+    if (!lastFinal) return;
 
-        const minStart = addDays(lastFinal, 1);
-        const minStartStr = formatYMD(minStart);
-        inputInicio.setAttribute('min', minStartStr);
+    const minStart = addDays(lastFinal, 1);
+    const minStartStr = formatYMD(minStart);
+    inputInicio.setAttribute('min', minStartStr);
 
-        const coerceIfNeeded = () => {
-            const val = inputInicio.value;
-            if (!val) return;
-            const cur = parseYMD(val);
-            if (!cur) return;
-            if (cur < minStart) {
-                inputInicio.classList.add('is-invalid');
-                inputInicio.value = minStartStr;
-                inputInicio.setCustomValidity('A data inicial deve ser posterior ao fim da última parcial.');
-                if (feedbackEl) {
-                    feedbackEl.textContent =
-                        `A data inicial deve ser a partir de ${minStartStr.replace(/-/g,'/')} (dia seguinte ao término da última parcial).`;
-                    feedbackEl.style.display = 'block';
-                }
-                setTimeout(() => {
-                    inputInicio.classList.remove('is-invalid');
-                    inputInicio.setCustomValidity('');
-                    if (feedbackEl) feedbackEl.style.display = '';
-                }, 10);
-            } else {
+    const coerceIfNeeded = () => {
+        const val = inputInicio.value;
+        if (!val) return;
+        const cur = parseYMD(val);
+        if (!cur) return;
+        if (cur < minStart) {
+            inputInicio.classList.add('is-invalid');
+            inputInicio.value = minStartStr;
+            inputInicio.setCustomValidity('A data inicial deve ser posterior ao fim da última parcial.');
+            if (feedbackEl) {
+                feedbackEl.textContent =
+                    `A data inicial deve ser a partir de ${minStartStr.replace(/-/g,'/')} (dia seguinte ao término da última parcial).`;
+                feedbackEl.style.display = 'block';
+            }
+            setTimeout(() => {
                 inputInicio.classList.remove('is-invalid');
                 inputInicio.setCustomValidity('');
                 if (feedbackEl) feedbackEl.style.display = '';
-            }
-        };
-
-        coerceIfNeeded();
-        inputInicio.addEventListener('change', coerceIfNeeded);
-        inputInicio.addEventListener('blur', coerceIfNeeded);
-
-        if (inputFim) {
-            const syncFimMin = () => {
-                if (!inputInicio.value) return;
-                inputFim.setAttribute('min', inputInicio.value);
-            };
-            syncFimMin();
-            inputInicio.addEventListener('change', syncFimMin);
+            }, 10);
+        } else {
+            inputInicio.classList.remove('is-invalid');
+            inputInicio.setCustomValidity('');
+            if (feedbackEl) feedbackEl.style.display = '';
         }
-    })();
+    };
 
-    // Toggle Cadastro Central (mostra/oculta selects)
-    (function cadCentralToggle() {
-        const sel = document.getElementById('cadastro_central_cap');
-        const boxM = document.getElementById('box-cadcentral-med');
-        const boxE = document.getElementById('box-cadcentral-enf');
-        const boxA = document.getElementById('box-cadcentral-adm'); // opcional (pode não existir)
-        const med = document.getElementById('cad_central_med_id');
-        const enf = document.getElementById('cad_central_enf_id');
-        const adm = document.getElementById('cad_central_adm_id'); // opcional
+    coerceIfNeeded();
+    inputInicio.addEventListener('change', coerceIfNeeded);
+    inputInicio.addEventListener('blur', coerceIfNeeded);
 
-        if (!sel) return;
-
-        const apply = () => {
-            const on = sel.value === 's';
-            [boxM, boxE, boxA].forEach(b => {
-                if (b) {
-                    b.style.display = on ? 'block' : 'none';
-                    b.setAttribute('aria-hidden', on ? 'false' : 'true');
-                }
-            });
-            if (med) med.disabled = !on;
-            if (enf) enf.disabled = !on;
-            if (adm) adm.disabled = !on;
+    if (inputFim) {
+        const syncFimMin = () => {
+            if (!inputInicio.value) return;
+            inputFim.setAttribute('min', inputInicio.value);
         };
+        syncFimMin();
+        inputInicio.addEventListener('change', syncFimMin);
+    }
+})();
 
-        sel.value = sel.value || 's';
-        apply();
-        sel.addEventListener('change', apply);
-    })();
+// Toggle Cadastro Central (mostra/oculta selects)
+(function cadCentralToggle() {
+    const sel = document.getElementById('cadastro_central_cap');
+    const boxM = document.getElementById('box-cadcentral-med');
+    const boxE = document.getElementById('box-cadcentral-enf');
+    const boxA = document.getElementById('box-cadcentral-adm'); // opcional (pode não existir)
+    const med = document.getElementById('cad_central_med_id');
+    const enf = document.getElementById('cad_central_enf_id');
+    const adm = document.getElementById('cad_central_adm_id'); // opcional
 
-    // SINCRONISMO: nível 4/5 seta flags ("s") e FKs conforme seleção do Cadastro Central
-    (function syncFlagsFromCentralSelections() {
-        const NIVEL = parseInt(document.getElementById('nivel_user')?.value || '0', 10);
-        if (![4, 5].includes(NIVEL)) return; // só Secretaria/Diretor
+    if (!sel) return;
 
-        const cadAtivar = document.getElementById('cadastro_central_cap');
-        const selMed = document.getElementById('cad_central_med_id');
-        const selEnf = document.getElementById('cad_central_enf_id');
-        const selAdm = document.getElementById('cad_central_adm_id'); // pode não existir
-
-        const fldAdmCap = document.getElementById('adm_capeante');
-        const fldEnfCap = document.getElementById('aud_enf_capeante');
-        const fldMedCap = document.getElementById('aud_med_capeante');
-
-        const fldAdmChk = document.getElementById('adm_check');
-        const fldEnfChk = document.getElementById('enfer_check');
-        const fldMedChk = document.getElementById('med_check');
-
-        const fkAdm = document.getElementById('fk_id_aud_adm');
-        const fkEnf = document.getElementById('fk_id_aud_enf');
-        const fkMed = document.getElementById('fk_id_aud_med');
-
-        const getHas = (el) => !!(el && el.value && String(el.value).trim() !== '');
-
-        const apply = () => {
-            const ativo = cadAtivar && cadAtivar.value === 's';
-            const hasMed = ativo && getHas(selMed);
-            const hasEnf = ativo && getHas(selEnf);
-            const hasAdm = ativo && getHas(selAdm);
-
-            if (fldMedCap) fldMedCap.value = hasMed ? 's' : '';
-            if (fldEnfCap) fldEnfCap.value = hasEnf ? 's' : '';
-            if (fldAdmCap) fldAdmCap.value = hasAdm ? 's' : '';
-
-            if (fldMedChk) fldMedChk.value = hasMed ? 's' : '';
-            if (fldEnfChk) fldEnfChk.value = hasEnf ? 's' : '';
-            if (fldAdmChk) fldAdmChk.value = hasAdm ? 's' : '';
-
-            if (fkMed) fkMed.value = hasMed ? selMed.value : '';
-            if (fkEnf) fkEnf.value = hasEnf ? selEnf.value : '';
-            if (fkAdm && selAdm) fkAdm.value = hasAdm ? selAdm.value : '';
-
-            if (!ativo) { // desativou o cadastro central -> zera tudo
-                if (fldMedCap) fldMedCap.value = '';
-                if (fldEnfCap) fldEnfCap.value = '';
-                if (fldAdmCap) fldAdmCap.value = '';
-                if (fldMedChk) fldMedChk.value = '';
-                if (fldEnfChk) fldEnfChk.value = '';
-                if (fldAdmChk) fldAdmChk.value = '';
-                if (fkMed) fkMed.value = '';
-                if (fkEnf) fkEnf.value = '';
-                if (fkAdm) fkAdm.value = '';
+    const apply = () => {
+        const on = sel.value === 's';
+        [boxM, boxE, boxA].forEach(b => {
+            if (b) {
+                b.style.display = on ? 'block' : 'none';
+                b.setAttribute('aria-hidden', on ? 'false' : 'true');
             }
-        };
-
-        ['change', 'blur'].forEach(evt => {
-            if (cadAtivar) cadAtivar.addEventListener(evt, apply);
-            if (selMed) selMed.addEventListener(evt, apply);
-            if (selEnf) selEnf.addEventListener(evt, apply);
-            if (selAdm) selAdm.addEventListener(evt, apply);
         });
+        if (med) med.disabled = !on;
+        if (enf) enf.disabled = !on;
+        if (adm) adm.disabled = !on;
+    };
 
-        apply(); // inicial
-    })();
+    sel.value = sel.value || 's';
+    apply();
+    sel.addEventListener('change', apply);
+})();
+
+// SINCRONISMO: nível 4/5 seta flags ("s") e FKs conforme seleção do Cadastro Central
+(function syncFlagsFromCentralSelections() {
+    const NIVEL = parseInt(document.getElementById('nivel_user')?.value || '0', 10);
+    if (![4, 5].includes(NIVEL)) return; // só Secretaria/Diretor
+
+    const cadAtivar = document.getElementById('cadastro_central_cap');
+    const selMed = document.getElementById('cad_central_med_id');
+    const selEnf = document.getElementById('cad_central_enf_id');
+    const selAdm = document.getElementById('cad_central_adm_id'); // pode não existir
+
+    const fldAdmCap = document.getElementById('adm_capeante');
+    const fldEnfCap = document.getElementById('aud_enf_capeante');
+    const fldMedCap = document.getElementById('aud_med_capeante');
+
+    const fldAdmChk = document.getElementById('adm_check');
+    const fldEnfChk = document.getElementById('enfer_check');
+    const fldMedChk = document.getElementById('med_check');
+
+    const fkAdm = document.getElementById('fk_id_aud_adm');
+    const fkEnf = document.getElementById('fk_id_aud_enf');
+    const fkMed = document.getElementById('fk_id_aud_med');
+
+    const getHas = (el) => !!(el && el.value && String(el.value).trim() !== '');
+
+    const apply = () => {
+        const ativo = cadAtivar && cadAtivar.value === 's';
+        const hasMed = ativo && getHas(selMed);
+        const hasEnf = ativo && getHas(selEnf);
+        const hasAdm = ativo && getHas(selAdm);
+
+        if (fldMedCap) fldMedCap.value = hasMed ? 's' : '';
+        if (fldEnfCap) fldEnfCap.value = hasEnf ? 's' : '';
+        if (fldAdmCap) fldAdmCap.value = hasAdm ? 's' : '';
+
+        if (fldMedChk) fldMedChk.value = hasMed ? 's' : '';
+        if (fldEnfChk) fldEnfChk.value = hasEnf ? 's' : '';
+        if (fldAdmChk) fldAdmChk.value = hasAdm ? 's' : '';
+
+        if (fkMed) fkMed.value = hasMed ? selMed.value : '';
+        if (fkEnf) fkEnf.value = hasEnf ? selEnf.value : '';
+        if (fkAdm && selAdm) fkAdm.value = hasAdm ? selAdm.value : '';
+
+        if (!ativo) { // desativou o cadastro central -> zera tudo
+            if (fldMedCap) fldMedCap.value = '';
+            if (fldEnfCap) fldEnfCap.value = '';
+            if (fldAdmCap) fldAdmCap.value = '';
+            if (fldMedChk) fldMedChk.value = '';
+            if (fldEnfChk) fldEnfChk.value = '';
+            if (fldAdmChk) fldAdmChk.value = '';
+            if (fkMed) fkMed.value = '';
+            if (fkEnf) fkEnf.value = '';
+            if (fkAdm) fkAdm.value = '';
+        }
+    };
+
+    ['change', 'blur'].forEach(evt => {
+        if (cadAtivar) cadAtivar.addEventListener(evt, apply);
+        if (selMed) selMed.addEventListener(evt, apply);
+        if (selEnf) selEnf.addEventListener(evt, apply);
+        if (selAdm) selAdm.addEventListener(evt, apply);
+    });
+
+    apply(); // inicial
+})();
 </script>
 
 <script src="js/DataCapeante.js"></script>

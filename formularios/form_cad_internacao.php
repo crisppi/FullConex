@@ -8,6 +8,13 @@ include_once("dao/internacaoDao.php");
 include_once("models/acomodacao.php");
 include_once("dao/acomodacaoDao.php");
 
+include_once("dao/cidDao.php");
+$cid = new cidDAO($conn, $BASE_URL);
+
+// LISTAR CIDS
+$cids = $cid->findAll();
+
+
 /* === UsuarioDAO: usar somente findMedicosEnfermeiros() === */
 include_once("dao/usuarioDao.php"); // ajuste o path se necessário
 $usuarioDao = new userDAO($conn, $BASE_URL);
@@ -75,12 +82,9 @@ echo "\n<!-- via findMedicosEnfermeiros | med=" . count($medicosAud) . " enf=" .
 
 /* ===== Mostrar Cadastro Central APENAS se NÃO for médico nem enfermeiro ===== */
 $normCargo = mb_strtolower(str_replace([' ', '-'], '_', (string)$cargoSessao), 'UTF-8');
-$mostrarCadastroCentral = !in_array($normCargo, ['med_auditor','medico_auditor','enf_auditor','enfer_auditor'], true);
+$mostrarCadastroCentral = !in_array($normCargo, ['med_auditor', 'medico_auditor', 'enf_auditor', 'enfer_auditor'], true);
 
-/* === OBS: variáveis esperadas do seu contexto ===
- * $listHopitaisPerfil, $pacientes, $patologias, $dados_alta, $dados_acomodacao,
- * $dados_especialidade, $dados_grupo_pat, $origem, $antecedentes, $ultimoReg, etc.
- */
+
 ?>
 <link href="<?= $BASE_URL ?>css/style.css" rel="stylesheet">
 
@@ -107,10 +111,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-
-<!-- FIX: jQuery atualizado (evita conflitos com BS5 e plugins) -->
-<script src="https://code.jquery.com/jquery-3.6.4.min.js"
-    integrity="sha256-o88Awf4m9Zr+1Wf3N3QzY8v1Xq2qYh3G6Z5/2Qp3uHk=" crossorigin="anonymous"></script>
 
 <div class="row">
     <div class="form-group row">
@@ -396,7 +396,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     <?php endforeach; ?>
                 </select>
             </div>
-
+            <!-- <div class="form-group col-sm-3">
+                <label class="control-label" for="cid_pat2">CID</label>
+                <select class="form-control selectpicker show-tick" data-size="5" id="cid_pat2" name="cid_pat2"
+                    data-live-search="true" required>
+                    <option value="">Selecione o CID</option>
+                    <?php foreach ($cids as $cid): ?>
+                    <option value="<?= $cid["id_cid"] ?>">
+                        <?= $cid['cat'] . " - " . $cid["descricao"] ?>
+                    </option>
+                    <?php endforeach; ?>
+                </select>
+            </div> -->
             <div class="form-group col-sm-2">
                 <label class="control-label" for="grupo_patologia_int">Grupo Patologia</label>
                 <select class="form-control-sm form-control" id="grupo_patologia_int" name="grupo_patologia_int">
@@ -465,7 +476,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <input type="text" id="chat-input" placeholder="Digite sua mensagem..."
                             style="width: 100%; padding: 5px; border: 1px solid #ccc;">
                         <button id="chat-send"
-                            style="margin-top: 5px; width: 100%; background-color: #007bff; color: white; border: none; padding: 5px;">Enviar</button>
+                            style="margin-top: 5px; width: 100%; background-color: #007bff; color: white; border:       none;padding:5px;">Enviar</button>
                     </div>
                 </div>
             </div>
@@ -1463,6 +1474,9 @@ document.addEventListener('DOMContentLoaded', function() {
 })();
 </script>
 
-<!-- Bootstrap 5 bundle (inclui Popper v2). Mantenha APENAS este; não carregue Popper 1.x separado -->
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-gtEjrD/SeCtmISJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
+    integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous">
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>

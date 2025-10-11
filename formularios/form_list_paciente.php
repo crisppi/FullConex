@@ -29,12 +29,12 @@
     $condicoes = [
         strlen($busca) ? 'nome_pac LIKE "%' . $busca . '%"' : null,
         strlen($buscaMatricula)
-        ? 'CONCAT(
+            ? 'CONCAT(
               matricula_pac,
               CASE WHEN recem_nascido_pac = "s" THEN "RN" ELSE "" END,
               IFNULL(numero_rn_pac, "")
           ) LIKE "%' . $buscaMatricula . '%"'
-        : null,
+            : null,
         strlen($buscaAtivo) ? 'ativo_pac = "' . $buscaAtivo . '"' : null,
         strlen($pacienteInicio) ? 'id_paciente > ' . $pacienteInicio . ' ' : null
     ];
@@ -66,7 +66,7 @@
         $total_pages = count($paginas);
 
         // FUNCAO PARA CONTROLE DO NUMERO DE PAGINAS, UTILIZANDO A QUANTIDADE DE PAGINAS CALCULADAS NA VARIAVEL PAGINAS PELE METODO getPages
-    
+
         function paginasAtuais($var)
         {
             $blocoAtual = isset($_GET['bl']) ? $_GET['bl'] : 0;
@@ -170,8 +170,8 @@
 
                             foreach ($query as $paciente):
                                 extract($paciente);
-                                ?>
-                                <?php
+                            ?>
+                            <?php
 
                                 if (strlen($cpf_pac) > 0) {
                                     $cpf_format = substr($cpf_pac, 0, 3) . '.' .
@@ -184,79 +184,86 @@
 
                                 ?>
 
-                                <?php if ($id_paciente >= 1) { ?>
-                                    <tr style="font-size:15px">
-                                        <td scope="row" class="col-id">
-                                            <?= $id_paciente ?>
-                                        </td>
-                                        <td scope="row" class="nome-coluna-table">
-                                            <?= $nome_pac ?>
-                                        </td>
-                                        <td scope="row" class="nome-coluna-table">
-                                            <?= $matricula_pac ?>
-                                        </td>
-                                        <td scope="row" class="nome-coluna-table">
-                                            <?= $cpf_format ?>
-                                        </td>
-                                        <td scope="row" class="nome-coluna-table">
-                                            <?= $fk_seguradora_pac ?>
-                                        </td>
-                                        <td scope="row" class="nome-coluna-table">
-                                            <?= $cidade_pac ?>
-                                        </td>
+                            <?php if ($id_paciente >= 1) { ?>
+                            <tr style="font-size:15px">
+                                <td scope="row" class="col-id">
+                                    <?= $id_paciente ?>
+                                </td>
+                                <td scope="row" class="nome-coluna-table">
+                                    <?= $nome_pac ?>
+                                </td>
+                                <td scope="row" class="nome-coluna-table">
+                                    <?= $matricula_pac ?>
+                                </td>
+                                <td scope="row" class="nome-coluna-table">
+                                    <?= $cpf_format ?>
+                                </td>
+                                <td scope="row" class="nome-coluna-table">
+                                    <?= $fk_seguradora_pac ?>
+                                </td>
+                                <td scope="row" class="nome-coluna-table">
+                                    <?= $cidade_pac ?>
+                                </td>
 
-                                        <td class="action">
-                                            <div class="dropdown">
-                                                <button class="btn btn-default dropdown-toggle" id="navbarScrollingDropdown"
-                                                    role="button" data-bs-toggle="dropdown" style="color:#5e2363"
-                                                    aria-expanded="false">
-                                                    <i class="bi bi-stack"></i>
-                                                </button>
-                                                <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
-                                                    <li>
-                                                        <button class="btn btn-default" style="font-size: .9rem;"
-                                                            onclick="openModal('<?= $BASE_URL ?>show_paciente.php?id_paciente=<?= $id_paciente ?>')"
-                                                            data-bs-toggle="modal" data-bs-target="#myModal"><i
-                                                                class="fas fa-eye"
-                                                                style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i>Ver</button>
-                                                    </li>
-                                                    <li>
-                                                        <button class="btn btn-default" style="font-size: .9rem;"
-                                                            onclick="openModal('<?= $BASE_URL ?>edit_paciente.php?id_paciente=<?= $id_paciente ?>')"
-                                                            data-bs-toggle="modal" data-bs-target="#myModal"><i
-                                                                style="font-size: 1rem;margin-right:5px; color: rgb(67, 125, 525);"
-                                                                name="type" value="edite"
-                                                                class="far fa-edit edit-icon"></i>Editar</button>
-                                                    </li>
-                                                    <li>
-                                                        <button class="btn btn-default" style="font-size: .9rem;"
-                                                            onclick="openModal('<?= $BASE_URL ?>show_paciente_historico.php?id_paciente=<?= $id_paciente ?>')"
-                                                            data-bs-toggle="modal" data-bs-target="#myModal"><i
-                                                                style="font-size: 1rem;margin-right:5px; color: rgb(67, 125, 525);"
-                                                                name="type" value="edite"
-                                                                class="fa-solid fa-clock edit-icon"></i>Historico</button>
-                                                    </li>
-                                                    <li>
-                                                        <a href="<?= $BASE_URL ?>hub_paciente.php?id_paciente=<?= $id_paciente ?>"
-                                                            class="btn btn-default" style="font-size: .9rem;">
-                                                            <i class="fa-solid fa-notes-medical"
-                                                                style="font-size: 1rem;margin-right:5px; color: rgb(0, 123, 255);"></i>
-                                                            Hub Paciente
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </td>
-                                    <?php }
-                                ; ?>
-                                </tr>
+                                <td class="action">
+                                    <div class="dropdown">
+                                        <button class="btn btn-default dropdown-toggle" id="navbarScrollingDropdown"
+                                            role="button" data-bs-toggle="dropdown" style="color:#5e2363"
+                                            aria-expanded="false">
+                                            <i class="bi bi-stack"></i>
+                                        </button>
+                                        <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
+                                            <li>
+                                                <button class="btn btn-default" style="font-size: .9rem;"
+                                                    onclick="openModal('<?= $BASE_URL ?>show_paciente.php?id_paciente=<?= $id_paciente ?>')"
+                                                    data-bs-toggle="modal" data-bs-target="#myModal"><i
+                                                        class="fas fa-eye"
+                                                        style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i>Ver</button>
+                                            </li>
+                                            <li>
+                                                <button class="btn btn-default" style="font-size: .9rem;"
+                                                    onclick="openModal('<?= $BASE_URL ?>edit_paciente.php?id_paciente=<?= $id_paciente ?>')"
+                                                    data-bs-toggle="modal" data-bs-target="#myModal"><i
+                                                        style="font-size: 1rem;margin-right:5px; color: rgb(67, 125, 525);"
+                                                        name="type" value="edite"
+                                                        class="far fa-edit edit-icon"></i>Editar</button>
+                                            </li>
+                                            <li>
+                                                <button class="btn btn-default" style="font-size: .9rem;"
+                                                    onclick="openModal('<?= $BASE_URL ?>show_paciente_historico.php?id_paciente=<?= $id_paciente ?>')"
+                                                    data-bs-toggle="modal" data-bs-target="#myModal"><i
+                                                        style="font-size: 1rem; margin-right:5px; color: rgb(67, 125, 525);"
+                                                        name="type" value="edite"
+                                                        class="fa-solid fa-clock edit-icon"></i>Historico</button>
+                                            </li>
+                                            <li>
+                                                <a href="<?= $BASE_URL ?>hub_paciente.php?id_paciente=<?= $id_paciente ?>"
+                                                    class="btn" style="font-size: .9rem;">
+                                                    <i class="fa-solid fas fa-book-medical"
+                                                        style="font-size: 1rem; margin-right:5px; color: rgb(0, 123, 255);"></i>
+                                                    Hub Paciente
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="<?= $BASE_URL ?>/cad_internacao.php" class="btn"
+                                                    style="font-size: .9rem;">
+                                                    <i class="fa-solid fa-notes-medical"
+                                                        style="font-size: 1rem;margin-right:5px; color: rgb(0, 123, 255);"></i>
+                                                    Internação
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                                <?php }; ?>
+                            </tr>
                             <?php endforeach; ?>
                             <?php if ($qtdIntItens == 0): ?>
-                                <tr>
-                                    <td colspan="7" scope="row" class="col-id" style='font-size:15px'>
-                                        Não foram encontrados registros
-                                    </td>
-                                </tr>
+                            <tr>
+                                <td colspan="7" scope="row" class="col-id" style='font-size:15px'>
+                                    Não foram encontrados registros
+                                </td>
+                            </tr>
 
                             <?php endif ?>
                         </tbody>
@@ -288,51 +295,51 @@
 
                         <div class="pagination" style="margin: 0 auto;">
                             <?php if ($total_pages ?? 1 > 1): ?>
-                                <ul class="pagination">
-                                    <?php
+                            <ul class="pagination">
+                                <?php
                                     $blocoAtual = isset($_GET['bl']) ? $_GET['bl'] : 0;
                                     $paginaAtual = isset($_GET['pag']) ? $_GET['pag'] : 1;
                                     ?>
-                                    <?php if ($current_block > $first_block): ?>
-                                        <li class="page-item">
-                                            <a class="page-link" id="blocoNovo" href="#"
-                                                onclick="loadContent('list_paciente.php?pesquisa_nome=<?php print $pesquisa_nome ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print 1 ?>&bl=<?php print 0 ?>')">
-                                                <i class="fa-solid fa-angles-left"></i></a>
-                                        </li>
-                                    <?php endif; ?>
-                                    <?php if ($current_block <= $last_block && $last_block > 1 && $current_block != 1): ?>
-                                        <li class="page-item">
-                                            <a class="page-link" href="#"
-                                                onclick="loadContent('list_paciente.php?pesquisa_nome=<?php print $pesquisa_nome ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $paginaAtual - 1 ?>&bl=<?php print $blocoAtual - 5 ?>')">
-                                                <i class="fa-solid fa-angle-left"></i> </a>
-                                        </li>
-                                    <?php endif; ?>
+                                <?php if ($current_block > $first_block): ?>
+                                <li class="page-item">
+                                    <a class="page-link" id="blocoNovo" href="#"
+                                        onclick="loadContent('list_paciente.php?pesquisa_nome=<?php print $pesquisa_nome ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print 1 ?>&bl=<?php print 0 ?>')">
+                                        <i class="fa-solid fa-angles-left"></i></a>
+                                </li>
+                                <?php endif; ?>
+                                <?php if ($current_block <= $last_block && $last_block > 1 && $current_block != 1): ?>
+                                <li class="page-item">
+                                    <a class="page-link" href="#"
+                                        onclick="loadContent('list_paciente.php?pesquisa_nome=<?php print $pesquisa_nome ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $paginaAtual - 1 ?>&bl=<?php print $blocoAtual - 5 ?>')">
+                                        <i class="fa-solid fa-angle-left"></i> </a>
+                                </li>
+                                <?php endif; ?>
 
-                                    <?php for ($i = $first_page_in_block; $i <= $last_page_in_block; $i++): ?>
-                                        <li class="page-item <?php print ($_GET['pag'] ?? 1) == $i ? "active" : "" ?>">
+                                <?php for ($i = $first_page_in_block; $i <= $last_page_in_block; $i++): ?>
+                                <li class="page-item <?php print ($_GET['pag'] ?? 1) == $i ? "active" : "" ?>">
 
-                                            <a class="page-link" href="#"
-                                                onclick="loadContent('list_paciente.php?pesquisa_nome=<?php print $pesquisa_nome ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $i ?>&bl=<?php print $blocoAtual ?>')">
-                                                <?php echo $i; ?>
-                                            </a>
-                                        </li>
-                                    <?php endfor; ?>
+                                    <a class="page-link" href="#"
+                                        onclick="loadContent('list_paciente.php?pesquisa_nome=<?php print $pesquisa_nome ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $i ?>&bl=<?php print $blocoAtual ?>')">
+                                        <?php echo $i; ?>
+                                    </a>
+                                </li>
+                                <?php endfor; ?>
 
-                                    <?php if ($current_block < $last_block): ?>
-                                        <li class="page-item">
-                                            <a class="page-link" id="blocoNovo" href="#"
-                                                onclick="loadContent('list_paciente.php?pesquisa_nome=<?php print $pesquisa_nome ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $paginaAtual + 1 ?>&bl=<?php print $blocoAtual + 5 ?>')"><i
-                                                    class="fa-solid fa-angle-right"></i></a>
-                                        </li>
-                                    <?php endif; ?>
-                                    <?php if ($current_block < $last_block): ?>
-                                        <li class="page-item">
-                                            <a class="page-link" id="blocoNovo" href="#"
-                                                onclick="loadContent('list_paciente.php?pesquisa_nome=<?php print $pesquisa_nome ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print count($paginas) ?>&bl=<?php print ($last_block - 1) * 5 ?>')"><i
-                                                    class="fa-solid fa-angles-right"></i></a>
-                                        </li>
-                                    <?php endif; ?>
-                                </ul>
+                                <?php if ($current_block < $last_block): ?>
+                                <li class="page-item">
+                                    <a class="page-link" id="blocoNovo" href="#"
+                                        onclick="loadContent('list_paciente.php?pesquisa_nome=<?php print $pesquisa_nome ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $paginaAtual + 1 ?>&bl=<?php print $blocoAtual + 5 ?>')"><i
+                                            class="fa-solid fa-angle-right"></i></a>
+                                </li>
+                                <?php endif; ?>
+                                <?php if ($current_block < $last_block): ?>
+                                <li class="page-item">
+                                    <a class="page-link" id="blocoNovo" href="#"
+                                        onclick="loadContent('list_paciente.php?pesquisa_nome=<?php print $pesquisa_nome ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print count($paginas) ?>&bl=<?php print ($last_block - 1) * 5 ?>')"><i
+                                            class="fa-solid fa-angles-right"></i></a>
+                                </li>
+                                <?php endif; ?>
+                            </ul>
                             <?php endif; ?>
                         </div>
 
@@ -352,64 +359,64 @@
 
 
 <script>
-    // ajax para submit do formulario de pesquisa
-    $(document).ready(function () {
-        $('#form_pesquisa').submit(function (e) {
-            e.preventDefault(); // Impede o comportamento padrão de enviar o formulário
+// ajax para submit do formulario de pesquisa
+$(document).ready(function() {
+    $('#form_pesquisa').submit(function(e) {
+        e.preventDefault(); // Impede o comportamento padrão de enviar o formulário
 
-            var formData = $(this).serialize(); // Serializa os dados do formulário
+        var formData = $(this).serialize(); // Serializa os dados do formulário
 
-            $.ajax({
-                url: $(this).attr('action'), // URL do formulário
-                type: $(this).attr('method'), // Método do formulário (POST)
-                data: formData, // Dados serializados do formulário
-                success: function (response) {
-
-
-                    // Crie um elemento temporário para armazenar a resposta HTML
-                    var tempElement = document.createElement('div');
-                    tempElement.innerHTML = response;
-
-                    // Encontre o elemento com o ID "table-content" dentro do elemento temporário
-                    var tableContent = tempElement.querySelector('#table-content');
-                    $('#table-content').html(tableContent);
+        $.ajax({
+            url: $(this).attr('action'), // URL do formulário
+            type: $(this).attr('method'), // Método do formulário (POST)
+            data: formData, // Dados serializados do formulário
+            success: function(response) {
 
 
+                // Crie um elemento temporário para armazenar a resposta HTML
+                var tempElement = document.createElement('div');
+                tempElement.innerHTML = response;
 
-                },
+                // Encontre o elemento com o ID "table-content" dentro do elemento temporário
+                var tableContent = tempElement.querySelector('#table-content');
+                $('#table-content').html(tableContent);
 
 
-                error: function () {
-                    $('#responseMessage').html('Ocorreu um erro ao enviar o formulário.');
-                }
-            });
+
+            },
+
+
+            error: function() {
+                $('#responseMessage').html('Ocorreu um erro ao enviar o formulário.');
+            }
         });
     });
+});
 
-    $(document).ready(function () {
-        loadContent(
-            'list_paciente.php?pesquisa_nome=<?php print $pesquisa_nome ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print 1 ?>&bl=<?php print 0 ?>'
-        );
-    });
+$(document).ready(function() {
+    loadContent(
+        'list_paciente.php?pesquisa_nome=<?php print $pesquisa_nome ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print 1 ?>&bl=<?php print 0 ?>'
+    );
+});
 </script>
 
 <style>
-    .modal-backdrop {
-        display: none;
+.modal-backdrop {
+    display: none;
 
-    }
+}
 
-    .modal {
-        background: rgba(0, 0, 0, 0.5);
+.modal {
+    background: rgba(0, 0, 0, 0.5);
 
-    }
+}
 
-    .modal-header {
-        color: white;
-        background: #35bae1;
+.modal-header {
+    color: white;
+    background: #35bae1;
 
 
-    }
+}
 </style>
 <script src="./js/input-estilo.js"></script>
 
@@ -417,5 +424,5 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    src = "https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js";
+src = "https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js";
 </script>
