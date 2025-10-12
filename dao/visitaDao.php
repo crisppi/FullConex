@@ -1,614 +1,448 @@
 <?php
 
+declare(strict_types=1);
+
 require_once("./models/visita.php");
 require_once("./models/message.php");
 
-// Review DAO
-require_once("dao/visitaDao.php");
-
-class visitaDAO implements visitaDAOInterface
+class visitaDAO
 {
+    private PDO $conn;
+    private string $url;
+    public Message $message;
 
-    private $conn;
-    private $url;
-    public $message;
+    private const TABLE = 'tb_visita';
 
-    public function __construct(PDO $conn, $url)
+    public function __construct(PDO $conn, string $url)
     {
-        $this->conn = $conn;
-        $this->url = $url;
+        $this->conn    = $conn;
+        $this->url     = $url;
         $this->message = new Message($url);
     }
 
-    public function buildvisita($data)
+    /* ======================================================
+       BUILDER
+       ====================================================== */
+    public function buildvisita(array $data): visita
     {
-        $visita = new visita();
+        $v = new visita();
 
-        $visita->fk_internacao_vis = $data["fk_internacao_vis"];
-        $visita->rel_visita_vis = $data["rel_visita_vis"];
-        $visita->acoes_int_vis = $data["acoes_int_vis"];
-        $visita->usuario_create = $data["usuario_create"];
-        $visita->data_visita_vis = $data["data_visita_vis"];
-        $visita->visita_no_vis = $data["visita_no_vis"];
-        $visita->visita_auditor_prof_med = $data["visita_auditor_prof_med"];
-        $visita->visita_auditor_prof_enf = $data["visita_auditor_prof_enf"];
-        $visita->visita_med_vis = $data["visita_med_vis"];
-        $visita->visita_enf_vis = $data["visita_enf_vis"];
-        $visita->fk_usuario_vis = $data["fk_usuario_vis"];
-        $visita->exames_enf = $data["exames_enf"];
-        $visita->retificado = $data["retificado"];
+        $v->id_visita               = $data["id_visita"]               ?? null;
+        $v->fk_internacao_vis       = $data["fk_internacao_vis"]       ?? null;
+        $v->rel_visita_vis          = $data["rel_visita_vis"]          ?? null;
+        $v->acoes_int_vis           = $data["acoes_int_vis"]           ?? null;
+        $v->usuario_create          = $data["usuario_create"]          ?? null;
+        $v->data_visita_vis         = $data["data_visita_vis"]         ?? null;
+        $v->visita_no_vis           = $data["visita_no_vis"]           ?? null;
+        $v->visita_auditor_prof_med = $data["visita_auditor_prof_med"] ?? null;
+        $v->visita_auditor_prof_enf = $data["visita_auditor_prof_enf"] ?? null;
+        $v->visita_med_vis          = $data["visita_med_vis"]          ?? null;
+        $v->visita_enf_vis          = $data["visita_enf_vis"]          ?? null;
+        $v->fk_usuario_vis          = $data["fk_usuario_vis"]          ?? null;
+        $v->exames_enf              = $data["exames_enf"]              ?? null;
+        $v->oportunidades_enf       = $data["oportunidades_enf"]       ?? null;
+        $v->programacao_enf         = $data["programacao_enf"]         ?? null;
+        $v->retificou               = $data["retificou"]               ?? null;
+        $v->retificado              = $data["retificado"]              ?? null;
 
-        $visita->fk_visita_prorr = $data["fk_visita_prorr"];
-
-        return $visita;
+        return $v;
     }
 
-    public function joinvisitaHospital()
+    /* ======================================================
+       HELPERS internos
+       ====================================================== */
+    /** Bind seguro para INT (aceita null/string vazia) */
+    private function bindIntOrNull(PDOStatement $stmt, string $param, $value): void
     {
-
-        $visita = [];
-
-        $stmt = $this->conn->query("SELECT ac.id_visita, 
-        ac.valor_diaria, 
-        ac.visitaNome, 
-        ho.id_hospital, 
-        ho.hospitalNome
-         FROM tb_visita ac 
-         iNNER JOIN tb_hospital as ho On  
-         ac.fk_hospital = ho.id_hospital
-         ORDER BY ac.id_visita asc");
-        $stmt->execute();
-        $visita = $stmt->fetchAll();
-        return $visita;
-    }
-
-    // MÉTODO PARA PESQUISAR VISITA POR INTERNACAO
-    public function joinVisitaInternacao($id_visita)
-    {
-
-        $stmt = $this->conn->query("SELECT 
-        ac.id_internacao, 
-        ac.acoes_int, 
-        ac.data_intern_int, 
-        ac.data_visita_int, 
-        ac.rel_int, 
-        ac.fk_paciente_int, 
-        ac.usuario_create_int, 
-        ac.fk_hospital_int, 
-        ac.modo_internacao_int, 
-        ac.tipo_admissao_int,
-        ac.especialidade_int, 
-        ac.titular_int, 
-        ac.grupo_patologia_int, 
-        ac.acomodacao_int, 
-        ac.fk_patologia_int, 
-        ac.fk_patologia2, 
-        ac.internado_int,
-        ac.visita_no_int,
-        ac.primeira_vis_int,
-        pa.id_paciente,
-        pa.nome_pac,
-        vi.fk_internacao_vis, 
-        vi.rel_visita_vis, 
-        vi.acoes_int_vis, 
-        vi.usuario_create,
-        vi.visita_auditor_prof_med,
-        vi.visita_auditor_prof_enf,
-        vi.visita_med_vis,
-        vi.visita_enf_vis,
-        vi.visita_no_vis,
-        vi.fk_usuario_vis,
-        vi.data_visita_vis,
-        vi.id_visita,
-        ho.id_hospital, 
-        ho.nome_hosp 
-    
-        FROM tb_internacao ac 
-    
-            left JOIN tb_hospital as ho On  
-            ac.fk_hospital_int = ho.id_hospital
-    
-            RIGHT JOIN tb_visita as vi On  
-            ac.id_internacao = vi.fk_internacao_vis
-    
-            left join tb_paciente as pa on
-            ac.fk_paciente_int = pa.id_paciente
-
-            where vi.fk_internacao_vis = $id_visita and vi.retificado IS NULL
-
-         ORDER BY vi.data_visita_vis DESC");
-        $stmt->execute();
-        $visita = $stmt->fetchAll();
-        return $visita;
-    }
-    public function joinVisitaInternacaoMax($id_visita)
-    {
-
-        $stmt = $this->conn->query("SELECT 
-        ac.id_internacao, 
-        ac.acoes_int, 
-        ac.data_intern_int, 
-        ac.data_visita_int, 
-        ac.rel_int, 
-        ac.fk_paciente_int, 
-        ac.usuario_create_int, 
-        ac.fk_hospital_int, 
-        ac.modo_internacao_int, 
-        ac.tipo_admissao_int,
-        ac.especialidade_int, 
-        ac.titular_int, 
-        ac.grupo_patologia_int, 
-        ac.acomodacao_int, 
-        ac.fk_patologia_int, 
-        ac.fk_patologia2, 
-        ac.internado_int,
-        ac.visita_no_int,
-        ac.primeira_vis_int,
-        pa.id_paciente,
-        pa.nome_pac,
-        vi.fk_internacao_vis, 
-        vi.rel_visita_vis, 
-        vi.acoes_int_vis, 
-        vi.usuario_create,
-        vi.visita_auditor_prof_med,
-        vi.visita_auditor_prof_enf,
-        vi.visita_med_vis,
-        vi.visita_enf_vis,
-        vi.visita_no_vis,
-        vi.fk_usuario_vis,
-        vi.data_visita_vis,
-        vi.id_visita,
-        ho.id_hospital, 
-        ho.nome_hosp
-
-    
-        FROM tb_internacao ac 
-    
-            left JOIN tb_hospital as ho On  
-            ac.fk_hospital_int = ho.id_hospital
-    
-            RIGHT JOIN tb_visita as vi On  
-            ac.id_internacao = vi.fk_internacao_vis
-    
-            left join tb_paciente as pa on
-            ac.fk_paciente_int = pa.id_paciente
-
-            where vi.fk_internacao_vis = $id_visita
-
-         ORDER BY vi.id_visita DESC");
-
-        $stmt->execute();
-
-        $visita = $stmt->fetchAll();
-
-        return $visita;
-    }
-    public function joinVisitaInternacaoShow($id_visita)
-    {
-
-        // $visita = [];
-
-        $stmt = $this->conn->query("SELECT 
-        ac.id_internacao, 
-        ac.acoes_int, 
-        ac.data_intern_int, 
-        ac.data_visita_int, 
-        ac.rel_int, 
-        ac.fk_paciente_int, 
-        ac.usuario_create_int, 
-        ac.fk_hospital_int, 
-        ac.modo_internacao_int, 
-        ac.tipo_admissao_int,
-        ac.especialidade_int, 
-        ac.titular_int, 
-        ac.grupo_patologia_int, 
-        ac.acomodacao_int, 
-        ac.fk_patologia_int, 
-        ac.fk_patologia2, 
-        ac.internado_int,
-        ac.visita_no_int,
-        ac.primeira_vis_int,
-        pa.id_paciente,
-        pa.nome_pac,
-        vi.fk_internacao_vis, 
-        vi.rel_visita_vis, 
-        vi.acoes_int_vis, 
-        vi.usuario_create,
-        vi.visita_auditor_prof_med,
-        vi.visita_auditor_prof_enf,
-        vi.visita_med_vis,
-        vi.visita_enf_vis,
-        vi.visita_no_vis,
-        vi.fk_usuario_vis,
-        vi.data_visita_vis,
-        vi.id_visita,
-        ho.id_hospital, 
-        ho.nome_hosp 
-    
-        FROM tb_internacao ac 
-    
-            left JOIN tb_hospital as ho On  
-            ac.fk_hospital_int = ho.id_hospital
-    
-            RIGHT JOIN tb_visita as vi On  
-            ac.id_internacao = vi.fk_internacao_vis
-    
-            left join tb_paciente as pa on
-            ac.fk_paciente_int = pa.id_paciente
-
-            where vi.id_visita = $id_visita
-
-         ORDER BY ac.id_internacao asc");
-
-        $stmt->execute();
-        $visita = $stmt->fetchAll();
-        return $visita;
-    }
-    public function joinVisitaShow($id_visita)
-    {
-
-        // $visita = [];
-
-        $stmt = $this->conn->query("SELECT 
-        ac.id_internacao, 
-        ac.acoes_int, 
-        ac.data_intern_int, 
-        ac.data_visita_int, 
-        ac.rel_int, 
-        ac.fk_paciente_int, 
-        ac.usuario_create_int, 
-        ac.fk_hospital_int, 
-        ac.modo_internacao_int, 
-        ac.tipo_admissao_int,
-        ac.especialidade_int, 
-        ac.titular_int, 
-        ac.grupo_patologia_int, 
-        ac.acomodacao_int, 
-        ac.fk_patologia_int, 
-        ac.fk_patologia2, 
-        ac.internado_int,
-        ac.visita_no_int,
-        ac.primeira_vis_int,
-        pa.id_paciente,
-        pa.nome_pac,
-        vi.fk_internacao_vis, 
-        vi.rel_visita_vis, 
-        vi.acoes_int_vis, 
-        vi.usuario_create,
-        vi.visita_auditor_prof_med,
-        vi.visita_auditor_prof_enf,
-        vi.visita_med_vis,
-        vi.visita_enf_vis,
-        vi.visita_no_vis,
-        vi.fk_usuario_vis,
-        vi.data_visita_vis,
-        vi.id_visita,
-        ho.id_hospital, 
-        ho.nome_hosp 
-    
-        FROM tb_internacao ac 
-    
-            left JOIN tb_hospital as ho On  
-            ac.fk_hospital_int = ho.id_hospital
-    
-            RIGHT JOIN tb_visita as vi On  
-            ac.id_internacao = vi.fk_internacao_vis
-    
-            left join tb_paciente as pa on
-            ac.fk_paciente_int = pa.id_paciente
-
-            where vi.id_visita = $id_visita
-
-         ORDER BY ac.id_internacao asc");
-
-        $stmt->execute();
-        $visita = $stmt->fetchAll();
-        return $visita;
-    }
-    // mostrar acomocacao por id_visita
-    public function joinvisitaHospitalshow($id_visita)
-    {
-        $stmt = $this->conn->query("SELECT ac.id_visita, 
-        ac.fk_hospital, 
-        ac.valor_diaria, 
-        ac.visitaNome, 
-        ho.id_hospital, 
-        ho.hospitalNome
-         FROM tb_visita ac          
-         iNNER JOIN tb_hospital as ho On  
-         ac.fk_hospital = ho.id_hospital
-         where id_visita = $id_visita   
-         ");
-
-        $stmt->execute();
-
-        $visita = $stmt->fetch();
-        return $visita;
-    }
-    public function findAll() {}
-
-    public function getvisita()
-    {
-
-        $visita = [];
-
-        $stmt = $this->conn->query("SELECT * FROM tb_visita ORDER BY id_visita asc");
-
-        $stmt->execute();
-
-        if ($stmt->rowCount() > 0) {
-
-            $visitaArray = $stmt->fetchAll();
-
-            foreach ($visitaArray as $visita) {
-                $visita[] = $this->buildvisita($visita);
-            }
+        if ($value === null || $value === '') {
+            $stmt->bindValue($param, null, PDO::PARAM_NULL);
+        } else {
+            $stmt->bindValue($param, (int)$value, PDO::PARAM_INT);
         }
-
-        return $visita;
     }
 
-    public function getvisitaByNome($nome)
+    /** Normaliza flags s/n */
+    private function sn($val, string $default = 'n'): string
     {
-
-        $visita = [];
-
-        $stmt = $this->conn->prepare("SELECT * FROM tb_visita
-                                    WHERE visitaNome = :visitaNome
-                                    ORDER BY id_visita asc");
-
-        $stmt->bindParam(":visitaNome", $visitaNome);
-
-        $stmt->execute();
-
-        return $visita;
+        $v = strtolower((string)$val);
+        return ($v === 's' || $v === 'n') ? $v : $default;
     }
 
-    public function findById($id_visita)
+    /** Data/hora padrão */
+    private function now(): string
     {
-        $visita = [];
-        $stmt = $this->conn->prepare("SELECT * FROM tb_visita
-                                    WHERE id_visita = $id_visita");
-
-        $stmt->bindParam(":id_visita", $id_visita);
-        $stmt->execute();
-
-        $data = $stmt->fetch();
-        //var_dump($data);
-        $visita = $this->buildvisita($data);
-
-        return $visita;
+        return date('Y-m-d H:i:s');
     }
 
-    public function findByIdUpdate($id_visita)
+    /** Executa o INSERT base e retorna o lastInsertId */
+    private function doInsert(visita $visita): int
     {
+        $sql = "INSERT INTO " . self::TABLE . " (
+            fk_internacao_vis,
+            rel_visita_vis,
+            acoes_int_vis,
+            usuario_create,
+            visita_auditor_prof_med,
+            visita_auditor_prof_enf,
+            visita_med_vis,
+            visita_enf_vis,
+            visita_no_vis,
+            fk_usuario_vis,
+            data_visita_vis,
+            exames_enf,
+            oportunidades_enf,
+            programacao_enf,
+            retificou
+        ) VALUES (
+            :fk_internacao_vis,
+            :rel_visita_vis,
+            :acoes_int_vis,
+            :usuario_create,
+            :visita_auditor_prof_med,
+            :visita_auditor_prof_enf,
+            :visita_med_vis,
+            :visita_enf_vis,
+            :visita_no_vis,
+            :fk_usuario_vis,
+            :data_visita_vis,
+            :exames_enf,
+            :oportunidades_enf,
+            :programacao_enf,
+            :retificou
+        )";
 
-        $visita = [];
+        $stmt = $this->conn->prepare($sql);
 
-        $stmt = $this->conn->prepare("SELECT * FROM tb_visita
-                                    WHERE id_visita = :id_visita");
+        // INT/FK
+        $this->bindIntOrNull($stmt, ":fk_internacao_vis", $visita->fk_internacao_vis);
+        $this->bindIntOrNull($stmt, ":fk_usuario_vis",   $visita->fk_usuario_vis);
 
-        $stmt->bindValue(":id_visita", $id_visita);
+        // TEXTOS
+        $stmt->bindValue(":rel_visita_vis",          $visita->rel_visita_vis);
+        $stmt->bindValue(":acoes_int_vis",           $visita->acoes_int_vis);
+        $stmt->bindValue(":usuario_create",          $visita->usuario_create);
+        $stmt->bindValue(":visita_auditor_prof_med", $visita->visita_auditor_prof_med);
+        $stmt->bindValue(":visita_auditor_prof_enf", $visita->visita_auditor_prof_enf);
+
+        // FLAGS s/n
+        $stmt->bindValue(":visita_med_vis", $this->sn($visita->visita_med_vis, 'n'));
+        $stmt->bindValue(":visita_enf_vis", $this->sn($visita->visita_enf_vis, 'n'));
+
+        // VISITA #
+        $stmt->bindValue(":visita_no_vis", (int)($visita->visita_no_vis ?: 1), PDO::PARAM_INT);
+
+        // DATAS
+        $stmt->bindValue(":data_visita_vis", $visita->data_visita_vis ?: $this->now());
+
+        // ENF
+        $stmt->bindValue(":exames_enf",        $visita->exames_enf ?: 'Sem exames relevantes no período');
+        $stmt->bindValue(":oportunidades_enf", $visita->oportunidades_enf);
+        $stmt->bindValue(":programacao_enf",   $visita->programacao_enf);
+
+        // RETIFICAÇÃO (FK para id_visita anterior, se existir)
+        $this->bindIntOrNull($stmt, ":retificou", $visita->retificou);
 
         $stmt->execute();
+        return (int)$this->conn->lastInsertId();
+    }
 
-        if ($stmt->rowCount() > 0) {
+    /* ======================================================
+       CREATE / UPDATE / DELETE
+       ====================================================== */
+    /** Cria e retorna o ID (compatível com seu uso atual) */
+    public function create(visita $visita): int
+    {
+        return $this->doInsert($visita);
+    }
 
-            $visitaArray = $stmt->fetchAll();
+    /** Idêntico ao create(), deixando explícito o retorno do ID */
+    public function createReturningId(visita $visita): int
+    {
+        return $this->doInsert($visita);
+    }
 
-            foreach ($visitaArray as $visita) {
-                $visita[] = $this->buildvisita($visita);
-            }
+    /** Atualiza apenas colunas reais; retorna sucesso */
+    public function update(array $data): bool
+    {
+        $sql = "UPDATE " . self::TABLE . " SET
+            rel_visita_vis          = :rel_visita_vis,
+            acoes_int_vis           = :acoes_int_vis,
+            usuario_create          = :usuario_create,
+            visita_auditor_prof_med = :visita_auditor_prof_med,
+            visita_auditor_prof_enf = :visita_auditor_prof_enf,
+            visita_med_vis          = :visita_med_vis,
+            visita_enf_vis          = :visita_enf_vis,
+            visita_no_vis           = :visita_no_vis,
+            fk_usuario_vis          = :fk_usuario_vis,
+            data_visita_vis         = :data_visita_vis,
+            exames_enf              = :exames_enf,
+            oportunidades_enf       = :oportunidades_enf,
+            programacao_enf         = :programacao_enf
+        WHERE id_visita = :id_visita";
+
+        $stmt = $this->conn->prepare($sql);
+
+        // TEXTOS
+        $stmt->bindValue(":rel_visita_vis",          $data['rel_visita_vis']          ?? null);
+        $stmt->bindValue(":acoes_int_vis",           $data['acoes_int_vis']           ?? null);
+        $stmt->bindValue(":usuario_create",          $data['usuario_create']          ?? null);
+        $stmt->bindValue(":visita_auditor_prof_med", $data['visita_auditor_prof_med'] ?? null);
+        $stmt->bindValue(":visita_auditor_prof_enf", $data['visita_auditor_prof_enf'] ?? null);
+
+        // FLAGS
+        $stmt->bindValue(":visita_med_vis", $this->sn($data['visita_med_vis'] ?? 'n', 'n'));
+        $stmt->bindValue(":visita_enf_vis", $this->sn($data['visita_enf_vis'] ?? 'n', 'n'));
+
+        // VISITA #
+        $stmt->bindValue(":visita_no_vis", (int)($data['visita_no_vis'] ?? 1), PDO::PARAM_INT);
+
+        // FK/INT
+        $this->bindIntOrNull($stmt, ":fk_usuario_vis", $data['fk_usuario_vis'] ?? null);
+
+        // DATAS
+        $stmt->bindValue(":data_visita_vis", $data['data_visita_vis'] ?? $this->now());
+
+        // ENF
+        $stmt->bindValue(":exames_enf",        $data['exames_enf']        ?? null);
+        $stmt->bindValue(":oportunidades_enf", $data['oportunidades_enf'] ?? null);
+        $stmt->bindValue(":programacao_enf",   $data['programacao_enf']   ?? null);
+
+        // PK
+        $stmt->bindValue(":id_visita", (int)$data['id_visita'], PDO::PARAM_INT);
+
+        $ok = $stmt->execute();
+
+        if ($ok) {
+            $this->message->setMessage("Visita atualizada com sucesso!", "success", "list_visita.php");
         }
-
-        return $visita;
+        return $ok;
     }
 
-    public function create(visita $visita)
+    /** Exclui e avisa */
+    public function destroy(int $id_visita): bool
     {
+        $stmt = $this->conn->prepare("DELETE FROM " . self::TABLE . " WHERE id_visita = :id_visita");
+        $stmt->bindValue(":id_visita", $id_visita, PDO::PARAM_INT);
+        $ok = $stmt->execute();
 
-        $stmt = $this->conn->prepare("INSERT INTO tb_visita (
-        fk_internacao_vis, 
-        rel_visita_vis, 
-        acoes_int_vis, 
-        usuario_create,
-        visita_auditor_prof_med,
-        visita_auditor_prof_enf,
-        visita_med_vis,
-        visita_enf_vis,
-        visita_no_vis,
-        fk_usuario_vis,
-        data_visita_vis,
-        exames_enf,
-        oportunidades_enf,
-        programacao_enf,
-        retificou
-         
-      ) VALUES (
-        :fk_internacao_vis, 
-        :rel_visita_vis, 
-        :acoes_int_vis, 
-        :usuario_create,
-        :visita_auditor_prof_med,
-        :visita_auditor_prof_enf,
-        :visita_med_vis,
-        :visita_enf_vis,
-        :visita_no_vis,
-        :fk_usuario_vis,
-        :data_visita_vis,
-        :exames_enf,
-        :oportunidades_enf,
-        :programacao_enf,
-        :retificou
-
-
-     )");
-
-        $stmt->bindParam(":fk_internacao_vis", $visita->fk_internacao_vis);
-        $stmt->bindParam(":rel_visita_vis", $visita->rel_visita_vis);
-        $stmt->bindParam(":acoes_int_vis", $visita->acoes_int_vis);
-        $stmt->bindParam(":usuario_create", $visita->usuario_create);
-        $stmt->bindParam(":visita_auditor_prof_med", $visita->visita_auditor_prof_med);
-        $stmt->bindParam(":visita_auditor_prof_enf", $visita->visita_auditor_prof_enf);
-        $stmt->bindParam(":visita_med_vis", $visita->visita_med_vis);
-        $stmt->bindParam(":visita_enf_vis", $visita->visita_enf_vis);
-        $stmt->bindParam(":visita_no_vis", $visita->visita_no_vis);
-        $stmt->bindParam(":fk_usuario_vis", $visita->fk_usuario_vis);
-        $stmt->bindParam(":data_visita_vis", $visita->data_visita_vis);
-        $stmt->bindParam(":exames_enf", $visita->exames_enf);
-        $stmt->bindParam(":oportunidades_enf", $visita->oportunidades_enf);
-        $stmt->bindParam(":programacao_enf", $visita->programacao_enf);
-        $stmt->bindParam(":retificou", $visita->retificou);
-
-        $stmt->execute();
-
-        // Mensagem de sucesso por adicionar visita
-        $this->message->setMessage("visita adicionado com sucesso!", "success", "list_visita.php");
+        if ($ok) {
+            $this->message->setMessage("Visita removida com sucesso!", "success", "list_visita.php");
+        }
+        return $ok;
     }
 
-    public function update($visita)
+    /* ======================================================
+       FINDS
+       ====================================================== */
+    public function findAll(): array
     {
-
-        $stmt = $this->conn->prepare("UPDATE tb_visita SET
-        visitaNome = :visitaNome,
-        valor_diaria = :valor_diaria,
-        fk_hospital = :fk_hospital
-        WHERE id_visita = :id_visita 
-      ");
-
-        $stmt->bindParam(":visitaNome", $visita['visitaNome']);
-        $stmt->bindParam(":valor_diaria", $visita['valor_diaria']);
-        $stmt->bindParam(":fk_hospital", $visita['fk_hospital']);
-        $stmt->bindParam(":id_visita", $visita['id_visita']);
-
-        // $stmt->bindParam(":data_create", $visita['data_create']);
-        // $stmt->bindParam(":usuario_create", $visita['usuario_create']);
-        $stmt->execute();
-
-        // Mensagem de sucesso por editar visita
-        $this->message->setMessage("visita atualizado com sucesso!", "success", "list_visita.php");
+        $stmt = $this->conn->query("SELECT * FROM " . self::TABLE . " ORDER BY id_visita ASC");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
+    /** Primeira linha (historicamente usada como “geral”) */
+    public function findGeral(): ?array
+    {
+        $stmt = $this->conn->query("SELECT * FROM " . self::TABLE . " ORDER BY id_visita ASC LIMIT 1");
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
+    }
 
-    public function retificarVisita(int $id_internacao, int $visita_no_vis)
+    public function findById(int $id_visita): ?visita
+    {
+        $stmt = $this->conn->prepare("SELECT * FROM " . self::TABLE . " WHERE id_visita = :id_visita");
+        $stmt->bindValue(":id_visita", $id_visita, PDO::PARAM_INT);
+        $stmt->execute();
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $data ? $this->buildvisita($data) : null;
+    }
+
+    /** Retorna array de objetos visita (mantido para compatibilidade) */
+    public function findByIdUpdate(int $id_visita): array
+    {
+        $stmt = $this->conn->prepare("SELECT * FROM " . self::TABLE . " WHERE id_visita = :id_visita");
+        $stmt->bindValue(":id_visita", $id_visita, PDO::PARAM_INT);
+        $stmt->execute();
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $out = [];
+        foreach ($rows as $r) {
+            $out[] = $this->buildvisita($r);
+        }
+        return $out;
+    }
+
+    /** Visitas não retificadas de uma internação (mais novas primeiro) */
+    public function findGeralByIntern(int $id_internacao): array
     {
         $stmt = $this->conn->prepare("
-            UPDATE tb_visita
-            SET retificado = 1
-            WHERE fk_internacao_vis = :id_internacao and visita_no_vis = :visita_no_vis
+            SELECT *
+            FROM " . self::TABLE . "
+            WHERE fk_internacao_vis = :id_internacao
+              AND (retificado IS NULL OR retificado = 0)
+            ORDER BY visita_no_vis DESC, data_visita_vis DESC, id_visita DESC
         ");
-
-        $stmt->bindParam(':id_internacao', $id_internacao, PDO::PARAM_INT);
-        $stmt->bindParam(':visita_no_vis', $visita_no_vis, PDO::PARAM_INT);
+        $stmt->bindValue(':id_internacao', $id_internacao, PDO::PARAM_INT);
         $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
-
-    public function destroy($id_visita)
+    /* ======================================================
+       JOINS ÚTEIS
+       ====================================================== */
+    public function joinVisitaInternacao(int $id_internacao): array
     {
-        $stmt = $this->conn->prepare("DELETE FROM tb_visita WHERE id_visita = :id_visita");
-
-        $stmt->bindParam(":id_visita", $id_visita);
-
-        $stmt->execute();
-
-        // Mensagem de sucesso por remover filme
-        $this->message->setMessage("visita removido com sucesso!", "success", "list_visita.php");
-    }
-
-
-    public function findGeral()
-    {
-
-        $visita = [];
-
-        $stmt = $this->conn->query("SELECT * FROM tb_visita ORDER BY id_visita asc");
-
-        $stmt->execute();
-
-        $visita = $stmt->fetch();
-
-        return $visita;
-    }
-
-    public function findGeralByIntern($id_internacao)
-    {
-        $stmt = $this->conn->prepare("SELECT * FROM tb_visita WHERE fk_internacao_vis = :id_internacao AND retificado IS NULL ORDER BY visita_no_vis DESC");
-        $stmt->bindParam(':id_internacao', $id_internacao, PDO::PARAM_INT);
-        $stmt->execute();
-
-        $visita = $stmt->fetchAll();
-
-        return $visita;
-    }
-
-
-
-
-    public function selectUltimaVisitaComInternacao($where)
-    {
-        // Valida e monta o filtro
-        $where = strlen($where) ? ' WHERE ' . $where : '';
-
-        // Query
         $sql = "SELECT 
-        vi.id_visita,
-        vi.data_visita_vis,
-        vi.fk_internacao_vis, 
-        vi.usuario_create,
-        vi.visita_auditor_prof_med,
-        vi.visita_auditor_prof_enf,
-        vi.visita_med_vis,
-        vi.visita_enf_vis,
-        vi.visita_no_vis,
-        vi.fk_usuario_vis,
-        ac.id_internacao, 
-        ac.data_intern_int, 
-        ac.data_visita_int,
-        ac.senha_int, 
-        ac.internado_int,
-        ac.visita_no_int,
-        pa.id_paciente,
-        pa.nome_pac,
-        se.id_usuario,
-        se.usuario_user,
-        se.email_user,
-        se.cargo_user,
-        se.nivel_user,
-        se.ativo_user,
-        ho.id_hospital,
-        ho.nome_hosp, 
-        hos.fk_hospital_user,
-        hos.fk_usuario_hosp,
-        DATEDIFF(CURRENT_DATE, vi.data_visita_vis) AS dias_desde_ultima_visita
-    FROM tb_visita vi
-    LEFT JOIN tb_internacao ac ON 
-        vi.fk_internacao_vis = ac.id_internacao
+            ac.id_internacao, ac.acoes_int, ac.data_intern_int, ac.data_visita_int, ac.rel_int,
+            ac.fk_paciente_int, ac.usuario_create_int, ac.fk_hospital_int, ac.modo_internacao_int,
+            ac.tipo_admissao_int, ac.especialidade_int, ac.titular_int, ac.grupo_patologia_int,
+            ac.acomodacao_int, ac.fk_patologia_int, ac.fk_patologia2, ac.internado_int,
+            ac.visita_no_int, ac.primeira_vis_int,
+            pa.id_paciente, pa.nome_pac,
+            vi.fk_internacao_vis, vi.rel_visita_vis, vi.acoes_int_vis, vi.usuario_create,
+            vi.visita_auditor_prof_med, vi.visita_auditor_prof_enf, vi.visita_med_vis, vi.visita_enf_vis,
+            vi.visita_no_vis, vi.fk_usuario_vis, vi.data_visita_vis, vi.id_visita,
+            ho.id_hospital, ho.nome_hosp
+        FROM tb_internacao ac
+        LEFT JOIN tb_hospital ho ON ac.fk_hospital_int = ho.id_hospital
+        INNER JOIN " . self::TABLE . " vi ON ac.id_internacao = vi.fk_internacao_vis
+        LEFT JOIN tb_paciente pa ON ac.fk_paciente_int = pa.id_paciente
+        WHERE vi.fk_internacao_vis = :id_internacao
+          AND (vi.retificado IS NULL OR vi.retificado = 0)
+        ORDER BY vi.data_visita_vis DESC, vi.id_visita DESC";
 
-    LEFT JOIN tb_hospital AS ho ON  
-        ac.fk_hospital_int = ho.id_hospital
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':id_internacao', $id_internacao, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
 
-    LEFT JOIN tb_hospitalUser AS hos ON
-        hos.fk_hospital_user = ho.id_hospital
-        
-	LEFT JOIN tb_user AS se ON  
-        se.id_usuario = hos.fk_usuario_hosp
+    public function joinVisitaInternacaoMax(int $id_internacao): array
+    {
+        $sql = "SELECT 
+            ac.id_internacao, ac.acoes_int, ac.data_intern_int, ac.data_visita_int, ac.rel_int,
+            ac.fk_paciente_int, ac.usuario_create_int, ac.fk_hospital_int, ac.modo_internacao_int,
+            ac.tipo_admissao_int, ac.especialidade_int, ac.titular_int, ac.grupo_patologia_int,
+            ac.acomodacao_int, ac.fk_patologia_int, ac.fk_patologia2, ac.internado_int,
+            ac.visita_no_int, ac.primeira_vis_int,
+            pa.id_paciente, pa.nome_pac,
+            vi.fk_internacao_vis, vi.rel_visita_vis, vi.acoes_int_vis, vi.usuario_create,
+            vi.visita_auditor_prof_med, vi.visita_auditor_prof_enf, vi.visita_med_vis, vi.visita_enf_vis,
+            vi.visita_no_vis, vi.fk_usuario_vis, vi.data_visita_vis, vi.id_visita,
+            ho.id_hospital, ho.nome_hosp
+        FROM tb_internacao ac
+        LEFT JOIN tb_hospital ho ON ac.fk_hospital_int = ho.id_hospital
+        INNER JOIN " . self::TABLE . " vi ON ac.id_internacao = vi.fk_internacao_vis
+        LEFT JOIN tb_paciente pa ON ac.fk_paciente_int = pa.id_paciente
+        WHERE vi.fk_internacao_vis = :id_internacao
+        ORDER BY vi.id_visita DESC";
 
-    LEFT JOIN tb_paciente AS pa ON
-        ac.fk_paciente_int = pa.id_paciente 
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':id_internacao', $id_internacao, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
 
-    
+    public function joinVisitaInternacaoShow(int $id_visita): array
+    {
+        $sql = "SELECT 
+            ac.id_internacao, ac.acoes_int, ac.data_intern_int, ac.data_visita_int, ac.rel_int,
+            ac.fk_paciente_int, ac.usuario_create_int, ac.fk_hospital_int, ac.modo_internacao_int,
+            ac.tipo_admissao_int, ac.especialidade_int, ac.titular_int, ac.grupo_patologia_int,
+            ac.acomodacao_int, ac.fk_patologia_int, ac.fk_patologia2, ac.internado_int,
+            ac.visita_no_int, ac.primeira_vis_int,
+            pa.id_paciente, pa.nome_pac,
+            vi.fk_internacao_vis, vi.rel_visita_vis, vi.acoes_int_vis, vi.usuario_create,
+            vi.visita_auditor_prof_med, vi.visita_auditor_prof_enf, vi.visita_med_vis, vi.visita_enf_vis,
+            vi.visita_no_vis, vi.fk_usuario_vis, vi.data_visita_vis, vi.id_visita,
+            ho.id_hospital, ho.nome_hosp
+        FROM tb_internacao ac
+        LEFT JOIN tb_hospital ho ON ac.fk_hospital_int = ho.id_hospital
+        INNER JOIN " . self::TABLE . " vi ON ac.id_internacao = vi.fk_internacao_vis
+        LEFT JOIN tb_paciente pa ON ac.fk_paciente_int = pa.id_paciente
+        WHERE vi.id_visita = :id_visita
+        ORDER BY ac.id_internacao ASC";
 
-    " . $where . "
-    ORDER BY vi.data_visita_vis DESC 
-    LIMIT 1";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':id_visita', $id_visita, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
 
-        // Executa a consulta
-        $query = $this->conn->query($sql);
+    public function joinVisitaShow(int $id_visita): array
+    {
+        return $this->joinVisitaInternacaoShow($id_visita);
+    }
 
-        // Obtém os resultados
-        $hospital = $query->fetchAll();
+    /* ======================================================
+       OUTROS
+       ====================================================== */
+    /** Marca como retificado um par (internação, visita_no) */
+    public function retificarVisita(int $id_internacao, int $visita_no_vis): void
+    {
+        $stmt = $this->conn->prepare("
+            UPDATE " . self::TABLE . "
+               SET retificado = 1
+             WHERE fk_internacao_vis = :id_internacao
+               AND visita_no_vis     = :visita_no_vis
+        ");
+        $stmt->bindValue(':id_internacao', $id_internacao, PDO::PARAM_INT);
+        $stmt->bindValue(':visita_no_vis', $visita_no_vis, PDO::PARAM_INT);
+        $stmt->execute();
+    }
 
-        return $hospital;
+    /** Último id inserido (útil p/ debug) */
+    public function findLastId(): ?int
+    {
+        $stmt = $this->conn->query("SELECT id_visita FROM " . self::TABLE . " ORDER BY id_visita DESC LIMIT 1");
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ? (int)$row['id_visita'] : null;
+    }
+
+    /**
+     * Retorna a última visita de uma internação.
+     * Usa COALESCE(data_visita_vis, id_visita) para robustez caso não exista created_at na tabela.
+     */
+    // Substitua o método antigo por este:
+    public function selectUltimaVisitaComInternacao($idInternacao, ?string $profFiltro = null): ?array
+    {
+        try {
+            $id = (int)$idInternacao;
+            if ($id <= 0) {
+                return null;
+            }
+
+            $whereProf = '';
+            if ($profFiltro === 'med') {
+                $whereProf = " AND (v.visita_med_vis = 's' OR UPPER(v.visita_auditor_prof_med) LIKE 'MED%') ";
+            } elseif ($profFiltro === 'enf') {
+                $whereProf = " AND (v.visita_enf_vis = 's' OR UPPER(v.visita_auditor_prof_enf) LIKE 'ENF%') ";
+            }
+
+            $sql = "
+            SELECT
+                v.*,
+                u.usuario_user  AS auditor_nome,
+                u.email_user    AS auditor_email,
+                DATEDIFF(CURDATE(), DATE(v.data_visita_vis)) AS dias_desde_ultima_visita
+            FROM tb_visita v
+            LEFT JOIN tb_usuario u ON u.id_usuario = v.fk_usuario_vis
+            WHERE v.fk_internacao_vis = :id
+              AND (v.retificado IS NULL OR v.retificado = 0)
+              {$whereProf}
+            ORDER BY
+                COALESCE(v.data_visita_vis, v.id_visita) DESC,
+                v.id_visita DESC
+            LIMIT 1
+        ";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+            $stmt->execute();
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $row ?: null;
+        } catch (Throwable $e) {
+            // error_log($e->getMessage());
+            return null;
+        }
     }
 }

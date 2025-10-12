@@ -453,6 +453,52 @@ if ($type === "create") {
             $visita->visita_no_vis = 1;
             $visitaDao->create($visita);
 
+
+            // ------------------------------
+            // VISITA INICIAL (#1) AUTOMÁTICA
+            // ------------------------------
+            $visita = new visita();
+
+            // sempre use o id recém criado da internação
+            $visita->fk_internacao_vis = $lastId;
+
+            // se não vier data do form, usar agora
+            $dataVisita = $data_visita_int ?: date('Y-m-d H:i:s');
+            $visita->data_visita_vis = $dataVisita;
+
+            // metadados de criação
+            $visita->usuario_create = $usuario_create_int ?: ($_SESSION['email_user'] ?? 'sistema');
+
+            // flags herdadas do form, se vierem
+            $visita->visita_auditor_prof_med = $visita_auditor_prof_med ?: '';
+            $visita->visita_auditor_prof_enf = $visita_auditor_prof_enf ?: '';
+            $visita->visita_med_vis = $visita_med_int ?: 'n';
+            $visita->visita_enf_vis = $visita_enf_int ?: 'n';
+
+            // primeira visita
+            $visita->visita_no_vis = 1;
+
+            // textos padrão da visita inicial
+            $visita->rel_visita_vis = $rel_int ?: 'Visita beira Leito inicial.';
+            $visita->acoes_int_vis = $acoes_int ?: 'Ações iniciais registradas.';
+            $visita->oportunidades_enf = '';                         // pode preencher depois
+            $visita->exames_enf = 'Sem exames relevantes no período';
+            $visita->programacao_enf = $programacao_int ?: '';
+
+            // se seu DAO aceitar, capture o ID da visita criada
+            $idVisitaCriada = null;
+            if (method_exists($visitaDao, 'createReturningId')) {
+                $idVisitaCriada = $visitaDao->createReturningId($visita);
+            } else {
+                $visitaDao->create($visita);
+                if (method_exists($visitaDao, 'findLastId')) {
+                    $idVisitaCriada = $visitaDao->findLastId()[0]['id_visita'] ?? null;
+                }
+            }
+
+
+
+
             //lancar dados antecedentes
             if ($jsonAntec) {
                 $antecedentes = json_decode($jsonAntec, true);
@@ -509,8 +555,7 @@ if ($type === "create") {
                 $detalhes->parto_det = $parto_det;
 
                 $detalhesDao->create($detalhes);
-            }
-            ;
+            };
             // lancar dados gestao 
             if ($select_gestao == "s") {
                 $gestao = new gestao();
@@ -548,8 +593,7 @@ if ($type === "create") {
                 $gestao->fk_user_ges = $fk_user_ges;
 
                 $gestaoDao->create($gestao);
-            }
-            ;
+            };
             // lancar dados UTI 
             if ($select_uti == "s") {
 
@@ -581,8 +625,7 @@ if ($type === "create") {
                 $uti->dist_met_uti = $dist_met_uti;
 
                 $utiDao->create($uti);
-            }
-            ;
+            };
 
 
             echo ("Valor de \$select_negoc recebido: " . ($select_negoc ?? "NULO"));
@@ -739,8 +782,7 @@ if ($type === "create") {
 
             echo "lancado internacao";
         }
-    }
-    ;
+    };
 }
 
 if ($type == "update") {
@@ -872,8 +914,7 @@ if ($type == "update") {
             $uti->dist_met_uti = $dist_met_uti;
 
             $utiDao->create($uti);
-        }
-        ;
+        };
         var_dump($select_negoc);
         echo "Valor de \$select_negoc recebido: " . ($select_negoc ?? "NULO") . "<br>";
         // lancar dados negociacao 
@@ -941,8 +982,7 @@ if ($type == "update") {
         $prorrogacao->fk_usuario_pror = $fk_usuario_pror;
 
         $prorrogacaoDao->create($prorrogacao);
-    }
-    ;
+    };
 
     if ($select_tuss == "s") {
 
@@ -956,8 +996,7 @@ if ($type == "update") {
         $tuss->qtd_tuss_liberado = $qtd_tuss_liberado;
         $tuss->tuss_liberado_sn = $tuss_liberado_sn;
         $tussDao->create($tuss);
-    }
-    ;
+    };
     // };
 
     header("location:list_internacao.php");

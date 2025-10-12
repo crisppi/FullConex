@@ -10,24 +10,21 @@ include_once("dao/acomodacaoDao.php");
 
 include_once("dao/cidDao.php");
 $cid = new cidDAO($conn, $BASE_URL);
-
-// LISTAR CIDS
 $cids = $cid->findAll();
 
-
 /* === UsuarioDAO: usar somente findMedicosEnfermeiros() === */
-include_once("dao/usuarioDao.php"); // ajuste o path se necessário
+include_once("dao/usuarioDao.php");
 $usuarioDao = new userDAO($conn, $BASE_URL);
 
 /* === DAOs auxiliares / util === */
 $Internacao_geral = new internacaoDAO($conn, $BASE_URL);
+$acomodacaoDao    = new acomodacaoDAO($conn, $BASE_URL);
+$acomodacao       = $acomodacaoDao->findGeral();
 
-$acomodacaoDao = new acomodacaoDAO($conn, $BASE_URL);
-$acomodacao = $acomodacaoDao->findGeral();
-
-$idSessao     = $_SESSION["id_usuario"] ?? '';
-$cargoSessao  = $_SESSION['cargo'] ?? ($_SESSION['cargo_user'] ?? '');
-$emailSessao  = $_SESSION['email_user'] ?? '';
+/* === Sessão === */
+$idSessao    = $_SESSION["id_usuario"] ?? '';
+$cargoSessao = $_SESSION['cargo'] ?? ($_SESSION['cargo_user'] ?? '');
+$emailSessao = $_SESSION['email_user'] ?? '';
 
 $dataAtual = date('Y-m-d');
 $agora     = date('Y-m-d');
@@ -37,65 +34,63 @@ $agora     = date('Y-m-d');
    ========================================================== */
 $cargo  = $_SESSION['cargo']        ?? '';
 $userId = (int)($_SESSION['id_usuario'] ?? 0);
-
-// cargos que DEVEM ver apenas hospitais vinculados via tb_hospitalUser
-$rolesFiltrados = ['Med_auditor', 'Enf_Auditor', 'Adm'];
+$rolesFiltrados       = ['Med_auditor', 'Enf_Auditor', 'Adm'];
 $aplicarFiltroUsuario = in_array($cargo, $rolesFiltrados, true) ? $userId : null;
 
-/* === AUDITORES via UsuarioDAO::findMedicosEnfermeiros() ===
-   Esperado: cada linha com chaves: id_usuario, usuario_user, email_user, cargo_user
-   e cargo_user contendo algo como 'Med_auditor' ou 'Enf_Auditor' (case-insensitive).
-*/
+/* === AUDITORES via UsuarioDAO::findMedicosEnfermeiros() === */
 $medicosAud = [];
 $enfsAud    = [];
 try {
-    $todos = $usuarioDao->findMedicosEnfermeiros(); // << único método usado
+    $todos = $usuarioDao->findMedicosEnfermeiros();
     if (!is_array($todos)) $todos = [];
-
     foreach ($todos as $u) {
         $id    = $u['id_usuario']   ?? null;
         $nome  = $u['usuario_user'] ?? null;
         $email = $u['email_user']   ?? null;
         $cargo = $u['cargo_user']   ?? '';
-
         if (!$id) continue;
 
         $row = [
-            'id_usuario'   => $id,
-            'usuario_user' => $nome,
-            'email_user'   => $email,
-            'cargo_user'   => $cargo,
+            'id_usuario'   => (int)$id,
+            'usuario_user' => (string)$nome,
+            'email_user'   => (string)$email,
+            'cargo_user'   => (string)$cargo,
         ];
 
         $c = mb_strtoupper((string)$cargo, 'UTF-8');
-        if (strpos($c, 'MED') === 0) {
-            $medicosAud[] = $row;
-        } elseif (strpos($c, 'ENF') === 0) {
-            $enfsAud[] = $row;
-        }
+        if (strpos($c, 'MED') === 0)      $medicosAud[] = $row;
+        elseif (strpos($c, 'ENF') === 0)  $enfsAud[]    = $row;
     }
 } catch (Throwable $e) {
     $medicosAud = $enfsAud = [];
 }
-// debug opcional no fonte (Ctrl+U)
 echo "\n<!-- via findMedicosEnfermeiros | med=" . count($medicosAud) . " enf=" . count($enfsAud) . " -->\n";
 
 /* ===== Mostrar Cadastro Central APENAS se NÃO for médico nem enfermeiro ===== */
 $normCargo = mb_strtolower(str_replace([' ', '-'], '_', (string)$cargoSessao), 'UTF-8');
 $mostrarCadastroCentral = !in_array($normCargo, ['med_auditor', 'medico_auditor', 'enf_auditor', 'enfer_auditor'], true);
-
-
 ?>
 <link href="<?= $BASE_URL ?>css/style.css" rel="stylesheet">
 
-<!-- FIX: z-index do dropdown do header -->
 <style>
+/* z-index do dropdown do header */
 .navbar .dropdown-menu {
     z-index: 1055;
 }
+
+/* Selects roxos (tabelas adicionais) */
+.select-purple {
+    color: #fff;
+    background-color: #5e2363;
+    border: 1px solid #5e2363;
+}
+
+.select-purple:focus {
+    box-shadow: 0 0 0 .25rem rgba(94, 35, 99, .25);
+}
 </style>
 
-<!-- FIX: Shim para header Bootstrap 4 -> 5 (data-toggle -> data-bs-toggle) -->
+<!-- Shim BS4 -> BS5 (data-toggle -> data-bs-*) -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('[data-toggle="dropdown"]').forEach(function(el) {
@@ -105,9 +100,8 @@ document.addEventListener('DOMContentLoaded', function() {
         el.setAttribute('data-bs-toggle', 'collapse');
     });
     document.querySelectorAll('[data-target]').forEach(function(el) {
-        if (!el.getAttribute('data-bs-target')) {
-            el.setAttribute('data-bs-target', el.getAttribute('data-target'));
-        }
+        if (!el.getAttribute('data-bs-target')) el.setAttribute('data-bs-target', el.getAttribute(
+            'data-target'));
     });
 });
 </script>
@@ -147,10 +141,8 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
 
             <div class="d-flex justify-content-center align-items-center" style="flex:1">
-                <div id="hospitalNomeTexto" style="
-          width:100%;display:none;max-width:500px;margin-left:-500px;height:75px;padding:0 50px;
-          border:2px solid #28a745;border-radius:8px;font-size:1.2em;font-weight:600;color:#000;
-          background-color:#f8fff8;align-items:center;justify-content:center;text-align:center;">
+                <div id="hospitalNomeTexto"
+                    style="width:100%;display:none;max-width:500px;margin-left:-500px;height:75px;padding:0 50px;border:2px solid #28a745;border-radius:8px;font-size:1.2em;font-weight:600;color:#000;background-color:#f8fff8;align-items:center;justify-content:center;text-align:center;">
                 </div>
             </div>
         </div>
@@ -169,7 +161,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <input type="hidden" value="n" id="censo_int" name="censo_int">
 
         <!-- fk_usuario_int: padrão = usuário logado; Cadastro Central pode sobrescrever -->
-        <input type="hidden" value="<?= $idSessao ?>" id="fk_usuario_int" name="fk_usuario_int">
+        <input type="hidden" value="<?= htmlspecialchars($idSessao) ?>" id="fk_usuario_int" name="fk_usuario_int">
 
         <div class="form-group row">
             <input type="hidden" value="<?= $hospital["id_hospital"] ?? '' ?>" name="fk_hospital_int"
@@ -182,9 +174,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     name="fk_paciente_int" required>
                     <option value="">Selecione</option>
                     <?php
-                    usort($pacientes, function ($a, $b) {
-                        return strcmp($a["nome_pac"], $b["nome_pac"]);
-                    });
+                    usort($pacientes, fn($a, $b) => strcmp($a["nome_pac"], $b["nome_pac"]));
                     foreach ($pacientes as $paciente): ?>
                     <option value="<?= (int)$paciente["id_paciente"] ?>"><?= htmlspecialchars($paciente["nome_pac"]) ?>
                     </option>
@@ -195,9 +185,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         href="<?= $BASE_URL ?>list_paciente.php?id_paciente=<?= $id_paciente ?? 0 ?>">
                         <i style="color:blue;margin-bottom:7px;" class="far fa-edit edit-icon"></i> Novo Paciente
                     </a>
-                    <div id="alert_intern" style="font-size:.6em;margin-left:7px;color:red;display:none">
-                        Paciente já internado
-                    </div>
+                    <div id="alert_intern" style="font-size:.6em;margin-left:7px;color:red;display:none">Paciente já
+                        internado</div>
                 </div>
             </div>
 
@@ -239,11 +228,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 <label class="control-label" for="tipo_alta_alt"> Motivo Alta</label>
                 <select class="form-control" id="tipo_alta_alt" name="tipo_alta_alt">
                     <option value="">Selecione o motivo da alta</option>
-                    <?php
-                    sort($dados_alta, SORT_ASC);
-                    foreach ($dados_alta as $alta) { ?>
+                    <?php sort($dados_alta, SORT_ASC);
+                    foreach ($dados_alta as $alta): ?>
                     <option value="<?= htmlspecialchars($alta); ?>"><?= htmlspecialchars($alta); ?></option>
-                    <?php } ?>
+                    <?php endforeach; ?>
                 </select>
             </div>
 
@@ -252,13 +240,11 @@ document.addEventListener('DOMContentLoaded', function() {
             <input type="hidden" value="s" id="primeira_vis_int" name="primeira_vis_int">
             <input type="hidden" value="0" id="visita_no_int" name="visita_no_int">
 
-            <!-- Flags padrão pelo cargo atual -->
-            <!-- Flags e e-mails DO RESPONSÁVEL — começam neutros e o JS atualiza -->
+            <!-- Flags do responsável (atualizadas pelo JS unificado) -->
             <input type="hidden" id="visita_enf_int" name="visita_enf_int" value="n">
             <input type="hidden" id="visita_med_int" name="visita_med_int" value="n">
             <input type="hidden" id="visita_auditor_prof_enf" name="visita_auditor_prof_enf" value="">
             <input type="hidden" id="visita_auditor_prof_med" name="visita_auditor_prof_med" value="">
-
         </div>
 
         <!-- ===== CADASTRO CENTRAL (só aparece se NÃO for med/enf) ===== -->
@@ -306,7 +292,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     </select>
                 </div>
             </div>
-
         </div>
         <?php endif; ?>
         <!-- ===== /CADASTRO CENTRAL ===== -->
@@ -316,8 +301,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <label class="control-label" for="acomodacao_int">Acomodação</label>
                 <select class="form-control-sm form-control" id="acomodacao_int" name="acomodacao_int">
                     <option value="">Selecione</option>
-                    <?php
-                    sort($dados_acomodacao, SORT_ASC);
+                    <?php sort($dados_acomodacao, SORT_ASC);
                     foreach ($dados_acomodacao as $acomd): ?>
                     <option value="<?= htmlspecialchars($acomd) ?>"><?= htmlspecialchars($acomd) ?></option>
                     <?php endforeach; ?>
@@ -327,8 +311,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <label class="control-label" for="especialidade_int">Especialidade</label>
                 <select class="form-control-sm form-control" id="especialidade_int" name="especialidade_int">
                     <option value="">Selecione</option>
-                    <?php
-                    sort($dados_especialidade, SORT_ASC);
+                    <?php sort($dados_especialidade, SORT_ASC);
                     foreach ($dados_especialidade as $especial): ?>
                     <option value="<?= htmlspecialchars($especial) ?>"><?= htmlspecialchars($especial) ?></option>
                     <?php endforeach; ?>
@@ -375,7 +358,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div id="div_rel_pertinente_int" style="display:none;" class="form-group col-sm-8">
                 <label for="rel_pertinente_int">Justifique não pertinência</label>
-                <textarea type="textarea" style="resize:none" rows="3" class="form-control" id="rel_pertinente_int"
+                <textarea style="resize:none" rows="3" class="form-control" id="rel_pertinente_int"
                     name="rel_pertinente_int"></textarea>
             </div>
         </div>
@@ -387,27 +370,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     data-live-search="true" id="fk_patologia_int" name="fk_patologia_int">
                     <option value="">Selecione</option>
                     <?php
-                    usort($patologias, function ($a, $b) {
-                        return strcmp($a["patologia_pat"], $b["patologia_pat"]);
-                    });
+                    usort($patologias, fn($a, $b) => strcmp($a["patologia_pat"], $b["patologia_pat"]));
                     foreach ($patologias as $patologia): ?>
                     <option value="<?= (int)$patologia["id_patologia"] ?>">
-                        <?= htmlspecialchars($patologia["patologia_pat"]) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <!-- <div class="form-group col-sm-3">
-                <label class="control-label" for="cid_pat2">CID</label>
-                <select class="form-control selectpicker show-tick" data-size="5" id="cid_pat2" name="cid_pat2"
-                    data-live-search="true" required>
-                    <option value="">Selecione o CID</option>
-                    <?php foreach ($cids as $cid): ?>
-                    <option value="<?= $cid["id_cid"] ?>">
-                        <?= $cid['cat'] . " - " . $cid["descricao"] ?>
+                        <?= htmlspecialchars($patologia["patologia_pat"]) ?>
                     </option>
                     <?php endforeach; ?>
                 </select>
-            </div> -->
+            </div>
+
             <div class="form-group col-sm-2">
                 <label class="control-label" for="grupo_patologia_int">Grupo Patologia</label>
                 <select class="form-control-sm form-control" id="grupo_patologia_int" name="grupo_patologia_int">
@@ -443,12 +414,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 <select class="form-control-sm form-control selectpicker show-tick" data-size="5"
                     data-live-search="true" id="fk_patologia2" name="fk_patologia2[]" multiple title="Selecione">
                     <?php
-                    usort($antecedentes, function ($a, $b) {
-                        return strcmp($a["antecedente_ant"], $b["antecedente_ant"]);
-                    });
+                    usort($antecedentes, fn($a, $b) => strcmp($a["antecedente_ant"], $b["antecedente_ant"]));
                     foreach ($antecedentes as $antecedente): ?>
                     <option value="<?= (int)$antecedente["id_antecedente"] ?>">
-                        <?= htmlspecialchars($antecedente["antecedente_ant"]) ?></option>
+                        <?= htmlspecialchars($antecedente["antecedente_ant"]) ?>
+                    </option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -460,7 +430,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="form-group" style="margin-left:0px; margin-top:-15px">
             <div>
                 <label for="rel_int">Relatório de Auditoria</label>
-                <textarea maxlength="5000" style="resize:none" rows="2" onclick="aumentarTextAudit()"
+                <textarea maxlength="5000" style="resize:none" rows="2" onclick="aumentarText('rel_int')"
                     class="form-control" id="rel_int" name="rel_int"></textarea>
             </div>
 
@@ -476,19 +446,20 @@ document.addEventListener('DOMContentLoaded', function() {
                         <input type="text" id="chat-input" placeholder="Digite sua mensagem..."
                             style="width: 100%; padding: 5px; border: 1px solid #ccc;">
                         <button id="chat-send"
-                            style="margin-top: 5px; width: 100%; background-color: #007bff; color: white; border:       none;padding:5px;">Enviar</button>
+                            style="margin-top: 5px; width: 100%; background-color: #007bff; color: white; border: none; padding:5px;">Enviar</button>
                     </div>
                 </div>
             </div>
 
             <div style="margin-top: 10px;">
                 <label for="acoes_int">Ações da Auditoria</label>
-                <textarea rows="2" style="resize:none" onclick="aumentarTextAcoes()" class="form-control"
+                <textarea rows="2" style="resize:none" onclick="aumentarText('acoes_int')" class="form-control"
                     maxlength="5000" id="acoes_int" name="acoes_int"></textarea>
             </div>
+
             <div style="margin-top: 10px;">
                 <label for="programacao_int">Programação Terapêutica</label>
-                <textarea style="resize:none" maxlength="5000" rows="2" onclick="aumentarTextProgInt()"
+                <textarea style="resize:none" maxlength="5000" rows="2" onclick="aumentarText('programacao_int')"
                     class="form-control" id="programacao_int" name="programacao_int"></textarea>
             </div>
 
@@ -496,7 +467,8 @@ document.addEventListener('DOMContentLoaded', function() {
             <hr>
             <h4 class="text-center w-100"
                 style="margin: 7px 10px 0px 0px;background-color: #5e2363;color: #fff;padding: 13px 0;border-radius: 0.25rem;">
-                Detalhes do relatório</h4>
+                Detalhes do relatório
+            </h4>
             <hr>
 
             <input type="hidden" class="form-control" id="select_detalhes" name="select_detalhes">
@@ -517,9 +489,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="form-group col-sm-3">
                     <input type="hidden" id="data_create_int" value='<?= $agora; ?>' name="data_create_int">
-                </div>
-                <div>
-                    <hr>
                 </div>
             </div>
 
@@ -722,7 +691,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         <h4 class="text-center w-100"
             style="margin:-15px 10px 0px 0px;background-color:#5e2363;color:#fff;padding:13px 0;border-radius:.25rem;">
-            Tabelas Adicionais</h4>
+            Tabelas Adicionais
+        </h4>
         <hr>
 
         <div class="form-group row d-flex justify-content-center align-items-end" style="gap: 15px;">
@@ -810,12 +780,14 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <script>
-function aumentarText(textareaId) {
-    document.getElementById(textareaId).rows = 20;
+function aumentarText(id) {
+    const el = document.getElementById(id);
+    if (el) el.rows = 20;
 }
 
-function reduzirText(textareaId, originalRows) {
-    document.getElementById(textareaId).rows = originalRows;
+function reduzirText(id, rows) {
+    const el = document.getElementById(id);
+    if (el) el.rows = rows;
 }
 </script>
 
@@ -865,60 +837,53 @@ function myFunctionSelected() {
 }
 
 // Estilo do select "relatório detalhado"
-$('#relatorio-detalhado').change(function() {
-    var optionDetalhes = $('#relatorio-detalhado').find(":selected").text();
-    $("#relatorio-detalhado").css({
+$('#relatorio-detalhado').on('change', function() {
+    const optionDetalhes = $(this).find(":selected").text();
+    const baseCss = {
         "color": "white",
         "font-weight": "normal",
         "border": "1px solid #5e2363",
         "background-color": "#5e2363"
-    });
-    if (optionDetalhes == "Sim") {
-        $("#relatorio-detalhado").css({
+    };
+    $(this).css(baseCss);
+    if (optionDetalhes === "Sim") {
+        $(this).css({
             "color": "black",
             "font-weight": "bold",
             "border": "2px solid green",
             "background-color": "#d8b4fe"
         });
     } else {
-        $("#relatorio-detalhado").val("");
-        $("#relatorio-detalhado").css({
-            "color": "white",
-            "font-weight": "normal",
-            "border": "1px solid #5e2363",
-            "background-color": "#5e2363"
-        });
+        $(this).val("").css(baseCss);
     }
 });
 
-// Toggle campo medicação alto custo
+// Toggle campos dependentes
 $(function() {
     $('#medicacaoDet').hide();
     $('#medic_alto_custo_det').on('change', function() {
-        if ($(this).val() === 's') $('#medicacaoDet').show();
-        else $('#medicacaoDet').hide();
+        ($(this).val() === 's') ? $('#medicacaoDet').show(): $('#medicacaoDet').hide();
     });
 
     $('#atb').hide();
     $('#atb_det').on('change', function() {
-        if ($(this).val() === 's') $('#atb').show();
-        else $('#atb').hide();
+        ($(this).val() === 's') ? $('#atb').show(): $('#atb').hide();
     });
 
     $('#div-oxig').hide();
     $('#oxig_det').on('change', function() {
-        if ($(this).val() === 'Cateter' || $(this).val() == 'Mascara') $('#div-oxig').show();
-        else $('#div-oxig').hide();
+        ($('#oxig_det').val() === 'Cateter' || $('#oxig_det').val() === 'Mascara') ? $('#div-oxig')
+            .show(): $('#div-oxig').hide();
     });
 });
 
 // Mostrar UTI se acomodação == UTI
 document.getElementById("acomodacao_int").addEventListener("change", function() {
-    var divUti = document.querySelector("#container-uti");
+    const divUti = document.querySelector("#container-uti");
     if (divUti) divUti.style.display = (this.value === "UTI") ? "block" : "none";
 });
 
-// Checagem se paciente já internado
+// Checar se paciente já está internado
 function teste() {
     event.preventDefault();
     $.ajax({
@@ -928,14 +893,13 @@ function teste() {
             id_paciente: $('#fk_paciente_int').val()
         },
         success: function(result) {
-            var alert_div = document.getElementById('alert_intern');
-            if (result == 1) alert_div.style.display = "block";
-            else alert_div.style.display = "none";
+            const alert_div = document.getElementById('alert_intern');
+            (String(result) == '1') ? alert_div.style.display = "block": alert_div.style.display = "none";
         }
     });
 }
 
-// Validação de datas (internação e visita)
+// Validação de datas
 document.getElementById("data_intern_int").addEventListener("blur", function() {
     const input = this;
     const dataInternacao = new Date(input.value);
@@ -945,18 +909,16 @@ document.getElementById("data_intern_int").addEventListener("blur", function() {
     erroDiv.style.display = "none";
     erroDiv.textContent = "";
     if (!input.value) return;
-
     const dataFormatadaHoje = dataHoje.toISOString().split("T")[0];
 
     if (input.value > dataFormatadaHoje) {
         erroDiv.textContent = "A data da internação não pode ser maior que a data atual.";
         erroDiv.style.display = "block";
         input.value = "";
-        setTimeout(() => {
+        return setTimeout(() => {
             erroDiv.style.display = "none";
             erroDiv.textContent = "";
         }, 5000);
-        return;
     }
 
     const diffDias = (dataHoje - dataInternacao) / (1000 * 60 * 60 * 24);
@@ -982,8 +944,9 @@ document.getElementById("data_visita_int").addEventListener("change", function()
 
     if (document.getElementById("data_intern_int").value && dataVisita < dataInternacao) {
         errorMessage.textContent = "A data da visita não pode ser menor que a data de internação.";
-        errorMessage.style.display = "block";
-    } else if (dataVisita > seteDiasDepois) {
+        return errorMessage.style.display = "block";
+    }
+    if (dataVisita > seteDiasDepois) {
         errorMessage.textContent = "A data da visita não pode ser maior que 7 dias da data atual.";
         errorMessage.style.display = "block";
     }
@@ -994,24 +957,23 @@ document.getElementById("tipo_admissao_int").addEventListener("change", function
     const tipo = this.value;
     const divPertinente = document.getElementById("div_int_pertinente_int");
     const divRelPertinente = document.getElementById("div_rel_pertinente_int");
-
     divPertinente.style.display = "none";
     divRelPertinente.style.display = "none";
-
     if (tipo === "Urgência") {
         divPertinente.style.display = "block";
         document.getElementById("int_pertinente_int").addEventListener("change", function() {
             divRelPertinente.style.display = (this.value === "n") ? "block" : "none";
+        }, {
+            once: true
         });
     }
 });
 
 // JSON de antecedentes
 document.getElementById('fk_patologia2').addEventListener('change', function() {
-    const selectedOptions = Array.from(this.selectedOptions).map(option => parseInt(option.value, 10));
+    const selectedOptions = Array.from(this.selectedOptions).map(o => parseInt(o.value, 10));
     const fkPaciente = parseInt(document.getElementById('fk_paciente_int').value || '0', 10);
     const fkInternacao = parseInt(document.getElementById('id_internacao').value || '0', 10);
-
     const jsonAntecedentes = selectedOptions.map(idAntecedente => ({
         fk_id_paciente: fkPaciente,
         fk_internacao_ant_int: fkInternacao + 1,
@@ -1044,57 +1006,173 @@ document.addEventListener("DOMContentLoaded", function() {
 // Chat toggle
 document.getElementById("chat-header").addEventListener("click", function() {
     const chatBody = document.getElementById("chat-body");
-    chatBody.style.display = chatBody.style.display === "none" ? "block" : "none";
+    chatBody.style.display = (chatBody.style.display === "none") ? "block" : "none";
 });
-
 document.getElementById("chat-send").addEventListener("click", function() {
     const inputField = document.getElementById("chat-input");
     const message = (inputField.value || "").trim();
-    if (message) {
-        const messagesDiv = document.getElementById("chat-messages");
-        fetch("diversos/chatgpt_handler.php", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    message
-                })
+    if (!message) return;
+    const messagesDiv = document.getElementById("chat-messages");
+    fetch("diversos/chatgpt_handler.php", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                message
             })
-            .then(response => response.json())
-            .then(data => {
-                const botMessage = document.createElement("div");
-                botMessage.style.color = "green";
-                botMessage.textContent = "Bot: " + (data.reply || "Sem resposta");
-                messagesDiv.appendChild(botMessage);
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
-            })
-            .catch(() => {
-                const errorMessage = document.createElement("div");
-                errorMessage.style.color = "red";
-                errorMessage.textContent = "Erro ao conectar com o bot.";
-                messagesDiv.appendChild(errorMessage);
-            });
-        inputField.value = "";
-    }
+        })
+        .then(r => r.json())
+        .then(data => {
+            const botMessage = document.createElement("div");
+            botMessage.style.color = "green";
+            botMessage.textContent = "Bot: " + (data.reply || "Sem resposta");
+            messagesDiv.appendChild(botMessage);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        })
+        .catch(() => {
+            const errorMessage = document.createElement("div");
+            errorMessage.style.color = "red";
+            errorMessage.textContent = "Erro ao conectar com o bot.";
+            messagesDiv.appendChild(errorMessage);
+        });
+    inputField.value = "";
 });
 
-// ==== SUBMIT AJAX (mantém a mesma UX) ====
-$("#myForm").submit(function(event) {
-    event.preventDefault();
-    let post_url = $(this).attr("action");
-    let request_method = $(this).attr("method");
-    let form_data = new FormData(this);
+/* ==========================================================
+   CADASTRO CENTRAL — LÓGICA ÚNICA (sem duplicações)
+   Regras:
+   - fk_usuario_int = ID do responsável selecionado
+   - visita_med_int / visita_enf_int = 's' / 'n' conforme tipo
+   - visita_auditor_prof_med = SEMPRE o ID (espelhado de fk_usuario_int) SE tipo != 'enf'; caso 'enf', fica vazio
+   - visita_auditor_prof_enf não é usado (fica vazio)
+   ========================================================== */
+function mirrorVisitMedFromFk() {
+    const fk = document.getElementById('fk_usuario_int')?.value || '';
+    const tipo = document.getElementById('resp_tipo')?.value || '';
+    const medHidden = document.getElementById('visita_auditor_prof_med');
+    if (!medHidden) return;
+    medHidden.value = (tipo === 'enf') ? '' : fk;
+}
+document.addEventListener('DOMContentLoaded', mirrorVisitMedFromFk);
 
-    // Cadastro Central: se escolheu tipo, precisa selecionar responsável
+(function() {
+    const respTipo = document.getElementById('resp_tipo');
+    const boxMed = document.getElementById('box_resp_med');
+    const boxEnf = document.getElementById('box_resp_enf');
+    const selMed = document.getElementById('resp_med_id');
+    const selEnf = document.getElementById('resp_enf_id');
+
+    const fkUsuario = document.getElementById('fk_usuario_int');
+    const flgMed = document.getElementById('visita_med_int');
+    const flgEnf = document.getElementById('visita_enf_int');
+    const emailMed = document.getElementById('visita_auditor_prof_med'); // usado para ID do médico responsável
+    const emailEnf = document.getElementById('visita_auditor_prof_enf'); // não utilizado (mantém vazio)
+
+    const idSessao = "<?= htmlspecialchars($idSessao) ?>";
+    const cargoSessao = "<?= addslashes($cargoSessao) ?>";
+
+    function hide(el) {
+        if (el) {
+            el.classList.add('d-none');
+            el.hidden = true;
+            el.style.display = '';
+        }
+    }
+
+    function show(el) {
+        if (el) {
+            el.classList.remove('d-none');
+            el.hidden = false;
+            el.style.display = '';
+        }
+    }
+
+    function resetToSessionUser() {
+        if (!fkUsuario) return;
+        fkUsuario.value = idSessao || '';
+        if (flgMed) flgMed.value = (cargoSessao === 'Med_auditor') ? 's' : 'n';
+        if (flgEnf) flgEnf.value = (cargoSessao === 'Enf_Auditor') ? 's' : 'n';
+        if (emailMed) emailMed.value = ''; // será setado por mirrorVisitMedFromFk
+        if (emailEnf) emailEnf.value = '';
+        mirrorVisitMedFromFk();
+    }
+
+    // inicia oculto
+    hide(boxMed);
+    hide(boxEnf);
+    resetToSessionUser();
+
+    respTipo?.addEventListener('change', function() {
+        const v = this.value;
+        if (selMed) selMed.value = '';
+        if (selEnf) selEnf.value = '';
+        if (flgMed) flgMed.value = 'n';
+        if (flgEnf) flgEnf.value = 'n';
+        if (emailMed) emailMed.value = '';
+        if (emailEnf) emailEnf.value = '';
+        if (fkUsuario) fkUsuario.value = idSessao;
+
+        hide(boxMed);
+        hide(boxEnf);
+        if (v === 'med') {
+            show(boxMed);
+            if (flgMed) flgMed.value = 's';
+        }
+        if (v === 'enf') {
+            show(boxEnf);
+            if (flgEnf) flgEnf.value = 's';
+        }
+        mirrorVisitMedFromFk();
+    });
+
+    selMed?.addEventListener('change', function() {
+        const opt = this.selectedOptions[0];
+        if (!opt?.value) {
+            resetToSessionUser();
+            return;
+        }
+        if (fkUsuario) fkUsuario.value = opt.value;
+        if (flgMed) flgMed.value = 's';
+        if (flgEnf) flgEnf.value = 'n';
+        if (emailEnf) emailEnf.value = '';
+        mirrorVisitMedFromFk();
+    });
+
+    selEnf?.addEventListener('change', function() {
+        const opt = this.selectedOptions[0];
+        if (!opt?.value) {
+            resetToSessionUser();
+            return;
+        }
+        if (fkUsuario) fkUsuario.value = opt.value;
+        if (flgMed) flgMed.value = 'n';
+        if (flgEnf) flgEnf.value = 's';
+        if (emailMed) emailMed.value = ''; // tipo enf → campo do médico fica vazio
+        if (emailEnf) emailEnf.value = '';
+        mirrorVisitMedFromFk();
+    });
+})();
+
+// SUBMIT AJAX
+$("#myForm").on('submit', function(event) {
+    event.preventDefault();
+    const post_url = $(this).attr("action");
+    const request_method = $(this).attr("method");
+    const form_data = new FormData(this);
+
+    // Cadastro Central: se escolheu tipo, precisa existir fk_usuario_int
     const tipo = $('#resp_tipo').val();
     const fk = $('#fk_usuario_int').val();
     if (tipo && !fk) {
-        $('#alert').removeClass("alert-success").addClass("alert-danger").show()
-            .html("Selecione o responsável pela visita.");
+        $('#alert').removeClass("alert-success").addClass("alert-danger").show().html(
+            "Selecione o responsável pela visita.");
         setTimeout(() => $('#alert').fadeOut('slow'), 2500);
         return false;
     }
+
+    // Garantir espelho do ID do médico (se não for 'enf') antes de enviar
+    if (typeof mirrorVisitMedFromFk === 'function') mirrorVisitMedFromFk();
 
     const hospitalSelected = document.getElementById("hospital_selected").value;
 
@@ -1131,9 +1209,7 @@ $("#myForm").submit(function(event) {
             const ultimoReg = <?= (int)$ultimoReg ?>;
             const novoValorInternacao = parseInt(ultimoReg, 10) + adicionarValor;
 
-            $("#proximoId_int").text(adicionarValor);
-            $("#proximoId_int").val(novoValorInternacao);
-
+            $("#proximoId_int").text(adicionarValor).val(novoValorInternacao);
             $("#RegInt").val(newRegInt);
             $("#fk_int_tuss").val(novoValorInternacao);
             $("#fk_internacao_uti").val(novoValorInternacao);
@@ -1159,18 +1235,19 @@ $("#myForm").submit(function(event) {
                     $(this).val('');
                 });
 
-            // Reset do Cadastro Central
+            // Reset do Cadastro Central → volta para usuário logado
             $('#resp_tipo').val('');
             $('#resp_med_id').val('');
             $('#resp_enf_id').val('');
-            $('#box_resp_med, #box_resp_enf').hide();
-            $('#fk_usuario_int').val('<?= $idSessao ?>');
+            $('#box_resp_med, #box_resp_enf').addClass('d-none').attr('hidden', true);
+
+            $('#fk_usuario_int').val('<?= (int)$idSessao ?>');
             $('#visita_med_int').val('<?= ($cargoSessao === "Med_auditor") ? "s" : "n" ?>');
             $('#visita_enf_int').val('<?= ($cargoSessao === "Enf_Auditor") ? "s" : "n" ?>');
-            $('#visita_auditor_prof_med').val(
-                '<?= ($cargoSessao === "Med_auditor") ? ($emailSessao) : "" ?>');
-            $('#visita_auditor_prof_enf').val(
-                '<?= ($cargoSessao === "Enf_Auditor") ? ($emailSessao) : "" ?>');
+
+            // Campo do médico recebe o ID espelhado (se aplicável); enfermeiro fica vazio
+            if (typeof mirrorVisitMedFromFk === 'function') mirrorVisitMedFromFk();
+            $('#visita_auditor_prof_enf').val('');
 
             if (typeof clearTussInputs === 'function') clearTussInputs();
             if (typeof clearProrrogInputs === 'function') clearProrrogInputs();
@@ -1178,8 +1255,8 @@ $("#myForm").submit(function(event) {
         error: function(xhr, status, error) {
             console.error("AJAX Error:", status, error);
             console.log("XHR response:", xhr.responseText);
-            $('#alert').removeClass("alert-success").addClass("alert-danger").show()
-                .html("Erro ao salvar. Verifique os campos e tente novamente.");
+            $('#alert').removeClass("alert-success").addClass("alert-danger").show().html(
+                "Erro ao salvar. Verifique os campos e tente novamente.");
             setTimeout(function() {
                 $('#alert').fadeOut('Slow');
             }, 3000);
@@ -1217,16 +1294,12 @@ $(document).ready(function() {
                 id_hospital
             },
             success: function(response) {
-                if (response.status === 'success') {
-                    populateSelects(response.acomodacoes);
-                } else {
-                    console.error("Erro recebido do servidor:", response.message);
-                }
+                if (response.status === 'success') populateSelects(response.acomodacoes);
+                else console.error("Erro recebido do servidor:", response.message);
             },
             error: function(xhr, status, error) {
-                console.error("Erro na requisição AJAX:", error);
-                console.error("Status:", status);
-                console.error("Resposta completa:", xhr.responseText);
+                console.error("Erro na requisição AJAX:", error, "Status:", status, "Resposta:", xhr
+                    .responseText);
             },
         });
     }
@@ -1270,196 +1343,10 @@ $(document).ready(function() {
     }
 });
 
-// ===== Cadastro Central - JS =====
-(function() {
-    const respTipo = document.getElementById('resp_tipo');
-    const boxMed = document.getElementById('box_resp_med');
-    const boxEnf = document.getElementById('box_resp_enf');
-    const selMed = document.getElementById('resp_med_id');
-    theSelEnf = document.getElementById('resp_enf_id');
-
-    const fkUsuario = document.getElementById('fk_usuario_int');
-    const flgMed = document.getElementById('visita_med_int');
-    const flgEnf = document.getElementById('visita_enf_int');
-    const emailMed = document.getElementById('visita_auditor_prof_med');
-    const emailEnf = document.getElementById('visita_auditor_prof_enf');
-
-    const idSessao = "<?= $idSessao ?>";
-    const cargoSessao = "<?= addslashes($cargoSessao) ?>";
-    const emailSessao = "<?= addslashes($emailSessao) ?>";
-
-    function resetToSessionUser() {
-        if (!fkUsuario) return;
-        fkUsuario.value = idSessao || '';
-        if (flgMed) flgMed.value = (cargoSessao === 'Med_auditor') ? 's' : 'n';
-        if (flgEnf) flgEnf.value = (cargoSessao === 'Enf_Auditor') ? 's' : 'n';
-        if (emailMed) emailMed.value = (cargoSessao === 'Med_auditor') ? emailSessao : '';
-        if (emailEnf) emailEnf.value = (cargoSessao === 'Enf_Auditor') ? emailSessao : '';
-    }
-
-    function clearAll() {
-        resetToSessionUser();
-        if (selMed) selMed.value = '';
-        if (theSelEnf) theSelEnf.value = '';
-    }
-
-    resetToSessionUser();
-
-    respTipo?.addEventListener('change', function() {
-        clearAll();
-        if (this.value === 'med') {
-            boxMed.style.display = 'block';
-            boxEnf.style.display = 'none';
-        } else if (this.value === 'enf') {
-            boxMed.style.display = 'none';
-            boxEnf.style.display = 'block';
-        } else {
-            boxMed.style.display = 'none';
-            boxEnf.style.display = 'none';
-        }
-    });
-
-    selMed?.addEventListener('change', function() {
-        const opt = this.selectedOptions[0];
-        if (!opt?.value) {
-            resetToSessionUser();
-            return;
-        }
-        fkUsuario.value = opt.value;
-        if (flgMed) flgMed.value = 's';
-        if (flgEnf) flgEnf.value = 'n';
-        if (emailMed) emailMed.value = opt.getAttribute('data-email') || '';
-        if (emailEnf) emailEnf.value = '';
-    });
-
-    theSelEnf?.addEventListener('change', function() {
-        const opt = this.selectedOptions[0];
-        if (!opt?.value) {
-            resetToSessionUser();
-            return;
-        }
-        fkUsuario.value = opt.value;
-        if (flgMed) flgMed.value = 'n';
-        if (flgEnf) flgEnf.value = 's';
-        if (emailEnf) emailEnf.value = opt.getAttribute('data-email') || '';
-        if (emailMed) emailMed.value = '';
-    });
-})();
-
-// ===== Cadastro Central - atualiza flags e e-mails pelos selects =====
-(function() {
-    const respTipo = document.getElementById('resp_tipo');
-    const boxMed = document.getElementById('box_resp_med');
-    const boxEnf = document.getElementById('box_resp_enf');
-    const selMed = document.getElementById('resp_med_id');
-    const selEnf = document.getElementById('resp_enf_id');
-
-    const fkUsuario = document.getElementById('fk_usuario_int');
-    const flgMed = document.getElementById('visita_med_int');
-    const flgEnf = document.getElementById('visita_enf_int');
-    const emailMed = document.getElementById('visita_auditor_prof_med');
-    const emailEnf = document.getElementById('visita_auditor_prof_enf');
-
-    const idSessao = "<?= $_SESSION['id_usuario'] ?? '' ?>";
-
-    function limparFlagsEmails() {
-        if (flgMed) flgMed.value = 'n';
-        if (flgEnf) flgEnf.value = 'n';
-        if (emailMed) emailMed.value = '';
-        if (emailEnf) emailEnf.value = '';
-    }
-
-    respTipo?.addEventListener('change', function() {
-        if (selMed) selMed.value = '';
-        if (selEnf) selEnf.value = '';
-        limparFlagsEmails();
-
-        if (this.value === 'med') {
-            boxMed.style.display = 'block';
-            boxEnf.style.display = 'none';
-            if (flgMed) flgMed.value = 's';
-            if (flgEnf) flgEnf.value = 'n';
-            if (fkUsuario) fkUsuario.value = idSessao;
-        } else if (this.value === 'enf') {
-            boxMed.style.display = 'none';
-            boxEnf.style.display = 'block';
-            if (flgMed) flgMed.value = 'n';
-            if (flgEnf) flgEnf.value = 's';
-            if (fkUsuario) fkUsuario.value = idSessao;
-        } else {
-            boxMed.style.display = 'none';
-            boxEnf.style.display = 'none';
-            if (fkUsuario) fkUsuario.value = idSessao;
-            limparFlagsEmails();
-        }
-    });
-
-    selMed?.addEventListener('change', function() {
-        const opt = this.selectedOptions[0];
-        if (!opt?.value) {
-            if (fkUsuario) fkUsuario.value = idSessao;
-            if (emailMed) emailMed.value = '';
-            return;
-        }
-        if (fkUsuario) fkUsuario.value = opt.value;
-        if (flgMed) flgMed.value = 's';
-        if (flgEnf) flgEnf.value = 'n';
-        if (emailMed) emailMed.value = opt.getAttribute('data-email') || '';
-        if (emailEnf) emailEnf.value = '';
-    });
-
-    selEnf?.addEventListener('change', function() {
-        const opt = this.selectedOptions[0];
-        if (!opt?.value) {
-            if (fkUsuario) fkUsuario.value = idSessao;
-            if (emailEnf) emailEnf.value = '';
-            return;
-        }
-        if (fkUsuario) fkUsuario.value = opt.value;
-        if (flgMed) flgMed.value = 'n';
-        if (flgEnf) flgEnf.value = 's';
-        if (emailEnf) emailEnf.value = opt.getAttribute('data-email') || '';
-        if (emailMed) emailMed.value = '';
-    });
-})();
-
-// Mostrar/ocultar selects do Cadastro Central com classes BS
-document.addEventListener('DOMContentLoaded', function() {
-    var tipo = document.getElementById('resp_tipo');
-    var boxMed = document.getElementById('box_resp_med');
-    var boxEnf = document.getElementById('box_resp_enf');
-
-    function hideAll() {
-        [boxMed, boxEnf].forEach(function(el) {
-            if (!el) return;
-            el.classList.add('d-none');
-            el.hidden = true;
-            el.style.display = '';
-        });
-    }
-
-    function show(el) {
-        if (!el) return;
-        el.classList.remove('d-none');
-        el.hidden = false;
-        el.style.display = '';
-    }
-
-    hideAll(); // começa oculto
-
-    tipo && tipo.addEventListener('change', function() {
-        var v = this.value;
-        hideAll();
-        if (v === 'med') show(boxMed);
-        else if (v === 'enf') show(boxEnf);
-    });
-});
-
-// Segurança extra: antes de enviar, garante coerência das flags/IDs
+// Segurança extra: antes de enviar, se houver auditor selecionado em algum anexo, marca "em auditoria"
 (function() {
     const fkAudMed = document.getElementById('fk_id_aud_med');
     const fkAudEnf = document.getElementById('fk_id_aud_enf');
-
     const aberto = document.getElementById('aberto_cap');
     const emAud = document.getElementById('em_auditoria_cap');
 
@@ -1474,9 +1361,7 @@ document.addEventListener('DOMContentLoaded', function() {
 })();
 </script>
 
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous">
 </script>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>

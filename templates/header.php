@@ -341,6 +341,10 @@ header("Content-type: text/html; charset=utf-8");
                                             class="bi bi-postcard-heart"
                                             style="font-size:  1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
                                         Ciclo do Paciente</a></li>
+                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>lista_visitas.php"><i
+                                            class="bi bi-postcard-heart"
+                                            style="font-size:  1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
+                                        Lista de Visitas</a></li>
 
                             </ul>
                         </li>
