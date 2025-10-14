@@ -114,11 +114,8 @@ header("Content-type: text/html; charset=utf-8");
     </style>
 </head>
 
-
 <body>
     <div class="col-md-12" style="padding:0 !important">
-
-
         <nav class="navbar navbar-expand-lg navbar-light bg-light nav_bar_custom fixed-top">
             <div class="bar_color" style="position:fixed;top:0;z-index:1000;width:100%;height:5px;background-image: linear-gradient(to right, #5e2363,#5bd9f3);
             ">
@@ -126,19 +123,11 @@ header("Content-type: text/html; charset=utf-8");
             <div class="container-fluid">
                 <a class="navbar-brand" href="index.php">
                     <img src="<?= $BASE_URL ?>img/LogoFullCare.png" class="logo-novo" style="max-width: 100%;
-    height: auto;
-    width: auto\9;
-    max-height: 100px;
-    min-height: 50px;" alt="FullCare">
-                    <!-- <img src="img/full-02 (1).png" style="margin:10px 50px 0px 0px; text-align:center;width:80px; height:50px" alt="Full"> -->
+                        height: auto;
+                        width: auto\9;
+                        max-height: 100px;
+                        min-height: 50px;" alt="FullCare">
                 </a>
-                <!-- <div>
-                    <h3 class="titulo_header" style="margin:0 50px 0 20px; text-align:center">Full Sistem</h3>
-                </div> -->
-                <!-- <div> -->
-                <!-- <h4 class="titulo_header" style="margin:0 50px 0 0px; text-align:center">Full System</h4> -->
-                <!-- <img src="img/full-02 (1).png" style="margin:10px 50px 0px 0px; text-align:center;width:70px; height:50px" alt="Full"> -->
-                <!-- </div> -->
                 <div class="collapse navbar-collapse" id="navbarScroll">
                     <ul class="nav-tabs navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll"
                         style="--bs-scroll-height: 80px;">
@@ -166,10 +155,10 @@ header("Content-type: text/html; charset=utf-8");
                                             class="bi bi-person"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
                                         Dashboard</a></li>
-                                <!-- <li><a class="dropdown-item" href="<?php $BASE_URL ?>menu.php"><span
-                                            class="bi bi-hospital"
-                                            style="font-size: 1rem;margin-right:5px; color: rgb(67, 125, 525);"></span>
-                                        Menu</a></li> -->
+                                <li><a class="dropdown-item" href="https://manual.fullcareaudit.com.br"><i
+                                            class="bi bi-person"
+                                            style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
+                                        Manual</a></li>
                             </ul>
                         </li>
                         <?php }; ?>
@@ -184,13 +173,7 @@ header("Content-type: text/html; charset=utf-8");
                                 Usuários
                             </a>
                             <ul class="dropdown-menu" id="dropMenu1" aria-labelledby="navbarScrollingDropdown">
-                                <!-- <li><a class="dropdown-item" href="<?php $BASE_URL ?>cad_usuario.php"><i class="bi bi-person-add" style="font-size: 1 rem; margin-right:5px; color: rgb(15, 155, 76);"></i> Cadastro Usuário</a></li>
-                  <li>
-                  <li><a class="dropdown-item" href="<?php $BASE_URL ?>cad_hospitalUser.php"><i class="bi bi-person-add" style="font-size: 1rem; margin-right:5px; color: rgb(15, 15, 276);"></i> Cadastro
-                      Hospital/Usuário</a></li>
-                  <li>
-                    <hr class="dropdown-divider">
-                  </li> -->
+
                                 <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_usuario.php"><i
                                             class="bi bi-file-medical"
                                             style="font-size: 1rem; margin-right:5px; color: rgb(155, 95, 76);"></i>

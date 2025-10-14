@@ -441,17 +441,17 @@ if ($type === "create") {
 
             $capeanteDao->create($capeante);
 
-            $visita = new visita;
-            $visita->fk_internacao_vis = $fk_int_capeante;
-            $visita->data_visita_vis = $data_visita_int;
-            $visita->data_create = $data_visita_int;
-            $visita->usuario_create = $usuario_create_int;
-            $visita->visita_auditor_prof_med = $visita_auditor_prof_med;
-            $visita->visita_auditor_prof_enf = $visita_auditor_prof_enf;
-            $visita->visita_med_vis = $visita_med_int;
-            $visita->visita_enf_vis = $visita_enf_int;
-            $visita->visita_no_vis = 1;
-            $visitaDao->create($visita);
+            // $visita = new visita;
+            // $visita->fk_internacao_vis = $fk_int_capeante;
+            // $visita->data_visita_vis = $data_visita_int;
+            // $visita->data_create = $data_visita_int;
+            // $visita->usuario_create = $usuario_create_int;
+            // $visita->visita_auditor_prof_med = $visita_auditor_prof_med;
+            // $visita->visita_auditor_prof_enf = $visita_auditor_prof_enf;
+            // $visita->visita_med_vis = $visita_med_int;
+            // $visita->visita_enf_vis = $visita_enf_int;
+            // $visita->visita_no_vis = 1;
+            // $visitaDao->create($visita);
 
 
             // ------------------------------
