@@ -836,9 +836,26 @@ function reduzirText(id, rows) {
     const el = document.getElementById(id);
     if (el) el.rows = rows;
 }
-</script>
 
-<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // id do textarea + número de linhas “fechado”
+    const campos = [
+        ['rel_int', 2],
+        ['acoes_int', 2],
+        ['programacao_int', 2],
+    ];
+
+    campos.forEach(([id, rowsFechado]) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        // ao focar, expande
+        el.addEventListener('focus', () => aumentarText(id));
+
+        // ao perder o foco, volta para o tamanho original
+        el.addEventListener('blur', () => reduzirText(id, rowsFechado));
+    });
+});
 // selectpicker só se o plugin existir (evita quebrar tudo)
 $(function() {
     if ($.fn.selectpicker) {
@@ -1300,7 +1317,7 @@ $("#myForm").submit(function(event) {
 
                 $("#proximoId_int").text(adicionarValor);
                 $("#proximoId_int").val(
-                novoValorInternacao); // Este seletor estava incorreto, corrigido para val()
+                    novoValorInternacao); // Este seletor estava incorreto, corrigido para val()
 
                 // $("#RegInt").val(newRegInt); // Já atualizado acima
                 $("#fk_int_tuss").val(novoValorInternacao);
@@ -1335,7 +1352,7 @@ $("#myForm").submit(function(event) {
                         select.value = ""; // Reseta o valor do select
                         select.style.border = "1px solid #ced4da"; // Borda padrão Bootstrap
                         select.style.color =
-                        "#6c757d"; // Cor padrão Bootstrap para placeholder
+                            "#6c757d"; // Cor padrão Bootstrap para placeholder
                         select.style.fontWeight = "normal";
                         select.style.backgroundColor = "#fff"; // Fundo padrão
                     }
