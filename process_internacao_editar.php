@@ -222,7 +222,7 @@ if (filter_input(INPUT_POST, 'select_negoc') === 's') {
 
     // 2) decodifica o JSON
     $negArray = json_decode($_POST['negociacoes_json'] ?? '[]', true);
-   
+
     // 3) extrai IDs postados   
     $postedIds = [];
     foreach ($negArray as $n) {
@@ -379,5 +379,4 @@ if (filter_input(INPUT_POST, 'select_tuss') === 's') {
 
     // 5) redireciona
     header('Location: list_internacao.php');
-    exit;
 }

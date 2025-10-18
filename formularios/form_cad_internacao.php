@@ -194,7 +194,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         href="<?= $BASE_URL ?>list_paciente.php?id_paciente=<?= $id_paciente ?? 0 ?>">
                         <i style="color:blue;margin-bottom:7px;" class="far fa-edit edit-icon"></i> Novo Paciente
                     </a>
-                    <div id="alert_intern" style="font-size:.6em;margin-left:7px;color:red;display:none">Paciente já
+                    <div id="alert_intern" style="font-size:1em;margin-left:7px;color:red;display:none">Paciente já
                         internado</div>
                 </div>
             </div>
@@ -866,6 +866,27 @@ $(function() {
         });
     }
 });
+
+function teste(evt) {
+    if (evt && typeof evt.preventDefault === 'function') evt.preventDefault();
+
+    $.ajax({
+        url: "check_internacao.php",
+        type: "POST",
+        data: {
+            id_paciente: $('#fk_paciente_int').val()
+        },
+        success: function(result) {
+            const alert_div = document.getElementById('alert_intern');
+            // garante comparação segura
+            const ativo = String(result).trim() === '1';
+            alert_div.style.display = ativo ? "block" : "none";
+        },
+        error: function(xhr, status, err) {
+            console.error("Erro ao checar internação:", status, err, xhr.responseText);
+        }
+    });
+}
 </script>
 
 <script src="js/text_cad_internacao.js"></script>
@@ -1491,6 +1512,27 @@ $(document).ready(function() {
         }
     });
 })();
+
+function teste(evt) {
+    if (evt && typeof evt.preventDefault === 'function') evt.preventDefault();
+
+    $.ajax({
+        url: "check_internacao.php",
+        type: "POST",
+        data: {
+            id_paciente: $('#fk_paciente_int').val()
+        },
+        success: function(result) {
+            const alert_div = document.getElementById('alert_intern');
+            // garante comparação segura
+            const ativo = String(result).trim() === '1';
+            alert_div.style.display = ativo ? "block" : "none";
+        },
+        error: function(xhr, status, err) {
+            console.error("Erro ao checar internação:", status, err, xhr.responseText);
+        }
+    });
+}
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"

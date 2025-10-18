@@ -282,7 +282,7 @@ class internacaoDAO implements internacaoDAOInterface
         rel_pertinente_int = :rel_pertinente_int,
         programacao_int = :programacao_int,
         hora_intern_int = :hora_intern_int,
-        num_atendimento_int = :num_atendimento_int,
+        num_atendimento_int = :num_atendimento_int
 
 
         WHERE id_internacao = :id_internacao
