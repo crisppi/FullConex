@@ -79,7 +79,7 @@
     }
     ?>
 
-    <div class="container-fluid form_container" id="main-container" style="margin-top:12px;">
+    <div class="container-fluid form_container" id="main-container" style="margin-top:-15px;">
         <div class="d-flex justify-content-between align-items-center" style="margin-bottom: 0;">
             <h4 class="page-title" style="margin-top:-10px;line-height: 1.5;">Pacientes</h4>
             <div style="margin-left: auto;">
@@ -192,8 +192,9 @@
                                     <?= $cpf_format ?>
                                 </td>
                                 <td scope="row" class="nome-coluna-table">
-                                    <?= $fk_seguradora_pac ?>
+                                    <?= isset($seguradora_seg) && $seguradora_seg !== '' ? $seguradora_seg : '-' ?>
                                 </td>
+
                                 <td scope="row" class="nome-coluna-table">
                                     <?= $cidade_pac ?>
                                 </td>

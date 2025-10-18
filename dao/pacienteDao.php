@@ -524,27 +524,49 @@ class PacienteDAO implements PacienteDAOInterface
 
         return $pacientes;
     }
-    public function selectAllpaciente($where = null, $order = null, $limite = null) // function para pesquisar apenas os pacintes que nao foram deletados
+    public function selectAllpaciente($where = null, $order = null, $limite = null)
     {
-        //DADOS DA QUERY
-        $whereClause = 'deletado_pac <> "s"'; // Começa com o filtro padrão
-        if (strlen($where)) {
-            $whereClause .= ' AND ' . $where; // Adiciona outras condições se existirem
+        // Base do WHERE (mantendo seu filtro de "não deletado")
+        $whereClause = 'pa.deletado_pac <> "s"';
+        if (strlen((string)$where)) {
+            // aceita as condições já montadas fora (ex.: nome_pac LIKE ...)
+            $whereClause .= ' AND ' . $where;
         }
-        $whereSql = 'WHERE ' . $whereClause;
 
-        $orderSql = strlen($order) ? 'ORDER BY ' . $order : '';
-        $limiteSql = strlen($limite) ? 'LIMIT ' . $limite : '';
+        // ORDER BY seguro (whitelist simples)
+        $order = $order ?: 'pa.id_paciente';
+        $allowedOrder = [
+            'pa.id_paciente',
+            'id_paciente',
+            'pa.nome_pac',
+            'nome_pac',
+            'se.seguradora_seg',
+            'seguradora_seg'
+        ];
+        if (!in_array($order, $allowedOrder, true)) {
+            $order = 'pa.id_paciente';
+        }
+        $orderSql  = 'ORDER BY ' . $order;
 
-        //MONTA A QUERY
-        // Usar prepare é mais seguro, mesmo sem parâmetros diretos aqui
-        $query = $this->conn->prepare('SELECT * FROM tb_paciente ' . $whereSql . ' ' . $orderSql . ' ' . $limiteSql);
+        // LIMIT (vem do seu pagination)
+        $limiteSql = strlen((string)$limite) ? 'LIMIT ' . $limite : '';
 
-        $query->execute();
+        // Agora com JOIN para trazer o nome da seguradora
+        $sql = "
+        SELECT
+            pa.*,
+            se.seguradora_seg
+        FROM tb_paciente pa
+        LEFT JOIN tb_seguradora se
+               ON se.id_seguradora = pa.fk_seguradora_pac
+        WHERE {$whereClause}
+        {$orderSql}
+        {$limiteSql}
+    ";
 
-        $paciente = $query->fetchAll();
-
-        return $paciente;
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
 
