@@ -234,12 +234,13 @@
                                             </li>
 
                                             <li>
-                                                <a href="<?= $BASE_URL ?>cad_internacao.php?id_paciente=<?= $id_paciente ?>"
-                                                    class="btn" style="font-size: .9rem;">
+                                                <a href="<?= $BASE_URL ?>cad_internacao.php?id_paciente=<?= (int)$id_paciente ?>"
+                                                    class="btn" style="font-size:.9rem;">
                                                     <i class="fa-solid fa-notes-medical"
-                                                        style="font-size: 1rem;margin-right:5px; color: rgb(0, 123, 255);"></i>
+                                                        style="font-size:1rem;margin-right:5px;color:#007bff;"></i>
                                                     Internação
                                                 </a>
+
                                             </li>
                                         </ul>
                                     </div>
