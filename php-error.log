@@ -184,3 +184,17 @@ Stack trace:
 #1 /Applications/AMPPS/www/full17.2/list_internacao_ciclo.php(20): include_once('/Applications/A...')
 #2 {main}
   thrown in /Applications/AMPPS/www/full17.2/formularios/form_list_internacao_ciclo.php on line 185
+[15-Oct-2025 10:20:36 America/Sao_Paulo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'ut.fk_internacao_uti' in 'SELECT' in /Applications/AMPPS/www/FullConex/dao/internacaoDao.php:1312
+Stack trace:
+#0 /Applications/AMPPS/www/FullConex/dao/internacaoDao.php(1312): PDO->query('SELECT \n       ...')
+#1 /Applications/AMPPS/www/FullConex/formularios/form_list_internacao_cap_jornada.php(78): internacaoDAO->selectAllInternacaoCap('', 'ORDER BY id_int...', '')
+#2 /Applications/AMPPS/www/FullConex/list_internacao_cap_jornada.php(20): include_once('/Applications/A...')
+#3 {main}
+  thrown in /Applications/AMPPS/www/FullConex/dao/internacaoDao.php on line 1312
+[15-Oct-2025 17:28:00 America/Sao_Paulo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'ut.fk_internacao_uti' in 'SELECT' in /Applications/AMPPS/www/FullConex/dao/internacaoDao.php:1312
+Stack trace:
+#0 /Applications/AMPPS/www/FullConex/dao/internacaoDao.php(1312): PDO->query('SELECT \n       ...')
+#1 /Applications/AMPPS/www/FullConex/formularios/form_list_internacao_cap_jornada.php(78): internacaoDAO->selectAllInternacaoCap('', 'ORDER BY id_int...', '')
+#2 /Applications/AMPPS/www/FullConex/list_internacao_cap_jornada.php(20): include_once('/Applications/A...')
+#3 {main}
+  thrown in /Applications/AMPPS/www/FullConex/dao/internacaoDao.php on line 1312

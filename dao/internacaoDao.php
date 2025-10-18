@@ -1400,6 +1400,8 @@ class internacaoDAO implements internacaoDAOInterface
                 
             LEFT JOIN tb_user AS se ON  
             se.id_usuario = hos.fk_usuario_hosp
+            
+            LEFT JOIN tb_uti AS ut ON ac.id_internacao = ut.fk_internacao_uti
 
             LEFT join tb_paciente AS pa ON
             ac.fk_paciente_int = pa.id_paciente 
@@ -2161,7 +2163,7 @@ class internacaoDAO implements internacaoDAOInterface
         $row  = $stmt->fetch(PDO::FETCH_ASSOC);
         return (int)($row['total'] ?? 0);
     }
-    
+
 
     // ********* \     VISITA    \ ********
     // ********* MODELO DE FILTRO COM SELECT ATUAL COM FILTROS E PAGINACAO VISITA ********

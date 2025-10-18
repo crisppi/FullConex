@@ -7,7 +7,7 @@ require_once("models/message.php");
 require_once("dao/usuarioDao.php");
 require_once("dao/pacienteDao.php");
 
-$message = new Message($BASE_URL);
+$message = new Message($BASE_URL); // <-- Objeto $message original (linha 11)
 $userDao = new UserDAO($conn, $BASE_URL);
 $pacienteDao = new PacienteDAO($conn, $BASE_URL);
 
@@ -123,7 +123,15 @@ if ($type === "create") {
         $paciente->email02_pac = $email02_pac;
         $paciente->email01_pac = $email01_pac;
         $paciente->cidade_pac = $cidade_pac;
-        $paciente->cpf_pac = $somenteNumerosCPF;
+
+        // =================================================================
+        // INÍCIO DA CORREÇÃO 1 (CPF Duplicado no Create)
+        // =================================================================
+        $paciente->cpf_pac = empty($somenteNumerosCPF) ? null : $somenteNumerosCPF;
+        // =================================================================
+        // FIM DA CORREÇÃO 1
+        // =================================================================
+
         $paciente->telefone01_pac = $telefone01_pac;
         $paciente->telefone02_pac = $telefone02_pac;
         $paciente->numero_pac = $numero_pac;
@@ -151,16 +159,18 @@ if ($type === "create") {
 
         $message->setMessage("Você precisa adicionar pelo menos: nome_pac do paciente!", "error", "back");
     }
+
+    // =================================================================
+    // INÍCIO DA CORREÇÃO 2 (Erro $message no Update)
+    // =================================================================
 } else if ($type === "update") {
-    // The message
-    $message = "Line 1\r\nLine 2\r\nLine 3";
 
-    // In case any of our lines are larger than 70 characters, we should use wordwrap()
-    $message = wordwrap($message, 70, "\r\n");
+    // O código de teste (linhas 159-166) que sobrescrevia $message foi REMOVIDO.
 
-    // Send
-    // mail('miguelwychoi@gmail.com', 'My Subject', $message);
     $pacienteDao = new PacienteDAO($conn, $BASE_URL);
+    // =================================================================
+    // FIM DA CORREÇÃO 2
+    // =================================================================
 
     // Receber os dados dos inputs
     $id_paciente = filter_input(INPUT_POST, "id_paciente");
@@ -233,6 +243,7 @@ if ($type === "create") {
     } else {
         if ($mae_titular_pac === 'n') {
             if (!$matricula_titular_pac) {
+                // Agora $message é um objeto e esta linha funciona.
                 $message->setMessage("Informe a matrícula da titular (recém-nascido com mãe não titular).", "error", "back");
                 exit;
             }
@@ -251,7 +262,10 @@ if ($type === "create") {
     $pacienteData->email01_pac = $email01_pac;
     $pacienteData->email02_pac = $email02_pac;
     $pacienteData->cidade_pac = $cidade_pac;
-    $pacienteData->cpf_pac = $somenteNumerosCPF;
+
+    // Correção do CPF no Update (já estava correta no seu envio)
+    $pacienteData->cpf_pac = empty($somenteNumerosCPF) ? null : $somenteNumerosCPF;
+
     $pacienteData->telefone01_pac = $telefone01_pac;
     $pacienteData->telefone02_pac = $telefone02_pac;
     $pacienteData->mae_pac = $mae_pac;

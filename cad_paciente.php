@@ -118,22 +118,15 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
                 </div>
                 <div class="form-group col-md-4 mb-2">
                     <label for="sexo_pac">Sexo</label>
-                    <select class="form-control" name="sexo_pac" id="sexo_pac" required>
+                    <select class="form-control" name="sexo_pac" id="sexo_pac">
                         <option value="" selected disabled>Selecione...</option>
                         <option value="f">Feminino</option>
                         <option value="m">Masculino</option>
                     </select>
                     <div class="invalid-feedback">Por favor, selecione o sexo.</div>
                 </div>
-                <!-- <div class="form-group col-md-4 mb-3">
-                    <label for="num_atendimento_pac">Número Atendimento</label>
-                    <input type="text" class="form-control" id="num_atendimento_pac" name="num_atendimento_pac">
-                </div> -->
+
             </div>
-
-          
-
-
             <!-- <div class="form-group col-md-8 mb-3">
                     <label for="mae_pac">Mãe</label>
                     <input type="text" class="form-control" id="mae_pac" name="mae_pac">
@@ -145,8 +138,8 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
                     <select class="form-control" id="fk_seguradora_pac" name="fk_seguradora_pac">
                         <option value="1">Selecione</option>
                         <?php foreach ($seguradoras as $seguradora): ?>
-                            <option value="<?= $seguradora["id_seguradora"] ?>"><?= $seguradora['seguradora_seg'] ?>
-                            </option>
+                        <option value="<?= $seguradora["id_seguradora"] ?>"><?= $seguradora['seguradora_seg'] ?>
+                        </option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -155,8 +148,8 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
                     <select class="form-control" id="fk_estipulante_pac" name="fk_estipulante_pac">
                         <option value="1">Selecione</option>
                         <?php foreach ($estipulantes as $estipulante): ?>
-                            <option value="<?= $estipulante["id_estipulante"] ?>"><?= $estipulante['nome_est'] ?>
-                            </option>
+                        <option value="<?= $estipulante["id_estipulante"] ?>"><?= $estipulante['nome_est'] ?>
+                        </option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -219,7 +212,7 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
                     <select readonly class="form-control" id="estado_pac" name="estado_pac">
                         <option value="">...</option>
                         <?php foreach ($estado_sel as $estado): ?>
-                            <option value="<?= $estado ?>"><?= $estado ?></option>
+                        <option value="<?= $estado ?>"><?= $estado ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -275,10 +268,6 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
                     </div>
                 </div>
             </div>
-
-
-
-
             <hr>
             <button type="button" class="btn btn-secondary" onclick="prevStep(2)">
                 <i class="fas fa-arrow-left"></i> Voltar

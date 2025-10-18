@@ -12,6 +12,14 @@ include_once("dao/cidDao.php");
 $cid = new cidDAO($conn, $BASE_URL);
 $cids = $cid->findAll();
 
+// ==========================================================
+// INÍCIO DA CORREÇÃO: Capturar o ID do paciente da URL
+// ==========================================================
+$paciente_id_url = filter_input(INPUT_GET, 'id_paciente', FILTER_SANITIZE_NUMBER_INT);
+// ==========================================================
+// FIM DA CORREÇÃO
+// ==========================================================
+
 /* === UsuarioDAO: usar somente findMedicosEnfermeiros() === */
 include_once("dao/usuarioDao.php");
 $usuarioDao = new userDAO($conn, $BASE_URL);
@@ -64,7 +72,7 @@ try {
 } catch (Throwable $e) {
     $medicosAud = $enfsAud = [];
 }
-echo "\n<!-- via findMedicosEnfermeiros | med=" . count($medicosAud) . " enf=" . count($enfsAud) . " -->\n";
+echo "\n\n";
 
 /* ===== Mostrar Cadastro Central APENAS se NÃO for médico nem enfermeiro ===== */
 $normCargo = mb_strtolower(str_replace([' ', '-'], '_', (string)$cargoSessao), 'UTF-8');
@@ -90,7 +98,6 @@ $mostrarCadastroCentral = !in_array($normCargo, ['med_auditor', 'medico_auditor'
 }
 </style>
 
-<!-- Shim BS4 -> BS5 (data-toggle -> data-bs-*) -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('[data-toggle="dropdown"]').forEach(function(el) {
@@ -160,7 +167,6 @@ document.addEventListener('DOMContentLoaded', function() {
         <p style="display:none" id="proximoId_int">0</p>
         <input type="hidden" value="n" id="censo_int" name="censo_int">
 
-        <!-- fk_usuario_int: padrão = usuário logado; Cadastro Central pode sobrescrever -->
         <input type="hidden" value="<?= htmlspecialchars($idSessao) ?>" id="fk_usuario_int" name="fk_usuario_int">
 
         <div class="form-group row">
@@ -240,14 +246,12 @@ document.addEventListener('DOMContentLoaded', function() {
             <input type="hidden" value="s" id="primeira_vis_int" name="primeira_vis_int">
             <input type="hidden" value="0" id="visita_no_int" name="visita_no_int">
 
-            <!-- Flags do responsável (atualizadas pelo JS unificado) -->
             <input type="hidden" id="visita_enf_int" name="visita_enf_int" value="n">
             <input type="hidden" id="visita_med_int" name="visita_med_int" value="n">
             <input type="hidden" id="visita_auditor_prof_enf" name="visita_auditor_prof_enf" value="">
             <input type="hidden" id="visita_auditor_prof_med" name="visita_auditor_prof_med" value="">
         </div>
 
-        <!-- ===== CADASTRO CENTRAL (só aparece se NÃO for med/enf) ===== -->
         <?php if ($mostrarCadastroCentral): ?>
         <div id="cadastro-central-wrapper" class="form-group row"
             style="margin-top:8px;display:block !important;border:2px dashed #8a2be2;padding:10px;border-radius:8px;">
@@ -294,8 +298,6 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         </div>
         <?php endif; ?>
-        <!-- ===== /CADASTRO CENTRAL ===== -->
-
         <div class="row">
             <div class="form-group col-sm-2">
                 <label class="control-label" for="acomodacao_int">Acomodação</label>
@@ -434,7 +436,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     class="form-control" id="rel_int" name="rel_int"></textarea>
             </div>
 
-            <!-- Chat Widget -->
             <div id="chat-widget" style="position: fixed; bottom: 20px; right: 20px; width: 300px; z-index: 9999;">
                 <div id="chat-header" style="background-color: #007bff; color: white; padding: 10px; cursor: pointer;">
                     Chat - Assistente Virtual
@@ -800,6 +801,24 @@ $(function() {
         $('.selectpicker').on('loaded.bs.select', function() {
             $('.bs-searchbox input').attr('placeholder', 'Digite para pesquisar...');
         });
+
+        // ==========================================================
+        // CORREÇÃO: Preencher paciente vindo da URL
+        // ==========================================================
+        <?php if (!empty($paciente_id_url)): ?>
+        var pacienteId = <?= (int)$paciente_id_url ?>;
+        if (pacienteId > 0) {
+            // Define o valor no select
+            $('#fk_paciente_int').val(pacienteId);
+            // Atualiza o selectpicker para mostrar o nome selecionado
+            $('#fk_paciente_int').selectpicker('refresh');
+            // Dispara o evento 'change' para acionar a verificação (teste()) se o paciente já está internado
+            $('#fk_paciente_int').trigger('change');
+        }
+        <?php endif; ?>
+        // ==========================================================
+        // FIM DA CORREÇÃO
+        // ==========================================================
     }
 });
 </script>
@@ -821,7 +840,7 @@ function myFunctionSelected() {
     $("#hospital_selected").css({
         "color": "black",
         "font-weight": "bold",
-        "border": "2px solid green",
+        "border": "2px solid green", // Borda verde ao selecionar
         "padding-top": "3px",
         "padding-bottom": "3px",
         "line-height": "normal"
@@ -833,6 +852,9 @@ function myFunctionSelected() {
     } else {
         divNome.textContent = "";
         divNome.style.display = "none";
+        $("#hospital_selected").css({ // Reverte ao original se desmarcar
+            "border": "1px solid #555"
+        });
     }
 }
 
@@ -1041,11 +1063,6 @@ document.getElementById("chat-send").addEventListener("click", function() {
 
 /* ==========================================================
    CADASTRO CENTRAL — LÓGICA ÚNICA (sem duplicações)
-   Regras:
-   - fk_usuario_int = ID do responsável selecionado
-   - visita_med_int / visita_enf_int = 's' / 'n' conforme tipo
-   - visita_auditor_prof_med = SEMPRE o ID (espelhado de fk_usuario_int) SE tipo != 'enf'; caso 'enf', fica vazio
-   - visita_auditor_prof_enf não é usado (fica vazio)
    ========================================================== */
 function mirrorVisitMedFromFk() {
     const fk = document.getElementById('fk_usuario_int')?.value || '';
@@ -1157,6 +1174,34 @@ document.addEventListener('DOMContentLoaded', mirrorVisitMedFromFk);
 // SUBMIT AJAX
 $("#myForm").on('submit', function(event) {
     event.preventDefault();
+
+    // ==========================================================
+    // INÍCIO DA CORREÇÃO: Validação do Hospital
+    // ==========================================================
+    const hospitalSelectedValue = document.getElementById("hospital_selected").value;
+    if (hospitalSelectedValue === "") {
+        // Mostra o alerta de erro
+        $('#alert').removeClass("alert-success").addClass("alert-danger").show().html(
+            "<strong>Erro:</strong> Por favor, selecione um <strong>Hospital</strong>.");
+
+        // Foca no campo e adiciona uma borda vermelha
+        $('#hospital_selected').css('border-color', 'red');
+
+        // Esconde o alerta depois de um tempo e remove a borda
+        setTimeout(() => {
+            $('#alert').fadeOut('slow');
+            // Só remove a borda vermelha se o usuário ainda não selecionou um (que ficaria verde)
+            if ($('#hospital_selected').val() === "") {
+                $('#hospital_selected').css('border-color', '#555'); // Reverte ao original
+            }
+        }, 3500);
+
+        return false; // Para a submissão
+    }
+    // ==========================================================
+    // FIM DA CORREÇÃO
+    // ==========================================================
+
     const post_url = $(this).attr("action");
     const request_method = $(this).attr("method");
     const form_data = new FormData(this);

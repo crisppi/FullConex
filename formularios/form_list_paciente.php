@@ -2,8 +2,6 @@
     <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
     <script src="./scripts/cadastro/general.js"></script>
-    <!-- <script src="./js/load/form_list_paciente.php"></script> -->
-
     <?php
     include_once("globals.php");
     include_once("models/paciente.php");
@@ -81,7 +79,6 @@
     }
     ?>
 
-    <!--tabela paciente-->
     <div class="container-fluid form_container" id="main-container" style="margin-top:12px;">
         <div class="d-flex justify-content-between align-items-center" style="margin-bottom: 0;">
             <h4 class="page-title" style="margin-top:-10px;line-height: 1.5;">Pacientes</h4>
@@ -95,13 +92,11 @@
         </div>
         <hr style="margin-top: 1px; margin-bottom: 10px;">
 
-        <!-- div filtro -->
         <div class="complete-table">
             <div id="navbarToggleExternalContent" class="table-filters">
                 <form id="form_pesquisa" method="GET">
                     <div class="row">
                         <div class="form-group col-sm-2" style="padding:2px !important;padding-left:16px !important;">
-                            <!-- <label>Pesquisa Nome</label> -->
                             <input class="form-control form-control-sm" style="margin-top:7px" type="text"
                                 value="<?= $busca ?>" name="pesquisa_nome" id="pesquisa_nome"
                                 placeholder="Pesquisa por paciente">
@@ -121,7 +116,6 @@
                             </select>
                         </div>
                         <div class="form-group col-sm-2" style="padding:2px !important">
-                            <!-- <label>Classificar</label> -->
                             <select class="form-control form-control-sm"
                                 style="margin-top:7px;font-size:.8em; color:#878787" id="ordenar" name="ordenar">
                                 <option value="">Classificar por</option>
@@ -150,7 +144,6 @@
                     </div>
                 </form>
             </div>
-            <!-- div filtro -->
             <div>
                 <div id="table-content">
                     <table class="table table-sm table-striped table-hover table-condensed">
@@ -213,13 +206,7 @@
                                             <i class="bi bi-stack"></i>
                                         </button>
                                         <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
-                                            <li>
-                                                <button class="btn btn-default" style="font-size: .9rem;"
-                                                    onclick="openModal('<?= $BASE_URL ?>show_paciente.php?id_paciente=<?= $id_paciente ?>')"
-                                                    data-bs-toggle="modal" data-bs-target="#myModal"><i
-                                                        class="fas fa-eye"
-                                                        style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i>Ver</button>
-                                            </li>
+
                                             <li>
                                                 <button class="btn btn-default" style="font-size: .9rem;"
                                                     onclick="openModal('<?= $BASE_URL ?>edit_paciente.php?id_paciente=<?= $id_paciente ?>')"
@@ -244,9 +231,10 @@
                                                     Hub Paciente
                                                 </a>
                                             </li>
+
                                             <li>
-                                                <a href="<?= $BASE_URL ?>/cad_internacao.php" class="btn"
-                                                    style="font-size: .9rem;">
+                                                <a href="<?= $BASE_URL ?>cad_internacao.php?id_paciente=<?= $id_paciente ?>"
+                                                    class="btn" style="font-size: .9rem;">
                                                     <i class="fa-solid fa-notes-medical"
                                                         style="font-size: 1rem;margin-right:5px; color: rgb(0, 123, 255);"></i>
                                                     Internação
@@ -269,13 +257,10 @@
                         </tbody>
                     </table>
                     <hr>
-                    <!-- salvar variavel qtdIntItens no PHP para passar para JS -->
                     <div style="text-align:right">
                         <input type="hidden" id="qtd" value="<?php echo $qtdIntItens ?>">
                     </div>
-                    <!-- paginacao que aparece abaixo da tabela -->
                     <div style="display: flex;margin-top:20px">
-                        <!-- Modal para abrir tela de cadastro -->
                         <div class="modal fade" id="myModal">
                             <div class="modal-dialog  modal-lg modal-dialog-centered modal-xl">
                                 <div class="modal-content">
@@ -290,8 +275,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- pagination -->
 
                         <div class="pagination" style="margin: 0 auto;">
                             <?php if ($total_pages ?? 1 > 1): ?>

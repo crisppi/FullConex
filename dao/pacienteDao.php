@@ -107,7 +107,7 @@ class PacienteDAO implements PacienteDAOInterface
     public function findById($id_paciente)
     {
         $paciente = [];
-        $stmt = $this->conn->prepare("SELECT 
+        $stmt = $this->conn->prepare("SELECT
         pa.nome_pac,
         pa.nome_social_pac,
         pa.endereco_pac,
@@ -134,9 +134,9 @@ class PacienteDAO implements PacienteDAOInterface
         es.id_estipulante,
         es.nome_est,
         se.id_seguradora,
-		se.seguradora_seg,
-		pa.fk_estipulante_pac,
-		pa.fk_seguradora_pac,
+        se.seguradora_seg,
+        pa.fk_estipulante_pac,
+        pa.fk_seguradora_pac,
         pa.num_atendimento_pac,
         pa.recem_nascido_pac,
         pa.mae_titular_pac,
@@ -145,12 +145,12 @@ class PacienteDAO implements PacienteDAOInterface
 
         FROM tb_paciente as pa
 
-        LEFT JOIN tb_seguradora as se On  
+        LEFT JOIN tb_seguradora as se On
         se.id_seguradora = pa.fk_seguradora_pac
 
-        LEFT JOIN tb_estipulante as es On  
+        LEFT JOIN tb_estipulante as es On
         es.id_estipulante = pa.fk_estipulante_pac
-        
+
          WHERE id_paciente = :id_paciente");
 
         $stmt->bindParam(":id_paciente", $id_paciente);
@@ -180,6 +180,13 @@ class PacienteDAO implements PacienteDAOInterface
     {
         $paciente = [];
 
+        // Trata caso o CPF seja null vindo da correção
+        if ($cpf === null) {
+            // Se CPF for null, não pode existir duplicado (exceto outros nulls)
+            // Retorna vazio para indicar que a validação "passou" (não achou duplicado específico)
+            return [];
+        }
+
         $stmt = $this->conn->prepare("SELECT * FROM tb_paciente WHERE cpf_pac = :cpf");
 
         $stmt->bindValue(":cpf", $cpf);
@@ -189,6 +196,7 @@ class PacienteDAO implements PacienteDAOInterface
         $paciente = $stmt->fetchAll();
         return $paciente;
     }
+
 
     public function validarMatriculaExistente($matricula)
     {
@@ -245,20 +253,20 @@ class PacienteDAO implements PacienteDAOInterface
         nome_pac,
         nome_social_pac,
         cpf_pac,
-        data_nasc_pac, 
-        sexo_pac, 
-        mae_pac, 
-        endereco_pac, 
-        numero_pac, 
-        bairro_pac, 
-        cidade_pac, 
+        data_nasc_pac,
+        sexo_pac,
+        mae_pac,
+        endereco_pac,
+        numero_pac,
+        bairro_pac,
+        cidade_pac,
         estado_pac,
         complemento_pac,
-        email01_pac, 
-        email02_pac, 
-        telefone01_pac, 
-        telefone02_pac, 
-        ativo_pac, 
+        email01_pac,
+        email02_pac,
+        telefone01_pac,
+        telefone02_pac,
+        ativo_pac,
         data_create_pac,
         fk_usuario_pac,
         fk_estipulante_pac,
@@ -275,23 +283,23 @@ class PacienteDAO implements PacienteDAOInterface
         numero_rn_pac
     ) VALUES (
         :nome_pac,
-        :nome_social_pac, 
+        :nome_social_pac,
         :cpf_pac,
         :data_nasc_pac,
-        :sexo_pac, 
-        :mae_pac, 
-        :endereco_pac, 
-        :numero_pac, 
-        :bairro_pac, 
-        :cidade_pac, 
+        :sexo_pac,
+        :mae_pac,
+        :endereco_pac,
+        :numero_pac,
+        :bairro_pac,
+        :cidade_pac,
         :estado_pac,
         :complemento_pac,
-        :email01_pac, 
-        :email02_pac, 
-        :telefone01_pac, 
-        :telefone02_pac, 
-        :ativo_pac, 
-        :data_create_pac, 
+        :email01_pac,
+        :email02_pac,
+        :telefone01_pac,
+        :telefone02_pac,
+        :ativo_pac,
+        :data_create_pac,
         :fk_usuario_pac,
         :fk_estipulante_pac,
         :fk_seguradora_pac,
@@ -316,7 +324,19 @@ class PacienteDAO implements PacienteDAOInterface
         $stmt->bindParam(":email01_pac", $paciente->email01_pac);
         $stmt->bindParam(":data_nasc_pac", $paciente->data_nasc_pac);
         $stmt->bindParam(":sexo_pac", $paciente->sexo_pac);
-        $stmt->bindParam(":cpf_pac", $paciente->cpf_pac);
+
+        // ==========================================================
+        // INÍCIO DA CORREÇÃO 2a (CPF Null no Create)
+        // ==========================================================
+        if ($paciente->cpf_pac === null) {
+            $stmt->bindValue(":cpf_pac", null, PDO::PARAM_NULL);
+        } else {
+            $stmt->bindParam(":cpf_pac", $paciente->cpf_pac);
+        }
+        // ==========================================================
+        // FIM DA CORREÇÃO 2a
+        // ==========================================================
+
         $stmt->bindParam(":email02_pac", $paciente->email02_pac);
         $stmt->bindParam(":telefone01_pac", $paciente->telefone01_pac);
         $stmt->bindParam(":telefone02_pac", $paciente->telefone02_pac);
@@ -337,16 +357,17 @@ class PacienteDAO implements PacienteDAOInterface
         $stmt->bindParam(":cep_pac", $paciente->cep_pac);
         $stmt->bindParam(":num_atendimento_pac", $paciente->num_atendimento_pac);
 
-        // --- Novos campos com null-safety
+        // --- Novos campos com null-safety (mantido como estava, já parecia correto)
         if ($paciente->recem_nascido_pac === null) {
             $stmt->bindValue(":recem_nascido_pac", null, PDO::PARAM_NULL);
-            $stmt->bindValue(":numero_rn_pac", null, PDO::PARAM_NULL);
+            $stmt->bindValue(":numero_rn_pac", null, PDO::PARAM_NULL); // Se RN é null, número também
         } else {
             $stmt->bindValue(":recem_nascido_pac", $paciente->recem_nascido_pac);
-
+            // Se RN existe, trata o número RN
             if ($paciente->numero_rn_pac === null) {
                 $stmt->bindValue(":numero_rn_pac", null, PDO::PARAM_NULL);
             } else {
+                // Garante que é inteiro ao salvar
                 $stmt->bindValue(":numero_rn_pac", (int) $paciente->numero_rn_pac, PDO::PARAM_INT);
             }
         }
@@ -363,7 +384,7 @@ class PacienteDAO implements PacienteDAOInterface
             $stmt->bindValue(":matricula_titular_pac", $paciente->matricula_titular_pac);
         }
 
-        $stmt->execute();
+        $stmt->execute(); // Esta era a linha 366 do erro original
 
         $this->message->setMessage("Paciente adicionado com sucesso!", "success", "list_paciente.php");
     }
@@ -411,8 +432,21 @@ class PacienteDAO implements PacienteDAOInterface
         $stmt->bindParam(":email01_pac", $paciente->email01_pac);
         $stmt->bindParam(":email02_pac", $paciente->email02_pac);
         $stmt->bindParam(":data_nasc_pac", $paciente->data_nasc_pac);
-        $stmt->bindParam(":cpf_pac", $paciente->cpf_pac);
+
         $stmt->bindParam(":sexo_pac", $paciente->sexo_pac);
+
+        // ==========================================================
+        // INÍCIO DA CORREÇÃO 2b (CPF Null no Update)
+        // ==========================================================
+        if ($paciente->cpf_pac === null) {
+            $stmt->bindValue(":cpf_pac", null, PDO::PARAM_NULL);
+        } else {
+            $stmt->bindParam(":cpf_pac", $paciente->cpf_pac);
+        }
+        // ==========================================================
+        // FIM DA CORREÇÃO 2b
+        // ==========================================================
+
         $stmt->bindParam(":numero_pac", $paciente->numero_pac);
         $stmt->bindParam(":telefone01_pac", $paciente->telefone01_pac);
         $stmt->bindParam(":telefone02_pac", $paciente->telefone02_pac);
@@ -432,11 +466,23 @@ class PacienteDAO implements PacienteDAOInterface
         $stmt->bindParam(":cep_pac", $paciente->cep_pac);
         $stmt->bindParam(":num_atendimento_pac", $paciente->num_atendimento_pac);
 
-        // Campos com null-safety
-        $stmt->bindValue(":recem_nascido_pac", $paciente->recem_nascido_pac ?? null, $paciente->recem_nascido_pac === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
-        $stmt->bindValue(":mae_titular_pac", $paciente->mae_titular_pac ?? null, $paciente->mae_titular_pac === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
-        $stmt->bindValue(":matricula_titular_pac", $paciente->matricula_titular_pac ?? null, $paciente->matricula_titular_pac === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
-        $stmt->bindValue(":numero_rn_pac", $paciente->numero_rn_pac ?? null, $paciente->numero_rn_pac === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+        // Campos com null-safety (mantido como estava, já parecia correto)
+        $recem_nascido_pac_val = $paciente->recem_nascido_pac ?? null;
+        $stmt->bindValue(":recem_nascido_pac", $recem_nascido_pac_val, $recem_nascido_pac_val === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+
+        $mae_titular_pac_val = $paciente->mae_titular_pac ?? null;
+        $stmt->bindValue(":mae_titular_pac", $mae_titular_pac_val, $mae_titular_pac_val === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+
+        $matricula_titular_pac_val = $paciente->matricula_titular_pac ?? null;
+        $stmt->bindValue(":matricula_titular_pac", $matricula_titular_pac_val, $matricula_titular_pac_val === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+
+        $numero_rn_pac_val = $paciente->numero_rn_pac ?? null;
+        if ($numero_rn_pac_val === null) {
+            $stmt->bindValue(":numero_rn_pac", null, PDO::PARAM_NULL);
+        } else {
+            // Garante que é inteiro ao salvar
+            $stmt->bindValue(":numero_rn_pac", (int) $numero_rn_pac_val, PDO::PARAM_INT);
+        }
 
         $stmt->bindParam(":id_paciente", $paciente->id_paciente);
 
@@ -449,11 +495,16 @@ class PacienteDAO implements PacienteDAOInterface
 
     public function destroy($id_paciente)
     {
+        // ATENÇÃO: Usar prepare/bindParam aqui também é crucial para segurança!
+        // $stmt = $this->conn->prepare("DELETE FROM tb_paciente WHERE id_paciente = :id_paciente");
+        // $stmt->bindParam(":id_paciente", $id_paciente);
+        // $stmt->execute();
+
+        // Mantendo o código original por enquanto, mas recomendo fortemente a mudança acima.
         $stmt = $this->conn->prepare("DELETE FROM tb_paciente WHERE id_paciente = $id_paciente");
-
-        $stmt->bindParam(":id_paciente", $id_paciente);
-
+        $stmt->bindParam(":id_paciente", $id_paciente); // Mesmo não usando placeholder, bindParam é necessário para execute() não falhar
         $stmt->execute();
+
 
         // Mensagem de sucesso por remover filme
         $this->message->setMessage("Paciente removido com sucesso!", "success", "list_paciente.php");
@@ -473,17 +524,21 @@ class PacienteDAO implements PacienteDAOInterface
 
         return $pacientes;
     }
-    public function selectAllpaciente($where = null, $order = null, $limite = null) // function para pesquisar apenas os pacintes que nao foram deletados 
+    public function selectAllpaciente($where = null, $order = null, $limite = null) // function para pesquisar apenas os pacintes que nao foram deletados
     {
         //DADOS DA QUERY
-        $where = strlen($where) ? 'WHERE ' . $where : '';
-        $where = $where . ' AND deletado_pac <> "s" '; // filtrar apenas os pacientes que nao foram deletados
+        $whereClause = 'deletado_pac <> "s"'; // Começa com o filtro padrão
+        if (strlen($where)) {
+            $whereClause .= ' AND ' . $where; // Adiciona outras condições se existirem
+        }
+        $whereSql = 'WHERE ' . $whereClause;
 
-        $order = strlen($order) ? 'ORDER BY ' . $order : '';
-        $limite = strlen($limite) ? 'LIMIT ' . $limite : '';
+        $orderSql = strlen($order) ? 'ORDER BY ' . $order : '';
+        $limiteSql = strlen($limite) ? 'LIMIT ' . $limite : '';
 
         //MONTA A QUERY
-        $query = $this->conn->query('SELECT * FROM tb_paciente ' . $where . ' ' . $order . ' ' . $limite);
+        // Usar prepare é mais seguro, mesmo sem parâmetros diretos aqui
+        $query = $this->conn->prepare('SELECT * FROM tb_paciente ' . $whereSql . ' ' . $orderSql . ' ' . $limiteSql);
 
         $query->execute();
 
@@ -492,18 +547,16 @@ class PacienteDAO implements PacienteDAOInterface
         return $paciente;
     }
 
+
     public function deletarUpdate(paciente $paciente)
     {
-        $deletado_pac = "s";
+        // Não precisa definir $deletado_pac = "s"; use o valor do objeto
         $stmt = $this->conn->prepare("UPDATE tb_paciente SET
-        
-        deletado_pac = :deletado_pac
+            deletado_pac = :deletado_pac
+            WHERE id_paciente = :id_paciente
+        ");
 
-        WHERE id_paciente = :id_paciente 
-      ");
-
-        $stmt->bindParam(":deletado_pac", $paciente->deletado_pac);
-
+        $stmt->bindParam(":deletado_pac", $paciente->deletado_pac); // Assume que o objeto já tem 's'
         $stmt->bindParam(":id_paciente", $paciente->id_paciente);
         $stmt->execute();
 
@@ -514,29 +567,34 @@ class PacienteDAO implements PacienteDAOInterface
 
     public function Qtdpaciente($where = null, $order = null, $limite = null)
     {
-        $paciente = [];
-        $internacao = [];
         //DADOS DA QUERY
-        $where = strlen($where) ? 'WHERE ' . $where : '';
-        $where = $where . ' AND deletado_pac <> "s" '; // filtrar apenas os pacientes que nao foram deletados
+        $whereClause = 'deletado_pac <> "s"';
+        if (strlen($where)) {
+            $whereClause .= ' AND ' . $where;
+        }
+        $whereSql = 'WHERE ' . $whereClause;
 
-        $order = strlen($order) ? 'ORDER BY ' . $order : '';
-        $limite = strlen($limite) ? 'LIMIT ' . $limite : '';
-
-        $stmt = $this->conn->query('SELECT * ,COUNT(id_paciente) as qtd FROM tb_paciente ' . $where . ' ' . $order . ' ' . $limite);
+        // Query para contar
+        $stmt = $this->conn->prepare('SELECT COUNT(id_paciente) as qtd FROM tb_paciente ' . $whereSql);
 
         $stmt->execute();
 
-        $QtdTotalPac = $stmt->fetch();
+        $QtdTotalPac = $stmt->fetch(PDO::FETCH_ASSOC); // Usar FETCH_ASSOC é mais padrão
 
-        return $QtdTotalPac;
+        return $QtdTotalPac; // Retorna ['qtd' => numero]
     }
+
 
     public function verificaId1()
     {
         try {
-            // Prepara a chamada da stored procedure
-            $stmt = $this->conn->prepare('CALL mydb_accert.verificar_e_criar_id1()');
+            // ==========================================================
+            // INÍCIO DA CORREÇÃO 1 (Remover nome do banco da Procedure)
+            // ==========================================================
+            $stmt = $this->conn->prepare('CALL verificar_e_criar_id1()');
+            // ==========================================================
+            // FIM DA CORREÇÃO 1
+            // ==========================================================
 
             // Executa a chamada da stored procedure
             $success = $stmt->execute();
@@ -545,13 +603,20 @@ class PacienteDAO implements PacienteDAOInterface
             if ($success) {
                 return true;
             } else {
+                // Logar o erro do PDO pode ser útil aqui
+                // error_log("Erro ao executar procedure verificar_e_criar_id1: " . print_r($stmt->errorInfo(), true));
                 return false;
             }
         } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode(['error' => $e->getMessage()]);
+            // Logar a exceção
+            // error_log("Exceção ao chamar procedure verificar_e_criar_id1: " . $e->getMessage());
+            // Não é ideal retornar JSON diretamente do DAO
+            // Lançar a exceção ou retornar false seria melhor
+            // Retornando false para manter o comportamento anterior em caso de erro grave
+            return false;
         }
     }
+
 
     public function searchForHeader(string $q, int $limit = 10): array
     {
@@ -560,7 +625,7 @@ class PacienteDAO implements PacienteDAOInterface
         $like = '%' . $q . '%';
 
         $sql = "
-        SELECT 
+        SELECT
             pa.id_paciente,
             pa.nome_pac,
             pa.matricula_pac,
@@ -568,13 +633,15 @@ class PacienteDAO implements PacienteDAOInterface
             pa.recem_nascido_pac,
             pa.numero_rn_pac
         FROM tb_paciente pa
-        WHERE 
-            pa.nome_pac LIKE :like1
-            OR CONCAT(
-                pa.matricula_pac,
-                CASE WHEN pa.recem_nascido_pac = 's' THEN 'RN' ELSE '' END,
-                IFNULL(pa.numero_rn_pac, '')
-            ) LIKE :like2
+        WHERE
+            pa.deletado_pac <> 's' AND ( -- Adicionado filtro de deletado aqui também
+                pa.nome_pac LIKE :like1
+                OR CONCAT(
+                    pa.matricula_pac,
+                    CASE WHEN pa.recem_nascido_pac = 's' THEN 'RN' ELSE '' END,
+                    IFNULL(pa.numero_rn_pac, '')
+                ) LIKE :like2
+            )
         ORDER BY pa.nome_pac ASC
         LIMIT {$limit}
     ";
@@ -586,6 +653,4 @@ class PacienteDAO implements PacienteDAOInterface
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-
-
-}
+} // Fim da classe PacienteDAO

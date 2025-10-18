@@ -2,20 +2,40 @@
 
 declare(strict_types=1);
 error_reporting(E_ALL);
-ini_set('display_errors', '1');
+ini_set('display_errors', '1'); // Ótimo para depuração, mas considere desativar em produção final por segurança
 ini_set('log_errors', '1');
+ini_set('error_log', __DIR__ . '/logs/capeante.debug.log');
 
+
+// ======================================================================
+// PONTO CRÍTICO CORRIGIDO 1: Inclusão do arquivo de configuração
+// Garanta que este arquivo define as variáveis $conn e $BASE_URL
+// ======================================================================
 // require_once "config.php";
+
+// Adiciona uma verificação para garantir que a conexão foi bem-sucedida
+// if (!isset($conn) || !$conn) {
+//     // Se a conexão falhar, exibe uma mensagem clara e interrompe o script.
+//     // Isso evita a "página travada" e informa o erro real.
+//     die("Erro fatal: Falha na conexão com o banco de dados. Verifique o arquivo 'config.php'.");
+// }
+
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
-
 // ======================================================================
 // DAOs / Models
 // ======================================================================
+// ATENÇÃO: Verifique se os nomes dos arquivos correspondem exatamente (maiúsculas/minúsculas)
 require_once "models/usuario.php";
 require_once "dao/usuarioDao.php";
+require_once "dao/internacaoDao.php";
+// require_once "dao/pacienteDao.php";
+require_once "dao/capeanteDao.php";
+// require_once "dao/HospitalDao.php";
+require_once "dao/patologiaDao.php";
+
 // Instancia o DAO se ainda não existir
 if (!isset($usuarioDao) || !($usuarioDao instanceof UserDAO)) {
     $usuarioDao = new UserDAO($conn, $BASE_URL);
@@ -61,8 +81,6 @@ $obLimite      = null; // use como "10" ou "0,10" se quiser
 
 // ======================================================================
 // CONTROLE DE ACESSO
-// - diretor/gestor: sem filtro por hospital
-// - med/enf/adm/hospital: filtra por vínculo na tb_hospitalUser
 // ======================================================================
 $cargoSessao = (string)($_SESSION['cargo'] ?? '');
 $userIdSess  = (int)($_SESSION['id_usuario'] ?? 0);
@@ -84,14 +102,18 @@ $rolesComFiltro = [
 ];
 $precisaFiltro = in_array($cargoSessao, $rolesComFiltro, true);
 
-// userId que aciona o filtro interno do método (ou null p/ diretor/gestor)
 $userFiltro = ($precisaFiltro && $userIdSess > 0) ? $userIdSess : null;
 
 // ======================================================================
-// HELPERS
+// PONTO CRÍTICO CORRIGIDO 2: Funções auxiliares com sintaxe compatível
+// Convertido de arrow functions para funções anônimas para maior compatibilidade com PHP < 7.4
 // ======================================================================
-$h  = fn($v) => htmlspecialchars((string)($v ?? ''), ENT_QUOTES, 'UTF-8');
-$hi = fn($v) => (int)($v ?? 0);
+$h = function ($v) {
+    return htmlspecialchars((string)($v ?? ''), ENT_QUOTES, 'UTF-8');
+};
+$hi = function ($v) {
+    return (int)($v ?? 0);
+};
 $fmtDateBR = function ($d): string {
     if (!is_string($d) || $d === '' || $d === '0000-00-00') return '';
     $ts = strtotime($d);
@@ -99,22 +121,16 @@ $fmtDateBR = function ($d): string {
 };
 
 // ======================================================================
-// BUSCA PRINCIPAL (usa selectAllInternacaoCap2($userFiltro, $where, $order, $limit))
-// - CREATE: filtra pela internação
-// - EDIT:   filtra pelo id_capeante (alias ca existe no LEFT JOIN do método)
+// BUSCA PRINCIPAL
 // ======================================================================
 $intern = [];
-$ultimo = []; // sempre definido
+$ultimo = [];
 
 if ($type === 'create' && $id_internacao) {
     $where  = "ac.id_internacao = " . (int)$id_internacao;
     $intern = $internacao_geral->selectAllInternacaoCap2($userFiltro, $where, $order, $obLimite);
-
-    // infos de parciais (seguem seus métodos)
     $parcial_count = $capeante_geral->getCapeanteByInternacao($hi($id_internacao));
     $parcial_date  = $capeante_geral->getLastCapeanteByInternacao($hi($id_internacao));
-
-    // último período para o texto "período anterior"
     $ultimo = $capeante_geral->getUltimoCapeantePeriodoByInternacao($hi($id_internacao)) ?: [];
 } elseif ($type !== 'create' && $id_capeante) {
     $where  = "ca.id_capeante = " . (int)$id_capeante;
@@ -179,7 +195,12 @@ $internRow = $defaults;
 if (is_array($intern) && isset($intern[0]) && is_array($intern[0])) {
     $internRow = array_merge($defaults, $intern[0]);
 }
-$val = fn(string $k) => $internRow[$k] ?? null;
+
+// PONTO CRÍTICO CORRIGIDO 2 (continuação): Usando a função anônima compatível
+$val = function (string $k) use ($internRow) {
+    return $internRow[$k] ?? null;
+};
+
 
 // ======================================================================
 // TEXTO PERÍODO ANTERIOR + PARCIAL DEFAULT
@@ -193,9 +214,9 @@ if ($type === 'create') {
         $iniBR = $fmtDateBR($ultimo['data_inicial_capeante'] ?? null);
         $fimBR = $fmtDateBR($ultimo['data_final_capeante']   ?? null);
         if ($iniBR && $fimBR) $textoPeriodoAnterior = "Último Parcial — Período {$iniBR} a {$fimBR}";
-        elseif ($iniBR)           $textoPeriodoAnterior = "Último Parcial — Período iniciado em {$iniBR}";
-        elseif ($fimBR)           $textoPeriodoAnterior = "Último Parcial — Período até {$fimBR}";
-        else                      $textoPeriodoAnterior = "Último Parcial — (período anterior não disponível)";
+        elseif ($iniBR)       $textoPeriodoAnterior = "Último Parcial — Período iniciado em {$iniBR}";
+        elseif ($fimBR)       $textoPeriodoAnterior = "Último Parcial — Período até {$fimBR}";
+        else                  $textoPeriodoAnterior = "Último Parcial — (período anterior não disponível)";
     }
 }
 
@@ -204,7 +225,6 @@ if ($type === 'create') {
 // ======================================================================
 $medSelecionado = $hi($val('fk_id_aud_med'));
 $enfSelecionado = $hi($val('fk_id_aud_enf'));
-
 $cargoSessao = $_SESSION['cargo'] ?? '';
 
 function isProfissionalAssistencial(string $cargo): bool
@@ -218,15 +238,15 @@ function isProfissionalAssistencial(string $cargo): bool
 }
 $cadastroCentralDefault = isProfissionalAssistencial($cargoSessao) ? 'n' : 's';
 
-$isMed = static function ($cargo) {
+$isMed = function ($cargo) {
     $c = mb_strtolower((string)$cargo, 'UTF-8');
     return in_array($c, ['med_auditor', 'medico_auditor'], true);
 };
-$isEnf = static function ($cargo) {
+$isEnf = function ($cargo) {
     $c = mb_strtolower((string)$cargo, 'UTF-8');
     return in_array($c, ['enf_auditor', 'enfer_auditor'], true);
 };
-$isAdm = static function ($cargo) {
+$isAdm = function ($cargo) {
     $c = mb_strtolower((string)$cargo, 'UTF-8');
     return in_array($c, ['adm', 'administrador', 'administrativo'], true);
 };
@@ -243,7 +263,7 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
 <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
 
-<div class="container-fluid px-0" id="main-container" style="background:#f5f6f8; min-height:100vh; ">
+<div class="container-fluid px-0" id="main-container" style="margin-top:-50px;background:#f5f6f8; min-height:100vh; ">
     <div class="progress mb-4">
         <div class="progress-bar bg-success" role="progressbar" id="progressBar" style="width: 33%;" aria-valuenow="33"
             aria-valuemin="0" aria-valuemax="100">
@@ -261,7 +281,6 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
         <input type="hidden" name="id_capeante" value="<?= $hi($val('id_capeante')) ?>">
         <?php endif; ?>
 
-        <!-- flags de cargo  -->
         <input type="hidden" id="adm_capeante" name="adm_capeante"
             value="<?= ($_SESSION['cargo'] ?? '') === 'Adm' ? 's' : '' ?>" readonly>
 
@@ -271,7 +290,6 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
         <input type="hidden" id="aud_med_capeante" name="aud_med_capeante"
             value="<?= ($_SESSION['cargo'] ?? '') === 'Med_auditor' ? 's' : '' ?>" readonly>
 
-        <!-- checks  -->
         <input type="hidden" id="adm_check" name="adm_check"
             value="<?= (($_SESSION['cargo'] ?? '') === 'Adm') ? 's' : $h($val('adm_check')) ?>" readonly>
 
@@ -281,7 +299,6 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
         <input type="hidden" id="enfer_check" name="enfer_check"
             value="<?= (($_SESSION['cargo'] ?? '') === 'Enf_Auditor') ? 's' : $h($val('enfer_check')) ?>" readonly>
 
-        <!-- FKs  -->
         <input type="hidden" id="fk_id_aud_adm" name="fk_id_aud_adm"
             value="<?= (($_SESSION['cargo'] ?? '') === 'Adm') ? $hi($_SESSION['id_usuario'] ?? 0) : $hi($val('fk_id_aud_adm')) ?>"
             readonly>
@@ -294,10 +311,8 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
             value="<?= (($_SESSION['cargo'] ?? '') === 'Med_auditor') ? $hi($_SESSION['id_usuario'] ?? 0) : $hi($val('fk_id_aud_med')) ?>"
             readonly>
 
-        <!-- nível do usuário -->
         <input type="hidden" id="nivel_user" value="<?= (int)($_SESSION['nivel'] ?? 0) ?>">
 
-        <!-- chaves -->
         <input type="hidden" id="fk_int_capeante" name="fk_int_capeante"
             value="<?= $hi($val('id_internacao') ?: $id_internacao) ?>">
         <input type="hidden" id="fk_hospital_int" name="fk_hospital_int" value="<?= $h($val('nome_hosp')) ?>" readonly>
@@ -311,18 +326,14 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
         <input type="hidden" id="aberto_cap" name="aberto_cap" value="n">
         <input type="hidden" id="em_auditoria_cap" name="em_auditoria_cap" value="s">
 
-        <!-- Step 1 -->
         <div id="step-1" class="step">
             <h3>Passo 1: Informações Básicas</h3>
             <br>
             <div class="form-group row">
-                <!-- ALTERADO: align-items-start flex-wrap -->
                 <div id="view-contact-container" class="container-fluid d-flex align-items-start flex-wrap">
 
-                    <!-- ALTERADO: wrapper ocupa 100% -->
                     <div class="d-flex w-100" style="flex:1 1 100%; gap:20px; flex-wrap:wrap;">
 
-                        <!-- COLUNA ESQUERDA -->
                         <div class="d-flex flex-column" style="flex:1 1 280px; min-width:280px;">
                             <div><span class="card-title bold" style="font-weight:600;">Código Capeante:</span>
                                 <span class="card-title bold"
@@ -342,7 +353,6 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                             </div>
                         </div>
 
-                        <!-- COLUNA DIREITA -->
                         <div class="d-flex flex-column" style="flex:1 1 280px; min-width:280px;">
                             <div><span class="card-title bold" style="font-weight:600;">Hospital:</span>
                                 <span class="card-title bold"
@@ -360,10 +370,8 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                             </div>
                         </div>
 
-                        <!-- CADASTRO CENTRAL  -->
                         <?php if ($mostrarCadastroCentral): ?>
                         <div style="flex:0 0 100%; width:100%;">
-                            <!-- ALTERADO: w-100 -->
                             <div id="cadastro-central-wrapper" class="w-100 border rounded-3 p-3 mb-3"
                                 style="border:2px solid #0d6efd;background:#f8fbff;">
                                 <div class="d-flex align-items-center mb-2">
@@ -383,7 +391,6 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                                         </select>
                                     </div>
 
-                                    <!-- Médico -->
                                     <div id="box-cadcentral-med" class="col-12 col-lg-3">
                                         <label class="form-label" for="cad_central_med_id">Médico (a) </label>
                                         <select class="form-control form-select-sm" id="cad_central_med_id"
@@ -400,7 +407,6 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                                         </select>
                                     </div>
 
-                                    <!-- Enfermeiro -->
                                     <div id="box-cadcentral-enf" class="col-12 col-lg-3">
                                         <label class="form-label" for="cad_central_enf_id">Enfermeiro(a) </label>
                                         <select class="form-control form-select-sm" id="cad_central_enf_id"
@@ -409,7 +415,6 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                                             <?php foreach ($usuariosAtivos as $u): if ($isEnf($u['cargo_user'] ?? '')):
                                                         $id = (int)($u['id_usuario'] ?? 0);
                                                         $nome = (string)($u['usuario_user'] ?? '');
-
                                                         $sel = ($id === $enfSelecionado) ? 'selected' : ''; ?>
                                             <option value="<?= $id ?>" <?= $sel ?>>
                                                 <?= $h($nome) ?></option>
@@ -417,7 +422,6 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                                                 endforeach; ?>
                                         </select>
                                     </div>
-                                    <!-- Administrador -->
                                     <div id="box-cadcentral-adm" class="col-12 col-lg-3">
                                         <label class="form-label" for="cad_central_adm_id">Administrativo (a) </label>
                                         <select class="form-control form-select-sm" id="cad_central_adm_id">
@@ -439,13 +443,10 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
 
                             </div>
                         </div>
-                        <!-- /CADASTRO CENTRAL -->
                         <?php endif; ?>
-
 
                     </div>
 
-                    <!-- badges à direita -->
                     <div class="d-flex ms-auto">
                         <?php if (($val('med_check') ?? 'n') === 's'): ?>
                         <span class="bi bi-check-circle"
@@ -527,12 +528,10 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                     class="fas fa-arrow-right"></i></button>
         </div>
 
-        <!-- Step 2 -->
         <div id="step-2" class="step" style="display:none;">
             <h3>Passo 2: Valores e Glosas</h3>
             <br>
             <div class="form-group row">
-                <!-- também ajustado para consistência -->
                 <div id="view-contact-container" class="container-fluid d-flex align-items-start flex-wrap">
                     <div class="d-flex" style="flex-grow:1; gap:20px;">
                         <div class="d-flex flex-column" style="flex-grow:1;">
@@ -579,7 +578,6 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                 </div>
             </div>
 
-            <!-- valores/glosas -->
             <div class="row">
                 <div class="form-group col-md-6 mb-3">
                     <label for="valor_diarias">Valor Diárias</label>
@@ -692,12 +690,10 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                     class="fas fa-arrow-right"></i></button>
         </div>
 
-        <!-- Step 3 -->
         <div id="step-3" class="step" style="display:none;">
             <h3>Passo 3: Informações Adicionais</h3>
             <br>
             <div class="form-group row">
-                <!-- também ajustado -->
                 <div id="view-contact-container" class="container-fluid d-flex align-items-start flex-wrap">
                     <div class="d-flex" style="flex-grow:1; gap:20px;">
                         <div class="d-flex flex-column" style="flex-grow:1;">
@@ -758,7 +754,6 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
             </div>
 
             <div class="row">
-                <!-- Senha Finalizada padrão N -->
                 <div class="form-group col-md-6 mb-3">
                     <label for="senha_finalizada">Senha Finalizada</label>
                     <?php $senhaVal = ($val('senha_finalizada') ?? 'n'); ?>
@@ -768,7 +763,6 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                     </select>
                 </div>
 
-                <!-- Encerrado padrão N -->
                 <div class="form-group col-md-6 mb-3">
                     <label for="encerrado_cap">Capeante Encerrado</label>
                     <?php $encVal = ($val('encerrado_cap') ?? 'n'); ?>
@@ -864,14 +858,14 @@ function mostrarMensagem(texto, cor) {
 function nextStep(n) {
     document.getElementById('step-' + (n - 1)).style.display = 'none';
     document.getElementById('step-' + n).style.display = 'block';
-    document.getElementById('progressBar').style.width = (n * 33) + '%';
+    document.getElementById('progressBar').style.width = (n * 33.33) + '%';
     document.getElementById('progressBar').textContent = 'Etapa ' + n + ' de 3';
 }
 
 function prevStep(n) {
     document.getElementById('step-' + (n + 1)).style.display = 'none';
     document.getElementById('step-' + n).style.display = 'block';
-    document.getElementById('progressBar').style.width = (n * 33) + '%';
+    document.getElementById('progressBar').style.width = ((n - 1) * 33.33) + '%';
     document.getElementById('progressBar').textContent = 'Etapa ' + n + ' de 3';
 }
 
@@ -919,14 +913,15 @@ function prevStep(n) {
             inputInicio.setCustomValidity('A data inicial deve ser posterior ao fim da última parcial.');
             if (feedbackEl) {
                 feedbackEl.textContent =
-                    `A data inicial deve ser a partir de ${minStartStr.replace(/-/g,'/')} (dia seguinte ao término da última parcial).`;
+                    `A data inicial deve ser a partir de ${minStartStr.split('-').reverse().join('/')} (dia seguinte ao término da última parcial).`;
                 feedbackEl.style.display = 'block';
             }
+            // Use um pequeno timeout para o navegador renderizar a mudança de valor antes de remover a invalidação
             setTimeout(() => {
                 inputInicio.classList.remove('is-invalid');
                 inputInicio.setCustomValidity('');
                 if (feedbackEl) feedbackEl.style.display = '';
-            }, 10);
+            }, 3000); // 3 segundos para o usuário ver a mensagem
         } else {
             inputInicio.classList.remove('is-invalid');
             inputInicio.setCustomValidity('');
@@ -973,8 +968,7 @@ function prevStep(n) {
         if (adm) adm.disabled = !on;
     };
 
-    sel.value = sel.value || 's';
-    apply();
+    apply(); // Aplica o estado inicial no carregamento da página
     sel.addEventListener('change', apply);
 })();
 
@@ -1048,5 +1042,4 @@ function prevStep(n) {
 <script src="js/stepper.js"></script>
 <script src="js/scriptPdf.js" defer></script>
 <script src="js/valoresCapeante.js"></script>
-<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"></script> -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-maskmoney/3.0.2/jquery.maskMoney.min.js"></script>
