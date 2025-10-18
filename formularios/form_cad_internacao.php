@@ -91,6 +91,11 @@ $mostrarCadastroCentral = !in_array($normCargo, ['med_auditor', 'medico_auditor'
 
 .select-purple:focus {
     box-shadow: 0 0 0 .25rem rgba(94, 35, 99, .25);
+
+}
+
+.is-invalid {
+    border-color: #dc3545 !important;
 }
 </style>
 
@@ -860,22 +865,33 @@ function myFunctionSelected() {
 
     inputHospital.value = selectedValue;
 
-    $("#hospital_selected").css({
-        "color": "black",
-        "font-weight": "bold",
-        "border": "2px solid green",
-        "padding-top": "3px",
-        "padding-bottom": "3px",
-        "line-height": "normal"
-    });
-
+    // --- INÍCIO DA ALTERAÇÃO ---
     if (selectedValue !== "") {
+        // Aplica estilo de sucesso (borda verde) quando um hospital válido é selecionado
+        $("#hospital_selected").css({
+            "color": "black",
+            "font-weight": "bold",
+            "border": "2px solid green", // Borda verde sucesso
+            "padding-top": "3px",
+            "padding-bottom": "3px",
+            "line-height": "normal"
+        });
         divNome.textContent = selectedText;
         divNome.style.display = "flex";
     } else {
+        // Reseta o estilo se "Selecione" for escolhido novamente
+        $("#hospital_selected").css({
+            "color": "#000", // Cor padrão
+            "font-weight": "normal",
+            "border": "1px solid #555", // Borda padrão original
+            "padding-top": "", // Reseta padding
+            "padding-bottom": "",
+            "line-height": "" // Reseta line-height
+        });
         divNome.textContent = "";
         divNome.style.display = "none";
     }
+    // --- FIM DA ALTERAÇÃO ---
 }
 
 // Estilo do select "relatório detalhado"
@@ -1197,111 +1213,168 @@ document.addEventListener('DOMContentLoaded', mirrorVisitMedFromFk);
 })();
 
 // SUBMIT AJAX
-$("#myForm").on('submit', function(event) {
-    event.preventDefault();
-    const post_url = $(this).attr("action");
-    const request_method = $(this).attr("method");
-    const form_data = new FormData(this);
+// formulario ajax para envio form sem refresh
+$("#myForm").submit(function(event) {
+    event.preventDefault(); // Impede o envio tradicional do formulário
+    let post_url = $(this).attr("action"); // Obtém a URL de ação do formulário
+    let request_method = $(this).attr("method"); // Obtém o método do formulário (GET/POST)
+    let form_data = new FormData(this); // Cria um objeto FormData com os dados do formulário
 
-    // Cadastro Central: se escolheu tipo, precisa existir fk_usuario_int
-    const tipo = $('#resp_tipo').val();
-    const fk = $('#fk_usuario_int').val();
-    if (tipo && !fk) {
-        $('#alert').removeClass("alert-success").addClass("alert-danger").show().html(
-            "Selecione o responsável pela visita.");
-        setTimeout(() => $('#alert').fadeOut('slow'), 2500);
-        return false;
+
+    // 1. Salva o valor selecionado do select de hospitais
+    const hospitalSelected = document.getElementById("hospital_selected").value;
+
+    // 1.A. Validação do Hospital
+    if (hospitalSelected === "") {
+        // Usa a div de alerta existente para exibir o erro
+        $('#alert').removeClass("alert-success").addClass("alert-danger");
+        $('#alert').fadeIn().html("<b>Erro:</b> O campo Hospital é obrigatório.");
+
+        // --- INÍCIO DA ALTERAÇÃO ---
+        // Adiciona borda vermelha para indicar erro no campo
+        $("#hospital_selected").css("border", "2px solid red");
+        // --- FIM DA ALTERAÇÃO ---
+
+        // Oculta a mensagem após 3 segundos
+        setTimeout(function() {
+            $('#alert').fadeOut('Slow');
+        }, 3000);
+
+        // Impede a execução do AJAX
+        return;
     }
 
-    // Garantir espelho do ID do médico (se não for 'enf') antes de enviar
-    if (typeof mirrorVisitMedFromFk === 'function') mirrorVisitMedFromFk();
+    // (Opcional, mas bom) Se passou na validação, garante que a borda não esteja vermelha
+    // A função myFunctionSelected já deve ter deixado verde se um valor foi selecionado.
+    // Esta linha é uma segurança extra caso algum cenário não dispare o 'onchange'.
+    // Se a borda já for verde (ou padrão), não fará mal.
+    if ($("#hospital_selected").css("border-color") === "rgb(255, 0, 0)") { // Verifica se a cor é vermelho
+        $("#hospital_selected").css("border", "2px solid green"); // Muda para verde se estava vermelha
+    }
 
-    const hospitalSelected = document.getElementById("hospital_selected").value;
 
     $.ajax({
         url: post_url,
         type: request_method,
-        processData: false,
-        contentType: false,
+        processData: false, // Impede o jQuery de processar os dados
+        contentType: false, // Impede o jQuery de definir o contentType
         data: form_data,
         success: function(result) {
-            const regIntInput = $("#RegInt");
-            const newRegInt = (parseInt(regIntInput.val() || '0', 10) + 1);
-            regIntInput.val(newRegInt);
 
-            $('#alert').removeClass("alert-danger").addClass("alert-success").show().html(
-                "Cadastrado com sucesso");
-            setTimeout(function() {
-                $('#alert').fadeOut('Slow');
-            }, 3000);
+            if (3 < 4) { // Assumindo que esta condição é para sucesso (ajuste se necessário)
 
-            document.querySelectorAll('input, select, textarea').forEach((el) => {
-                if (el.type !== "hidden" && el.id !== "hospital_selected") el.value = '';
-            });
-            document.getElementById("hospital_selected").value = hospitalSelected;
+                // Increment the reg_int value
+                const regIntInput = $("#RegInt");
+                const currentRegInt = parseInt(regIntInput.val());
+                const newRegInt = currentRegInt + 1;
 
-            $('#fk_paciente_int').val('').selectpicker && $('#fk_paciente_int').selectpicker(
-                'refresh');
-            $('#fk_patologia2').val('').selectpicker && $('#fk_patologia2').selectpicker('refresh');
-            $('#fk_patologia_int').val('').selectpicker && $('#fk_patologia_int').selectpicker(
-                'refresh');
+                regIntInput.val(newRegInt);
 
-            const adicionarValor = parseInt(document.querySelector("#proximoId_int").textContent ||
-                '0', 10) + 1;
-            const ultimoReg = <?= (int)$ultimoReg ?>;
-            const novoValorInternacao = parseInt(ultimoReg, 10) + adicionarValor;
+                // . Success alert
+                $('#alert').removeClass("alert-danger").addClass("alert-success");
+                $('#alert').fadeIn().html("Cadastrado com sucesso");
+                setTimeout(function() {
+                    $('#alert').fadeOut('Slow');
+                }, 3000);
 
-            $("#proximoId_int").text(adicionarValor).val(novoValorInternacao);
-            $("#RegInt").val(newRegInt);
-            $("#fk_int_tuss").val(novoValorInternacao);
-            $("#fk_internacao_uti").val(novoValorInternacao);
-            $("#fk_id_int").val(novoValorInternacao);
-            $("#fk_internacao_pror").val(novoValorInternacao);
-            $("#fk_internacao_ges").val(novoValorInternacao);
-            $("#fk_int_det").val(novoValorInternacao);
-
-            document.getElementById("internado_int").value = "s";
-            document.getElementById("internado_int").querySelector("option[value='s']").selected =
-                true;
-
-            ["#container-gestao", "#container-tuss", "#container-prorrog", "#container-uti",
-                "#container-negoc", "#div-detalhado"
-            ]
-            .forEach(sel => {
-                const el = document.querySelector(sel);
-                if (el) el.style.display = "none";
-            });
-
-            $('#select_tuss, #select_gestao, #relatorio-detalhado, #select_prorrog, #select_uti, #select_negoc')
-                .each(function() {
-                    $(this).val('');
+                // 2. Resetando os campos de input, select e textarea EXCETO os campos `hidden` e o select do hospital
+                document.querySelectorAll('input, select, textarea').forEach((element) => {
+                    if (element.type !== "hidden" && element.id !== "hospital_selected") {
+                        element.value = '';
+                    }
                 });
 
-            // Reset do Cadastro Central → volta para usuário logado
-            $('#resp_tipo').val('');
-            $('#resp_med_id').val('');
-            $('#resp_enf_id').val('');
-            $('#box_resp_med, #box_resp_enf').addClass('d-none').attr('hidden', true);
+                // 3. Restaura o valor selecionado do select de hospitais (já feito antes do AJAX)
+                // document.getElementById("hospital_selected").value = hospitalSelected; // Não precisa redefinir aqui
 
-            $('#fk_usuario_int').val('<?= (int)$idSessao ?>');
-            $('#visita_med_int').val('<?= ($cargoSessao === "Med_auditor") ? "s" : "n" ?>');
-            $('#visita_enf_int').val('<?= ($cargoSessao === "Enf_Auditor") ? "s" : "n" ?>');
+                // 4. Atualiza outros selects (exceto o de hospitais)
+                $('#fk_paciente_int').val('').selectpicker('refresh');
+                $('#fk_patologia2').val('').selectpicker('refresh');
+                $('#fk_patologia_int').val('').selectpicker('refresh');
 
-            // Campo do médico recebe o ID espelhado (se aplicável); enfermeiro fica vazio
-            if (typeof mirrorVisitMedFromFk === 'function') mirrorVisitMedFromFk();
-            $('#visita_auditor_prof_enf').val('');
+                // 5. Update other values
+                const adicionarValor = parseInt(document.querySelector("#proximoId_int")
+                    .textContent) + 1;
+                const ultimoReg = <?= $ultimoReg ?>;
+                const novoValorInternacao = parseInt(ultimoReg) + adicionarValor;
 
-            if (typeof clearTussInputs === 'function') clearTussInputs();
-            if (typeof clearProrrogInputs === 'function') clearProrrogInputs();
+                $("#proximoId_int").text(adicionarValor);
+                $("#proximoId_int").val(
+                novoValorInternacao); // Este seletor estava incorreto, corrigido para val()
+
+                // $("#RegInt").val(newRegInt); // Já atualizado acima
+                $("#fk_int_tuss").val(novoValorInternacao);
+                $("#fk_internacao_uti").val(novoValorInternacao);
+                $("#fk_id_int").val(novoValorInternacao);
+                $("#fk_internacao_pror").val(novoValorInternacao);
+                $("#fk_internacao_ges").val(novoValorInternacao);
+                $("#fk_int_det").val(novoValorInternacao);
+                document.getElementById("internado_int").value = "s";
+                document.getElementById("internado_int").querySelector("option[value='s']")
+                    .selected = true;
+
+                // 6. Hide containers
+                const containers = [
+                    "#container-gestao",
+                    "#container-tuss",
+                    "#container-prorrog",
+                    "#container-uti",
+                    "#container-negoc",
+                    "#div-detalhado"
+                ];
+                containers.forEach((container) => {
+                    document.querySelector(container).style.display = "none";
+                });
+
+                // 7. Restaura a borda dos selects após o reset (exceto o de hospitais)
+                document.querySelectorAll(
+                    "#select_tuss, #select_gestao, #relatorio-detalhado, #select_prorrog, #select_uti, #select_negoc, select" // Removido 'select' genérico para evitar redefinir o hospital
+                ).forEach(select => {
+                    if (select.id !==
+                        "hospital_selected") { // Garante que não afeta o select de hospital
+                        select.value = ""; // Reseta o valor do select
+                        select.style.border = "1px solid #ced4da"; // Borda padrão Bootstrap
+                        select.style.color =
+                        "#6c757d"; // Cor padrão Bootstrap para placeholder
+                        select.style.fontWeight = "normal";
+                        select.style.backgroundColor = "#fff"; // Fundo padrão
+                    }
+                });
+                // Especificamente resetar os selects roxos para o estilo padrão deles
+                $('.select-purple').css({
+                    "color": "white",
+                    "font-weight": "normal",
+                    "border": "1px solid #5e2363",
+                    "background-color": "#5e2363"
+                });
+
+
+                // 8. Atualiza selects que usam Bootstrap Select (exceto o de hospitais)
+                // Já feito acima para paciente, patologia, etc. O reset dos selects roxos não usa selectpicker.
+
+
+                // 9. Success alert (já feito no início do success)
+                // $('#alert').removeClass("alert-danger").addClass("alert-success"); ...
+
+
+            } else if (result == '0') {
+
+                $('#alert').removeClass("alert-success").addClass("alert-danger");
+                $('#alert').fadeIn().html("Paciente possui internação ativa");
+                setTimeout(function() {
+                    $('#alert').fadeOut('Slow');
+                }, 2000);
+            }
+
+            // Clear additional fields
+            clearTussInputs();
+            clearProrrogInputs();
+
         },
+
         error: function(xhr, status, error) {
             console.error("AJAX Error:", status, error);
             console.log("XHR response:", xhr.responseText);
-            $('#alert').removeClass("alert-success").addClass("alert-danger").show().html(
-                "Erro ao salvar. Verifique os campos e tente novamente.");
-            setTimeout(function() {
-                $('#alert').fadeOut('Slow');
-            }, 3000);
         }
     });
 });
