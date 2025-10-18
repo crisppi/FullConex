@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<div class="row">
+<div class="row" style="margin-top:-35px;">
     <div class="form-group row">
         <h4 class="text-center w-100"
             style="margin:-7px 10px;background-color:#5e2363;color:#fff;padding:13px 0;border-radius:.25rem;">
@@ -503,7 +503,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             <div id="div-detalhado" class="form-group row" style="margin-left:-12px">
                 <div class="form-group row">
-                    <input type="hidden" readonly id="fk_int_det" name="fk_int_det" value="<?= ($ultimoReg + 1) ?>">
+                    <input type="text" readonly id="fk_int_det" name="fk_int_det" value="<?= ($ultimoReg + 1) ?>">
 
                     <div class="form-group col-sm-2">
                         <label class="control-label" for="curativo_det">Curativo</label>

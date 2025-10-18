@@ -198,13 +198,7 @@
                                             <i class="bi bi-stack"></i>
                                         </button>
                                         <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
-                                            <li>
-                                                <button class="btn btn-default" style="font-size: .9rem;"
-                                                    onclick="openModal('<?= $BASE_URL ?>show_seguradora.php?id_seguradora=<?= $id_seguradora ?>')"
-                                                    data-bs-toggle="modal" data-bs-target="#myModal"><i
-                                                        class="fas fa-eye"
-                                                        style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i>Ver</button>
-                                            </li>
+
                                             <li>
                                                 <button class="btn btn-default" style="font-size: .9rem;"
                                                     onclick="openModal('<?= $BASE_URL ?>edit_seguradora.php?id_seguradora=<?= $id_seguradora ?>')"
