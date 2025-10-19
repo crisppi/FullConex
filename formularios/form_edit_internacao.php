@@ -217,17 +217,17 @@
     $tussGeral = $tuss->findAll();
 
     ?>
-    
 
-    <div class="row card" style="background-color: #f6f6f7ff;">
+
+    <div class="row card" style="background-color: #f6f6f7ff; margin-top:-35px">
         <div class="form-group row">
             <h4 class="text-center w-100" style="
-    margin: 10px;
-    background-color: #5e2363;
-    color: #fff;
-    padding: 10px 0;
-    border-radius: 0.25rem;
-  ">Editar internação</h4>
+                margin: 10px;
+                background-color: #5e2363;
+                color: #fff;
+                padding: 10px 0;
+                border-radius: 0.25rem;
+            ">E ditar internação</h4>
             <hr class="w-100 margin-top: 20px mb-4">
 
             <!-- <hr class="w-100 margin-top: 20px mb-4"> -->
@@ -541,7 +541,7 @@
                             <option value="s">Sim</option>
                             <option value="n">Não</option>
                         </select>
-             
+
                     </div>
                     <div class="form-group col-sm-3">
                         <?php $agora = date('Y-m-d'); ?> <input type="hidden" id="data_create_int"
@@ -853,138 +853,88 @@
                         <hr>
                     </div>
                 </div>
-                        
+
                 <!-- Accordion com toggle individual em Bootstrap 5 -->
                 <div class="accordion" id="accordionInternacao">
-                <!-- 1) TUSS -->
-                <div class="accordion-item">
-                    <h2 class="accordion-header" id="headingTuss">
-                    <button
-                        class="accordion-button collapsed"
-                        type="button"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#collapseTuss"
-                        aria-expanded="false"
-                        aria-controls="collapseTuss"
-                    >
-                        <i class="fa-solid fa-notes-medical me-2"></i>
-                        <span>TUSS</span>
-                    </button>
-                    </h2>
-                    <div
-                    id="collapseTuss"
-                    class="accordion-collapse collapse"
-                    aria-labelledby="headingTuss"
-                    >
-                    <div class="accordion-body">
-                        <?php include_once('formularios/form_edit_internacao_tuss2.php'); ?>
+                    <!-- 1) TUSS -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingTuss">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#collapseTuss" aria-expanded="false" aria-controls="collapseTuss">
+                                <i class="fa-solid fa-notes-medical me-2"></i>
+                                <span>TUSS</span>
+                            </button>
+                        </h2>
+                        <div id="collapseTuss" class="accordion-collapse collapse" aria-labelledby="headingTuss">
+                            <div class="accordion-body">
+                                <?php include_once('formularios/form_edit_internacao_tuss2.php'); ?>
+                            </div>
+                        </div>
                     </div>
-                    </div>
-                </div>
 
-                <!-- 2) UTI -->
-                <div class="accordion-item">
-                    <h2 class="accordion-header" id="headingUti">
-                    <button
-                        class="accordion-button collapsed"
-                        type="button"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#collapseUti"
-                        aria-expanded="false"
-                        aria-controls="collapseUti"
-                    >
-                        <i class="fa-solid fa-procedures me-2"></i>
-                        <span>Editar UTI</span>
-                    </button>
-                    </h2>
-                    <div
-                    id="collapseUti"
-                    class="accordion-collapse collapse"
-                    aria-labelledby="headingUti"
-                    >
-                    <div class="accordion-body">
-                        <?php include_once('formularios/form_edit_internacao_uti2.php'); ?>
+                    <!-- 2) UTI -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingUti">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#collapseUti" aria-expanded="false" aria-controls="collapseUti">
+                                <i class="fa-solid fa-procedures me-2"></i>
+                                <span>Editar UTI</span>
+                            </button>
+                        </h2>
+                        <div id="collapseUti" class="accordion-collapse collapse" aria-labelledby="headingUti">
+                            <div class="accordion-body">
+                                <?php include_once('formularios/form_edit_internacao_uti2.php'); ?>
+                            </div>
+                        </div>
                     </div>
-                    </div>
-                </div>
 
-                <!-- 3) GESTÃO -->
-                <div class="accordion-item">
-                    <h2 class="accordion-header" id="headingGestao">
-                    <button
-                        class="accordion-button collapsed"
-                        type="button"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#collapseGestao"
-                        aria-expanded="false"
-                        aria-controls="collapseGestao"
-                    >
-                        <i class="fa-solid fa-wallet me-2"></i>
-                        <span>Editar Gestão</span>
-                    </button>
-                    </h2>
-                    <div
-                    id="collapseGestao"
-                    class="accordion-collapse collapse"
-                    aria-labelledby="headingGestao"
-                    >
-                    <div class="accordion-body">
-                        <?php include_once('formularios/form_edit_internacao_gestao2.php'); ?>
+                    <!-- 3) GESTÃO -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingGestao">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#collapseGestao" aria-expanded="false" aria-controls="collapseGestao">
+                                <i class="fa-solid fa-wallet me-2"></i>
+                                <span>Editar Gestão</span>
+                            </button>
+                        </h2>
+                        <div id="collapseGestao" class="accordion-collapse collapse" aria-labelledby="headingGestao">
+                            <div class="accordion-body">
+                                <?php include_once('formularios/form_edit_internacao_gestao2.php'); ?>
+                            </div>
+                        </div>
                     </div>
-                    </div>
-                </div>
 
-                <!-- 4) PRORROGAÇÕES -->
-                <div class="accordion-item">
-                    <h2 class="accordion-header" id="headingProrrog">
-                    <button
-                        class="accordion-button collapsed"
-                        type="button"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#collapseProrrog"
-                        aria-expanded="false"
-                        aria-controls="collapseProrrog"
-                    >
-                        <i class="fa-solid fa-calendar-alt me-2"></i>
-                        <span>Editar Prorrogações</span>
-                    </button>
-                    </h2>
-                    <div
-                    id="collapseProrrog"
-                    class="accordion-collapse collapse"
-                    aria-labelledby="headingProrrog"
-                    >
-                    <div class="accordion-body">
-                        <?php include_once('formularios/form_edit_internacao_prorrog2.php'); ?>
+                    <!-- 4) PRORROGAÇÕES -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingProrrog">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#collapseProrrog" aria-expanded="false" aria-controls="collapseProrrog">
+                                <i class="fa-solid fa-calendar-alt me-2"></i>
+                                <span>Editar Prorrogações</span>
+                            </button>
+                        </h2>
+                        <div id="collapseProrrog" class="accordion-collapse collapse" aria-labelledby="headingProrrog">
+                            <div class="accordion-body">
+                                <?php include_once('formularios/form_edit_internacao_prorrog2.php'); ?>
+                            </div>
+                        </div>
                     </div>
-                    </div>
-                </div>
 
-                <!-- 5) NEGOCIAÇÕES -->
-                <div class="accordion-item">
-                    <h2 class="accordion-header" id="headingNegoc">
-                    <button
-                        class="accordion-button collapsed"
-                        type="button"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#collapseNegoc"
-                        aria-expanded="false"
-                        aria-controls="collapseNegoc"
-                    >
-                        <i class="fa-solid fa-handshake me-2"></i>
-                        <span>Editar Negociações</span>
-                    </button>
-                    </h2>
-                    <div
-                    id="collapseNegoc"
-                    class="accordion-collapse collapse"
-                    aria-labelledby="headingNegoc"
-                    >
-                    <div class="accordion-body">
-                        <?php include_once('formularios/form_edit_internacao_negoc2.php'); ?>
+                    <!-- 5) NEGOCIAÇÕES -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingNegoc">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#collapseNegoc" aria-expanded="false" aria-controls="collapseNegoc">
+                                <i class="fa-solid fa-handshake me-2"></i>
+                                <span>Editar Negociações</span>
+                            </button>
+                        </h2>
+                        <div id="collapseNegoc" class="accordion-collapse collapse" aria-labelledby="headingNegoc">
+                            <div class="accordion-body">
+                                <?php include_once('formularios/form_edit_internacao_negoc2.php'); ?>
+                            </div>
+                        </div>
                     </div>
-                    </div>
-                </div>
                 </div>
 
 
@@ -1337,25 +1287,27 @@ document.getElementById('fk_patologia2').addEventListener('change', function() {
     // Atualiza o campo hidden com o JSON gerado
     document.getElementById('json-antec').value = JSON.stringify(jsonAntecedentes);
 });
-
     </script>
-    
-<style>
-    /* coloca no seu <head> ou no final do CSS carregado */
-    .accordion .accordion-button {
+
+    <style>
+/* coloca no seu <head> ou no final do CSS carregado */
+.accordion .accordion-button {
     background-color: #5e2363;
     color: #fff;
-    }
-    .accordion .accordion-button:not(.collapsed) {
+}
+
+.accordion .accordion-button:not(.collapsed) {
     background-color: #5e2363;
     color: #fff;
-    }
-    /* inverte a cor do ícone gerado pelo ::after */
-    .accordion .accordion-button::after {
+}
+
+/* inverte a cor do ícone gerado pelo ::after */
+.accordion .accordion-button::after {
     filter: brightness(0) invert(1);
-    }
-    /* remove o foco escuro padrão */
-    .accordion .accordion-button:focus {
+}
+
+/* remove o foco escuro padrão */
+.accordion .accordion-button:focus {
     box-shadow: none;
-    }
-  </style>
+}
+    </style>
