@@ -9,6 +9,8 @@ $mensagensNaoLidasCount = $mensagemDao->getMensagensNaoLidas($_SESSION['id_usuar
 date_default_timezone_set('America/Sao_Paulo');
 header("Content-type: text/html; charset=utf-8");
 
+// Caminho default
+$defaultFoto = $BASE_URL . 'img/user-default.png';
 // ini_set('display_errors', 1);
 // ini_set('display_startup_errors', 1);
 // error_reporting(E_ALL);
@@ -159,9 +161,21 @@ header("Content-type: text/html; charset=utf-8");
                                             class="bi bi-person"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
                                         Manual</a></li>
+                                <?php if ($_SESSION['nivel'] > 3) { ?>
+                                <li class="nav-item">
+                                    <a class="dropdown-item" href="<?= $BASE_URL ?>admin_permissao.php">
+                                        <i class="bi bi-shield-lock"
+                                            style="font-size: 1rem;margin-right:5px; color: rgb(21, 56, 210);"></i>
+                                        Permissões
+                                    </a>
+                                </li>
+                                <?php }; ?>
+
+
+                                <?php }; ?>
                             </ul>
                         </li>
-                        <?php }; ?>
+
 
                         <?php if ($_SESSION['nivel'] > 3) { ?>
                         <li id="drop1" class="nav-item dropdown">
@@ -464,7 +478,20 @@ header("Content-type: text/html; charset=utf-8");
             <div class="account-wrap">
                 <div class="account-item clearfix js-item-menu" style="margin-right:30px">
                     <div class="image" style="margin-top:15px">
-                        <img src="./uploads/usuarios/<?= $_SESSION['foto_usuario'] ?>" alt="John Doe" />
+                        <?php
+                        // imagem padrão
+                        $defaultFoto = $BASE_URL . 'uploads/usuarios/default-user.jpeg';
+
+                        // arquivo da sessão (sanitizado) e checagem no filesystem
+                        $sessFoto  = $_SESSION['foto_usuario'] ?? '';
+                        $fileName  = $sessFoto ? basename($sessFoto) : '';
+                        $fsPath    = __DIR__ . '/uploads/usuarios/' . $fileName;
+                        $urlFoto   = ($fileName && is_file($fsPath))
+                            ? ($BASE_URL . 'uploads/usuarios/' . $fileName)
+                            : $defaultFoto;
+                        ?>
+                        <img src="<?= htmlspecialchars($urlFoto) ?>" alt="Usuário"
+                            onerror="this.onerror=null;this.src='<?= $defaultFoto ?>';" />
                     </div>
                     <div class="content">
                         <a class="js-acc-btn" href="#"><?php print $_SESSION['usuario_user'] ?></a>
@@ -494,9 +521,47 @@ header("Content-type: text/html; charset=utf-8");
             </div>
     </div>
     </nav>
-    <!-- <div class="bar_color" style="width:100%;height:3px;background-image: linear-gradient(to right, #18b6f5,#421849);
-            ">
-    </div> -->
+
+    <!-- notification message -->
+    <?php if (session_status() !== PHP_SESSION_ACTIVE) session_start(); ?>
+    <?php
+    $flashMsg  = $_SESSION['mensagem']      ?? '';
+    $flashType = $_SESSION['mensagem_tipo'] ?? 'danger';
+    unset($_SESSION['mensagem'], $_SESSION['mensagem_tipo']);
+    ?>
+    <?php if ($flashMsg): ?>
+    <div class="container mt-3">
+        <div id="app-flash"
+            class="alert alert-<?= htmlspecialchars($flashType) ?> text-center alert-dismissible fade show"
+            role="alert">
+            <?= htmlspecialchars($flashMsg) ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        var el = document.getElementById('app-flash');
+        if (!el) return;
+
+        // fecha visualmente ~9.8s (para dar tempo da transição)
+        setTimeout(function() {
+            try {
+                if (window.bootstrap && bootstrap.Alert) {
+                    bootstrap.Alert.getOrCreateInstance(el).close();
+                } else {
+                    el.classList.remove('show'); // some a classe de exibição
+                }
+            } catch (e) {}
+        }, 9800);
+
+        // remove do DOM em 10s (garantia)
+        setTimeout(function() {
+            if (el && el.parentNode) el.parentNode.removeChild(el);
+        }, 5000);
+    })();
+    </script>
+    <?php endif; ?>
 
     <div class="modal fade" id="globalModal">
         <div class="modal-dialog  modal-lg modal-dialog-centered modal-xl">
@@ -520,7 +585,6 @@ header("Content-type: text/html; charset=utf-8");
     integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous">
 </script>
 <!-- Jquery JS-->
-<!-- <script src="./diversos/CoolAdmin-master/vendor/jquery-3.2.1.min.js"></script> -->
 <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
 
 <!-- Bootstrap JS-->
@@ -547,8 +611,6 @@ header("Content-type: text/html; charset=utf-8");
 // Base para links absolutos
 const BASE_URL = '<?= $BASE_URL ?>';
 
-// openModalPac compatível com BS 5.0+ e fallback p/ jQuery (BS4)
-// Agora extrai apenas o conteúdo de #main-container da página carregada
 if (typeof window.openModalPac !== 'function') {
     window.openModalPac = function(url, titulo = 'Cadastro') {
         const modalEl = document.getElementById('globalModal');

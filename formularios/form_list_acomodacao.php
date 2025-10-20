@@ -43,7 +43,7 @@ $totalcasos = ceil($qtdIntItens / 5);
 ?>
 
 <!--tabela evento-->
-<div class="container-fluid form_container" style="margin-top:12px;">
+<div class="container-fluid form_container" style="margin-top:-25px;">
 
     <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>

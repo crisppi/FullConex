@@ -55,7 +55,7 @@ $data_intern_int_max = filter_input(INPUT_GET, 'data_intern_int_max') ?: null;
 
 ?>
 <!-- FORMULARIO DE PESQUISAS -->
-<div class="container-fluid" id="main-container" style="margin-top:12px">
+<div class="container-fluid" id="main-container" style="margin-top:-25px">
     <h4 class="page-title"> Capeantes - Contas Finalizadas</h4>
     <hr>
     <div id="navbarToggleExternalContent">
@@ -274,61 +274,61 @@ if ($qtdIntItens > $limite) {
                     extract($intern);
 
                 ?>
-                    <tr style="font-size:13px">
-                        <td scope="row" class="col-id">
-                            <?= $intern["id_internacao"]; ?>
-                        </td>
-                        <td scope="row" class="col-id">
-                            <?= $intern["id_capeante"]; ?>
-                        </td>
-                        <td scope="row" class="nome-coluna-table"><b>
-                                <?= $intern["nome_hosp"] ?>
-                            </b></td>
-                        <td scope="row">
-                            <?= $intern["nome_pac"] ?>
-                        </td>
-                        <td scope="row">
-                            <?= $intern["senha_int"] ?>
-                        </td>
-                        <td scope="row">
-                            <?= date('d/m/Y', strtotime($intern["data_intern_int"])) ?>
-                        </td>
+                <tr style="font-size:13px">
+                    <td scope="row" class="col-id">
+                        <?= $intern["id_internacao"]; ?>
+                    </td>
+                    <td scope="row" class="col-id">
+                        <?= $intern["id_capeante"]; ?>
+                    </td>
+                    <td scope="row" class="nome-coluna-table"><b>
+                            <?= $intern["nome_hosp"] ?>
+                        </b></td>
+                    <td scope="row">
+                        <?= $intern["nome_pac"] ?>
+                    </td>
+                    <td scope="row">
+                        <?= $intern["senha_int"] ?>
+                    </td>
+                    <td scope="row">
+                        <?= date('d/m/Y', strtotime($intern["data_intern_int"])) ?>
+                    </td>
 
-                        <td scope="row">
-                            <?= $intern["parada_motivo_cap"] ?>
-                        </td>
-                        <td class="action">
-                            <div class="dropdown">
-                                <button class="btn btn-default dropdown-toggle" id="navbarScrollingDropdown" role="button"
-                                    data-bs-toggle="dropdown" style="color:#5e2363" aria-expanded="false">
-                                    <i class="bi bi-stack"></i>
-                                </button>
-                                <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
-                                    <li>
-                                        <button class="dropdown-item"
-                                            onclick="edit('<?= $BASE_URL ?>show_capeante.php?id_capeante=<?= $intern['id_capeante'] ?>')">
-                                            <i style="color:green; margin-right:10px" class="fas fa-eye check-icon"></i> Ver
-                                            Detalhes
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button class="dropdown-item"
-                                            onclick="edit('<?= $BASE_URL ?>show_capeantePrt.php?id_capeante=<?= $intern['id_capeante'] ?>')">
-                                            <i style="color:brown; margin-right:10px" class="bi bi-printer"></i> Imprimir
-                                        </button>
-                                    </li>
-                            </div>
-                        </td>
+                    <td scope="row">
+                        <?= $intern["parada_motivo_cap"] ?>
+                    </td>
+                    <td class="action">
+                        <div class="dropdown">
+                            <button class="btn btn-default dropdown-toggle" id="navbarScrollingDropdown" role="button"
+                                data-bs-toggle="dropdown" style="color:#5e2363" aria-expanded="false">
+                                <i class="bi bi-stack"></i>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
+                                <li>
+                                    <button class="dropdown-item"
+                                        onclick="edit('<?= $BASE_URL ?>show_capeante.php?id_capeante=<?= $intern['id_capeante'] ?>')">
+                                        <i style="color:green; margin-right:10px" class="fas fa-eye check-icon"></i> Ver
+                                        Detalhes
+                                    </button>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item"
+                                        onclick="edit('<?= $BASE_URL ?>show_capeantePrt.php?id_capeante=<?= $intern['id_capeante'] ?>')">
+                                        <i style="color:brown; margin-right:10px" class="bi bi-printer"></i> Imprimir
+                                    </button>
+                                </li>
+                        </div>
+                    </td>
 
 
-                    </tr>
+                </tr>
                 <?php endforeach; ?>
                 <?php if ($qtdIntItens == 0): ?>
-                    <tr>
-                        <td colspan="11" scope="row" class="col-id" style='font-size:15px'>
-                            Não foram encontrados registros
-                        </td>
-                    </tr>
+                <tr>
+                    <td colspan="11" scope="row" class="col-id" style='font-size:15px'>
+                        Não foram encontrados registros
+                    </td>
+                </tr>
 
                 <?php endif ?>
             </tbody>
@@ -342,51 +342,51 @@ if ($qtdIntItens > $limite) {
 
         <div class="pagination" style="margin: 0 auto;">
             <?php if ($total_pages ?? 1 > 1): ?>
-                <ul class="pagination">
-                    <?php
+            <ul class="pagination">
+                <?php
                     $blocoAtual = isset($_GET['bl']) ? $_GET['bl'] : 0;
                     $paginaAtual = isset($_GET['pag']) ? $_GET['pag'] : 1;
                     ?>
-                    <?php if ($current_block > $first_block): ?>
-                        <li class="page-item">
-                            <a class="page-link" id="blocoNovo" href="#"
-                                onclick="loadContent('list_internacao_cap_new.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&data_intern_int=<?php print $data_intern_int ?>&senha_int=<?php print $senha_int ?>&pesqInternado=<?php print $pesqInternado ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print 1 ?>&bl=<?php print 0 ?>')">
-                                <i class="fa-solid fa-angles-left"></i></a>
-                        </li>
-                    <?php endif; ?>
-                    <?php if ($current_block <= $last_block && $last_block > 1 && $current_block != 1): ?>
-                        <li class="page-item">
-                            <a class="page-link" href="#"
-                                onclick="loadContent('list_internacao_cap_new.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&data_intern_int=<?php print $data_intern_int ?>&senha_int=<?php print $senha_int ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&med_check=<?php print $med_check ?>&enf_check=<?php print $enf_check ?>&adm_check=<?php print $adm_check ?>&senha_fin=<?php print $senha_fin ?>&pag=<?php print print $paginaAtual - 1 ?>&bl=<?php print print $blocoAtual - 5 ?>')">
-                                <i class="fa-solid fa-angle-left"></i> </a>
-                        </li>
-                    <?php endif; ?>
+                <?php if ($current_block > $first_block): ?>
+                <li class="page-item">
+                    <a class="page-link" id="blocoNovo" href="#"
+                        onclick="loadContent('list_internacao_cap_new.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&data_intern_int=<?php print $data_intern_int ?>&senha_int=<?php print $senha_int ?>&pesqInternado=<?php print $pesqInternado ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print 1 ?>&bl=<?php print 0 ?>')">
+                        <i class="fa-solid fa-angles-left"></i></a>
+                </li>
+                <?php endif; ?>
+                <?php if ($current_block <= $last_block && $last_block > 1 && $current_block != 1): ?>
+                <li class="page-item">
+                    <a class="page-link" href="#"
+                        onclick="loadContent('list_internacao_cap_new.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&data_intern_int=<?php print $data_intern_int ?>&senha_int=<?php print $senha_int ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&med_check=<?php print $med_check ?>&enf_check=<?php print $enf_check ?>&adm_check=<?php print $adm_check ?>&senha_fin=<?php print $senha_fin ?>&pag=<?php print print $paginaAtual - 1 ?>&bl=<?php print print $blocoAtual - 5 ?>')">
+                        <i class="fa-solid fa-angle-left"></i> </a>
+                </li>
+                <?php endif; ?>
 
-                    <?php for ($i = $first_page_in_block; $i <= $last_page_in_block; $i++): ?>
-                        <li class="page-item <?php print ($_GET['pag'] ?? 1) == $i ? "active" : "" ?>">
+                <?php for ($i = $first_page_in_block; $i <= $last_page_in_block; $i++): ?>
+                <li class="page-item <?php print ($_GET['pag'] ?? 1) == $i ? "active" : "" ?>">
 
-                            <a class="page-link" href="#"
-                                onclick="loadContent('list_internacao_cap_new.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&data_intern_int=<?php print $data_intern_int ?>&senha_int=<?php print $senha_int ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&med_check=<?php print $med_check ?>&enf_check=<?php print $enf_check ?>&adm_check=<?php print $adm_check ?>&senha_fin=<?php print $senha_fin ?>&pag=<?php print $i ?>&bl=<?php print $blocoAtual ?>')">
-                                <?php echo $i; ?>
-                            </a>
-                        </li>
-                    <?php endfor; ?>
+                    <a class="page-link" href="#"
+                        onclick="loadContent('list_internacao_cap_new.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&data_intern_int=<?php print $data_intern_int ?>&senha_int=<?php print $senha_int ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&med_check=<?php print $med_check ?>&enf_check=<?php print $enf_check ?>&adm_check=<?php print $adm_check ?>&senha_fin=<?php print $senha_fin ?>&pag=<?php print $i ?>&bl=<?php print $blocoAtual ?>')">
+                        <?php echo $i; ?>
+                    </a>
+                </li>
+                <?php endfor; ?>
 
-                    <?php if ($current_block < $last_block): ?>
-                        <li class="page-item">
-                            <a class="page-link" id="blocoNovo" href="#"
-                                onclick="loadContent('list_internacao_cap_new.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&data_intern_int=<?php print $data_intern_int ?>&senha_int=<?php print $senha_int ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&med_check=<?php print $med_check ?>&enf_check=<?php print $enf_check ?>&adm_check=<?php print $adm_check ?>&senha_fin=<?php print $senha_fin ?>&pag=<?php print $paginaAtual + 1 ?>&bl=<?php print $blocoAtual + 5 ?>')"><i
-                                    class="fa-solid fa-angle-right"></i></a>
-                        </li>
-                    <?php endif; ?>
-                    <?php if ($current_block < $last_block): ?>
-                        <li class="page-item">
-                            <a class="page-link" id="blocoNovo" href="#"
-                                onclick="loadContent('list_internacao_cap_new.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&data_intern_int=<?php print $data_intern_int ?>&senha_int=<?php print $senha_int ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&med_check=<?php print $med_check ?>&enf_check=<?php print $enf_check ?>&adm_check=<?php print $adm_check ?>&senha_fin=<?php print $senha_fin ?>&pag=<?php print print count($paginas) ?>&bl=<?php print print ($last_block - 1) * 5 ?>')"><i
-                                    class="fa-solid fa-angles-right"></i></a>
-                        </li>
-                    <?php endif; ?>
-                </ul>
+                <?php if ($current_block < $last_block): ?>
+                <li class="page-item">
+                    <a class="page-link" id="blocoNovo" href="#"
+                        onclick="loadContent('list_internacao_cap_new.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&data_intern_int=<?php print $data_intern_int ?>&senha_int=<?php print $senha_int ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&med_check=<?php print $med_check ?>&enf_check=<?php print $enf_check ?>&adm_check=<?php print $adm_check ?>&senha_fin=<?php print $senha_fin ?>&pag=<?php print $paginaAtual + 1 ?>&bl=<?php print $blocoAtual + 5 ?>')"><i
+                            class="fa-solid fa-angle-right"></i></a>
+                </li>
+                <?php endif; ?>
+                <?php if ($current_block < $last_block): ?>
+                <li class="page-item">
+                    <a class="page-link" id="blocoNovo" href="#"
+                        onclick="loadContent('list_internacao_cap_new.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&data_intern_int=<?php print $data_intern_int ?>&senha_int=<?php print $senha_int ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&med_check=<?php print $med_check ?>&enf_check=<?php print $enf_check ?>&adm_check=<?php print $adm_check ?>&senha_fin=<?php print $senha_fin ?>&pag=<?php print print count($paginas) ?>&bl=<?php print print ($last_block - 1) * 5 ?>')"><i
+                            class="fa-solid fa-angles-right"></i></a>
+                </li>
+                <?php endif; ?>
+            </ul>
             <?php endif; ?>
         </div>
 
@@ -394,55 +394,55 @@ if ($qtdIntItens > $limite) {
 </div>
 </div>
 <script>
-    // ajax para submit do formulario de pesquisa
-    $(document).ready(function() {
-        $('#select-internacao-form').submit(function(e) {
-            e.preventDefault(); // Impede o comportamento padrão de enviar o formulário
+// ajax para submit do formulario de pesquisa
+$(document).ready(function() {
+    $('#select-internacao-form').submit(function(e) {
+        e.preventDefault(); // Impede o comportamento padrão de enviar o formulário
 
-            var formData = $(this).serialize(); // Serializa os dados do formulário
+        var formData = $(this).serialize(); // Serializa os dados do formulário
 
-            $.ajax({
-                url: $(this).attr('action'), // URL do formulário
-                type: $(this).attr('method'), // Método do formulário (POST)
-                data: formData, // Dados serializados do formulário
-                success: function(response) {
-                    // Crie um elemento temporário para armazenar a resposta HTML
-                    var tempElement = document.createElement('div');
-                    tempElement.innerHTML = response;
-
-                    // Encontre o elemento com o ID "table-content" dentro do elemento temporário
-                    var tableContent = tempElement.querySelector('#table-content');
-                    $('#table-content').html(tableContent);
-                },
-                error: function() {
-                    $('#responseMessage').html('Ocorreu um erro ao enviar o formulário.');
-                }
-            });
-        });
-    });
-    // ajax para navegacao 
-    function loadContent(url) {
         $.ajax({
-            url: url,
-            type: 'GET',
-            dataType: 'html',
-            success: function(data) {
+            url: $(this).attr('action'), // URL do formulário
+            type: $(this).attr('method'), // Método do formulário (POST)
+            data: formData, // Dados serializados do formulário
+            success: function(response) {
                 // Crie um elemento temporário para armazenar a resposta HTML
                 var tempElement = document.createElement('div');
-                tempElement.innerHTML = data;
+                tempElement.innerHTML = response;
 
                 // Encontre o elemento com o ID "table-content" dentro do elemento temporário
                 var tableContent = tempElement.querySelector('#table-content');
                 $('#table-content').html(tableContent);
             },
             error: function() {
-                console.log('Error loading content');
+                $('#responseMessage').html('Ocorreu um erro ao enviar o formulário.');
             }
         });
-    }
-    $(document).ready(function() {
-        loadContent('list_internacao_cap_par.php?&pag=<?php print 1 ?>&bl=<?php print 0 ?>');
     });
+});
+// ajax para navegacao 
+function loadContent(url) {
+    $.ajax({
+        url: url,
+        type: 'GET',
+        dataType: 'html',
+        success: function(data) {
+            // Crie um elemento temporário para armazenar a resposta HTML
+            var tempElement = document.createElement('div');
+            tempElement.innerHTML = data;
+
+            // Encontre o elemento com o ID "table-content" dentro do elemento temporário
+            var tableContent = tempElement.querySelector('#table-content');
+            $('#table-content').html(tableContent);
+        },
+        error: function() {
+            console.log('Error loading content');
+        }
+    });
+}
+$(document).ready(function() {
+    loadContent('list_internacao_cap_par.php?&pag=<?php print 1 ?>&bl=<?php print 0 ?>');
+});
 </script>
 <script src="./js/input-estilo.js"></script>
 

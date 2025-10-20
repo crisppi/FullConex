@@ -221,7 +221,7 @@ if ($qtdIntItens > $limite) {
 }
 ?>
 <!-- FORMULARIO DE PESQUISAS -->
-<div class="container-fluid form_container" id='main-container' style="margin-top:12px;">
+<div class="container-fluid form_container" id='main-container' style="margin-top:-25px;">
 
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"
         integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>

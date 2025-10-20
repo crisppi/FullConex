@@ -67,7 +67,7 @@ if ($qtdIntItens > $limite) {
 ?>
 
 <!--tabela evento-->
-<div class="container-fluid  form_container" style="margin-top:12px;">
+<div class="container-fluid  form_container" style="margin-top:-25px;">
     <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
     <script src="./scripts/cadastro/general.js"></script>

@@ -72,7 +72,7 @@
     ?>
 
     <!--filtro evento-->
-    <div class="container-fluid form_container" style="margin-top:12px;">
+    <div class="container-fluid form_container" style="margin-top:-20px;">
         <div class="d-flex justify-content-between align-items-center" style="margin-bottom: 0;">
             <h4 class="page-title">Hospitais</h4>
             <div style="margin-left: auto;">

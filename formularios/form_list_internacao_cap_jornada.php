@@ -301,7 +301,7 @@ th.th-acoes {
 }
 </style>
 
-<div class="container-fluid" style="margin-top:12px;">
+<div class="container-fluid" style="margin-top:-25px;">
     <h4 class="page-title m-0 mb-3" style="color:#3A3A3A;">Capeantes - Jornada da Conta</h4>
 
     <form action="<?= htmlspecialchars($actionUrl) ?>" id="filtros-form" method="GET">
@@ -542,7 +542,7 @@ th.th-acoes {
                 } else {
                     $wrap.html(
                         '<div class="p-3 border rounded text-danger"><b>Erro:</b> #table-container não encontrado na resposta.</div>'
-                        );
+                    );
                 }
                 history.pushState(null, '', url);
             },

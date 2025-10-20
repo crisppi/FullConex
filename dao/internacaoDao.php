@@ -56,7 +56,6 @@ class internacaoDAO implements internacaoDAOInterface
         $internacao->hora_intern_int = $data['hora_intern_int'];
         $internacao->num_atendimento_int = $data['num_atendimento_int'] ?? null;
 
-
         //dados de visita enfermagem
 
         return $internacao;
@@ -3041,13 +3040,16 @@ WHERE
      */
     public function selectAllProrrogacao($where = '', $ordenar = 'p.prorrog1_ini_pror ASC', $limit = null)
     {
-        $pick = function (string $table, array $cands) {
+        // >>>>>>>>> ÚNICA ALTERAÇÃO: substituir arrow function por closure compatível <<<<<<<<
+        $pick = function ($table, $cands) {
             foreach ($cands as $c) {
-                if ($this->hasColumn($table, $c))
+                if ($this->hasColumn($table, $c)) {
                     return $c;
+                }
             }
             return null;
         };
+        // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
         // Internação: PK e FKs
         $intPk = $pick('tb_internacao', ['id_internacao', 'id_intern', 'cod_internacao', 'pk_internacao']) ?? 'id_internacao';

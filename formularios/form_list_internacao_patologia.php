@@ -45,7 +45,7 @@ $internacao = new internacaoDAO($conn, $BASE_URL);
 <script src="./js/ajaxNav.js"></script>
 <link rel="stylesheet" href="css/style.css">
 
-<div class="container-fluid form_container" id='main-container' style="margin-top:12px">
+<div class="container-fluid form_container" id='main-container' style="margin-top:-25px">
 
     <h4 class="page-title">Patologia - Internações</h4>
 
@@ -243,66 +243,66 @@ $internacao = new internacaoDAO($conn, $BASE_URL);
                             extract($query);
 
                         ?>
-                            <tr style="font-size:15px">
-                                <td scope="row" class="col-id">
-                                    <?= $intern["id_internacao"] ?>
-                                </td>
-                                <td scope="row" class="nome-coluna-table">
-                                    <?php if ($intern["internado_int"] == "s") {
+                        <tr style="font-size:15px">
+                            <td scope="row" class="col-id">
+                                <?= $intern["id_internacao"] ?>
+                            </td>
+                            <td scope="row" class="nome-coluna-table">
+                                <?php if ($intern["internado_int"] == "s") {
                                         echo "Sim";
                                     } else {
                                         echo "Não";
                                     }; ?>
-                                </td>
-                                <td scope="row" class="nome-coluna-table">
-                                    <?= $intern["nome_hosp"] ?>
-                                </td>
-                                <td scope="row">
-                                    <?= $intern["nome_pac"] ?>
-                                </td>
-                                <td scope="row">
-                                    <?= $intern["senha_int"] ?>
-                                </td>
-                                <td scope="row">
-                                    <?= date('d/m/Y', strtotime($intern["data_intern_int"])) ?>
-                                </td>
-                                <td scope="row" style="font-weight:400">
-                                    <?= $intern["patologia_pat"] ?>
-                                </td>
+                            </td>
+                            <td scope="row" class="nome-coluna-table">
+                                <?= $intern["nome_hosp"] ?>
+                            </td>
+                            <td scope="row">
+                                <?= $intern["nome_pac"] ?>
+                            </td>
+                            <td scope="row">
+                                <?= $intern["senha_int"] ?>
+                            </td>
+                            <td scope="row">
+                                <?= date('d/m/Y', strtotime($intern["data_intern_int"])) ?>
+                            </td>
+                            <td scope="row" style="font-weight:400">
+                                <?= $intern["patologia_pat"] ?>
+                            </td>
 
-                                <td scope="row">
-                                    <?php
+                            <td scope="row">
+                                <?php
                                     $diasintern = date("Y-m-d", strtotime($intern['data_intern_int']));
                                     $dataIntern = new DateTime($diasintern);
                                     $diasIntern = $dataIntern->diff($atual);
                                     echo "<span style='font-size:1.2em; color:blue; font-weight:800;'>{$diasIntern->days}</span>";
                                     $qtdDias = $diasIntern->days;
                                     ?>
-                                <td scope="row" style="font-size:1em; font-weight:800">
-                                    <?= $intern["dias_pato"] != '' ? $intern["dias_pato"] : "--" ?>
-                                </td>
-                                </td>
-                                <?php
+                            <td scope="row" style="font-size:1em; font-weight:800">
+                                <?= $intern["dias_pato"] != '' ? $intern["dias_pato"] : "--" ?>
+                            </td>
+                            </td>
+                            <?php
                                 if ($intern["dias_pato"] != '') {
                                     $var_dias = (number_format($intern["dias_pato"]) - (number_format($qtdDias)));
                                 } else {
                                     $var_dias = 0;
                                 }
                                 ?>
-                                <td scope="row" <?php
+                            <td scope="row" <?php
                                                 if ($var_dias >= 0) { ?>
-                                    style="font-size:1em;color:green; font-weight:600" <?php
+                                style="font-size:1em;color:green; font-weight:600" <?php
                                                                                     } else { ?>
-                                    style="font-size:1em;color:red; font-weight:800" <?php
+                                style="font-size:1em;color:red; font-weight:800" <?php
                                                                                     } ?> ?>
-                                    <?php echo $var_dias ?>
-                                    <?php
+                                <?php echo $var_dias ?>
+                                <?php
                                     if ($var_dias < 0) { ?>
-                                        <i style="font-size:larger"></i>
-                                    <?php } ?>
-                                </td>
-                                <td scope="row">
-                                    <?php
+                                <i style="font-size:larger"></i>
+                                <?php } ?>
+                            </td>
+                            <td scope="row">
+                                <?php
                                     $condicoesPreditivo = [
                                         strlen($intern["fk_patologia_int"]) ? 'ac.fk_patologia_int = ' . $intern["fk_patologia_int"] : null,
                                         strlen($intern["intern_antec_ant_int"]) ? 'an.intern_antec_ant_int = ' . $intern["intern_antec_ant_int"] : null,
@@ -323,56 +323,56 @@ $internacao = new internacaoDAO($conn, $BASE_URL);
                                     // Imprime o valor convertido
                                     echo "<span style='font-size:1.4em; color:orange; font-weight:800;'>$valorInteiro</span>";
                                     ?>
-                                </td>
+                            </td>
 
-                                <td class="action">
-                                    <div class="dropdown">
-                                        <button class="btn btn-default dropdown-toggle" id="navbarScrollingDropdown"
-                                            role="button" data-bs-toggle="dropdown" style="color:#5e2363"
-                                            aria-expanded="false">
-                                            <i class="bi bi-stack"></i>
-                                        </button>
-                                        <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
-                                            <li>
-                                                <button class="btn btn-default"
-                                                    onclick="edit('<?= $BASE_URL ?>show_internacao_patologia.php?id_internacao=<?= $intern['id_internacao'] ?>')"
-                                                    style="font-size: .9rem;"><i class="fas fa-eye"
-                                                        style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
-                                                    Ver</button>
-                                            </li>
-                                            <li>
-                                                <?php
+                            <td class="action">
+                                <div class="dropdown">
+                                    <button class="btn btn-default dropdown-toggle" id="navbarScrollingDropdown"
+                                        role="button" data-bs-toggle="dropdown" style="color:#5e2363"
+                                        aria-expanded="false">
+                                        <i class="bi bi-stack"></i>
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
+                                        <li>
+                                            <button class="btn btn-default"
+                                                onclick="edit('<?= $BASE_URL ?>show_internacao_patologia.php?id_internacao=<?= $intern['id_internacao'] ?>')"
+                                                style="font-size: .9rem;"><i class="fas fa-eye"
+                                                    style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
+                                                Ver</button>
+                                        </li>
+                                        <li>
+                                            <?php
                                                 if ($intern['internado_int'] == "s" and $intern['censo_int'] == "s") { ?>
-                                                    <button class="btn btn-default"
-                                                        onclick="edit('<?= $BASE_URL ?>cad_internacao_censo.php?id_internacao=<?= $intern['id_internacao'] ?>')"><i
-                                                            name="type" value="visita" class="bi bi-file-text"
-                                                            style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);">
-                                                            Rel
-                                                            inicial</i></button>
-                                                <?php } else { ?>
-                                                    <button class="btn btn-default"
-                                                        onclick="edit('<?= $BASE_URL ?>cad_visita.php?id_internacao=<?= $intern['id_internacao'] ?>')"
-                                                        style="font-size: .9rem;"><i name="type" value="visita"
-                                                            class="bi bi-file-text"
-                                                            style="font-size: 1rem;margin-right:5px; color: rgb(67, 125, 525);">
-                                                        </i>Visita</button>
-                                                <?php } ?>
-                                            </li>
-                                            <?php if ($pesqInternado == "s") { ?>
-                                                <form class="d-inline-block delete-form" action="edit_alta.php" method="get">
-                                                    <input type="hidden" name="type" value="alta">
-                                                    <input type="hidden" name="id_internacao"
-                                                        value="<?= $intern["id_internacao"] ?>">
-                                                    <button class="btn btn-default" class="delete-btn" style="font-size: .9rem;"
-                                                        style="font-size: .9rem;"><i class="bi bi-door-open"
-                                                            style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);">
-                                                        </i>Alta</button>
-                                                </form>
-                                            <?php }; ?>
-                                        </ul>
-                                    </div>
-                                </td>
-                            </tr>
+                                            <button class="btn btn-default"
+                                                onclick="edit('<?= $BASE_URL ?>cad_internacao_censo.php?id_internacao=<?= $intern['id_internacao'] ?>')"><i
+                                                    name="type" value="visita" class="bi bi-file-text"
+                                                    style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);">
+                                                    Rel
+                                                    inicial</i></button>
+                                            <?php } else { ?>
+                                            <button class="btn btn-default"
+                                                onclick="edit('<?= $BASE_URL ?>cad_visita.php?id_internacao=<?= $intern['id_internacao'] ?>')"
+                                                style="font-size: .9rem;"><i name="type" value="visita"
+                                                    class="bi bi-file-text"
+                                                    style="font-size: 1rem;margin-right:5px; color: rgb(67, 125, 525);">
+                                                </i>Visita</button>
+                                            <?php } ?>
+                                        </li>
+                                        <?php if ($pesqInternado == "s") { ?>
+                                        <form class="d-inline-block delete-form" action="edit_alta.php" method="get">
+                                            <input type="hidden" name="type" value="alta">
+                                            <input type="hidden" name="id_internacao"
+                                                value="<?= $intern["id_internacao"] ?>">
+                                            <button class="btn btn-default" class="delete-btn" style="font-size: .9rem;"
+                                                style="font-size: .9rem;"><i class="bi bi-door-open"
+                                                    style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);">
+                                                </i>Alta</button>
+                                        </form>
+                                        <?php }; ?>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
                         <?php endforeach; ?>
                     </tbody>
                 </table>
@@ -388,51 +388,51 @@ $internacao = new internacaoDAO($conn, $BASE_URL);
 
                     <div class="pagination" style="margin: 0 auto;">
                         <?php if ($total_pages ?? 1 > 1): ?>
-                            <ul class="pagination">
-                                <?php
+                        <ul class="pagination">
+                            <?php
                                 $blocoAtual = isset($_GET['bl']) ? $_GET['bl'] : 0;
                                 $paginaAtual = isset($_GET['pag']) ? $_GET['pag'] : 1;
                                 ?>
-                                <?php if ($current_block > $first_block): ?>
-                                    <li class="page-item">
-                                        <a class="page-link" id="blocoNovo" href="#"
-                                            onclick="loadContent('list_internacao_patologia.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&pesqInternado=<?php print $pesqInternado ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print 1 ?>&bl=<?php print 0 ?>')">
-                                            <i class="fa-solid fa-angles-left"></i></a>
-                                    </li>
-                                <?php endif; ?>
-                                <?php if ($current_block <= $last_block && $last_block > 1 && $current_block != 1): ?>
-                                    <li class="page-item">
-                                        <a class="page-link" href="#"
-                                            onclick="loadContent('list_internacao_patologia.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&pesqInternado=<?php print $pesqInternado ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $paginaAtual - 1 ?>&bl=<?php print $blocoAtual - 5 ?>')">
-                                            <i class="fa-solid fa-angle-left"></i> </a>
-                                    </li>
-                                <?php endif; ?>
+                            <?php if ($current_block > $first_block): ?>
+                            <li class="page-item">
+                                <a class="page-link" id="blocoNovo" href="#"
+                                    onclick="loadContent('list_internacao_patologia.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&pesqInternado=<?php print $pesqInternado ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print 1 ?>&bl=<?php print 0 ?>')">
+                                    <i class="fa-solid fa-angles-left"></i></a>
+                            </li>
+                            <?php endif; ?>
+                            <?php if ($current_block <= $last_block && $last_block > 1 && $current_block != 1): ?>
+                            <li class="page-item">
+                                <a class="page-link" href="#"
+                                    onclick="loadContent('list_internacao_patologia.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&pesqInternado=<?php print $pesqInternado ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $paginaAtual - 1 ?>&bl=<?php print $blocoAtual - 5 ?>')">
+                                    <i class="fa-solid fa-angle-left"></i> </a>
+                            </li>
+                            <?php endif; ?>
 
-                                <?php for ($i = $first_page_in_block; $i <= $last_page_in_block; $i++): ?>
-                                    <li class="page-item <?php print ($_GET['pag'] ?? 1) == $i ? "active" : "" ?>">
+                            <?php for ($i = $first_page_in_block; $i <= $last_page_in_block; $i++): ?>
+                            <li class="page-item <?php print ($_GET['pag'] ?? 1) == $i ? "active" : "" ?>">
 
-                                        <a class="page-link" href="#"
-                                            onclick="loadContent('list_internacao_patologia.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&pesqInternado=<?php print $pesqInternado ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $i ?>&bl=<?php print $blocoAtual ?>')">
-                                            <?php echo $i; ?>
-                                        </a>
-                                    </li>
-                                <?php endfor; ?>
+                                <a class="page-link" href="#"
+                                    onclick="loadContent('list_internacao_patologia.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&pesqInternado=<?php print $pesqInternado ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $i ?>&bl=<?php print $blocoAtual ?>')">
+                                    <?php echo $i; ?>
+                                </a>
+                            </li>
+                            <?php endfor; ?>
 
-                                <?php if ($current_block < $last_block): ?>
-                                    <li class="page-item">
-                                        <a class="page-link" id="blocoNovo" href="#"
-                                            onclick="loadContent('list_internacao_patologia.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&pesqInternado=<?php print $pesqInternado ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $paginaAtual + 1 ?>&bl=<?php print $blocoAtual + 5 ?>')"><i
-                                                class="fa-solid fa-angle-right"></i></a>
-                                    </li>
-                                <?php endif; ?>
-                                <?php if ($current_block < $last_block): ?>
-                                    <li class="page-item">
-                                        <a class="page-link" id="blocoNovo" href="#"
-                                            onclick="loadContent('list_internacao_patologia.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&pesqInternado=<?php print $pesqInternado ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print count($paginas) ?>&bl=<?php print ($last_block - 1) * 5 ?>')"><i
-                                                class="fa-solid fa-angles-right"></i></a>
-                                    </li>
-                                <?php endif; ?>
-                            </ul>
+                            <?php if ($current_block < $last_block): ?>
+                            <li class="page-item">
+                                <a class="page-link" id="blocoNovo" href="#"
+                                    onclick="loadContent('list_internacao_patologia.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&pesqInternado=<?php print $pesqInternado ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $paginaAtual + 1 ?>&bl=<?php print $blocoAtual + 5 ?>')"><i
+                                        class="fa-solid fa-angle-right"></i></a>
+                            </li>
+                            <?php endif; ?>
+                            <?php if ($current_block < $last_block): ?>
+                            <li class="page-item">
+                                <a class="page-link" id="blocoNovo" href="#"
+                                    onclick="loadContent('list_internacao_patologia.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&pesqInternado=<?php print $pesqInternado ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print count($paginas) ?>&bl=<?php print ($last_block - 1) * 5 ?>')"><i
+                                        class="fa-solid fa-angles-right"></i></a>
+                            </li>
+                            <?php endif; ?>
+                        </ul>
                         <?php endif; ?>
                     </div>
 
@@ -451,46 +451,46 @@ $internacao = new internacaoDAO($conn, $BASE_URL);
 
 
 <script>
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
+var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
+});
 </script>
 
 
 <script>
-    // ajax para submit do formulario de pesquisa
-    $(document).ready(function() {
-        $('#select-internacao-form').submit(function(e) {
-            e.preventDefault(); // Impede o comportamento padrão de enviar o formulário
+// ajax para submit do formulario de pesquisa
+$(document).ready(function() {
+    $('#select-internacao-form').submit(function(e) {
+        e.preventDefault(); // Impede o comportamento padrão de enviar o formulário
 
-            var formData = $(this).serialize(); // Serializa os dados do formulário
+        var formData = $(this).serialize(); // Serializa os dados do formulário
 
-            $.ajax({
-                url: $(this).attr('action'), // URL do formulário
-                type: $(this).attr('method'), // Método do formulário (POST)
-                data: formData, // Dados serializados do formulário
-                success: function(response) {
-                    // Crie um elemento temporário para armazenar a resposta HTML
-                    var tempElement = document.createElement('div');
-                    tempElement.innerHTML = response;
+        $.ajax({
+            url: $(this).attr('action'), // URL do formulário
+            type: $(this).attr('method'), // Método do formulário (POST)
+            data: formData, // Dados serializados do formulário
+            success: function(response) {
+                // Crie um elemento temporário para armazenar a resposta HTML
+                var tempElement = document.createElement('div');
+                tempElement.innerHTML = response;
 
-                    // Encontre o elemento com o ID "table-content" dentro do elemento temporário
-                    var tableContent = tempElement.querySelector('#table-content');
-                    $('#table-content').html(tableContent);
-                },
-                error: function() {
-                    $('#responseMessage').html('Ocorreu um erro ao enviar o formulário.');
-                }
-            });
+                // Encontre o elemento com o ID "table-content" dentro do elemento temporário
+                var tableContent = tempElement.querySelector('#table-content');
+                $('#table-content').html(tableContent);
+            },
+            error: function() {
+                $('#responseMessage').html('Ocorreu um erro ao enviar o formulário.');
+            }
         });
     });
+});
 
-    $(document).ready(function() {
-        loadContent(
-            'list_internacao_patologia.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&pesqInternado=<?php print $pesqInternado ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print 1 ?>&bl=<?php print 0 ?>'
-        );
-    });
+$(document).ready(function() {
+    loadContent(
+        'list_internacao_patologia.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&pesqInternado=<?php print $pesqInternado ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print 1 ?>&bl=<?php print 0 ?>'
+    );
+});
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
@@ -501,5 +501,5 @@ $internacao = new internacaoDAO($conn, $BASE_URL);
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    src = "https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js";
+src = "https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js";
 </script>
