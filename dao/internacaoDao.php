@@ -2631,7 +2631,7 @@ class internacaoDAO implements internacaoDAOInterface
         vi.visita_auditor_prof_enf,
         vi.visita_med_vis,
         vi.visita_enf_vis,
-        vi.data_visita_vis.,
+        vi.data_visita_vis,
         pt.id_patologia,
         pt.patologia_pat,
         pt.dias_pato
@@ -3132,6 +3132,82 @@ WHERE
         if ($limit !== null) {
             $limit = (int) $limit;
             $sql .= " LIMIT $limit";
+        }
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    public function selectAllInternacaoCap2($where = null, $order = null, $limit = null)
+    {
+        $sql = "
+        SELECT
+            -- INTERNACAO (sempre base; permite criar capeante sem já existir capeante)
+            ac.id_internacao,
+            ac.data_intern_int,
+            ac.senha_int,
+            ac.acomodacao_int,
+
+            -- PACIENTE / HOSPITAL
+            pa.nome_pac,
+            ho.nome_hosp,
+
+            -- CAPEANTE (pode não existir ainda)
+            ca.id_capeante,
+            ca.fk_int_capeante,
+            ca.parcial_capeante,
+            ca.parcial_num,
+            ca.data_inicial_capeante,
+            ca.data_final_capeante,
+            ca.valor_apresentado_capeante,
+            ca.valor_final_capeante
+
+        FROM tb_internacao ac
+        LEFT JOIN tb_capeante ca
+               ON ca.fk_int_capeante = ac.id_internacao
+        LEFT JOIN tb_paciente pa
+               ON pa.id_paciente = ac.fk_paciente_int
+        LEFT JOIN tb_hospital ho
+               ON ho.id_hospital = ac.fk_hospital_int
+        WHERE 1=1
+    ";
+
+        if (!empty($where)) {
+            $sql .= " AND ($where) ";
+        }
+
+        // Whitelist de colunas que realmente existem no SELECT acima
+        $allowedOrder = [
+            'ac.id_internacao',
+            'ac.data_intern_int',
+            'pa.nome_pac',
+            'ho.nome_hosp',
+            'ca.id_capeante'
+        ];
+
+        if (!empty($order)) {
+            $parts = array_map('trim', explode(',', $order));
+            $clean = [];
+            foreach ($parts as $p) {
+                if (preg_match('/^([a-z_]+\.)?[a-z_]+(\s+(ASC|DESC))?$/i', $p)) {
+                    $col = preg_split('/\s+/', $p)[0];
+                    $dir = strtoupper(preg_split('/\s+/', $p)[1] ?? '');
+                    if (in_array($col, $allowedOrder, true)) {
+                        $clean[] = $col . (in_array($dir, ['ASC', 'DESC'], true) ? " $dir" : '');
+                    }
+                }
+            }
+            if ($clean) {
+                $sql .= " ORDER BY " . implode(', ', $clean);
+            }
+        }
+
+        if (!empty($limit)) {
+            if (preg_match('/^\s*\d+\s*(,\s*\d+\s*)?$/', $limit)) {
+                $sql .= " LIMIT $limit";
+            } else {
+                $sql .= " LIMIT " . (int)$limit;
+            }
         }
 
         $stmt = $this->conn->prepare($sql);

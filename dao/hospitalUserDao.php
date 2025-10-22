@@ -1,349 +1,284 @@
 <?php
 
 require_once("./models/message.php");
-
-// Review DAO
 require_once("./models/hospitalUser.php");
-require_once("dao/hospitalUserDao.php");
 
 class hospitalUserDAO implements hospitalUserDAOInterface
 {
-
     private $conn;
     private $url;
     public $message;
 
+    // Tabelas (ajuste os nomes se no seu banco forem diferentes)
+    private const TBL_LINK = 'tb_hospitalUser';
+    private const TBL_HOSP = 'tb_hospital';
+    private const TBL_USER = 'tb_user';
+
     public function __construct(PDO $conn, $url)
     {
-        $this->conn = $conn;
-        $this->url = $url;
+        $this->conn    = $conn;
+        $this->url     = $url;
         $this->message = new Message($url);
+
+        // Modo seguro
+        $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $this->conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
     }
 
+    /* ==========================
+       BUILD (public p/ interface)
+    ========================== */
     public function buildhospitalUser($data)
     {
-        $hospitalUser = new hospitalUser();
-
-        $hospitalUser->id_hospitalUser = $data["id_hospitalUser"];
-        $hospitalUser->fk_usuario_hosp = $data["fk_usuario_hosp"];
-        $hospitalUser->fk_hospital_user = $data["fk_hospital_user"];
-
-        return $hospitalUser;
+        $hu = new hospitalUser();
+        $hu->id_hospitalUser  = isset($data["id_hospitalUser"])  ? (int)$data["id_hospitalUser"]  : null;
+        $hu->fk_usuario_hosp  = isset($data["fk_usuario_hosp"])  ? (int)$data["fk_usuario_hosp"]  : null;
+        $hu->fk_hospital_user = isset($data["fk_hospital_user"]) ? (int)$data["fk_hospital_user"] : null;
+        return $hu;
     }
 
+    /* ==========================
+       CRUD básico
+    ========================== */
     public function findAll()
     {
-        $hospitalUser = [];
-
-        $stmt = $this->conn->prepare("SELECT * FROM tb_hospitalUser
-        ORDER BY id_hospitalUser asc");
-
-        $stmt->execute();
-
-        $hospitalUser = $stmt->fetchAll();
-        return $hospitalUser;
-    }
-
-
-    public function findByHosp($pesquisa_nome)
-    {
-
-        $hospitalUser = [];
-
-        $stmt = $this->conn->prepare("SELECT * FROM tb_hospitalUser
-                                    WHERE nome_hosp LIKE :nome_hosp ");
-
-        $stmt->bindValue(":nome_hosp", '%' . $pesquisa_nome . '%');
-
-        $stmt->execute();
-
-        $hospitalUser = $stmt->fetchAll();
-        return $hospitalUser;
-    }
-
-    public function gethospitalUser()
-    {
-
-        $hospitalUser = [];
-
-        $stmt = $this->conn->query("SELECT * FROM tb_hospitalUser ORDER BY id_hospitalUser asc");
-
-        $stmt->execute();
-
-        if ($stmt->rowCount() > 0) {
-
-            $hospitalUserArray = $stmt->fetchAll();
-
-            foreach ($hospitalUserArray as $hospitalUser) {
-                $hospitalUser[] = $this->buildhospitalUser($hospitalUser);
-            }
-        }
-
-        return $hospitalUser;
+        $sql = "SELECT * FROM " . self::TBL_LINK . " ORDER BY id_hospitalUser ASC";
+        return $this->conn->query($sql)->fetchAll();
     }
 
     public function findById($id_hospitalUser)
     {
-        $hospitalUser = [];
-        $stmt = $this->conn->prepare("SELECT * FROM tb_hospitalUser  
-        
-        WHERE id_hospitalUser = $id_hospitalUser");
-
-        $stmt->execute();
-
-        $hospitalUser = $stmt->fetch();
-        // print_r($hospitalUser);
-        // exit;
-        // $hospitalUser = $this->buildhospitalUser($stmt);
-        // print_r($hospitalUser);
-        // exit;
-
-        return $hospitalUser;
+        $sql = "SELECT * FROM " . self::TBL_LINK . " WHERE id_hospitalUser = :id LIMIT 1";
+        $st  = $this->conn->prepare($sql);
+        $st->bindValue(":id", (int)$id_hospitalUser, PDO::PARAM_INT);
+        $st->execute();
+        return $st->fetch() ?: [];
     }
 
     public function create(hospitalUser $hospitalUser)
     {
+        $sql = "INSERT INTO " . self::TBL_LINK . " (fk_usuario_hosp, fk_hospital_user)
+                VALUES (:u, :h)";
+        $st = $this->conn->prepare($sql);
+        $st->bindValue(":u", $hospitalUser->fk_usuario_hosp,  PDO::PARAM_INT);
+        $st->bindValue(":h", $hospitalUser->fk_hospital_user, PDO::PARAM_INT);
+        $st->execute();
 
-        $stmt = $this->conn->prepare("INSERT INTO tb_hospitalUser (
-        fk_usuario_hosp, 
-        fk_hospital_user 
-        
-      ) VALUES (
-        :fk_usuario_hosp, 
-        :fk_hospital_user
-        
-     )");
-
-        $stmt->bindParam(":fk_usuario_hosp", $hospitalUser->fk_usuario_hosp);
-        $stmt->bindParam(":fk_hospital_user", $hospitalUser->fk_hospital_user);
-
-        $stmt->execute();
-
-        // Mensagem de sucesso por adicionar filme
-        $this->message->setMessage("hospitalUser adicionado com sucesso!", "success", "list_hospitalUser.php");
+        $this->message->setMessage("Vínculo criado com sucesso!", "success", "list_hospitalUser.php");
     }
 
     public function update(hospitalUser $hospitalUser)
     {
+        $sql = "UPDATE " . self::TBL_LINK . "
+                   SET fk_usuario_hosp = :u,
+                       fk_hospital_user = :h
+                 WHERE id_hospitalUser = :id";
+        $st = $this->conn->prepare($sql);
+        $st->bindValue(":u",  $hospitalUser->fk_usuario_hosp,  PDO::PARAM_INT);
+        $st->bindValue(":h",  $hospitalUser->fk_hospital_user, PDO::PARAM_INT);
+        $st->bindValue(":id", $hospitalUser->id_hospitalUser,  PDO::PARAM_INT);
+        $st->execute();
 
-        $stmt = $this->conn->prepare("UPDATE tb_hospitalUser SET
-        fk_usuario_hosp = :fk_usuario_hosp,
-        fk_hospital_user = :fk_hospital_user
-
-        WHERE id_hospitalUser = :id_hospitalUser 
-      ");
-
-        $stmt->bindParam(":fk_usuario_hosp", $hospitalUser->fk_usuario_hosp);
-        $stmt->bindParam(":fk_hospital_user", $hospitalUser->fk_hospital_user);
-
-        $stmt->bindParam(":id_hospitalUser", $hospitalUser->id_hospitalUser);
-
-        $stmt->execute();
-
-        // Mensagem de sucesso por editar hospitalUser
-        $this->message->setMessage("hospitalUser atualizado com sucesso!", "success", "list_hospitalUser.php");
+        $this->message->setMessage("Vínculo atualizado com sucesso!", "success", "list_hospitalUser.php");
     }
 
     public function destroy($id_hospitalUser)
     {
-        $stmt = $this->conn->prepare("DELETE FROM tb_hospitalUser WHERE id_hospitalUser = :id_hospitalUser");
+        $sql = "DELETE FROM " . self::TBL_LINK . " WHERE id_hospitalUser = :id";
+        $st  = $this->conn->prepare($sql);
+        $st->bindValue(":id", (int)$id_hospitalUser, PDO::PARAM_INT);
+        $st->execute();
 
-        $stmt->bindParam(":id_hospitalUser", $id_hospitalUser);
-
-        $stmt->execute();
-
-        // Mensagem de sucesso por remover filme
-        $this->message->setMessage("hospitalUser removido com sucesso!", "success", "list_hospitalUser.php");
+        $this->message->setMessage("Vínculo removido com sucesso!", "success", "list_hospitalUser.php");
     }
 
-
+    /* ==========================
+       Consultas auxiliares
+    ========================== */
     public function findGeral()
     {
+        $sql = "SELECT * FROM " . self::TBL_LINK . " ORDER BY id_hospitalUser ASC";
+        return $this->conn->query($sql)->fetchAll();
+    }
 
-        $hospitalUser = [];
+    public function findByHosp($pesquisa_nome)
+    {
+        // Busca por nome do hospital (JOIN correto)
+        $sql = "SELECT 
+                    hu.*,
+                    h.nome_hosp
+                FROM " . self::TBL_LINK . " hu
+                LEFT JOIN " . self::TBL_HOSP . " h ON h.id_hospital = hu.fk_hospital_user
+                WHERE h.nome_hosp LIKE :nome
+                ORDER BY h.nome_hosp";
+        $st = $this->conn->prepare($sql);
+        $st->bindValue(":nome", "%{$pesquisa_nome}%");
+        $st->execute();
+        return $st->fetchAll();
+    }
 
-        $stmt = $this->conn->query("SELECT * FROM tb_hospitalUser ORDER BY id_hospitalUser asc");
-
-        $stmt->execute();
-
-        $hospitalUser = $stmt->fetchAll();
-
-        return $hospitalUser;
+    public function gethospitalUser()
+    {
+        $sql = "SELECT * FROM " . self::TBL_LINK . " ORDER BY id_hospitalUser ASC";
+        $rows = $this->conn->query($sql)->fetchAll();
+        $out = [];
+        foreach ($rows as $row) {
+            $out[] = $this->buildhospitalUser($row);
+        }
+        return $out;
     }
 
     public function selectAllhospitalUser($where = null, $order = null, $limit = null)
     {
-        //DADOS DA QUERY
-        $where  = !empty($where)  ? 'WHERE '    . $where  : '';
-        $order  = !empty($order)  ? 'ORDER BY ' . $order  : '';
-        $limit  = !empty($limit)  ? 'LIMIT '    . $limit  : '';
+        $where = !empty($where) ? "WHERE {$where}" : "";
+        $order = !empty($order) ? "ORDER BY {$order}" : "";
+        $limit = !empty($limit) ? "LIMIT {$limit}" : "";
 
-
-        //MONTA A QUERY
-        $query = $this->conn->query('SELECT 
-        
-        hu.id_hospitalUser,
-        hu.fk_usuario_hosp,
-        hu.fk_hospital_user,
-        ho.id_hospital,
-        us.id_usuario,
-        us.usuario_user,
-        us.email_user,
-        us.cargo_user,
-        us.nivel_user,
-        us.ativo_user,
-        ho.nome_hosp 
-        
-        FROM tb_hospitalUser hu 
-
-        left JOIN tb_hospital as ho On  
-        hu.fk_hospital_user = ho.id_hospital
-        
-		left JOIN tb_user as us On  
-        hu.fk_usuario_hosp = us.id_usuario
-        
-         ' . $where . ' ' . $order . ' ' . $limit);
-
-        $query->execute();
-
-        $hospitalUser = $query->fetchAll();
-
-        return $hospitalUser;
+        $sql = "SELECT 
+                    hu.id_hospitalUser,
+                    hu.fk_usuario_hosp,
+                    hu.fk_hospital_user,
+                    h.id_hospital,
+                    h.nome_hosp,
+                    u.id_usuario,
+                    u.usuario_user,
+                    u.email_user,
+                    u.cargo_user,
+                    u.nivel_user,
+                    u.ativo_user
+                FROM " . self::TBL_LINK . " hu
+                LEFT JOIN " . self::TBL_HOSP . " h ON h.id_hospital = hu.fk_hospital_user
+                LEFT JOIN " . self::TBL_USER . " u ON u.id_usuario  = hu.fk_usuario_hosp
+                {$where} {$order} {$limit}";
+        return $this->conn->query($sql)->fetchAll();
     }
-
 
     public function QtdhospitalUser($where = null, $order = null, $limite = null)
     {
-        $hospitalUser = [];
-        //DADOS DA QUERY
-        $where  = !empty($where)  ? 'WHERE '    . $where  : '';
-        $order  = !empty($order)  ? 'ORDER BY ' . $order  : '';
-        $limit  = !empty($limit)  ? 'LIMIT '    . $limit  : '';
+        $where = !empty($where) ? "WHERE {$where}" : "";
+        $order = !empty($order) ? "ORDER BY {$order}" : "";
+        $limit = !empty($limite) ? "LIMIT {$limite}" : "";
 
-
-        $stmt = $this->conn->query('SELECT hu.id_hospitalUser,
-        hu.fk_usuario_hosp,
-        hu.fk_hospital_user,
-        ho.id_hospital,
-        us.id_usuario,
-        us.usuario_user,
-        us.cargo_user,
-        ho.nome_hosp,
-        COUNT(id_hospitalUser) as qtd
-        
-        FROM tb_hospitalUser hu 
-
-        left JOIN tb_hospital as ho On  
-        hu.fk_hospital_user = ho.id_hospital
-        
-		left JOIN tb_user as us On  
-        hu.fk_usuario_hosp = us.id_usuario ' . $where . ' ' . $order . ' ' . $limite);
-
-        $stmt->execute();
-
-        $QtdTotalHosp = $stmt->fetch();
-
-        return $QtdTotalHosp;
+        $sql = "SELECT COUNT(hu.id_hospitalUser) AS qtd
+                FROM " . self::TBL_LINK . " hu
+                LEFT JOIN " . self::TBL_HOSP . " h ON h.id_hospital = hu.fk_hospital_user
+                LEFT JOIN " . self::TBL_USER . " u ON u.id_usuario  = hu.fk_usuario_hosp
+                {$where} {$order} {$limit}";
+        $row = $this->conn->query($sql)->fetch();
+        return $row ?: ['qtd' => 0];
     }
+
     public function selecHospUser($id_usuario)
     {
-        //MONTA A QUERY
-        $query = $this->conn->query('SELECT 
-        
-        hu.id_hospitalUser,
-        hu.fk_usuario_hosp,
-        hu.fk_hospital_user,
-        ho.id_hospital,
-        us.id_usuario,
-        us.usuario_user,
-        us.cargo_user,
-        ho.nome_hosp 
-        
-        FROM tb_hospitalUser hu 
-
-        left JOIN tb_hospital as ho On  
-        hu.fk_hospital_user = ho.id_hospital
-        
-		left JOIN tb_user as us On  
-        hu.fk_usuario_hosp = us.id_usuario
-
-        WHERE id_hospital_user = $id_usuario
-        
-        ');
-
-        $query->execute();
-
-        $hospitalUser = $query->fetchAll();
-
-        return $hospitalUser;
+        // Vínculos por USUÁRIO (lista)
+        $sql = "SELECT 
+                    hu.id_hospitalUser,
+                    hu.fk_usuario_hosp,
+                    hu.fk_hospital_user,
+                    h.id_hospital,
+                    h.nome_hosp,
+                    u.id_usuario,
+                    u.usuario_user,
+                    u.cargo_user
+                FROM " . self::TBL_LINK . " hu
+                LEFT JOIN " . self::TBL_HOSP . " h ON h.id_hospital = hu.fk_hospital_user
+                LEFT JOIN " . self::TBL_USER . " u ON u.id_usuario  = hu.fk_usuario_hosp
+                WHERE hu.fk_usuario_hosp = :id";
+        $st = $this->conn->prepare($sql);
+        $st->bindValue(":id", (int)$id_usuario, PDO::PARAM_INT);
+        $st->execute();
+        return $st->fetchAll();
     }
-    public function joinHospitalUser($id_user)
-    {
-        $stmt = $this->conn->prepare("
-            SELECT 
-                hu.id_hospitalUser,
-                hu.fk_usuario_hosp,
-                hu.fk_hospital_user,
-                ho.nome_hosp,
-                hu.fk_hospital_user as fk_hospital_int,
-                hu.fk_hospital_user as id_hospital,
-                us.usuario_user,
-                us.email_user,
-                us.id_usuario,
-                us.cargo_user
-            FROM tb_hospitalUser hu
-            LEFT JOIN tb_hospital ho ON hu.fk_hospital_user = ho.id_hospital
-            LEFT JOIN tb_user us ON hu.fk_usuario_hosp = us.id_usuario
-            WHERE hu.fk_usuario_hosp = :id_usuario
-        ");
-
-        $stmt->bindValue(":id_usuario", $id_user, PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
 
     public function joinHospitalUserAll()
-
     {
-        $stmt = $this->conn->query("SELECT 
-        
-        hu.id_hospitalUser,
-        hu.fk_usuario_hosp,
-        hu.fk_hospital_user,
-        ho.id_hospital,
-        us.id_usuario,
-        us.usuario_user,
-        ho.nome_hosp 
-        
-        FROM tb_hospitalUser hu 
-
-        left JOIN tb_hospital as ho On  
-        hu.fk_hospital_user = ho.id_hospital
-        
-		left JOIN tb_user as us On  
-        hu.fk_usuario_hosp = us.id_usuario
-                  ");
-
-        $stmt->execute();
-
-        $hospitalUserJoin = $stmt->fetchAll();
-        return $hospitalUserJoin;
+        $sql = "SELECT 
+                    hu.id_hospitalUser,
+                    hu.fk_usuario_hosp,
+                    hu.fk_hospital_user,
+                    h.id_hospital,
+                    h.nome_hosp,
+                    u.id_usuario,
+                    u.usuario_user
+                FROM " . self::TBL_LINK . " hu
+                LEFT JOIN " . self::TBL_HOSP . " h ON h.id_hospital = hu.fk_hospital_user
+                LEFT JOIN " . self::TBL_USER . " u ON u.id_usuario  = hu.fk_usuario_hosp
+                ORDER BY hu.id_hospitalUser ASC";
+        return $this->conn->query($sql)->fetchAll();
     }
 
-    public function findByIdUser($id_hospitalUser)
+    /* ==========================
+       Métodos p/ telas
+    ========================== */
+
+    /** Busca UMA linha por PK (use na tela de edição pelo id_hospitalUser) */
+    public function findByPk(int $id_hospitalUser): ?array
     {
-        $hospitalUser = [];
-        $stmt = $this->conn->prepare("SELECT * FROM tb_hospitalUser
-                                    WHERE id_hospitalUser = :id_hospitalUser");
-        $stmt->bindParam(":id_hospitalUser", $id_hospitalUser);
-        $stmt->execute();
+        $sql = "SELECT 
+                    hu.id_hospitalUser,
+                    hu.fk_usuario_hosp,
+                    hu.fk_hospital_user,
+                    h.nome_hosp,
+                    u.usuario_user,
+                    u.email_user,
+                    u.cargo_user
+                FROM " . self::TBL_LINK . " hu
+                LEFT JOIN " . self::TBL_HOSP . " h ON h.id_hospital = hu.fk_hospital_user
+                LEFT JOIN " . self::TBL_USER . " u ON u.id_usuario  = hu.fk_usuario_hosp
+                WHERE hu.id_hospitalUser = :id
+                LIMIT 1";
+        $st = $this->conn->prepare($sql);
+        $st->bindValue(":id", $id_hospitalUser, PDO::PARAM_INT);
+        $st->execute();
+        $row = $st->fetch();
+        return $row ?: null;
+    }
 
-        $data = $stmt->fetch();
-        // var_dump($data);
-        $hospitalUser = $this->buildhospitalUser($data);
+    /**
+     * Compatibilidade: este método existia no seu projeto.
+     * Aceita um ID e tenta:
+     *  1) achar por PK (id_hospitalUser);
+     *  2) se não achar, usa como id de USUÁRIO (fk_usuario_hosp) e retorna a 1ª linha.
+     * Retorno: UMA linha (array associativo) ou [].
+     */
+    public function joinHospitalUser($id)
+    {
+        $id = (int)$id;
 
-        return $hospitalUser;
+        // 1) tenta como PK
+        $row = $this->findByPk($id);
+        if ($row) return $row;
+
+        // 2) tenta como id do usuário (pega a primeira)
+        $sql = "SELECT 
+                    hu.id_hospitalUser,
+                    hu.fk_usuario_hosp,
+                    hu.fk_hospital_user,
+                    h.nome_hosp,
+                    u.usuario_user,
+                    u.email_user,
+                    u.cargo_user
+                FROM " . self::TBL_LINK . " hu
+                LEFT JOIN " . self::TBL_HOSP . " h ON h.id_hospital = hu.fk_hospital_user
+                LEFT JOIN " . self::TBL_USER . " u ON u.id_usuario  = hu.fk_usuario_hosp
+                WHERE hu.fk_usuario_hosp = :id
+                ORDER BY hu.id_hospitalUser ASC
+                LIMIT 1";
+        $st = $this->conn->prepare($sql);
+        $st->bindValue(":id", $id, PDO::PARAM_INT);
+        $st->execute();
+        return $st->fetch() ?: [];
+    }
+
+    /**
+     * EXIGÊNCIA DA INTERFACE:
+     * Busca por ID de USUÁRIO (fk_usuario_hosp).
+     * Se a interface esperar UMA linha, devolvemos a primeira.
+     * Se preferir todas as linhas, troque para "return $rows;".
+     */
+    public function findByIdUser($id_usuario)
+    {
+        $rows = $this->selecHospUser((int)$id_usuario);
+        return $rows[0] ?? [];
     }
 }

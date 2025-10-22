@@ -1,135 +1,160 @@
 <?php
-// DEBUG TEMPORÁRIO (REMOVER APÓS TESTE)
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 ini_set('log_errors', '1');
 error_reporting(E_ALL);
-include_once("check_logado.php");
-include_once("check_logado.php");
 
+include_once("check_logado.php");
 require_once("templates/header.php");
 
 require_once("models/hospitalUser.php");
 require_once("dao/hospitalUserDao.php");
 
-require_once("models/message.php");
-include_once("check_logado.php");
+require_once("models/hospital.php");
+require_once("dao/hospitalDao.php");
 
-require_once("templates/header.php");
+require_once("models/usuario.php");
+require_once("dao/usuarioDao.php");
 
-include_once("models/internacao.php");
-include_once("dao/internacaoDao.php");
+/* Helpers */
+function h($v)
+{
+    return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
+}
 
-include_once("models/message.php");
-
-include_once("models/hospital.php");
-include_once("dao/hospitalDao.php");
-
-include_once("models/patologia.php");
-include_once("dao/patologiaDao.php");
-
-include_once("models/usuario.php");
-include_once("dao/usuarioDAO.php");
-
-include_once("models/uti.php");
-include_once("dao/utiDao.php");
-
-include_once("models/gestao.php");
-include_once("dao/gestaoDao.php");
-
-include_once("models/prorrogacao.php");
-include_once("dao/prorrogacaoDao.php");
-
-include_once("models/negociacao.php");
-include_once("dao/negociacaoDao.php");
-
-include_once("array_dados.php");
-
-$internacaoDao = new internacaoDAO($conn, $BASE_URL);
-
-$hospital_geral = new hospitalDAO($conn, $BASE_URL);
-$hospitals = $hospital_geral->findGeral($limite, $inicio);
-
-$usuarioDao = new userDAO($conn, $BASE_URL);
-$usuarios = $usuarioDao->findGeral($limite, $inicio);
-
+/* DAOs */
 $hospitalUserDao = new hospitalUserDAO($conn, $BASE_URL);
-// $hospitalUser = $hospitalUserDao->findGeral();
+$hospitalDAO     = new hospitalDAO($conn, $BASE_URL);
+$usuarioDao      = new userDAO($conn, $BASE_URL);
 
-// Receber id do usuário
-$id_hospitalUser = filter_input(INPUT_GET, "id_hospitalUser");
+/* Listas base (com fallback SQL) */
+$limite = 500;
+$inicio = 0;
 
+$hospitals = [];
+try {
+    $tmp = $hospitalDAO->findGeral($limite, $inicio);
+    if (is_array($tmp) && $tmp) $hospitals = $tmp;
+} catch (Throwable $e) {
+}
+if (!$hospitals) {
+    $hospitals = $conn->query("SELECT id_hospital, nome_hosp FROM tb_hospital ORDER BY nome_hosp")
+        ->fetchAll(PDO::FETCH_ASSOC);
+}
 
-$hospitalUser = $hospitalUserDao->joinHospitalUser($id_hospitalUser);
-// extract($hospitalUser);
+$usuarios = [];
+try {
+    $tmp = $usuarioDao->findGeral($limite, $inicio);
+    if (is_array($tmp) && $tmp) $usuarios = $tmp;
+} catch (Throwable $e) {
+}
+if (!$usuarios) {
+    $usuarios = $conn->query("SELECT id_usuario, usuario_user, email_user, cargo_user FROM tb_user ORDER BY usuario_user")
+        ->fetchAll(PDO::FETCH_ASSOC);
+}
 
+/* ID pela URL: aceita ?id_hospitalUser ou ?id */
+$idParam = filter_input(INPUT_GET, "id_hospitalUser", FILTER_VALIDATE_INT);
+if (!$idParam) {
+    $idParam = filter_input(INPUT_GET, "id", FILTER_VALIDATE_INT);
+}
+
+/* Buscar o vínculo de forma robusta */
+$hospitalUser = [];
+if ($idParam) {
+    if (method_exists($hospitalUserDao, 'findByPk')) {
+        $row = $hospitalUserDao->findByPk((int)$idParam);
+        if (is_array($row) && $row) $hospitalUser = $row;
+    }
+    if (!$hospitalUser && method_exists($hospitalUserDao, 'joinHospitalUser')) {
+        $res = $hospitalUserDao->joinHospitalUser((int)$idParam);
+        if ($res) {
+            if (isset($res[0]) && is_array($res[0])) {
+                $hospitalUser = $res[0];
+            } elseif (is_array($res)) {
+                $hospitalUser = $res;
+            }
+        }
+    }
+    if (!$hospitalUser && method_exists($hospitalUserDao, 'findByIdUser')) {
+        $row = $hospitalUserDao->findByIdUser((int)$idParam);
+        if (is_array($row) && $row) $hospitalUser = $row;
+    }
+}
+
+/* IDs selecionados nos selects */
+$selHospId = isset($hospitalUser['fk_hospital_user']) ? (int)$hospitalUser['fk_hospital_user'] : 0;
+$selUserId = isset($hospitalUser['fk_usuario_hosp']) ? (int)$hospitalUser['fk_usuario_hosp'] : 0;
 ?>
-
-<!-- formulario update -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <div id="main-container" class="container">
     <div class="row">
-
         <h4 class="page-title">Atualizar Hospital por Usuário</h4>
 
+        <?php if (!$idParam): ?>
+        <div class="alert alert-warning" style="margin-top:10px;">
+            Parâmetro de identificação ausente. Use <code>?id_hospitalUser=</code> ou <code>?id=</code>.
+        </div>
+        <?php elseif (!$hospitalUser): ?>
+        <div class="alert alert-danger" style="margin-top:10px;">
+            Vínculo não encontrado para o identificador <strong><?= (int)$idParam ?></strong>.
+        </div>
+        <?php endif; ?>
 
-        <form class="formulario-borderless" action="<?= $BASE_URL ?>process_hospitalUser.php" id="add-movie-form"
-            method="POST" enctype="multipart/form-data">
+        <form class="formulario-borderless" action="<?= h($BASE_URL) ?>process_hospitalUser.php" method="POST"
+            enctype="multipart/form-data">
             <input type="hidden" name="type" value="update">
-            <input type="hidden" name="id_hospitalUser" value="<?= $id_hospitalUser ?>">
+            <input type="hidden" name="id_hospitalUser"
+                value="<?= (int)($hospitalUser['id_hospitalUser'] ?? $idParam ?? 0) ?>">
+
             <div class="form-group row">
-                <!-- Select para Hospital -->
+
+                <!-- Select Hospital -->
                 <div class="form-group col-sm-3">
                     <label class="control-label" for="fk_hospital_user">Hospital</label>
                     <select class="form-control" id="fk_hospital_user" name="fk_hospital_user" required>
-                        <option value="<?= $hospitalUser['fk_hospital_user']; ?>"
-                            <?= ($hospitalUser['fk_hospital_user'] == $hospitalUser['fk_hospital_user']) ? 'selected' : '' ?>>
-                            <?= $hospitalUser['nome_hosp']; ?>
-                        </option>
-                        <?php foreach ($hospitals as $hospital): ?>
-                            <option value="<?= $hospital["id_hospital"] ?>"><?= $hospital["nome_hosp"] ?></option>
+                        <option value="">Selecione o Hospital</option>
+                        <?php foreach ($hospitals as $hospital):
+                            $hid = (int)($hospital['id_hospital'] ?? 0);
+                            if (!$hid) continue;
+                            $hnm = h($hospital['nome_hosp'] ?? '');
+                            $selected = ($hid === $selHospId) ? 'selected' : '';
+                        ?>
+                        <option value="<?= $hid ?>" <?= $selected ?>><?= $hnm ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
 
-                <!-- Select para Usuário (com usuário e e-mail concatenados) -->
+                <!-- Select Usuário -->
                 <div class="form-group col-sm-4">
-                    <label class="control-label" for="fk_usuario_hosp">Usuário e email</label>
+                    <label class="control-label" for="fk_usuario_hosp">Usuário e e-mail</label>
                     <select class="form-control" id="fk_usuario_hosp" name="fk_usuario_hosp" required>
-                        <?php if (!empty($hospitalUser) && isset($hospitalUser['fk_usuario_hosp'])): ?>
-                            <option value="<?= $hospitalUser['fk_usuario_hosp']; ?>" selected>
-                                <?= $hospitalUser['usuario_user'] . '   -   ' . $hospitalUser['email_user'] . '   -   ' . $hospitalUser['cargo_user']; ?>
-                            </option>
-                        <?php endif; ?>
-                        <?php foreach ($usuarios as $usuario): ?>
-                            <option value="<?= $usuario['id_usuario']; ?>"
-                                <?= (isset($hospitalUser['fk_usuario_hosp']) && $hospitalUser['fk_usuario_hosp'] == $usuario['id_usuario']) ? 'selected' : ''; ?>>
-                                <?= $usuario['usuario_user'] . '   -   ' . $usuario['email_user'] . '   -   ' . $usuario['cargo_user']; ?>
-                            </option>
+                        <option value="">Selecione o usuário</option>
+                        <?php foreach ($usuarios as $usuario):
+                            $uid   = (int)($usuario['id_usuario'] ?? 0);
+                            if (!$uid) continue;
+                            $nome  = h($usuario['usuario_user'] ?? '');
+                            $email = h($usuario['email_user'] ?? '');
+                            $cargo = h($usuario['cargo_user'] ?? '');
+                            $selected = ($uid === $selUserId) ? 'selected' : '';
+                        ?>
+                        <option value="<?= $uid ?>" <?= $selected ?>><?= $nome ?> - <?= $email ?> - <?= $cargo ?>
+                        </option>
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <p style="margin: 15px 0; font-size: 1rem; font-weight: 500;">
-                    O usuário <strong><?= $hospitalUser['usuario_user'] ?></strong> está cadastrado para realizar
-                    auditoria no hospital <strong><?= $hospitalUser['nome_hosp'] ?> Deseja alterar?</strong>.
-                </p>
 
             </div>
+
             <br>
             <button type="submit" class="btn btn-primary">
-                <i style="font-size: 1rem; margin-right: 5px;" name="type" value="edite"
-                    class="fa-solid fa-check edit-icon"></i>Atualizar
+                <i style="font-size:1rem;margin-right:5px;" class="fa-solid fa-check edit-icon"></i>
+                Atualizar
             </button>
         </form>
     </div>
 </div>
 
-<?php
-include_once("templates/footer.php");
-?>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
+<?php require_once("templates/footer.php"); ?>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"></script>
-
-
-</html>

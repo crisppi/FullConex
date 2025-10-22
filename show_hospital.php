@@ -82,8 +82,8 @@ $hospital->telefone02_hosp = $telefone02_format;
             // só exibe se tiver nome e o arquivo existir
             if (!empty($hospital->logo_hosp) && file_exists($logoFile)):
             ?>
-                <img src="uploads/<?= htmlspecialchars($hospital->logo_hosp, ENT_QUOTES) ?>" height="80" width="80"
-                    alt="Logo do Hospital">
+            <img src="uploads/<?= htmlspecialchars($hospital->logo_hosp, ENT_QUOTES) ?>" height="80" width="80"
+                alt="Logo do Hospital">
             <?php
             endif;
             ?>
@@ -121,9 +121,6 @@ $hospital->telefone02_hosp = $telefone02_format;
         </div>
         <div class="card-body">
             <div style="margin-left:20px" id="id-confirmacao" class="btn_acoes visible">
-                <p style="margin-bottom:15px">Deseja deletar este Hospital:
-                    <?= "<em><b>" . $hospital->nome_hosp ?></em></b>?
-                </p>
                 <div class="form-group row">
                     <div class="form-group col-sm-2">
                         <form display="in-line" id="form_delete"
@@ -132,9 +129,6 @@ $hospital->telefone02_hosp = $telefone02_format;
                             <!-- <input type="hidden" name="type" value="delete"> -->
                             <input type="hidden" name="typeDel" value="delUpdate">
 
-                            <input type="hidden" name="id_hospital" value="<?= $hospital->id_hospital ?>">
-                            <button class="btn btn-danger" value="deletar" type="submit" id="deletar-btn"
-                                name="deletar">Deletar</button>
                         </form>
                     </div>
                 </div>
@@ -143,29 +137,29 @@ $hospital->telefone02_hosp = $telefone02_format;
     </div>
 </div>
 <script>
-    function apareceOpcoes() {
-        $('#deletar-btn').val('nao');
-        let mudancaStatus = ($('#deletar-btn').val())
-        console.log(mudancaStatus);
-        let idAcoes = (document.getElementById('id-confirmacao'));
-        idAcoes.style.display = 'block';
-    }
+function apareceOpcoes() {
+    $('#deletar-btn').val('nao');
+    let mudancaStatus = ($('#deletar-btn').val())
+    console.log(mudancaStatus);
+    let idAcoes = (document.getElementById('id-confirmacao'));
+    idAcoes.style.display = 'block';
+}
 
-    function deletar() {
-        let idAcoes = (document.getElementById('id-confirmacao'));
-        idAcoes.style.display = 'none';
-        window.location = "<?= $BASE_URL ?>del_hospital.php?id_hospital=<?= $id_hospital ?>";
+function deletar() {
+    let idAcoes = (document.getElementById('id-confirmacao'));
+    idAcoes.style.display = 'none';
+    window.location = "<?= $BASE_URL ?>del_hospital.php?id_hospital=<?= $id_hospital ?>";
 
-    };
+};
 
-    function cancelar() {
-        let idAcoes = (document.getElementById('id-confirmacao'));
-        idAcoes.style.display = 'none';
-        window.location = "<?= $BASE_URL ?>list_hospital.php?>";
+function cancelar() {
+    let idAcoes = (document.getElementById('id-confirmacao'));
+    idAcoes.style.display = 'none';
+    window.location = "<?= $BASE_URL ?>list_hospital.php?>";
 
 
-    };
-    src = "https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js";
+};
+src = "https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js";
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous">

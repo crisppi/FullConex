@@ -15,7 +15,7 @@ include_once("models/patologia.php");
 include_once("dao/patologiaDao.php");
 
 include_once("models/paciente.php");
-include_once("dao/pacienteDAO.php");
+include_once("dao/pacienteDao.php");
 
 include_once("models/uti.php");
 include_once("dao/utiDao.php");

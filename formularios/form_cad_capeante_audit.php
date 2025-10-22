@@ -1,25 +1,14 @@
 <?php
 
-declare(strict_types=1);
-error_reporting(E_ALL);
-ini_set('display_errors', '1'); // Ótimo para depuração, mas considere desativar em produção final por segurança
-ini_set('log_errors', '1');
-ini_set('error_log', __DIR__ . '/logs/capeante.debug.log');
-
-
+// Garante PDO em modo exceção, se existir
+if (isset($conn) && $conn instanceof PDO) {
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+}
 // ======================================================================
 // PONTO CRÍTICO CORRIGIDO 1: Inclusão do arquivo de configuração
 // Garanta que este arquivo define as variáveis $conn e $BASE_URL
 // ======================================================================
-// require_once "config.php";
-
-// Adiciona uma verificação para garantir que a conexão foi bem-sucedida
-// if (!isset($conn) || !$conn) {
-//     // Se a conexão falhar, exibe uma mensagem clara e interrompe o script.
-//     // Isso evita a "página travada" e informa o erro real.
-//     die("Erro fatal: Falha na conexão com o banco de dados. Verifique o arquivo 'config.php'.");
-// }
-
+// estando em public_html/formularios/...
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
@@ -31,7 +20,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 require_once "models/usuario.php";
 require_once "dao/usuarioDao.php";
 require_once "dao/internacaoDao.php";
-// require_once "dao/pacienteDao.php";
+require_once "dao/pacienteDao.php";
 require_once "dao/capeanteDao.php";
 // require_once "dao/HospitalDao.php";
 require_once "dao/patologiaDao.php";
@@ -50,9 +39,7 @@ $usuariosAdm    = $usuarioDao->findAdministrativos();    // administrativos
 if (!class_exists('userDAO') && class_exists('usuarioDAO')) {
     class_alias('usuarioDAO', 'userDAO');
 }
-if (!class_exists('userDAO') && class_exists('UsuarioDAO')) {
-    class_alias('UsuarioDAO', 'userDAO');
-}
+
 
 // Instâncias
 $internacao_geral = new internacaoDAO($conn, $BASE_URL);
@@ -128,13 +115,13 @@ $ultimo = [];
 
 if ($type === 'create' && $id_internacao) {
     $where  = "ac.id_internacao = " . (int)$id_internacao;
-    $intern = $internacao_geral->selectAllInternacaoCap2($userFiltro, $where, $order, $obLimite);
+    $intern = $internacao_geral->selectAllInternacaoCap2($where, $order, $obLimite);
     $parcial_count = $capeante_geral->getCapeanteByInternacao($hi($id_internacao));
     $parcial_date  = $capeante_geral->getLastCapeanteByInternacao($hi($id_internacao));
     $ultimo = $capeante_geral->getUltimoCapeantePeriodoByInternacao($hi($id_internacao)) ?: [];
 } elseif ($type !== 'create' && $id_capeante) {
     $where  = "ca.id_capeante = " . (int)$id_capeante;
-    $intern = $internacao_geral->selectAllInternacaoCap2($userFiltro, $where, $order, $obLimite);
+    $intern = $internacao_geral->selectAllInternacaoCap2($where, $order, $obLimite);
 }
 
 // ======================================================================
@@ -263,7 +250,7 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
 <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
 
-<div class="container-fluid px-0" id="main-container" style="margin-top:-50px;background:#f5f6f8; min-height:100vh; ">
+<div class="container-fluid px-0" id="main-container" style="margin-top:10px;background:#f5f6f8; min-height:100vh; ">
     <div class="progress mb-4">
         <div class="progress-bar bg-success" role="progressbar" id="progressBar" style="width: 33%;" aria-valuenow="33"
             aria-valuemin="0" aria-valuemax="100">
@@ -1043,3 +1030,13 @@ function prevStep(n) {
 <script src="js/scriptPdf.js" defer></script>
 <script src="js/valoresCapeante.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-maskmoney/3.0.2/jquery.maskMoney.min.js"></script>
+<!-- jQuery (necessário para bootstrap-select) -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+
+<!-- Bootstrap 5 (bundle com Popper) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- bootstrap-select (versão compatível com BS5) -->
+<link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/css/bootstrap-select.min.css">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/js/bootstrap-select.min.js"></script>
