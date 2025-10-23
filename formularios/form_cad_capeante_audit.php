@@ -247,7 +247,6 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
 ?>
 <input type="hidden" id="last_final_date" value="<?= $h($lastFinalDateHidden) ?>">
 
-<script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
 
 <div class="container-fluid px-0" id="main-container" style="margin-top:10px;background:#f5f6f8; min-height:100vh; ">
@@ -1024,19 +1023,62 @@ function prevStep(n) {
     apply(); // inicial
 })();
 </script>
+<!-- jQuery (uma única vez) -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 
+<!-- moment (ok manter) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+
+<!-- Plugin maskMoney: DEPOIS do jQuery e ANTES de qualquer script que o use -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-maskmoney/3.0.2/jquery.maskMoney.min.js"></script>
+
+<!-- Seus scripts que podem chamar .maskMoney() -->
 <script src="js/DataCapeante.js"></script>
 <script src="js/stepper.js"></script>
 <script src="js/scriptPdf.js" defer></script>
 <script src="js/valoresCapeante.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-maskmoney/3.0.2/jquery.maskMoney.min.js"></script>
-<!-- jQuery (necessário para bootstrap-select) -->
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 
 <!-- Bootstrap 5 (bundle com Popper) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- bootstrap-select (versão compatível com BS5) -->
+<!-- bootstrap-select (depois de jQuery e Bootstrap) -->
 <link rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/css/bootstrap-select.min.css">
 <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/js/bootstrap-select.min.js"></script>
+<script>
+(function() {
+    function initMaskMoney(ctx) {
+        var $ctx = window.jQuery ? jQuery(ctx || document) : null;
+        if (!$ctx) return;
+        if (jQuery.fn && typeof jQuery.fn.maskMoney === 'function') {
+            $ctx.find('.dinheiro, .dinheiro_total').each(function() {
+                jQuery(this).maskMoney({
+                    thousands: '.',
+                    decimal: ',',
+                    allowZero: true,
+                    allowNegative: false,
+                    precision: 2
+                });
+            });
+        } else {
+            console.warn('jquery.maskMoney não foi carregado. Verifique a ordem dos scripts ou a CDN.');
+        }
+    }
+
+    // on ready
+    jQuery(function() {
+        initMaskMoney(document);
+    });
+
+    // se você carrega trechos via AJAX e insere no DOM:
+    document.addEventListener('DOMContentLoaded', function() {
+        // Exemplo: re-aplicar ao mudar de passo (se criar inputs dinamicamente no futuro)
+        window.nextStep = (function(orig) {
+            return function(n) {
+                orig && orig(n);
+                initMaskMoney(document);
+            };
+        })(window.nextStep);
+    });
+})();
+</script>
