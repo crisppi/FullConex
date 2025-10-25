@@ -11,11 +11,14 @@ class capeante
   public $data_inicial_capeante;
   public $diarias_capeante;
   public $lote_cap;
+  public $acomodacao_cap;
   public $enfer_check;
   public $exchangerate;
   public $glosa_diaria;
   public $glosa_honorarios;
   public $glosa_matmed;
+  public $glosa_materiais;
+  public $glosa_medicamentos;
   public $glosa_oxig;
   public $glosa_sadt;
   public $glosa_taxas;
@@ -37,6 +40,8 @@ class capeante
   public $valor_glosa_total;
   public $valor_honorarios;
   public $valor_matmed;
+  public $valor_materiais;
+  public $valor_medicamentos;
   public $valor_oxig;
   public $valor_sadt;
   public $valor_taxa;
@@ -61,7 +66,6 @@ class capeante
   public $conta_fatura_cap;
   public $conta_faturada_cap;
   public $faturada_flag;
-
 }
 
 

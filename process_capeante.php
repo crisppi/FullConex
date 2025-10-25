@@ -40,10 +40,13 @@ if ($type === "create") {
     $data_fech_capeante = filter_input(INPUT_POST, "data_fech_capeante") ?: null;
     $diarias_capeante = filter_input(INPUT_POST, "diarias_capeante");
     $lote_cap = filter_input(INPUT_POST, "lote_cap");
+    $acomodacao_cap = filter_input(INPUT_POST, "acomodacao_cap");
 
     $glosa_diaria = limparCampo(filter_input(INPUT_POST, "glosa_diaria"));
     $glosa_honorarios = limparCampo(filter_input(INPUT_POST, "glosa_honorarios"));
     $glosa_matmed = limparCampo(filter_input(INPUT_POST, "glosa_matmed"));
+    $glosa_materiais = limparCampo(filter_input(INPUT_POST, "glosa_materiais"));
+    $glosa_medicamentos = limparCampo(filter_input(INPUT_POST, "glosa_medicamentos"));
     $glosa_oxig = limparCampo(filter_input(INPUT_POST, "glosa_oxig"));
     $glosa_sadt = limparCampo(filter_input(INPUT_POST, "glosa_sadt"));
     $glosa_taxas = limparCampo(filter_input(INPUT_POST, "glosa_taxas"));
@@ -68,7 +71,8 @@ if ($type === "create") {
     $valor_apresentado_capeante = limparCampo(filter_input(INPUT_POST, "valor_apresentado_capeante"));
     $valor_final_capeante = limparCampo(filter_input(INPUT_POST, "valor_final_capeante"));
     $valor_diarias = limparCampo(filter_input(INPUT_POST, "valor_diarias"));
-    $valor_matmed = limparCampo(filter_input(INPUT_POST, "valor_matmed"));
+    $valor_materiais = limparCampo(filter_input(INPUT_POST, "valor_materiais"));
+    $valor_medicamentos = limparCampo(filter_input(INPUT_POST, "valor_medicamentos"));
     $valor_oxig = limparCampo(filter_input(INPUT_POST, "valor_oxig"));
     $valor_sadt = limparCampo(filter_input(INPUT_POST, "valor_sadt"));
     $valor_taxa = limparCampo(filter_input(INPUT_POST, "valor_taxa"));
@@ -109,6 +113,7 @@ if ($type === "create") {
         $capeante->data_inicial_capeante = $data_inicial_capeante;
         $capeante->diarias_capeante = $diarias_capeante;
         $capeante->lote_cap = $lote_cap;
+        $capeante->acomodacao_cap = $acomodacao_cap;
         $capeante->glosa_diaria = $glosa_diaria;
         $capeante->glosa_honorarios = $glosa_honorarios;
         $capeante->glosa_matmed = $glosa_matmed;
@@ -131,6 +136,8 @@ if ($type === "create") {
         $capeante->valor_glosa_total = $valor_glosa_total;
         $capeante->valor_honorarios = $valor_honorarios;
         $capeante->valor_matmed = $valor_matmed;
+        $capeante->valor_medicamentos = $valor_medicamentos;
+        $capeante->valor_materiais = $valor_materiais;
         $capeante->valor_oxig = $valor_oxig;
         $capeante->valor_sadt = $valor_sadt;
         $capeante->valor_taxa = $valor_taxa;
@@ -174,10 +181,13 @@ if ($type === "update") {
     $data_final_capeante = filter_input(INPUT_POST, "data_final_capeante") ?: null;
     $diarias_capeante = filter_input(INPUT_POST, "diarias_capeante");
     $lote_cap = filter_input(INPUT_POST, "lote_cap");
+    $acomodacao_cap = filter_input(INPUT_POST, "acomodacao_cap");
 
     $glosa_diaria = limparCampo(filter_input(INPUT_POST, "glosa_diaria"));
     $glosa_honorarios = limparCampo(filter_input(INPUT_POST, "glosa_honorarios"));
     $glosa_matmed = limparCampo(filter_input(INPUT_POST, "glosa_matmed"));
+    $glosa_medicamentos = limparCampo(filter_input(INPUT_POST, "glosa_medicamentos"));
+    $glosa_materiais = limparCampo(filter_input(INPUT_POST, "glosa_materiais"));
     $glosa_oxig = limparCampo(filter_input(INPUT_POST, "glosa_oxig"));
     $glosa_sadt = limparCampo(filter_input(INPUT_POST, "glosa_sadt"));
     $glosa_taxas = limparCampo(filter_input(INPUT_POST, "glosa_taxas"));
@@ -205,6 +215,8 @@ if ($type === "update") {
     $valor_final_capeante = limparCampo(filter_input(INPUT_POST, "valor_final_capeante"));
     $valor_diarias = limparCampo(filter_input(INPUT_POST, "valor_diarias"));
     $valor_matmed = limparCampo(filter_input(INPUT_POST, "valor_matmed"));
+    $valor_medicamentos = limparCampo(filter_input(INPUT_POST, "valor_medicamentos"));
+    $valor_materiais = limparCampo(filter_input(INPUT_POST, "valor_materiais"));
     $valor_oxig = limparCampo(filter_input(INPUT_POST, "valor_oxig"));
     $valor_sadt = limparCampo(filter_input(INPUT_POST, "valor_sadt"));
     $valor_taxa = limparCampo(filter_input(INPUT_POST, "valor_taxa"));
@@ -240,10 +252,13 @@ if ($type === "update") {
         $capeanteUpdate->data_inicial_capeante = $data_inicial_capeante;
         $capeanteUpdate->diarias_capeante = $diarias_capeante;
         $capeanteUpdate->lote_cap = $lote_cap;
+        $capeanteUpdate->acomodacao_cap = $acomodacao_cap;
 
         $capeanteUpdate->glosa_diaria = $glosa_diaria;
         $capeanteUpdate->glosa_honorarios = $glosa_honorarios;
         $capeanteUpdate->glosa_matmed = $glosa_matmed;
+        $capeanteUpdate->glosa_medicamentos = $glosa_medicamentos;
+        $capeanteUpdate->glosa_materiais = $glosa_materiais;
         $capeanteUpdate->glosa_oxig = $glosa_oxig;
         $capeanteUpdate->glosa_sadt = $glosa_sadt;
         $capeanteUpdate->glosa_taxas = $glosa_taxas;
@@ -277,6 +292,8 @@ if ($type === "update") {
         $capeanteUpdate->valor_diarias = $valor_diarias;
         $capeanteUpdate->valor_honorarios = $valor_honorarios;
         $capeanteUpdate->valor_matmed = $valor_matmed;
+        $capeanteUpdate->valor_medicamentos = $valor_medicamentos;
+        $capeanteUpdate->valor_materiais = $valor_materiais;
         $capeanteUpdate->valor_oxig = $valor_oxig;
         $capeanteUpdate->valor_sadt = $valor_sadt;
         $capeanteUpdate->valor_taxa = $valor_taxa;

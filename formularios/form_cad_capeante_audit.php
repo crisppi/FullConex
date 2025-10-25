@@ -4,11 +4,6 @@
 if (isset($conn) && $conn instanceof PDO) {
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 }
-// ======================================================================
-// PONTO CRÍTICO CORRIGIDO 1: Inclusão do arquivo de configuração
-// Garanta que este arquivo define as variáveis $conn e $BASE_URL
-// ======================================================================
-// estando em public_html/formularios/...
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
@@ -39,7 +34,6 @@ $usuariosAdm    = $usuarioDao->findAdministrativos();    // administrativos
 if (!class_exists('userDAO') && class_exists('usuarioDAO')) {
     class_alias('usuarioDAO', 'userDAO');
 }
-
 
 // Instâncias
 $internacao_geral = new internacaoDAO($conn, $BASE_URL);
@@ -140,6 +134,8 @@ $defaults = [
     'aberto_cap' => 's',
     'em_auditoria_cap' => 'n',
     'lote_cap' => null,
+    'acomodacao_int' => null,
+    'acomodacao_cap' => null,
     'conta_faturada_cap' => null,
     'parcial_capeante' => 'n',
     'parcial_num' => null,
@@ -169,6 +165,10 @@ $defaults = [
     'glosa_taxas' => null,
     'valor_matmed' => null,
     'glosa_matmed' => null,
+    'glosa_materiais' => null,
+    'valor_materiais' => null,
+    'glosa_medicamentos' => null,
+    'valor_medicamentos' => null,
     'valor_sadt' => null,
     'glosa_sadt' => null,
     'valor_honorarios' => null,
@@ -177,6 +177,11 @@ $defaults = [
     'glosa_opme' => null,
     'desconto_valor_cap' => null
 ];
+
+$acomodacaoInicial = (string)(
+    ($internRow['acomodacao_cap'] ?? '') !== '' ? $internRow['acomodacao_cap']
+    : ($internRow['acomodacao_int'] ?? '')
+);
 
 $internRow = $defaults;
 if (is_array($intern) && isset($intern[0]) && is_array($intern[0])) {
@@ -188,7 +193,6 @@ $val = function (string $k) use ($internRow) {
     return $internRow[$k] ?? null;
 };
 
-
 // ======================================================================
 // TEXTO PERÍODO ANTERIOR + PARCIAL DEFAULT
 // ======================================================================
@@ -199,11 +203,11 @@ if ($type === 'create') {
     $idIntCtx = $hi($val('id_internacao') ?: $id_internacao);
     if ($idIntCtx > 0 && !empty($ultimo)) {
         $iniBR = $fmtDateBR($ultimo['data_inicial_capeante'] ?? null);
-        $fimBR = $fmtDateBR($ultimo['data_final_capeante']   ?? null);
+        $fimBR = $fmtDateBR($ultimo['data_final_capeante'] ?? null);
         if ($iniBR && $fimBR) $textoPeriodoAnterior = "Último Parcial — Período {$iniBR} a {$fimBR}";
-        elseif ($iniBR)       $textoPeriodoAnterior = "Último Parcial — Período iniciado em {$iniBR}";
-        elseif ($fimBR)       $textoPeriodoAnterior = "Último Parcial — Período até {$fimBR}";
-        else                  $textoPeriodoAnterior = "Último Parcial — (período anterior não disponível)";
+        elseif ($iniBR) $textoPeriodoAnterior = "Último Parcial — Período iniciado em {$iniBR}";
+        elseif ($fimBR) $textoPeriodoAnterior = "Último Parcial — Período até {$fimBR}";
+        else $textoPeriodoAnterior = "Último Parcial — (período anterior não disponível)";
     }
 }
 
@@ -247,9 +251,13 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
 ?>
 <input type="hidden" id="last_final_date" value="<?= $h($lastFinalDateHidden) ?>">
 
+<!-- (Opcional) moment -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
 
 <div class="container-fluid px-0" id="main-container" style="margin-top:10px;background:#f5f6f8; min-height:100vh; ">
+    <?php
+    print_r(($internRow));
+    ?>
     <div class="progress mb-4">
         <div class="progress-bar bg-success" role="progressbar" id="progressBar" style="width: 33%;" aria-valuenow="33"
             aria-valuemin="0" aria-valuemax="100">
@@ -269,30 +277,24 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
 
         <input type="hidden" id="adm_capeante" name="adm_capeante"
             value="<?= ($_SESSION['cargo'] ?? '') === 'Adm' ? 's' : '' ?>" readonly>
-
         <input type="hidden" id="aud_enf_capeante" name="aud_enf_capeante"
             value="<?= ($_SESSION['cargo'] ?? '') === 'Enf_Auditor' ? 's' : '' ?>" readonly>
-
         <input type="hidden" id="aud_med_capeante" name="aud_med_capeante"
             value="<?= ($_SESSION['cargo'] ?? '') === 'Med_auditor' ? 's' : '' ?>" readonly>
 
         <input type="hidden" id="adm_check" name="adm_check"
             value="<?= (($_SESSION['cargo'] ?? '') === 'Adm') ? 's' : $h($val('adm_check')) ?>" readonly>
-
         <input type="hidden" id="med_check" name="med_check"
             value="<?= (($_SESSION['cargo'] ?? '') === 'Med_auditor') ? 's' : $h($val('med_check')) ?>" readonly>
-
         <input type="hidden" id="enfer_check" name="enfer_check"
             value="<?= (($_SESSION['cargo'] ?? '') === 'Enf_Auditor') ? 's' : $h($val('enfer_check')) ?>" readonly>
 
         <input type="hidden" id="fk_id_aud_adm" name="fk_id_aud_adm"
             value="<?= (($_SESSION['cargo'] ?? '') === 'Adm') ? $hi($_SESSION['id_usuario'] ?? 0) : $hi($val('fk_id_aud_adm')) ?>"
             readonly>
-
         <input type="hidden" id="fk_id_aud_enf" name="fk_id_aud_enf"
             value="<?= (($_SESSION['cargo'] ?? '') === 'Enf_Auditor') ? $hi($_SESSION['id_usuario'] ?? 0) : $hi($val('fk_id_aud_enf')) ?>"
             readonly>
-
         <input type="hidden" id="fk_id_aud_med" name="fk_id_aud_med"
             value="<?= (($_SESSION['cargo'] ?? '') === 'Med_auditor') ? $hi($_SESSION['id_usuario'] ?? 0) : $hi($val('fk_id_aud_med')) ?>"
             readonly>
@@ -386,8 +388,7 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                                                         $id = (int)($u['id_usuario'] ?? 0);
                                                         $nome = (string)($u['usuario_user'] ?? '');
                                                         $sel = ($id === $medSelecionado) ? 'selected' : ''; ?>
-                                            <option value="<?= $id ?>" <?= $sel ?>>
-                                                <?= $h($nome) ?></option>
+                                            <option value="<?= $id ?>" <?= $sel ?>><?= $h($nome) ?></option>
                                             <?php endif;
                                                 endforeach; ?>
                                         </select>
@@ -402,12 +403,12 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                                                         $id = (int)($u['id_usuario'] ?? 0);
                                                         $nome = (string)($u['usuario_user'] ?? '');
                                                         $sel = ($id === $enfSelecionado) ? 'selected' : ''; ?>
-                                            <option value="<?= $id ?>" <?= $sel ?>>
-                                                <?= $h($nome) ?></option>
+                                            <option value="<?= $id ?>" <?= $sel ?>><?= $h($nome) ?></option>
                                             <?php endif;
                                                 endforeach; ?>
                                         </select>
                                     </div>
+
                                     <div id="box-cadcentral-adm" class="col-12 col-lg-3">
                                         <label class="form-label" for="cad_central_adm_id">Administrativo (a) </label>
                                         <select class="form-control form-select-sm" id="cad_central_adm_id">
@@ -418,12 +419,9 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                                                     $id   = (int)($u['id_usuario'] ?? 0);
                                                     $nome = (string)($u['usuario_user'] ?? '');
                                                     $sel = ($id === $admSelecionado) ? 'selected' : ''; ?>
-                                            <option value="<?= $id ?>" <?= $sel ?>>
-                                                <?= $h($nome) ?>
-                                            </option>
+                                            <option value="<?= $id ?>" <?= $sel ?>><?= $h($nome) ?></option>
                                             <?php endforeach; ?>
                                         </select>
-
                                     </div>
                                 </div>
 
@@ -441,7 +439,8 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                         <?php endif; ?>
                         <?php if (($val('enfer_check') ?? 'n') === 's'): ?>
                         <span class="bi bi-check-circle"
-                            style="font-size:1.1rem;font-weight:600;color:#EA8037;">Auditado Enfermeiro</span>
+                            style="font-size:1.1rem;font-weight:600;color:#EA8037;">Auditado
+                            Enfermeiro</span>
                         <?php endif; ?>
                     </div>
 
@@ -450,14 +449,18 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
             <hr>
 
             <div class="row">
-                <div class="form-group col-md-6 mb-3">
+                <div class="form-group col-md-3 mb-3">
                     <label for="valor_apresentado_capeante">Valor Apresentado</label>
                     <input type="text" class="form-control dinheiro" id="valor_apresentado_capeante"
                         name="valor_apresentado_capeante"
                         value="<?= is_numeric($val('valor_apresentado_capeante')) ? number_format((float)$val('valor_apresentado_capeante'), 2, ',', '.') : '' ?>"
                         required>
                 </div>
-
+                <div class="form-group col-md-3 mb-3">
+                    <label for="acomodacao_cap">Acomodação</label>
+                    <input type="text" class="form-control" id="acomodacao_cap" name="acomodacao_cap"
+                        value="<?= $val('acomodacao_int') ?>">
+                </div>
                 <div class="form-group col-md-3 mb-3">
                     <label for="data_inicial_capeante">Data Inicial</label>
                     <input type="date" class="form-control" id="data_inicial_capeante" name="data_inicial_capeante"
@@ -542,7 +545,8 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                         <?php endif; ?>
                         <?php if (($val('enfer_check') ?? 'n') === 's'): ?>
                         <span class="bi bi-check-circle"
-                            style="font-size:1.1rem;font-weight:600;color:#EA8037;">Auditado Enfermeiro</span>
+                            style="font-size:1.1rem;font-weight:600;color:#EA8037;">Auditado
+                            Enfermeiro</span>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -611,6 +615,34 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
 
             <div class="row">
                 <div class="form-group col-md-6 mb-3">
+                    <label for="valor_materiais">Valor Materiais</label>
+                    <input type="text" class="form-control dinheiro" id="valor_materiais" name="valor_materiais"
+                        value="<?= is_numeric($val('valor_materiais')) ? number_format((float)$val('valor_materiais'), 2, ',', '.') : '' ?>"
+                        placeholder="R$0,00">
+                </div>
+                <div class="form-group col-md-6 mb-3">
+                    <label for="glosa_materiais">Glosa Materiais</label>
+                    <input type="text" class="form-control dinheiro" id="glosa_materiais" name="glosa_materiais"
+                        value="<?= is_numeric($val('glosa_materiais')) ? number_format((float)$val('glosa_materiais'), 2, ',', '.') : '' ?>"
+                        placeholder="R$0,00">
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-md-6 mb-3">
+                    <label for="valor_medicamentos">Valor Medicamentos</label>
+                    <input type="text" class="form-control dinheiro" id="valor_medicamentos" name="valor_medicamentos"
+                        value="<?= is_numeric($val('valor_medicamentos')) ? number_format((float)$val('valor_medicamentos'), 2, ',', '.') : '' ?>"
+                        placeholder="R$0,00">
+                </div>
+                <div class="form-group col-md-6 mb-3">
+                    <label for="glosa_medicamentos">Glosa Medicamentos</label>
+                    <input type="text" class="form-control dinheiro" id="glosa_medicamentos" name="glosa_medicamentos"
+                        value="<?= is_numeric($val('glosa_medicamentos')) ? number_format((float)$val('glosa_medicamentos'), 2, ',', '.') : '' ?>"
+                        placeholder="R$0,00">
+                </div>
+            </div>
+            <!-- <div class="row">
+                <div class="form-group col-md-6 mb-3">
                     <label for="valor_matmed">Valor MatMed</label>
                     <input type="text" class="form-control dinheiro" id="valor_matmed" name="valor_matmed"
                         value="<?= is_numeric($val('valor_matmed')) ? number_format((float)$val('valor_matmed'), 2, ',', '.') : '' ?>"
@@ -622,8 +654,7 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                         value="<?= is_numeric($val('glosa_matmed')) ? number_format((float)$val('glosa_matmed'), 2, ',', '.') : '' ?>"
                         placeholder="R$0,00">
                 </div>
-            </div>
-
+            </div> -->
             <div class="row">
                 <div class="form-group col-md-6 mb-3">
                     <label for="valor_sadt">Valor SADT</label>
@@ -706,7 +737,8 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
                         <?php endif; ?>
                         <?php if (($val('enfer_check') ?? 'n') === 's'): ?>
                         <span class="bi bi-check-circle"
-                            style="font-size:1.1rem;font-weight:600;color:#EA8037;">Auditado Enfermeiro</span>
+                            style="font-size:1.1rem;font-weight:600;color:#EA8037;">Auditado
+                            Enfermeiro</span>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -867,7 +899,11 @@ function prevStep(n) {
     if (!lastFinalStr) return;
 
     const parseYMD = (s) => {
-        const [y, m, d] = s.split('-').map(Number);
+        const parts = s.split('-');
+        if (parts.length !== 3) return null;
+        const y = parseInt(parts[0], 10),
+            m = parseInt(parts[1], 10),
+            d = parseInt(parts[2], 10);
         if (!y || !m || !d) return null;
         return new Date(y, m - 1, d);
     };
@@ -889,25 +925,25 @@ function prevStep(n) {
     inputInicio.setAttribute('min', minStartStr);
 
     const coerceIfNeeded = () => {
-        const val = inputInicio.value;
-        if (!val) return;
-        const cur = parseYMD(val);
+        const v = inputInicio.value;
+        if (!v) return;
+        const cur = parseYMD(v);
         if (!cur) return;
         if (cur < minStart) {
             inputInicio.classList.add('is-invalid');
             inputInicio.value = minStartStr;
             inputInicio.setCustomValidity('A data inicial deve ser posterior ao fim da última parcial.');
             if (feedbackEl) {
+                const parts = minStartStr.split('-').reverse().join('/');
                 feedbackEl.textContent =
-                    `A data inicial deve ser a partir de ${minStartStr.split('-').reverse().join('/')} (dia seguinte ao término da última parcial).`;
+                    `A data inicial deve ser a partir de ${parts} (dia seguinte ao término da última parcial).`;
                 feedbackEl.style.display = 'block';
             }
-            // Use um pequeno timeout para o navegador renderizar a mudança de valor antes de remover a invalidação
             setTimeout(() => {
                 inputInicio.classList.remove('is-invalid');
                 inputInicio.setCustomValidity('');
                 if (feedbackEl) feedbackEl.style.display = '';
-            }, 3000); // 3 segundos para o usuário ver a mensagem
+            }, 3000);
         } else {
             inputInicio.classList.remove('is-invalid');
             inputInicio.setCustomValidity('');
@@ -921,118 +957,88 @@ function prevStep(n) {
 
     if (inputFim) {
         const syncFimMin = () => {
-            if (!inputInicio.value) return;
-            inputFim.setAttribute('min', inputInicio.value);
+            if (inputInicio.value) inputFim.setAttribute('min', inputInicio.value);
         };
         syncFimMin();
         inputInicio.addEventListener('change', syncFimMin);
     }
 })();
-
-// Toggle Cadastro Central (mostra/oculta selects)
-(function cadCentralToggle() {
-    const sel = document.getElementById('cadastro_central_cap');
-    const boxM = document.getElementById('box-cadcentral-med');
-    const boxE = document.getElementById('box-cadcentral-enf');
-    const boxA = document.getElementById('box-cadcentral-adm'); // opcional (pode não existir)
-    const med = document.getElementById('cad_central_med_id');
-    const enf = document.getElementById('cad_central_enf_id');
-    const adm = document.getElementById('cad_central_adm_id'); // opcional
-
-    if (!sel) return;
-
-    const apply = () => {
-        const on = sel.value === 's';
-        [boxM, boxE, boxA].forEach(b => {
-            if (b) {
-                b.style.display = on ? 'block' : 'none';
-                b.setAttribute('aria-hidden', on ? 'false' : 'true');
-            }
-        });
-        if (med) med.disabled = !on;
-        if (enf) enf.disabled = !on;
-        if (adm) adm.disabled = !on;
-    };
-
-    apply(); // Aplica o estado inicial no carregamento da página
-    sel.addEventListener('change', apply);
-})();
-
-// SINCRONISMO: nível 4/5 seta flags ("s") e FKs conforme seleção do Cadastro Central
-(function syncFlagsFromCentralSelections() {
-    const NIVEL = parseInt(document.getElementById('nivel_user')?.value || '0', 10);
-    if (![4, 5].includes(NIVEL)) return; // só Secretaria/Diretor
-
-    const cadAtivar = document.getElementById('cadastro_central_cap');
-    const selMed = document.getElementById('cad_central_med_id');
-    const selEnf = document.getElementById('cad_central_enf_id');
-    const selAdm = document.getElementById('cad_central_adm_id'); // pode não existir
-
-    const fldAdmCap = document.getElementById('adm_capeante');
-    const fldEnfCap = document.getElementById('aud_enf_capeante');
-    const fldMedCap = document.getElementById('aud_med_capeante');
-
-    const fldAdmChk = document.getElementById('adm_check');
-    const fldEnfChk = document.getElementById('enfer_check');
-    const fldMedChk = document.getElementById('med_check');
-
-    const fkAdm = document.getElementById('fk_id_aud_adm');
-    const fkEnf = document.getElementById('fk_id_aud_enf');
-    const fkMed = document.getElementById('fk_id_aud_med');
-
-    const getHas = (el) => !!(el && el.value && String(el.value).trim() !== '');
-
-    const apply = () => {
-        const ativo = cadAtivar && cadAtivar.value === 's';
-        const hasMed = ativo && getHas(selMed);
-        const hasEnf = ativo && getHas(selEnf);
-        const hasAdm = ativo && getHas(selAdm);
-
-        if (fldMedCap) fldMedCap.value = hasMed ? 's' : '';
-        if (fldEnfCap) fldEnfCap.value = hasEnf ? 's' : '';
-        if (fldAdmCap) fldAdmCap.value = hasAdm ? 's' : '';
-
-        if (fldMedChk) fldMedChk.value = hasMed ? 's' : '';
-        if (fldEnfChk) fldEnfChk.value = hasEnf ? 's' : '';
-        if (fldAdmChk) fldAdmChk.value = hasAdm ? 's' : '';
-
-        if (fkMed) fkMed.value = hasMed ? selMed.value : '';
-        if (fkEnf) fkEnf.value = hasEnf ? selEnf.value : '';
-        if (fkAdm && selAdm) fkAdm.value = hasAdm ? selAdm.value : '';
-
-        if (!ativo) { // desativou o cadastro central -> zera tudo
-            if (fldMedCap) fldMedCap.value = '';
-            if (fldEnfCap) fldEnfCap.value = '';
-            if (fldAdmCap) fldAdmCap.value = '';
-            if (fldMedChk) fldMedChk.value = '';
-            if (fldEnfChk) fldEnfChk.value = '';
-            if (fldAdmChk) fldAdmChk.value = '';
-            if (fkMed) fkMed.value = '';
-            if (fkEnf) fkEnf.value = '';
-            if (fkAdm) fkAdm.value = '';
-        }
-    };
-
-    ['change', 'blur'].forEach(evt => {
-        if (cadAtivar) cadAtivar.addEventListener(evt, apply);
-        if (selMed) selMed.addEventListener(evt, apply);
-        if (selEnf) selEnf.addEventListener(evt, apply);
-        if (selAdm) selAdm.addEventListener(evt, apply);
-    });
-
-    apply(); // inicial
-})();
 </script>
+
+<!-- ===================== RODAPÉ DE SCRIPTS (CORRIGIDO) ===================== -->
+
 <!-- jQuery (uma única vez) -->
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 
-<!-- moment (ok manter) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+<!-- SHIM anti-erro: evita TypeError se algum fragmento AJAX chamar .maskMoney cedo -->
+<script>
+(function(w) {
+    var $ = w.jQuery;
+    if (!$) return;
+    if (!$.fn.maskMoney) {
+        $.fn.maskMoney = function() {
+            return this;
+        };
+        $.fn.maskMoney.__stub__ = true;
+    }
+})(window);
+</script>
 
-<!-- Plugin maskMoney: DEPOIS do jQuery e ANTES de qualquer script que o use -->
+<!-- Plugin maskMoney (real) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-maskmoney/3.0.2/jquery.maskMoney.min.js"></script>
 
-<!-- Seus scripts que podem chamar .maskMoney() -->
+<!-- Inicialização robusta + reaplicação automática ao entrar conteúdo novo -->
+<script>
+(function() {
+    function aplicarMascara(ctx) {
+        if (!window.jQuery || !jQuery.fn || typeof jQuery.fn.maskMoney !== 'function' || jQuery.fn.maskMoney
+            .__stub__) {
+            return;
+        }
+        jQuery(ctx || document).find('.dinheiro, .dinheiro_total').each(function() {
+            jQuery(this).maskMoney({
+                thousands: '.',
+                decimal: ',',
+                allowZero: true,
+                allowNegative: false,
+                precision: 2
+            });
+        });
+    }
+
+    // Ready
+    jQuery(function() {
+        aplicarMascara(document);
+    });
+
+    // Hook no stepper (mantém seu nextStep e reaplica máscara após mudança de passo)
+    window.nextStep = (function(orig) {
+        return function(n) {
+            if (typeof orig === 'function') orig(n);
+            aplicarMascara(document);
+        };
+    })(window.nextStep);
+
+    // Observa adições ao DOM (AJAX, .load, append, etc.)
+    var obs = new MutationObserver(function(mutations) {
+        var precisa = false;
+        for (var i = 0; i < mutations.length; i++) {
+            var m = mutations[i];
+            if (m.addedNodes && m.addedNodes.length) {
+                precisa = true;
+                break;
+            }
+        }
+        if (precisa) aplicarMascara(document);
+    });
+    obs.observe(document.documentElement, {
+        childList: true,
+        subtree: true
+    });
+})();
+</script>
+
+<!-- Seus scripts que podem chamar .maskMoney -->
 <script src="js/DataCapeante.js"></script>
 <script src="js/stepper.js"></script>
 <script src="js/scriptPdf.js" defer></script>
@@ -1045,40 +1051,86 @@ function prevStep(n) {
 <link rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/css/bootstrap-select.min.css">
 <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/js/bootstrap-select.min.js"></script>
+
+<!-- ===== Auto-preenchimento dos selects (Médico/Enfermeiro/ADM) a partir dos hidden ===== -->
 <script>
+/**
+ * Preenche os selects de Médico/Enfermeiro/ADM com base nos hidden fk_id_aud_*,
+ * habilita "Cadastro Central" quando houver algum valor já salvo e dispara os
+ * eventos para manter os flags/hidden coerentes com seu sincronismo atual.
+ */
 (function() {
-    function initMaskMoney(ctx) {
-        var $ctx = window.jQuery ? jQuery(ctx || document) : null;
-        if (!$ctx) return;
-        if (jQuery.fn && typeof jQuery.fn.maskMoney === 'function') {
-            $ctx.find('.dinheiro, .dinheiro_total').each(function() {
-                jQuery(this).maskMoney({
-                    thousands: '.',
-                    decimal: ',',
-                    allowZero: true,
-                    allowNegative: false,
-                    precision: 2
-                });
-            });
-        } else {
-            console.warn('jquery.maskMoney não foi carregado. Verifique a ordem dos scripts ou a CDN.');
+    function setSelectByValue(selectEl, value, fallbackLabel) {
+        if (!selectEl || !value || value === "0") return;
+
+        // Procura opção existente
+        var opt = selectEl.querySelector('option[value="' + value + '"]');
+
+        // Se não existir (lista filtrada, etc.), cria uma opção temporária para exibir o salvo
+        if (!opt) {
+            opt = document.createElement("option");
+            opt.value = value;
+            opt.textContent = fallbackLabel || ("Selecionado (ID " + value + ")");
+            selectEl.insertBefore(opt, selectEl.firstChild);
+        }
+
+        // Seleciona
+        selectEl.value = value;
+
+        // Se usar bootstrap-select e o select tiver class selectpicker
+        if (window.jQuery && jQuery.fn && typeof jQuery.fn.selectpicker === "function" && selectEl.classList
+            .contains("selectpicker")) {
+            jQuery(selectEl).selectpicker("refresh");
         }
     }
 
-    // on ready
-    jQuery(function() {
-        initMaskMoney(document);
-    });
+    function fireChange(el) {
+        if (!el) return;
+        try {
+            el.dispatchEvent(new Event("change", {
+                bubbles: true
+            }));
+        } catch (e) {
+            var evt = document.createEvent("HTMLEvents");
+            evt.initEvent("change", true, false);
+            el.dispatchEvent(evt);
+        }
+    }
 
-    // se você carrega trechos via AJAX e insere no DOM:
-    document.addEventListener('DOMContentLoaded', function() {
-        // Exemplo: re-aplicar ao mudar de passo (se criar inputs dinamicamente no futuro)
-        window.nextStep = (function(orig) {
-            return function(n) {
-                orig && orig(n);
-                initMaskMoney(document);
-            };
-        })(window.nextStep);
-    });
+    function hydrateCadastroCentralFromHidden() {
+        var selCentral = document.getElementById("cadastro_central_cap");
+        var selMed = document.getElementById("cad_central_med_id");
+        var selEnf = document.getElementById("cad_central_enf_id");
+        var selAdm = document.getElementById("cad_central_adm_id");
+
+        var fkMed = (document.getElementById("fk_id_aud_med") || {}).value || "";
+        var fkEnf = (document.getElementById("fk_id_aud_enf") || {}).value || "";
+        var fkAdm = (document.getElementById("fk_id_aud_adm") || {}).value || "";
+
+        // Se qualquer FK existir, liga o cadastro central
+        if (selCentral && ((fkMed && fkMed !== "0") || (fkEnf && fkEnf !== "0") || (fkAdm && fkAdm !== "0"))) {
+            selCentral.value = "s";
+            fireChange(selCentral); // mostra os boxes (usa seu cadCentralToggle)
+        }
+
+        // Preenche os selects (se opção não estiver na lista, cria uma temporária)
+        setSelectByValue(selMed, fkMed, "Médico selecionado (ID " + fkMed + ")");
+        setSelectByValue(selEnf, fkEnf, "Enfermeiro(a) selecionado(a) (ID " + fkEnf + ")");
+        setSelectByValue(selAdm, fkAdm, "Administrativo selecionado (ID " + fkAdm + ")");
+
+        // Dispara change para acionar seu sincronismo (syncFlagsFromCentralSelections)
+        fireChange(selMed);
+        fireChange(selEnf);
+        fireChange(selAdm);
+
+        // Garante uma passada final no seletor de ativação
+        fireChange(selCentral);
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", hydrateCadastroCentralFromHidden);
+    } else {
+        hydrateCadastroCentralFromHidden();
+    }
 })();
 </script>

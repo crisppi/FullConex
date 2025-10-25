@@ -21,60 +21,69 @@ class capeanteDAO implements capeanteDAOInterface
     {
         $capeante = new capeante();
 
-        $capeante->id_capeante               = $data["id_capeante"]             ?? null;
-        $capeante->adm_capeante              = $data["adm_capeante"]            ?? null;
-        $capeante->adm_check                 = $data["adm_check"]               ?? null;
-        $capeante->aud_enf_capeante          = $data["aud_enf_capeante"]        ?? null;
-        $capeante->aud_med_capeante          = $data["aud_med_capeante"]        ?? null;
-        $capeante->data_fech_capeante        = $data["data_fech_capeante"]      ?? null;
-        $capeante->data_final_capeante       = $data["data_final_capeante"]     ?? null;
-        $capeante->data_inicial_capeante     = $data["data_inicial_capeante"]   ?? null;
-        $capeante->diarias_capeante          = $data["diarias_capeante"]        ?? null;
-        $capeante->lote_cap                  = $data["lote_cap"]                ?? null;
-        $capeante->glosa_diaria              = $data["glosa_diaria"]            ?? null;
-        $capeante->glosa_honorarios          = $data["glosa_honorarios"]        ?? null;
-        $capeante->glosa_matmed              = $data["glosa_matmed"]            ?? null;
-        $capeante->glosa_oxig                = $data["glosa_oxig"]              ?? null;
-        $capeante->glosa_sadt                = $data["glosa_sadt"]              ?? null;
-        $capeante->glosa_taxas               = $data["glosa_taxas"]             ?? null;
-        $capeante->glosa_opme                = $data["glosa_opme"]              ?? null;
-        $capeante->med_check                 = $data["med_check"]               ?? null;
-        $capeante->enfer_check               = $data["enfer_check"]             ?? null;
-        $capeante->pacote                    = $data["pacote"]                  ?? null;
-        $capeante->parcial_capeante          = $data["parcial_capeante"]        ?? null;
-        $capeante->parcial_num               = $data["parcial_num"]             ?? null;
-        $capeante->fk_int_capeante           = $data["fk_int_capeante"]         ?? null;
-        $capeante->fk_user_cap               = $data["fk_user_cap"]             ?? null;
+        $capeante->id_capeante                = $data["id_capeante"]             ?? null;
+        $capeante->adm_capeante               = $data["adm_capeante"]            ?? null;
+        $capeante->adm_check                  = $data["adm_check"]               ?? null;
+        $capeante->aud_enf_capeante           = $data["aud_enf_capeante"]        ?? null;
+        $capeante->aud_med_capeante           = $data["aud_med_capeante"]        ?? null;
+        $capeante->data_fech_capeante         = $data["data_fech_capeante"]      ?? null;
+        $capeante->data_final_capeante        = $data["data_final_capeante"]     ?? null;
+        $capeante->data_inicial_capeante      = $data["data_inicial_capeante"]   ?? null;
+        $capeante->diarias_capeante           = $data["diarias_capeante"]        ?? null;
+        $capeante->lote_cap                   = $data["lote_cap"]                ?? null;
+        $capeante->glosa_diaria               = $data["glosa_diaria"]            ?? null;
+        $capeante->glosa_honorarios           = $data["glosa_honorarios"]        ?? null;
+        $capeante->glosa_matmed               = $data["glosa_matmed"]            ?? null;
+        $capeante->glosa_oxig                 = $data["glosa_oxig"]              ?? null;
+        $capeante->glosa_sadt                 = $data["glosa_sadt"]              ?? null;
+        $capeante->glosa_taxas                = $data["glosa_taxas"]             ?? null;
+        $capeante->glosa_opme                 = $data["glosa_opme"]              ?? null;
+        $capeante->med_check                  = $data["med_check"]               ?? null;
+        $capeante->enfer_check                = $data["enfer_check"]             ?? null;
+        $capeante->pacote                     = $data["pacote"]                  ?? null;
+        $capeante->parcial_capeante           = $data["parcial_capeante"]        ?? null;
+        $capeante->parcial_num                = $data["parcial_num"]             ?? null;
+        $capeante->fk_int_capeante            = $data["fk_int_capeante"]         ?? null;
+        $capeante->fk_user_cap                = $data["fk_user_cap"]             ?? null;
         $capeante->valor_apresentado_capeante = $data["valor_apresentado_capeante"] ?? null;
-        $capeante->valor_diarias             = $data["valor_diarias"]           ?? null;
-        $capeante->valor_final_capeante      = $data["valor_final_capeante"]    ?? null;
-        $capeante->valor_glosa_enf           = $data["valor_glosa_enf"]         ?? null;
-        $capeante->valor_glosa_med           = $data["valor_glosa_med"]         ?? null;
-        $capeante->valor_glosa_total         = $data["valor_glosa_total"]       ?? null;
-        $capeante->valor_honorarios          = $data["valor_honorarios"]        ?? null;
-        $capeante->valor_matmed              = $data["valor_matmed"]            ?? null;
-        $capeante->valor_oxig                = $data["valor_oxig"]              ?? null;
-        $capeante->valor_sadt                = $data["valor_sadt"]              ?? null;
-        $capeante->valor_taxa                = $data["valor_taxa"]              ?? null;
-        $capeante->valor_opme                = $data["valor_opme"]              ?? null;
-        $capeante->desconto_valor_cap        = $data["desconto_valor_cap"]      ?? null;
-        $capeante->negociado_desconto_cap    = $data["negociado_desconto_cap"]  ?? null;
-        $capeante->em_auditoria_cap          = $data["em_auditoria_cap"]        ?? null;
-        $capeante->aberto_cap                = $data["aberto_cap"]              ?? null;
-        $capeante->encerrado_cap             = $data["encerrado_cap"]           ?? null;
-        $capeante->senha_finalizada          = $data["senha_finalizada"]        ?? null;
-        $capeante->conta_parada_cap          = $data["conta_parada_cap"]        ?? null;
-        $capeante->parada_motivo_cap         = $data["parada_motivo_cap"]       ?? ($data["parada_motivo"] ?? null);
-        $capeante->fk_id_aud_enf             = $data["fk_id_aud_enf"]           ?? null;
-        $capeante->fk_id_aud_med             = $data["fk_id_aud_med"]           ?? null;
-        $capeante->fk_id_aud_adm             = $data["fk_id_aud_adm"]           ?? null;
-        $capeante->fk_id_aud_hosp            = $data["fk_id_aud_hosp"]          ?? null;
-        $capeante->impresso_cap              = $data["impresso_cap"]            ?? null;
+        $capeante->valor_diarias              = $data["valor_diarias"]           ?? null;
+        $capeante->valor_final_capeante       = $data["valor_final_capeante"]    ?? null;
+        $capeante->valor_glosa_enf            = $data["valor_glosa_enf"]         ?? null;
+        $capeante->valor_glosa_med            = $data["valor_glosa_med"]         ?? null;
+        $capeante->valor_glosa_total          = $data["valor_glosa_total"]       ?? null;
+        $capeante->valor_honorarios           = $data["valor_honorarios"]        ?? null;
+        $capeante->valor_matmed               = $data["valor_matmed"]            ?? null;
+        $capeante->valor_oxig                 = $data["valor_oxig"]              ?? null;
+        $capeante->valor_sadt                 = $data["valor_sadt"]              ?? null;
+        $capeante->valor_taxa                 = $data["valor_taxa"]              ?? null;
+        $capeante->valor_opme                 = $data["valor_opme"]              ?? null;
+        $capeante->desconto_valor_cap         = $data["desconto_valor_cap"]      ?? null;
+        $capeante->negociado_desconto_cap     = $data["negociado_desconto_cap"]  ?? null;
+        $capeante->em_auditoria_cap           = $data["em_auditoria_cap"]        ?? null;
+        $capeante->aberto_cap                 = $data["aberto_cap"]              ?? null;
+        $capeante->encerrado_cap              = $data["encerrado_cap"]           ?? null;
+        $capeante->senha_finalizada           = $data["senha_finalizada"]        ?? null;
+        $capeante->conta_parada_cap           = $data["conta_parada_cap"]        ?? null;
+        $capeante->parada_motivo_cap          = $data["parada_motivo_cap"]       ?? ($data["parada_motivo"] ?? null);
+        $capeante->fk_id_aud_enf              = $data["fk_id_aud_enf"]           ?? null;
+        $capeante->fk_id_aud_med              = $data["fk_id_aud_med"]           ?? null;
+        $capeante->fk_id_aud_adm              = $data["fk_id_aud_adm"]           ?? null;
+        $capeante->fk_id_aud_hosp             = $data["fk_id_aud_hosp"]          ?? null;
+        $capeante->impresso_cap               = $data["impresso_cap"]            ?? null;
 
-        // NOVO: flags de faturamento (ambos os nomes) + alias
-        $capeante->conta_faturada_cap        = $data["conta_faturada_cap"]      ?? null;
-        $capeante->conta_fatura_cap          = $data["conta_fatura_cap"]        ?? null;
-        $capeante->faturada_flag             = $data["faturada_flag"]           ?? null;
+        // Flags de faturamento + alias
+        $capeante->conta_faturada_cap         = $data["conta_faturada_cap"]      ?? null;
+        $capeante->conta_fatura_cap           = $data["conta_fatura_cap"]        ?? null;
+        $capeante->faturada_flag              = $data["faturada_flag"]           ?? null;
+
+        // NOVOS CAMPOS
+        $capeante->valor_medicamentos         = $data["valor_medicamentos"]      ?? null;
+        $capeante->valor_materiais            = $data["valor_materiais"]         ?? null;
+        $capeante->glosa_medicamentos         = $data["glosa_medicamentos"]      ?? null;
+        $capeante->glosa_materiais            = $data["glosa_materiais"]         ?? null;
+
+        // NOVO: acomodacao_cap
+        $capeante->acomodacao_cap             = $data["acomodacao_cap"]          ?? null;
 
         return $capeante;
     }
@@ -108,7 +117,7 @@ class capeanteDAO implements capeanteDAOInterface
         return $data ? $this->buildcapeante($data) : null;
     }
 
-    /** BUSCA por nome de paciente com paginação (corrigido LIMIT/binds) */
+    /** BUSCA por nome de paciente com paginação */
     public function findByPac($pesquisa_nome, $limite, $inicio)
     {
         $stmt = $this->conn->prepare("
@@ -128,7 +137,7 @@ class capeanteDAO implements capeanteDAOInterface
     /** CREATE */
     public function create(capeante $capeante)
     {
-        // Se for parcial e não veio número, calcula automaticamente
+        // Número automático da parcial caso não venha informado
         if (
             isset($capeante->parcial_capeante) && $capeante->parcial_capeante === 's' &&
             !empty($capeante->fk_int_capeante) &&
@@ -136,6 +145,7 @@ class capeanteDAO implements capeanteDAOInterface
         ) {
             $capeante->parcial_num = $this->getCapeantesCountByInternacao((int)$capeante->fk_int_capeante) + 1;
         }
+
         $stmt = $this->conn->prepare("
             INSERT INTO tb_capeante (
                 adm_capeante, adm_check, aud_enf_capeante, aud_med_capeante,
@@ -143,30 +153,36 @@ class capeanteDAO implements capeanteDAOInterface
                 diarias_capeante, lote_cap, glosa_diaria, glosa_honorarios,
                 glosa_matmed, glosa_oxig, glosa_sadt, glosa_taxas, glosa_opme,
                 med_check, enfer_check, pacote, parcial_capeante, parcial_num,
+                acomodacao_cap,
                 fk_int_capeante, fk_user_cap, valor_apresentado_capeante, valor_diarias,
                 valor_final_capeante, valor_glosa_enf, valor_glosa_med, valor_glosa_total,
                 valor_honorarios, valor_matmed, valor_oxig, valor_sadt, valor_opme,
                 senha_finalizada, desconto_valor_cap, negociado_desconto_cap,
                 em_auditoria_cap, aberto_cap, encerrado_cap, valor_taxa,
                 usuario_create_cap, data_create_cap, conta_parada_cap, parada_motivo_cap,
-                fk_id_aud_enf, fk_id_aud_med, fk_id_aud_adm, fk_id_aud_hosp
+                fk_id_aud_enf, fk_id_aud_med, fk_id_aud_adm, fk_id_aud_hosp,
+                -- NOVOS CAMPOS
+                valor_medicamentos, valor_materiais, glosa_medicamentos, glosa_materiais
             ) VALUES (
                 :adm_capeante, :adm_check, :aud_enf_capeante, :aud_med_capeante,
                 :data_fech_capeante, :data_final_capeante, :data_inicial_capeante,
                 :diarias_capeante, :lote_cap, :glosa_diaria, :glosa_honorarios,
                 :glosa_matmed, :glosa_oxig, :glosa_sadt, :glosa_taxas, :glosa_opme,
                 :med_check, :enfer_check, :pacote, :parcial_capeante, :parcial_num,
+                :acomodacao_cap,
                 :fk_int_capeante, :fk_user_cap, :valor_apresentado_capeante, :valor_diarias,
                 :valor_final_capeante, :valor_glosa_enf, :valor_glosa_med, :valor_glosa_total,
                 :valor_honorarios, :valor_matmed, :valor_oxig, :valor_sadt, :valor_opme,
                 :senha_finalizada, :desconto_valor_cap, :negociado_desconto_cap,
                 :em_auditoria_cap, :aberto_cap, :encerrado_cap, :valor_taxa,
                 :usuario_create_cap, :data_create_cap, :conta_parada_cap, :parada_motivo_cap,
-                :fk_id_aud_enf, :fk_id_aud_med, :fk_id_aud_adm, :fk_id_aud_hosp
+                :fk_id_aud_enf, :fk_id_aud_med, :fk_id_aud_adm, :fk_id_aud_hosp,
+                -- binds novos
+                :valor_medicamentos, :valor_materiais, :glosa_medicamentos, :glosa_materiais
             )
         ");
 
-        // binds (mesmo conjunto que você já tinha)
+        // binds (originais)
         $stmt->bindParam(":adm_capeante", $capeante->adm_capeante);
         $stmt->bindParam(":adm_check", $capeante->adm_check);
         $stmt->bindParam(":aud_enf_capeante", $capeante->aud_enf_capeante);
@@ -188,6 +204,7 @@ class capeanteDAO implements capeanteDAOInterface
         $stmt->bindParam(":pacote", $capeante->pacote);
         $stmt->bindParam(":parcial_capeante", $capeante->parcial_capeante);
         $stmt->bindParam(":parcial_num", $capeante->parcial_num);
+        $stmt->bindParam(":acomodacao_cap", $capeante->acomodacao_cap); // NOVO
         $stmt->bindParam(":fk_int_capeante", $capeante->fk_int_capeante);
         $stmt->bindParam(":fk_user_cap", $capeante->fk_user_cap);
         $stmt->bindParam(":valor_apresentado_capeante", $capeante->valor_apresentado_capeante);
@@ -217,11 +234,17 @@ class capeanteDAO implements capeanteDAOInterface
         $stmt->bindParam(":fk_id_aud_adm", $capeante->fk_id_aud_adm);
         $stmt->bindParam(":fk_id_aud_hosp", $capeante->fk_id_aud_hosp);
 
+        // binds novos
+        $stmt->bindParam(":valor_medicamentos", $capeante->valor_medicamentos);
+        $stmt->bindParam(":valor_materiais",    $capeante->valor_materiais);
+        $stmt->bindParam(":glosa_medicamentos", $capeante->glosa_medicamentos);
+        $stmt->bindParam(":glosa_materiais",    $capeante->glosa_materiais);
+
         $stmt->execute();
         $this->message->setMessage("capeante adicionado com sucesso!", "success", "list_internacao_cap.php");
     }
 
-    /** UPDATE (mantida a sua lógica, só mantendo organização) */
+    /** UPDATE */
     public function update(capeante $capeante)
     {
         try {
@@ -245,6 +268,7 @@ class capeanteDAO implements capeanteDAOInterface
                 med_check = :med_check,
                 enfer_check = :enfer_check,
                 pacote = :pacote,
+                acomodacao_cap = :acomodacao_cap,
                 parcial_capeante = :parcial_capeante,
                 parcial_num = :parcial_num,
                 fk_int_capeante = :fk_int_capeante,
@@ -276,12 +300,19 @@ class capeanteDAO implements capeanteDAOInterface
                 fk_id_aud_med = :fk_id_aud_med,
                 fk_id_aud_adm = :fk_id_aud_adm,
                 fk_id_aud_hosp = :fk_id_aud_hosp,
-                validacao_cap = :validacao_cap
+                validacao_cap = :validacao_cap,
+
+                -- NOVOS CAMPOS
+                valor_medicamentos = :valor_medicamentos,
+                valor_materiais    = :valor_materiais,
+                glosa_medicamentos = :glosa_medicamentos,
+                glosa_materiais    = :glosa_materiais
+
                 WHERE id_capeante = :id_capeante";
 
             $stmt = $this->conn->prepare($sql);
 
-            // binds (mesmos do seu código original)
+            // binds (originais)
             $stmt->bindParam(":adm_capeante", $capeante->adm_capeante);
             $stmt->bindParam(":adm_check", $capeante->adm_check);
             $stmt->bindParam(":med_check", $capeante->med_check);
@@ -301,6 +332,7 @@ class capeanteDAO implements capeanteDAOInterface
             $stmt->bindParam(":glosa_taxas", $capeante->glosa_taxas);
             $stmt->bindParam(":glosa_opme", $capeante->glosa_opme);
             $stmt->bindParam(":pacote", $capeante->pacote);
+            $stmt->bindParam(":acomodacao_cap", $capeante->acomodacao_cap); // NOVO
             $stmt->bindParam(":parcial_capeante", $capeante->parcial_capeante);
             $stmt->bindParam(":parcial_num", $capeante->parcial_num);
             $stmt->bindParam(":fk_int_capeante", $capeante->fk_int_capeante);
@@ -335,6 +367,12 @@ class capeanteDAO implements capeanteDAOInterface
             $stmt->bindParam(":fk_id_aud_hosp", $capeante->fk_id_aud_hosp);
             $stmt->bindParam(":validacao_cap",  $capeante->validacao_cap);
 
+            // binds novos
+            $stmt->bindParam(":valor_medicamentos", $capeante->valor_medicamentos);
+            $stmt->bindParam(":valor_materiais",    $capeante->valor_materiais);
+            $stmt->bindParam(":glosa_medicamentos", $capeante->glosa_medicamentos);
+            $stmt->bindParam(":glosa_materiais",    $capeante->glosa_materiais);
+
             $stmt->execute();
             $this->message->setMessage("Capeante atualizado com sucesso!", "success", "list_internacao_cap_audit.php");
         } catch (PDOException $e) {
@@ -359,7 +397,7 @@ class capeanteDAO implements capeanteDAOInterface
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /** SELECT com filtros/paginação trazendo alias de FATURAMENTO */
+    /** SELECT com filtros/paginação trazendo alias de FATURAMENTO + novos campos */
     public function selectAllcapeante($where = null, $order = null, $limite = null)
     {
         $where  = strlen($where)  ? 'WHERE ' . $where  : '';
@@ -412,6 +450,7 @@ class capeanteDAO implements capeanteDAOInterface
             ca.glosa_taxas,
             ca.glosa_opme,
             ca.pacote,
+            ca.acomodacao_cap,
             ca.valor_diarias,
             ca.valor_glosa_enf,
             ca.valor_glosa_med,
@@ -434,7 +473,12 @@ class capeanteDAO implements capeanteDAOInterface
             ca.fk_id_aud_enf,
             ca.fk_id_aud_adm,
             ca.fk_id_aud_hosp,
-            COALESCE(ca.conta_fatura_cap, ca.conta_faturada_cap) AS faturada_flag
+            COALESCE(ca.conta_fatura_cap, ca.conta_faturada_cap) AS faturada_flag,
+            -- NOVOS CAMPOS
+            ca.valor_medicamentos,
+            ca.valor_materiais,
+            ca.glosa_medicamentos,
+            ca.glosa_materiais
         FROM tb_internacao ac
         LEFT JOIN tb_capeante  ca ON ca.fk_int_capeante = ac.id_internacao
         LEFT JOIN tb_hospital  ho ON ac.fk_hospital_int = ho.id_hospital
@@ -449,7 +493,7 @@ class capeanteDAO implements capeanteDAOInterface
         return $query->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /** SELECT usado na sua lista (com alias faturada_flag incluso) */
+    /** SELECT usado na lista (inclui novos campos) */
     public function selectInternacaoCap($where = null, $order = null, $limit = null)
     {
         $where = strlen($where) ? 'WHERE ' . $where : '';
@@ -489,6 +533,7 @@ class capeanteDAO implements capeanteDAOInterface
             ca.glosa_taxas,
             ca.glosa_opme,
             ca.pacote,
+            ca.acomodacao_cap,
             ca.valor_diarias,
             ca.valor_glosa_enf,
             ca.valor_glosa_med,
@@ -507,7 +552,12 @@ class capeanteDAO implements capeanteDAOInterface
             ca.encerrado_cap,
             ca.conta_parada_cap,
             ca.parada_motivo_cap,
-            COALESCE(ca.conta_fatura_cap, ca.conta_faturada_cap) AS faturada_flag
+            COALESCE(ca.conta_fatura_cap, ca.conta_faturada_cap) AS faturada_flag,
+            -- NOVOS CAMPOS
+            ca.valor_medicamentos,
+            ca.valor_materiais,
+            ca.glosa_medicamentos,
+            ca.glosa_materiais
         FROM tb_internacao ac
         LEFT JOIN tb_hospital  ho ON ac.fk_hospital_int = ho.id_hospital
         LEFT JOIN tb_paciente  pa ON ac.fk_paciente_int = pa.id_paciente
@@ -521,7 +571,7 @@ class capeanteDAO implements capeanteDAOInterface
         return $query->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /** Quantidade com correções de vírgula e nomes */
+    /** Quantidade (mantido) */
     public function Qtdcapeante($where = null, $order = null, $limite = null)
     {
         $where  = strlen($where)  ? 'WHERE ' . $where  : '';
@@ -611,8 +661,6 @@ class capeanteDAO implements capeanteDAOInterface
     }
 
     /** ===== MARCAR FATURADO ===== */
-
-    /** Marca UM capeante como faturado (seta ambas colunas pra 's') */
     public function marcarComoFaturado($id_capeante)
     {
         $stmt = $this->conn->prepare("
@@ -627,7 +675,6 @@ class capeanteDAO implements capeanteDAOInterface
         }
     }
 
-    /** Marca VÁRIOS capeantes como faturados */
     public function marcarComoFaturadoEmLote(array $ids)
     {
         if (empty($ids)) return;
@@ -647,20 +694,14 @@ class capeanteDAO implements capeanteDAOInterface
             throw new Exception("Falha ao faturar as contas selecionadas.");
         }
     }
-    /**
-     * Retorna o último capeante (parcial) da mesma internação, se existir.
-     * Usado para informar o período anterior ao criar uma nova parcial.
-     * Retorna: id_capeante, parcial_num, data_inicial_capeante, data_final_capeante.
-     */
 
-    /** Conta quantos capeantes já existem para a internação */
+    /** Utilidades */
     public function getCapeantesCountByInternacao(int $id_internacao): int
     {
-        $row = $this->getCapeanteByInternacao($id_internacao); // você já tem esse método
+        $row = $this->getCapeanteByInternacao($id_internacao);
         return isset($row['qtd']) ? (int)$row['qtd'] : 0;
     }
 
-    /** Retorna o último capeante (id, parcial_num e período) da mesma internação */
     public function getUltimoCapeantePeriodoByInternacao(int $id_internacao)
     {
         $sql = "
@@ -681,38 +722,14 @@ class capeanteDAO implements capeanteDAOInterface
         return $row ?: null;
     }
 
-    /** Prepara dados úteis para abertura de nova parcial */
-    public function prepararNovaParcial(int $id_internacao): array
-    {
-        $count  = $this->getCapeantesCountByInternacao($id_internacao);
-        $ultimo = $this->getUltimoCapeantePeriodoByInternacao($id_internacao);
-
-        return [
-            'fk_int_capeante'       => $id_internacao,
-            'proxima_parcial'       => $count + 1,
-            'ultimo_id_capeante'    => $ultimo['id_capeante'] ?? null,
-            'periodo_anterior_ini'  => $ultimo['data_inicial_capeante'] ?? null,
-            'periodo_anterior_fim'  => $ultimo['data_final_capeante']   ?? null,
-        ];
-    }
     public function getHospitaisParaUsuario(int $userId, string $cargo): array
     {
-        // Lista de cargos que devem ter a visão filtrada por hospital
-        $cargosComFiltro = [
-            'Adm',
-            'adm',
-            'Administrador',
-            'administrador',
-            'Hospital',
-            'hospital'
-        ];
+        $cargosComFiltro = ['Adm', 'adm', 'Administrador', 'administrador', 'Hospital', 'hospital'];
 
         if (!in_array($cargo, $cargosComFiltro)) {
-            // Médicos, Enfermeiros, etc., verão todos os hospitais
             $sql = "SELECT DISTINCT ho.id_hospital, ho.nome_hosp FROM tb_hospital ho ORDER BY ho.nome_hosp ASC";
             $stmt = $this->conn->prepare($sql);
         } else {
-            // Adm, Hospital, etc., buscam apenas os associados
             $sql = "SELECT DISTINCT ho.id_hospital, ho.nome_hosp
                     FROM tb_hospital ho
                     INNER JOIN tb_hospitalUser hu ON ho.id_hospital = hu.fk_hospital_user
@@ -726,8 +743,6 @@ class capeanteDAO implements capeanteDAOInterface
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Este é um método de exemplo para buscar os dados para a lista.
-    // Adapte o SELECT conforme a sua necessidade real.
     public function buscarCapeantesFiltrados($where = '', $limit = 'LIMIT 25')
     {
         $sql = "
@@ -738,7 +753,12 @@ class capeanteDAO implements capeanteDAOInterface
                 ca.data_inicial_capeante,
                 ca.data_final_capeante,
                 ca.valor_final_capeante,
-                ca.encerrado_cap
+                ca.encerrado_cap,
+                ca.acomodacao_cap,
+                ca.valor_medicamentos,
+                ca.valor_materiais,
+                ca.glosa_medicamentos,
+                ca.glosa_materiais
             FROM tb_capeante ca
             LEFT JOIN tb_internacao ac ON ca.fk_int_capeante = ac.id_internacao
             LEFT JOIN tb_paciente pa ON ac.fk_paciente_int = pa.id_paciente
