@@ -255,9 +255,7 @@ if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['dat
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
 
 <div class="container-fluid px-0" id="main-container" style="margin-top:10px;background:#f5f6f8; min-height:100vh; ">
-    <?php
-    print_r(($internRow));
-    ?>
+
     <div class="progress mb-4">
         <div class="progress-bar bg-success" role="progressbar" id="progressBar" style="width: 33%;" aria-valuenow="33"
             aria-valuemin="0" aria-valuemax="100">
