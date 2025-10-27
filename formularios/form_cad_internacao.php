@@ -20,6 +20,19 @@ $id_paciente_get = filter_input(INPUT_GET, 'id_paciente', FILTER_VALIDATE_INT) ?
 include_once("dao/usuarioDao.php");
 $usuarioDao = new userDAO($conn, $BASE_URL);
 
+// === Recupera o último ID de internação sem depender de método ultimoId() ===
+if (!isset($ultimoReg)) {
+    $ultimoReg = 0;
+    try {
+        $stmt = $conn->query("SELECT MAX(id_internacao) AS max_id FROM internacao");
+        $row = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : null;
+        $ultimoReg = isset($row['max_id']) ? (int)$row['max_id'] : 0;
+    } catch (Throwable $e) {
+        // se der erro, mantém 0 (primeiro registro)
+        $ultimoReg = 0;
+    }
+}
+
 /* === DAOs auxiliares / util === */
 $Internacao_geral = new internacaoDAO($conn, $BASE_URL);
 $acomodacaoDao    = new acomodacaoDAO($conn, $BASE_URL);
@@ -68,12 +81,34 @@ try {
 } catch (Throwable $e) {
     $medicosAud = $enfsAud = [];
 }
-echo "\n<!-- via findMedicosEnfermeiros | med=" . count($medicosAud) . " enf=" . count($enfsAud) . " -->\n";
+if (!isset($listaHospitais) || !is_array($listaHospitais)) {
+    include_once("dao/hospitalDao.php");
+    include_once("dao/hospitalUserDao.php");
 
-/* ===== Mostrar Cadastro Central APENAS se NÃO for médico nem enfermeiro ===== */
-$normCargo = mb_strtolower(str_replace([' ', '-'], '_', (string)$cargoSessao), 'UTF-8');
-$mostrarCadastroCentral = !in_array($normCargo, ['med_auditor', 'medico_auditor', 'enf_auditor', 'enfer_auditor'], true);
-?>
+    $hospitalUserDao = new hospitalUserDAO($conn, $BASE_URL);
+    $hospitalDao = new hospitalDAO($conn, $BASE_URL);
+
+    $userIdSessao = (int)($_SESSION['id_usuario'] ?? 0);
+    $nivelSessao = (int)($_SESSION['nivel'] ?? 0);
+
+    if ($nivelSessao > 3) {
+        $rawHospitais = $hospitalDao->findGeral();
+    } else {
+        $rawHospitais = $hospitalUserDao->listarPorUsuario($userIdSessao);
+    }
+
+    $listaHospitais = [];
+    if (is_array($rawHospitais)) {
+        foreach ($rawHospitais as $h) {
+            $id = $h['id_hospital'] ?? $h['fk_hospital_user'] ?? null;
+            $nome = trim($h['nome_hosp'] ?? '');
+            if ($id && $nome) {
+                $listaHospitais[$id] = ['id_hospital' => $id, 'nome_hosp' => $nome];
+            }
+        }
+        $listaHospitais = array_values($listaHospitais); // dedup
+    }
+} ?>
 <link href="<?= $BASE_URL ?>css/style.css" rel="stylesheet">
 
 <style>
@@ -124,30 +159,52 @@ document.addEventListener('DOMContentLoaded', function() {
         <hr>
 
         <div class="col-12 d-flex align-items-end flex-wrap justify-content-between" style="margin-top:-20px;">
-            <div class="d-flex flex-wrap align-items-end" style="gap:30px;flex:2;">
-                <div class="form-group mb-0">
-                    <label class="control-label" for="RegInt">Id-Int</label>
-                    <input type="text" id="RegInt" name="RegInt" readonly class="form-control"
-                        style="height:45px;background-color:#fff;color:#000;font-weight:500;opacity:1;cursor:default;"
-                        value="<?= ($ultimoReg + 1) ?>">
-                </div>
+            <div class="form-group mb-0" style="min-width:300px;">
+                <label class="control-label" for="hospital_selected" style="margin-bottom:2px;">
+                    <span style="color:red;">*</span> Hospital
+                </label>
+                <select onchange="myFunctionSelected()" class="form-select botao_select" id="hospital_selected"
+                    name="hospital_selected" required
+                    style="height:45px !important;border:1px solid #555;font-size:1em;background-color:#fff;color:#000;width:100%;">
+                    <option value="">Selecione</option>
+                    <?php if (!empty($listaHospitais)): ?>
+                    <?php foreach ($listaHospitais as $h): ?>
+                    <option value="<?= htmlspecialchars($h['id_hospital']) ?>">
+                        <?= htmlspecialchars($h['nome_hosp']) ?>
+                    </option>
+                    <?php endforeach; ?>
+                    <?php else: ?>
+                    <option value="">Nenhum hospital disponível</option>
+                    <?php endif; ?>
+                </select>
+            </div>
 
-                <div class="form-group mb-0" style="min-width:300px;">
-                    <label class="control-label" for="hospital_selected" style="margin-bottom:2px;">
-                        <span style="color:red;">*</span> Hospital
-                    </label>
-                    <select onchange="myFunctionSelected()"
-                        style="height:45px !important;border:1px solid #555;font-size:1em;background-color:#fff;color:#000;width:100%;"
-                        class="form-select botao_select" id="hospital_selected" name="hospital_selected" required>
-                        <option value="">Selecione</option>
-                        <?php foreach ($listHopitaisPerfil as $hospital): ?>
-                        <option value="<?= htmlspecialchars($hospital['id_hospital']); ?>">
-                            <?= htmlspecialchars($hospital["nome_hosp"]) ?>
-                        </option>
-                        <?php endforeach; ?>
-                    </select>
+            <!-- Campo hidden atualizado dinamicamente via JS -->
+            <input type="hidden" name="fk_hospital_int" id="fk_hospital_int" value="">
+
+            <!-- Mostra nome selecionado -->
+            <div class="d-flex justify-content-center align-items-center" style="flex:1">
+                <div id="hospitalNomeTexto" style="
+         position: relative;
+         display: none;
+         max-width: 800px;
+         margin-left: 450px;         /* move mais para a direita */
+         height: 60px;              /* altura levemente menor */
+         padding: 0 40px;
+         border: 2px solid #28a745;
+         border-radius: 8px;
+         font-size: 1.2em;
+         font-weight: 600;
+         color: #000;
+         background-color: #f8fff8;
+         align-items: center;
+         justify-content: center;
+         text-align: center;
+         box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+     ">
                 </div>
             </div>
+
 
             <div class="d-flex justify-content-center align-items-center" style="flex:1">
                 <div id="hospitalNomeTexto"
@@ -173,8 +230,8 @@ document.addEventListener('DOMContentLoaded', function() {
         <input type="hidden" value="<?= htmlspecialchars($idSessao) ?>" id="fk_usuario_int" name="fk_usuario_int">
 
         <div class="form-group row">
-            <input type="hidden" value="<?= $hospital["id_hospital"] ?? '' ?>" name="fk_hospital_int"
-                id="fk_hospital_int">
+            <input type="hidden" value="" name="fk_hospital_int" id="fk_hospital_int">
+
 
             <div class="form-group col-sm-3" style="margin-bottom:-25px">
                 <label class="control-label" for="fk_paciente_int"><span style="color:red;">*</span> Paciente </label>
@@ -895,41 +952,30 @@ function teste(evt) {
 <script>
 // Hospital selecionado -> mostra nome e grava hidden
 function myFunctionSelected() {
-    const select = document.querySelector("#hospital_selected");
-    const selectedValue = select.value;
-    const selectedText = select.options[select.selectedIndex].text;
-    const inputHospital = document.querySelector("#fk_hospital_int");
-    const divNome = document.querySelector("#hospitalNomeTexto");
+    const select = document.getElementById("hospital_selected");
+    const inputHospital = document.getElementById("fk_hospital_int");
+    const divNome = document.getElementById("hospitalNomeTexto");
 
-    inputHospital.value = selectedValue;
+    if (!select || !inputHospital || !divNome) return;
 
-    // --- INÍCIO DA ALTERAÇÃO ---
-    if (selectedValue !== "") {
-        // Aplica estilo de sucesso (borda verde) quando um hospital válido é selecionado
-        $("#hospital_selected").css({
-            "color": "black",
-            "font-weight": "bold",
-            "border": "2px solid green", // Borda verde sucesso
-            "padding-top": "3px",
-            "padding-bottom": "3px",
-            "line-height": "normal"
-        });
-        divNome.textContent = selectedText;
+    const id = select.value || "";
+    const nome = select.options[select.selectedIndex]?.text || "";
+
+    inputHospital.value = id;
+
+    if (id) {
+        select.style.color = "black";
+        select.style.fontWeight = "bold";
+        select.style.border = "2px solid green";
+        divNome.textContent = nome;
         divNome.style.display = "flex";
     } else {
-        // Reseta o estilo se "Selecione" for escolhido novamente
-        $("#hospital_selected").css({
-            "color": "#000", // Cor padrão
-            "font-weight": "normal",
-            "border": "1px solid #555", // Borda padrão original
-            "padding-top": "", // Reseta padding
-            "padding-bottom": "",
-            "line-height": "" // Reseta line-height
-        });
+        select.style.color = "#000";
+        select.style.fontWeight = "normal";
+        select.style.border = "1px solid #555";
         divNome.textContent = "";
         divNome.style.display = "none";
     }
-    // --- FIM DA ALTERAÇÃO ---
 }
 
 // Estilo do select "relatório detalhado"
