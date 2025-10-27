@@ -486,9 +486,8 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar
 
                                     // Passa para a função
                                     $preditivoPatologia = $internacao->PreditivoIntPatologAntec($wherePreditivo);
-
                                     // Transformar o valor do índice [4] em um inteiro
-                                    $valorInteiro = intval($preditivoPatologia[4]);
+                                    $valorInteiro = intval($preditivoPatologia['tempo_medio_internacao']);
 
                                     // Imprime o valor convertido
                                     echo "<span style='font-size:1.2em; color:blue; font-weight:500;'>$valorInteiro</span>";
