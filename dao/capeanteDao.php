@@ -775,4 +775,157 @@ class capeanteDAO implements capeanteDAOInterface
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+    /**
+     * Retorna um registro de Capeante com todos os JOINs necessários
+     * para o PDF no layout RAH.
+     *
+     * JOIN: tb_capeante (c)
+     *    -> tb_internacao (i)
+     *    -> tb_paciente (p)
+     *    -> tb_hospital (h)
+     *    -> tb_prorrogacao (pr)  [última prorrogação, se houver]
+     *
+     * @param int $idCapeante
+     * @return array|null  (associativo) ou null se não encontrar
+     */
+    public function getCapeanteForRAH(int $idCapeante): ?array
+    {
+        $sql = "
+        SELECT
+            -- =========================
+            -- HOSPITAL
+            -- =========================
+            h.id_hospital,
+            h.nome_hosp                          AS hospital_nome,
+            h.cnpj_hosp                          AS hospital_cnpj,
+
+            -- =========================
+            -- PACIENTE
+            -- =========================
+            p.id_paciente,
+            p.nome_pac                           AS paciente_nome,
+            p.data_nasc_pac                      AS paciente_nasc,
+            p.cpf_pac                            AS paciente_cpf,
+
+            -- =========================
+            -- INTERNAÇÃO
+            -- =========================
+            i.id_internacao,
+            i.senha_int                          AS senha_aut,
+            i.num_atendimento_int                AS numero_atendimento,
+            i.data_intern_int                    AS data_internacao,
+            i.data_visita_int                    AS data_visita_ref,
+            i.acomodacao_int,
+            i.modo_internacao_int,
+            i.tipo_admissao_int,
+            i.rel_int                            AS relatorio_internacao,
+            i.hora_intern_int,
+            i.fk_patologia_int,
+            i.fk_patologia2,
+            i.fk_paciente_int,
+            i.fk_hospital_int,
+            i.internado_int,
+
+            -- =========================
+            -- CAPEANTE (valores / glosas por grupos usados no RAH)
+            -- =========================
+            c.id_capeante,
+            c.fk_int_capeante,
+            c.data_inicial_capeante,
+            c.data_final_capeante,
+            c.diarias_capeante,
+
+            c.valor_diarias,
+            c.valor_taxa,
+            c.valor_matmed,
+            c.valor_sadt,
+            c.valor_honorarios,
+            c.valor_oxig,
+            c.valor_opme,
+            c.valor_materiais,
+            c.valor_medicamentos,
+
+            c.glosa_diaria,
+            c.glosa_taxas,
+            c.glosa_matmed,
+            c.glosa_sadt,
+            c.glosa_honorarios,
+            c.glosa_oxig,
+            c.glosa_opme,
+            c.glosa_materiais,
+            c.glosa_medicamentos,
+            c.glosa_total,
+
+            c.valor_apresentado_capeante,
+            c.valor_final_capeante,
+            c.desconto_valor_cap                 AS desconto_valor,
+            c.parcial_capeante,
+            c.parcial_num,
+            c.senha_finalizada,
+            c.adm_check,
+            c.med_check,
+            c.enfer_check,
+            c.conta_faturada_cap,
+
+            -- =========================
+            -- PRORROGAÇÃO (pega a última ativa/mais recente, se houver)
+            -- =========================
+            pr.prorrog1_ini_pror                 AS prorrogacao_ini,
+            pr.prorrog1_fim_pror                 AS prorrogacao_fim,
+
+            -- =========================
+            -- CAMPOS DERIVADOS ÚTEIS AO PDF
+            -- =========================
+            -- período de cobrança
+            COALESCE(c.data_inicial_capeante, i.data_intern_int)  AS periodo_cobranca_ini,
+            COALESCE(c.data_final_capeante,   i.data_visita_int)  AS periodo_cobranca_fim,
+
+            -- Totais reorganizados p/ somatórios do quadro RAH
+            -- (Cobrado / Glosado / Após Auditoria por grandes grupos)
+            (COALESCE(c.valor_diarias,0))              AS cobrado_diarias,
+            (COALESCE(c.valor_taxa,0))                 AS cobrado_taxas,
+            (COALESCE(c.valor_matmed,0))               AS cobrado_matmed,      -- insumos em geral
+            (COALESCE(c.valor_sadt,0))                 AS cobrado_sadt,        -- exames/terapias
+            (COALESCE(c.valor_honorarios,0))           AS cobrado_honorarios,
+            (COALESCE(c.valor_oxig,0))                 AS cobrado_oxigenio,
+            (COALESCE(c.valor_opme,0))                 AS cobrado_opme,
+            (COALESCE(c.valor_materiais,0))            AS cobrado_materiais,   -- se separar de matmed
+            (COALESCE(c.valor_medicamentos,0))         AS cobrado_medicamentos,
+
+            (COALESCE(c.glosa_diaria,0))               AS glosa_diarias,
+            (COALESCE(c.glosa_taxas,0))                AS glosa_taxas_tot,
+            (COALESCE(c.glosa_matmed,0))               AS glosa_matmed_tot,
+            (COALESCE(c.glosa_sadt,0))                 AS glosa_sadt_tot,
+            (COALESCE(c.glosa_honorarios,0))           AS glosa_honorarios_tot,
+            (COALESCE(c.glosa_oxig,0))                 AS glosa_oxigenio_tot,
+            (COALESCE(c.glosa_opme,0))                 AS glosa_opme_tot,
+            (COALESCE(c.glosa_materiais,0))            AS glosa_materiais_tot,
+            (COALESCE(c.glosa_medicamentos,0))         AS glosa_medicamentos_tot
+
+        FROM tb_capeante c
+        LEFT JOIN tb_internacao i
+               ON i.id_internacao = c.fk_int_capeante
+        LEFT JOIN tb_paciente p
+               ON p.id_paciente   = i.fk_paciente_int
+        LEFT JOIN tb_hospital h
+               ON h.id_hospital   = i.fk_hospital_int
+        LEFT JOIN (
+            SELECT pr.*
+            FROM tb_prorrogacao pr
+            WHERE pr.ativo = 1
+            ORDER BY pr.prorrog1_ini_pror DESC
+        ) pr
+               ON pr.fk_internacao_pror = i.id_internacao
+        WHERE c.id_capeante = :id
+        -- garante pegar a prorrogação mais recente (subselect já ordena; aqui limita 1 linha total)
+        LIMIT 1
+    ";
+
+        $st = $this->conn->prepare($sql);
+        $st->bindValue(':id', $idCapeante, PDO::PARAM_INT);
+        $st->execute();
+        $row = $st->fetch(PDO::FETCH_ASSOC);
+
+        return $row ?: null;
+    }
 }
