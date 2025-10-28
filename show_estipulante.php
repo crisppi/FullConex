@@ -108,7 +108,7 @@ $estipulante->telefone02_est = $telefone02_format;
             </span>
             <hr>
         </div>
-        <div style="margin-top:-25px" class="card-body">
+        <div style="margin-top:-5px" class="card-body">
             <h6>Dados Contato</h6>
             <span class=" card-text bold">Email: </span>
             <span class=" card-text bold">

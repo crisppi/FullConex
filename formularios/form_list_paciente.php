@@ -79,7 +79,7 @@
     }
     ?>
 
-    <div class="container-fluid form_container" id="main-container" style="margin-top:-15px;">
+    <div class="container-fluid form_container" id="main-container" style="margin-top:-5px;">
         <div class="d-flex justify-content-between align-items-center" style="margin-bottom: 0;">
             <h4 class="page-title" style="margin-top:-10px;line-height: 1.5;">Pacientes</h4>
             <div style="margin-left: auto;">

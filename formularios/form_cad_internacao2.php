@@ -176,7 +176,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <input type="hidden" value="<?= $hospital["id_hospital"] ?? '' ?>" name="fk_hospital_int"
                 id="fk_hospital_int">
 
-            <div class="form-group col-sm-3" style="margin-bottom:-25px">
+            <div class="form-group col-sm-3" style="margin-bottom:-5px">
                 <label class="control-label" for="fk_paciente_int"><span style="color:red;">*</span> Paciente </label>
                 <select onchange="teste()" data-size="5" data-live-search="true"
                     class="form-control form-control-sm selectpicker show-tick" id="fk_paciente_int"

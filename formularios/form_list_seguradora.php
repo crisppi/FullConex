@@ -66,7 +66,7 @@
     ?>
 
     <!--tabela evento-->
-    <div class="container-fluid form_container" style="margin-top:-25px;">
+    <div class="container-fluid form_container" style="margin-top:-5px;">
 
         <div class="d-flex justify-content-between align-items-center" style="margin-bottom: 0;">
             <h4 style="margin-top:-10px" class="page-title">Seguradora</h4>

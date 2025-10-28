@@ -45,7 +45,7 @@ $internacao = new internacaoDAO($conn, $BASE_URL);
 <script src="./js/ajaxNav.js"></script>
 <link rel="stylesheet" href="css/style.css">
 
-<div class="container-fluid form_container" id='main-container' style="margin-top:-25px">
+<div class="container-fluid form_container" id='main-container' style="margin-top:-5px">
 
     <h4 class="page-title">Patologia - Internações</h4>
 

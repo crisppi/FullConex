@@ -55,7 +55,7 @@ $data_intern_int_max = filter_input(INPUT_GET, 'data_intern_int_max') ?: null;
 
 ?>
 <!-- FORMULARIO DE PESQUISAS -->
-<div class="container-fluid" id="main-container" style="margin-top:-25px">
+<div class="container-fluid" id="main-container" style="margin-top:-5px">
     <h4 class="page-title"> Capeantes - Contas Finalizadas</h4>
     <hr>
     <div id="navbarToggleExternalContent">

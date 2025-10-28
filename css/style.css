@@ -16,9 +16,9 @@
 /* Certifique-se de que o corpo da página tenha padding suficiente */
 
 body {
-    padding-top: 110px;
-    zoom: 110%;
-
+    padding-top: 100px;
+    zoom: 100%;
+    
     /* Ajuste este valor de acordo com a altura real do seu header */
 }
 

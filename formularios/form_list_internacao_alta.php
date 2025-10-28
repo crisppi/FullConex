@@ -39,7 +39,7 @@ $internacao = new internacaoDAO($conn, $BASE_URL);
 
 ?>
 <!-- FORMULARIO DE PESQUISAS -->
-<div class="container-fluid" id='main-container'>
+<div class="container-fluid form_container" id='main-container' style="margin-top:-5px;">
     <h4 class="page-title">Alta Hospitalar</h4>
     <hr>
     <div class="complete-table">

@@ -106,7 +106,7 @@ $hospital->telefone02_hosp = $telefone02_format;
             <span class="card-text bold"><?= $hospital->estado_hosp ?></span>
             <hr>
         </div>
-        <div style="margin-top:-25px" class="card-body">
+        <div style="margin-top:-5px" class="card-body">
             <h6>Dados Contato</h6>
             <span class=" card-text bold">Email: </span>
             <span class=" card-text bold"><?= $hospital->email01_hosp ?></span>

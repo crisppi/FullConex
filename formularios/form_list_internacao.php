@@ -59,7 +59,7 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 
 <!-- FORMULARIO DE PESQUISAS -->
-<div class="container-fluid" id='main-container' style="margin-top: -25px;">
+<div class="container-fluid" id='main-container' >
     <!-- Main CSS-->
     <!-- <link href="./diversos/CoolAdmin-master/css/theme.css" rel="stylesheet"  media="all"> -->
     <script src="./js/ajaxNav.js"></script>

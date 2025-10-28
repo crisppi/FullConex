@@ -47,7 +47,7 @@ $user = $_SESSION['id_usuario'];
 
 ?>
 <!-- FORMULARIO DE PESQUISAS -->
-<div class="container-fluid" style="margin-top:-25px;">
+<div class="container-fluid" style="margin-top:-5px;">
     <h4 class="page-title" style="color: #3A3A3A">Censo Hospitalar</h4>
     <hr>
     <div class="container" id="navbarToggleExternalContent">

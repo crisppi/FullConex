@@ -42,7 +42,7 @@ $uti = new utiDAO($conn, $BASE_URL);
 ?>
 
 <!-- FORMULARIO DE PESQUISAS -->
-<div class="container-fluid form_container" style="margin-top:-25px;" id='main-container'>
+<div class="container-fluid form_container" style="margin-top:-5px;" id='main-container'>
     <h4 class="page-title">Internação UTI</h4>
     <hr>
     <div class="complete-table">

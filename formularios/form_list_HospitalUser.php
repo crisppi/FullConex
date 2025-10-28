@@ -81,7 +81,7 @@ if ($qtdIntItens > $limite) {
 ?>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-<div class="container-fluid form_container" style="margin-top:-25px;">
+<div class="container-fluid form_container" style="margin-top:-5px;">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <div class="d-flex justify-content-between align-items-center">
         <h4 style="margin-top:-10px" class="page-title">Hospitais por Usuário</h4>
