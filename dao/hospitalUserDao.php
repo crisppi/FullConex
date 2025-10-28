@@ -251,7 +251,7 @@ class hospitalUserDAO implements hospitalUserDAOInterface
 
         // 2) tenta como id do usuário (pega a primeira)
         $sql = "SELECT 
-                    hu.id_hospitalUser,
+                    hu.id_hospitalUser as id_hospital,
                     hu.fk_usuario_hosp,
                     hu.fk_hospital_user,
                     h.nome_hosp,
@@ -263,11 +263,11 @@ class hospitalUserDAO implements hospitalUserDAOInterface
                 LEFT JOIN " . self::TBL_USER . " u ON u.id_usuario  = hu.fk_usuario_hosp
                 WHERE hu.fk_usuario_hosp = :id
                 ORDER BY hu.id_hospitalUser ASC
-                LIMIT 1";
+                ";
         $st = $this->conn->prepare($sql);
         $st->bindValue(":id", $id, PDO::PARAM_INT);
         $st->execute();
-        return $st->fetch() ?: [];
+        return $st->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
