@@ -1,0 +1,6 @@
+[UNCAUGHT] PDOException: SQLSTATE[HY000] [1049] Unknown database 'fullcare' in /Applications/AMPPS/www/FullConex/export_capeante_pdf.php:71
+#0 /Applications/AMPPS/www/FullConex/export_capeante_pdf.php(71): PDO->__construct('mysql:host=loca...', 'root', Object(SensitiveParameterValue), Array)
+#1 {main}
+[UNCAUGHT] PDOException: SQLSTATE[HY000] [1049] Unknown database 'fullcare' in /Applications/AMPPS/www/FullConex/export_capeante_pdf.php:71
+#0 /Applications/AMPPS/www/FullConex/export_capeante_pdf.php(71): PDO->__construct('mysql:host=loca...', 'root', Object(SensitiveParameterValue), Array)
+#1 {main}
