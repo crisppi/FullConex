@@ -14,7 +14,7 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
 <?php include_once("array_dados.php");
 ?>
 
-<div class="container-fluid" id="main-container">
+<div class="container-fluid" id="main-container" >
     <div class="progress mb-4">
         <div class="progress-bar bg-success" role="progressbar" id="progressBar" style="width: 25%;" aria-valuenow="25"
             aria-valuemin="0" aria-valuemax="100">Etapa 1 de 4</div>
