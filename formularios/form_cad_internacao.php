@@ -120,42 +120,42 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
 <link href="<?= $BASE_URL ?>css/style.css" rel="stylesheet">
 
 <style>
-    /* z-index do dropdown do header */
-    .navbar .dropdown-menu {
-        z-index: 1055;
-    }
+/* z-index do dropdown do header */
+.navbar .dropdown-menu {
+    z-index: 1055;
+}
 
-    /* Selects roxos (tabelas adicionais) */
-    .select-purple {
-        color: #fff;
-        background-color: #5e2363;
-        border: 1px solid #5e2363;
-    }
+/* Selects roxos (tabelas adicionais) */
+.select-purple {
+    color: #fff;
+    background-color: #5e2363;
+    border: 1px solid #5e2363;
+}
 
-    .select-purple:focus {
-        box-shadow: 0 0 0 .25rem rgba(94, 35, 99, .25);
+.select-purple:focus {
+    box-shadow: 0 0 0 .25rem rgba(94, 35, 99, .25);
 
-    }
+}
 
-    .is-invalid {
-        border-color: #dc3545 !important;
-    }
+.is-invalid {
+    border-color: #dc3545 !important;
+}
 </style>
 
 <!-- Shim BS4 -> BS5 (data-toggle -> data-bs-*) -->
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('[data-toggle="dropdown"]').forEach(function (el) {
-            el.setAttribute('data-bs-toggle', 'dropdown');
-        });
-        document.querySelectorAll('[data-toggle="collapse"]').forEach(function (el) {
-            el.setAttribute('data-bs-toggle', 'collapse');
-        });
-        document.querySelectorAll('[data-target]').forEach(function (el) {
-            if (!el.getAttribute('data-bs-target')) el.setAttribute('data-bs-target', el.getAttribute(
-                'data-target'));
-        });
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('[data-toggle="dropdown"]').forEach(function(el) {
+        el.setAttribute('data-bs-toggle', 'dropdown');
     });
+    document.querySelectorAll('[data-toggle="collapse"]').forEach(function(el) {
+        el.setAttribute('data-bs-toggle', 'collapse');
+    });
+    document.querySelectorAll('[data-target]').forEach(function(el) {
+        if (!el.getAttribute('data-bs-target')) el.setAttribute('data-bs-target', el.getAttribute(
+            'data-target'));
+    });
+});
 </script>
 
 <div class="row" style="margin-top:-5px;">
@@ -183,13 +183,13 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                     style="height:45px !important;border:1px solid #555;font-size:1em;background-color:#fff;color:#000;width:100%;">
                     <option value="">Selecione</option>
                     <?php if (!empty($listaHospitais)): ?>
-                        <?php foreach ($listaHospitais as $h): ?>
-                            <option value="<?= htmlspecialchars($h['id_hospital']) ?>">
-                                <?= htmlspecialchars($h['nome_hosp']) ?>
-                            </option>
-                        <?php endforeach; ?>
+                    <?php foreach ($listaHospitais as $h): ?>
+                    <option value="<?= htmlspecialchars($h['id_hospital']) ?>">
+                        <?= htmlspecialchars($h['nome_hosp']) ?>
+                    </option>
+                    <?php endforeach; ?>
                     <?php else: ?>
-                        <option value="">Nenhum hospital disponível</option>
+                    <option value="">Nenhum hospital disponível</option>
                     <?php endif; ?>
                 </select>
             </div>
@@ -199,24 +199,25 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
             <!-- Mostra nome selecionado -->
             <div class="d-flex justify-content-center align-items-center" style="flex:1">
                 <div id="hospitalNomeTexto" style="
-         position: relative;
-         display: none;
-         max-width: 800px;
-         margin-left: 450px;         /* move mais para a direita */
-         height: 60px;              /* altura levemente menor */
-         padding: 0 40px;
-         border: 2px solid #28a745;
-         border-radius: 8px;
-         font-size: 1.2em;
-         font-weight: 600;
-         color: #000;
-         background-color: #f8fff8;
-         align-items: center;
-         justify-content: center;
-         text-align: center;
-         box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-     ">
+  display: none;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  max-width: 800px;
+  margin-left: 450px;
+  height: 60px;
+  padding: 0 40px;
+  border: 2px solid #640764ff;
+  border-radius: 8px;
+  font-size: 1.2em;
+  font-weight: 600;
+  color: #000;
+  background-image: linear-gradient(90deg, #ffffff 0%, #f8f2fa 40%, #e0bde7 70%, #b983ca 100%);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  white-space: nowrap;
+">
                 </div>
+
             </div>
 
 
@@ -256,8 +257,8 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                     <?php
                     usort($pacientes, fn($a, $b) => strcmp($a["nome_pac"], $b["nome_pac"]));
                     foreach ($pacientes as $paciente): ?>
-                        <option value="<?= (int) $paciente["id_paciente"] ?>"><?= htmlspecialchars($paciente["nome_pac"]) ?>
-                        </option>
+                    <option value="<?= (int) $paciente["id_paciente"] ?>"><?= htmlspecialchars($paciente["nome_pac"]) ?>
+                    </option>
                     <?php endforeach; ?>
                 </select>
                 <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -310,7 +311,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                     <option value="">Selecione o motivo da alta</option>
                     <?php sort($dados_alta, SORT_ASC);
                     foreach ($dados_alta as $alta): ?>
-                        <option value="<?= htmlspecialchars($alta); ?>"><?= htmlspecialchars($alta); ?></option>
+                    <option value="<?= htmlspecialchars($alta); ?>"><?= htmlspecialchars($alta); ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -329,50 +330,50 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
 
         <!-- ===== CADASTRO CENTRAL (só aparece se NÃO for med/enf) ===== -->
         <?php if ($mostrarCadastroCentral): ?>
-            <div id="cadastro-central-wrapper" class="form-group row"
-                style="margin-top:8px;display:block !important;border:2px dashed #8a2be2;padding:10px;border-radius:8px;">
-                <div class="form-group col-sm-12" style="margin-bottom:6px;">
-                    <span style="font-weight:700;color:#5e2363;">Cadastro Central ativo</span>
-                    <small style="margin-left:8px;color:#666;">(opcional: escolha o tipo e o responsável)</small>
+        <div id="cadastro-central-wrapper" class="form-group row"
+            style="margin-top:8px;display:block !important;border:2px dashed #8a2be2;padding:10px;border-radius:8px;">
+            <div class="form-group col-sm-12" style="margin-bottom:6px;">
+                <span style="font-weight:700;color:#5e2363;">Cadastro Central ativo</span>
+                <small style="margin-left:8px;color:#666;">(opcional: escolha o tipo e o responsável)</small>
+            </div>
+
+            <div class="form-group row align-items-end">
+                <div class="form-group col-sm-3">
+                    <label class="control-label" for="resp_tipo">Responsável pela visita</label>
+                    <select id="resp_tipo" class="form-control form-control-sm">
+                        <option value="">(sem seleção)</option>
+                        <option value="med">Médico auditor</option>
+                        <option value="enf">Enfermeiro auditor</option>
+                    </select>
                 </div>
 
-                <div class="form-group row align-items-end">
-                    <div class="form-group col-sm-3">
-                        <label class="control-label" for="resp_tipo">Responsável pela visita</label>
-                        <select id="resp_tipo" class="form-control form-control-sm">
-                            <option value="">(sem seleção)</option>
-                            <option value="med">Médico auditor</option>
-                            <option value="enf">Enfermeiro auditor</option>
-                        </select>
-                    </div>
+                <div class="form-group col-sm-4 d-none" id="box_resp_med">
+                    <label class="control-label" for="resp_med_id">Selecionar médico</label>
+                    <select id="resp_med_id" class="form-control form-control-sm">
+                        <option value="">Selecione</option>
+                        <?php foreach ($medicosAud as $m): ?>
+                        <option value="<?= (int) $m['id_usuario'] ?>"
+                            data-email="<?= htmlspecialchars($m['email_user'] ?? '') ?>">
+                            <?= htmlspecialchars($m['usuario_user'] ?? ('#' . $m['id_usuario'])) ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
 
-                    <div class="form-group col-sm-4 d-none" id="box_resp_med">
-                        <label class="control-label" for="resp_med_id">Selecionar médico</label>
-                        <select id="resp_med_id" class="form-control form-control-sm">
-                            <option value="">Selecione</option>
-                            <?php foreach ($medicosAud as $m): ?>
-                                <option value="<?= (int) $m['id_usuario'] ?>"
-                                    data-email="<?= htmlspecialchars($m['email_user'] ?? '') ?>">
-                                    <?= htmlspecialchars($m['usuario_user'] ?? ('#' . $m['id_usuario'])) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-
-                    <div class="form-group col-sm-5 d-none" id="box_resp_enf">
-                        <label class="control-label" for="resp_enf_id">Selecionar enfermeiro</label>
-                        <select id="resp_enf_id" class="form-control form-control-sm">
-                            <option value="">Selecione</option>
-                            <?php foreach ($enfsAud as $e): ?>
-                                <option value="<?= (int) $e['id_usuario'] ?>"
-                                    data-email="<?= htmlspecialchars($e['email_user'] ?? '') ?>">
-                                    <?= htmlspecialchars($e['usuario_user'] ?? ('#' . $e['id_usuario'])) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
+                <div class="form-group col-sm-5 d-none" id="box_resp_enf">
+                    <label class="control-label" for="resp_enf_id">Selecionar enfermeiro</label>
+                    <select id="resp_enf_id" class="form-control form-control-sm">
+                        <option value="">Selecione</option>
+                        <?php foreach ($enfsAud as $e): ?>
+                        <option value="<?= (int) $e['id_usuario'] ?>"
+                            data-email="<?= htmlspecialchars($e['email_user'] ?? '') ?>">
+                            <?= htmlspecialchars($e['usuario_user'] ?? ('#' . $e['id_usuario'])) ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
             </div>
+        </div>
         <?php endif; ?>
         <!-- ===== /CADASTRO CENTRAL ===== -->
 
@@ -383,7 +384,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                     <option value="">Selecione</option>
                     <?php sort($dados_acomodacao, SORT_ASC);
                     foreach ($dados_acomodacao as $acomd): ?>
-                        <option value="<?= htmlspecialchars($acomd) ?>"><?= htmlspecialchars($acomd) ?></option>
+                    <option value="<?= htmlspecialchars($acomd) ?>"><?= htmlspecialchars($acomd) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -393,7 +394,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                     <option value="">Selecione</option>
                     <?php sort($dados_especialidade, SORT_ASC);
                     foreach ($dados_especialidade as $especial): ?>
-                        <option value="<?= htmlspecialchars($especial) ?>"><?= htmlspecialchars($especial) ?></option>
+                    <option value="<?= htmlspecialchars($especial) ?>"><?= htmlspecialchars($especial) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -452,9 +453,9 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                     <?php
                     usort($patologias, fn($a, $b) => strcmp($a["patologia_pat"], $b["patologia_pat"]));
                     foreach ($patologias as $patologia): ?>
-                        <option value="<?= (int) $patologia["id_patologia"] ?>">
-                            <?= htmlspecialchars($patologia["patologia_pat"]) ?>
-                        </option>
+                    <option value="<?= (int) $patologia["id_patologia"] ?>">
+                        <?= htmlspecialchars($patologia["patologia_pat"]) ?>
+                    </option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -464,7 +465,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                 <select class="form-control-sm form-control" id="grupo_patologia_int" name="grupo_patologia_int">
                     <option value="">Selecione</option>
                     <?php foreach ($dados_grupo_pat as $grupo): ?>
-                        <option value="<?= htmlspecialchars($grupo) ?>"><?= htmlspecialchars($grupo) ?></option>
+                    <option value="<?= htmlspecialchars($grupo) ?>"><?= htmlspecialchars($grupo) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -474,7 +475,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                 <select class="form-control-sm form-control" id="origem_int" name="origem_int">
                     <option value="">Selecione</option>
                     <?php foreach ($origem as $origens): ?>
-                        <option value="<?= htmlspecialchars($origens) ?>"><?= htmlspecialchars($origens) ?></option>
+                    <option value="<?= htmlspecialchars($origens) ?>"><?= htmlspecialchars($origens) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -496,9 +497,9 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                     <?php
                     usort($antecedentes, fn($a, $b) => strcmp($a["antecedente_ant"], $b["antecedente_ant"]));
                     foreach ($antecedentes as $antecedente): ?>
-                        <option value="<?= (int) $antecedente["id_antecedente"] ?>">
-                            <?= htmlspecialchars($antecedente["antecedente_ant"]) ?>
-                        </option>
+                    <option value="<?= (int) $antecedente["id_antecedente"] ?>">
+                        <?= htmlspecialchars($antecedente["antecedente_ant"]) ?>
+                    </option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -777,22 +778,22 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
 
         <div class="form-group row d-flex justify-content-center align-items-end" style="gap: 15px;">
             <?php if ($cargoSessao === 'Med_auditor' || $cargoSessao === 'Diretoria') { ?>
-                <div class="form-group col-sm-2">
-                    <label class="control-label" style="font-weight: bold;" for="select_tuss">Tuss</label>
-                    <select class="form-control-sm form-control select-purple" id="select_tuss" name="select_tuss">
-                        <option value="">Selecione</option>
-                        <option value="s">Sim</option>
-                        <option value="n">Não</option>
-                    </select>
-                </div>
-                <div class="form-group col-sm-2">
-                    <label class="control-label" style="font-weight: bold;" for="select_prorrog">Prorrogação</label>
-                    <select class="form-control-sm form-control select-purple" id="select_prorrog" name="select_prorrog">
-                        <option value="">Selecione</option>
-                        <option value="s">Sim</option>
-                        <option value="n">Não</option>
-                    </select>
-                </div>
+            <div class="form-group col-sm-2">
+                <label class="control-label" style="font-weight: bold;" for="select_tuss">Tuss</label>
+                <select class="form-control-sm form-control select-purple" id="select_tuss" name="select_tuss">
+                    <option value="">Selecione</option>
+                    <option value="s">Sim</option>
+                    <option value="n">Não</option>
+                </select>
+            </div>
+            <div class="form-group col-sm-2">
+                <label class="control-label" style="font-weight: bold;" for="select_prorrog">Prorrogação</label>
+                <select class="form-control-sm form-control select-purple" id="select_prorrog" name="select_prorrog">
+                    <option value="">Selecione</option>
+                    <option value="s">Sim</option>
+                    <option value="n">Não</option>
+                </select>
+            </div>
             <?php } ?>
 
             <div class="form-group col-sm-2">
@@ -814,14 +815,14 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
             </div>
 
             <?php if ($cargoSessao === 'Med_auditor' || $cargoSessao === 'Diretoria') { ?>
-                <div class="form-group col-sm-2">
-                    <label class="control-label" style="font-weight: bold;" for="select_negoc">Negociações</label>
-                    <select class="form-control-sm form-control select-purple" id="select_negoc" name="select_negoc">
-                        <option value="">Selecione</option>
-                        <option value="s">Sim</option>
-                        <option value="n">Não</option>
-                    </select>
-                </div>
+            <div class="form-group col-sm-2">
+                <label class="control-label" style="font-weight: bold;" for="select_negoc">Negociações</label>
+                <select class="form-control-sm form-control select-purple" id="select_negoc" name="select_negoc">
+                    <option value="">Selecione</option>
+                    <option value="s">Sim</option>
+                    <option value="n">Não</option>
+                </select>
+            </div>
             <?php } ?>
         </div>
 
@@ -859,317 +860,317 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
     </form>
 </div>
 <?php if (!empty($id_paciente_get)): ?>
-    <script>
-        (function preselectPaciente() {
-            var tentativas = 0;
-            var idPac = "<?= (int) $id_paciente_get ?>";
+<script>
+(function preselectPaciente() {
+    var tentativas = 0;
+    var idPac = "<?= (int) $id_paciente_get ?>";
 
-            function aplicar() {
-                var $sel = $('#fk_paciente_int');
-                if (!$sel.length) return false;
+    function aplicar() {
+        var $sel = $('#fk_paciente_int');
+        if (!$sel.length) return false;
 
-                // seta o valor
-                $sel.val(idPac);
+        // seta o valor
+        $sel.val(idPac);
 
-                // se estiver usando bootstrap-select, atualiza a UI
-                if ($.fn.selectpicker && $sel.hasClass('selectpicker')) {
-                    $sel.selectpicker('refresh');
-                }
+        // se estiver usando bootstrap-select, atualiza a UI
+        if ($.fn.selectpicker && $sel.hasClass('selectpicker')) {
+            $sel.selectpicker('refresh');
+        }
 
-                // dispara sua verificação de internação ativa
-                if (typeof teste === 'function') {
-                    try {
-                        teste();
-                    } catch (e) {
-                        console.warn('teste() falhou:', e);
-                    }
-                }
-                return true;
+        // dispara sua verificação de internação ativa
+        if (typeof teste === 'function') {
+            try {
+                teste();
+            } catch (e) {
+                console.warn('teste() falhou:', e);
             }
+        }
+        return true;
+    }
 
-            // tenta algumas vezes até o select/BS-Select estarem prontos
-            (function aguardarPronto() {
-                if (aplicar()) return;
-                if (++tentativas < 30) return setTimeout(aguardarPronto, 100);
-                console.warn('Não foi possível pré-selecionar o paciente.');
-            })();
-        })();
-    </script>
+    // tenta algumas vezes até o select/BS-Select estarem prontos
+    (function aguardarPronto() {
+        if (aplicar()) return;
+        if (++tentativas < 30) return setTimeout(aguardarPronto, 100);
+        console.warn('Não foi possível pré-selecionar o paciente.');
+    })();
+})();
+</script>
 <?php endif; ?>
 
 <script>
-    function aumentarText(id) {
+function aumentarText(id) {
+    const el = document.getElementById(id);
+    if (el) el.rows = 20;
+}
+
+function reduzirText(id, rows) {
+    const el = document.getElementById(id);
+    if (el) el.rows = rows;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // id do textarea + número de linhas “fechado”
+    const campos = [
+        ['rel_int', 2],
+        ['acoes_int', 2],
+        ['programacao_int', 2],
+    ];
+
+    campos.forEach(([id, rowsFechado]) => {
         const el = document.getElementById(id);
-        if (el) el.rows = 20;
-    }
+        if (!el) return;
 
-    function reduzirText(id, rows) {
-        const el = document.getElementById(id);
-        if (el) el.rows = rows;
-    }
+        // ao focar, expande
+        el.addEventListener('focus', () => aumentarText(id));
 
-    document.addEventListener('DOMContentLoaded', function () {
-        // id do textarea + número de linhas “fechado”
-        const campos = [
-            ['rel_int', 2],
-            ['acoes_int', 2],
-            ['programacao_int', 2],
-        ];
-
-        campos.forEach(([id, rowsFechado]) => {
-            const el = document.getElementById(id);
-            if (!el) return;
-
-            // ao focar, expande
-            el.addEventListener('focus', () => aumentarText(id));
-
-            // ao perder o foco, volta para o tamanho original
-            el.addEventListener('blur', () => reduzirText(id, rowsFechado));
-        });
+        // ao perder o foco, volta para o tamanho original
+        el.addEventListener('blur', () => reduzirText(id, rowsFechado));
     });
-    // selectpicker só se o plugin existir (evita quebrar tudo)
-    $(function () {
-        if ($.fn.selectpicker) {
-            $('.selectpicker').selectpicker();
-            $('.selectpicker').selectpicker('refresh');
-            $('.selectpicker').on('loaded.bs.select', function () {
-                $('.bs-searchbox input').attr('placeholder', 'Digite para pesquisar...');
-            });
+});
+// selectpicker só se o plugin existir (evita quebrar tudo)
+$(function() {
+    if ($.fn.selectpicker) {
+        $('.selectpicker').selectpicker();
+        $('.selectpicker').selectpicker('refresh');
+        $('.selectpicker').on('loaded.bs.select', function() {
+            $('.bs-searchbox input').attr('placeholder', 'Digite para pesquisar...');
+        });
+    }
+});
+
+function teste(evt) {
+    if (evt && typeof evt.preventDefault === 'function') evt.preventDefault();
+
+    $.ajax({
+        url: "check_internacao.php",
+        type: "POST",
+        data: {
+            id_paciente: $('#fk_paciente_int').val()
+        },
+        success: function(result) {
+            const alert_div = document.getElementById('alert_intern');
+            // garante comparação segura
+            const ativo = String(result).trim() === '1';
+            alert_div.style.display = ativo ? "block" : "none";
+        },
+        error: function(xhr, status, err) {
+            console.error("Erro ao checar internação:", status, err, xhr.responseText);
         }
     });
-
-    function teste(evt) {
-        if (evt && typeof evt.preventDefault === 'function') evt.preventDefault();
-
-        $.ajax({
-            url: "check_internacao.php",
-            type: "POST",
-            data: {
-                id_paciente: $('#fk_paciente_int').val()
-            },
-            success: function (result) {
-                const alert_div = document.getElementById('alert_intern');
-                // garante comparação segura
-                const ativo = String(result).trim() === '1';
-                alert_div.style.display = ativo ? "block" : "none";
-            },
-            error: function (xhr, status, err) {
-                console.error("Erro ao checar internação:", status, err, xhr.responseText);
-            }
-        });
-    }
+}
 </script>
 
 <script src="js/text_cad_internacao.js"></script>
 <script src="js/select_internacao.js"></script>
 
 <script>
-    // Hospital selecionado -> mostra nome e grava hidden
-    function myFunctionSelected() {
-        const select = document.getElementById("hospital_selected");
-        const inputHospital = document.getElementById("fk_hospital_int");
-        const divNome = document.getElementById("hospitalNomeTexto");
+// Hospital selecionado -> mostra nome e grava hidden
+function myFunctionSelected() {
+    const select = document.getElementById("hospital_selected");
+    const inputHospital = document.getElementById("fk_hospital_int");
+    const divNome = document.getElementById("hospitalNomeTexto");
 
-        if (!select || !inputHospital || !divNome) return;
+    if (!select || !inputHospital || !divNome) return;
 
-        const id = select.value || "";
-        const nome = select.options[select.selectedIndex]?.text || "";
+    const id = select.value || "";
+    const nome = select.options[select.selectedIndex]?.text || "";
 
-        inputHospital.value = id;
+    inputHospital.value = id;
 
-        if (id) {
-            select.style.color = "black";
-            select.style.fontWeight = "bold";
-            select.style.border = "2px solid green";
-            divNome.textContent = nome;
-            divNome.style.display = "flex";
-        } else {
-            select.style.color = "#000";
-            select.style.fontWeight = "normal";
-            select.style.border = "1px solid #555";
-            divNome.textContent = "";
-            divNome.style.display = "none";
+    if (id) {
+        select.style.color = "black";
+        select.style.fontWeight = "bold";
+        select.style.border = "2px solid green";
+        divNome.textContent = nome;
+        divNome.style.display = "flex";
+    } else {
+        select.style.color = "#000";
+        select.style.fontWeight = "normal";
+        select.style.border = "1px solid #555";
+        divNome.textContent = "";
+        divNome.style.display = "none";
+    }
+}
+
+// Estilo do select "relatório detalhado"
+$('#relatorio-detalhado').on('change', function() {
+    const optionDetalhes = $(this).find(":selected").text();
+    const baseCss = {
+        "color": "white",
+        "font-weight": "normal",
+        "border": "1px solid #5e2363",
+        "background-color": "#5e2363"
+    };
+    $(this).css(baseCss);
+    if (optionDetalhes === "Sim") {
+        $(this).css({
+            "color": "black",
+            "font-weight": "bold",
+            "border": "2px solid green",
+            "background-color": "#d8b4fe"
+        });
+    } else {
+        $(this).val("").css(baseCss);
+    }
+});
+
+// Toggle campos dependentes
+$(function() {
+    $('#medicacaoDet').hide();
+    $('#medic_alto_custo_det').on('change', function() {
+        ($(this).val() === 's') ? $('#medicacaoDet').show(): $('#medicacaoDet').hide();
+    });
+
+    $('#atb').hide();
+    $('#atb_det').on('change', function() {
+        ($(this).val() === 's') ? $('#atb').show(): $('#atb').hide();
+    });
+
+    $('#div-oxig').hide();
+    $('#oxig_det').on('change', function() {
+        ($('#oxig_det').val() === 'Cateter' || $('#oxig_det').val() === 'Mascara') ? $('#div-oxig')
+            .show(): $('#div-oxig').hide();
+    });
+});
+
+// Mostrar UTI se acomodação == UTI
+document.getElementById("acomodacao_int").addEventListener("change", function() {
+    const divUti = document.querySelector("#container-uti");
+    if (divUti) divUti.style.display = (this.value === "UTI") ? "block" : "none";
+});
+
+// Checar se paciente já está internado
+function teste() {
+    event.preventDefault();
+    $.ajax({
+        url: "check_internacao.php",
+        type: "POST",
+        data: {
+            id_paciente: $('#fk_paciente_int').val()
+        },
+        success: function(result) {
+            const alert_div = document.getElementById('alert_intern');
+            (String(result) == '1') ? alert_div.style.display = "block": alert_div.style.display = "none";
         }
+    });
+}
+
+// Validação de datas
+document.getElementById("data_intern_int").addEventListener("blur", function() {
+    const input = this;
+    const dataInternacao = new Date(input.value);
+    const dataHoje = new Date();
+    const erroDiv = document.getElementById("erro-data-internacao");
+
+    erroDiv.style.display = "none";
+    erroDiv.textContent = "";
+    if (!input.value) return;
+    const dataFormatadaHoje = dataHoje.toISOString().split("T")[0];
+
+    if (input.value > dataFormatadaHoje) {
+        erroDiv.textContent = "A data da internação não pode ser maior que a data atual.";
+        erroDiv.style.display = "block";
+        input.value = "";
+        return setTimeout(() => {
+            erroDiv.style.display = "none";
+            erroDiv.textContent = "";
+        }, 5000);
     }
 
-    // Estilo do select "relatório detalhado"
-    $('#relatorio-detalhado').on('change', function () {
-        const optionDetalhes = $(this).find(":selected").text();
-        const baseCss = {
-            "color": "white",
-            "font-weight": "normal",
-            "border": "1px solid #5e2363",
-            "background-color": "#5e2363"
-        };
-        $(this).css(baseCss);
-        if (optionDetalhes === "Sim") {
-            $(this).css({
-                "color": "black",
-                "font-weight": "bold",
-                "border": "2px solid green",
-                "background-color": "#d8b4fe"
-            });
-        } else {
-            $(this).val("").css(baseCss);
-        }
-    });
+    const diffDias = (dataHoje - dataInternacao) / (1000 * 60 * 60 * 24);
+    if (diffDias > 30) {
+        erroDiv.textContent = "Deseja prorrogar acima de 30 dias?";
+        erroDiv.style.display = "block";
+        setTimeout(() => {
+            erroDiv.style.display = "none";
+            erroDiv.textContent = "";
+        }, 7000);
+    }
+});
 
-    // Toggle campos dependentes
-    $(function () {
-        $('#medicacaoDet').hide();
-        $('#medic_alto_custo_det').on('change', function () {
-            ($(this).val() === 's') ? $('#medicacaoDet').show() : $('#medicacaoDet').hide();
-        });
+document.getElementById("data_visita_int").addEventListener("change", function() {
+    const dataInternacao = new Date(document.getElementById("data_intern_int").value);
+    const dataVisita = new Date(this.value);
+    const hoje = new Date();
+    const seteDiasDepois = new Date();
+    seteDiasDepois.setDate(hoje.getDate() + 7);
+    const errorMessage = document.getElementById("error-message");
+    errorMessage.style.display = "none";
+    errorMessage.textContent = "";
 
-        $('#atb').hide();
-        $('#atb_det').on('change', function () {
-            ($(this).val() === 's') ? $('#atb').show() : $('#atb').hide();
-        });
+    if (document.getElementById("data_intern_int").value && dataVisita < dataInternacao) {
+        errorMessage.textContent = "A data da visita não pode ser menor que a data de internação.";
+        return errorMessage.style.display = "block";
+    }
+    if (dataVisita > seteDiasDepois) {
+        errorMessage.textContent = "A data da visita não pode ser maior que 7 dias da data atual.";
+        errorMessage.style.display = "block";
+    }
+});
 
-        $('#div-oxig').hide();
-        $('#oxig_det').on('change', function () {
-            ($('#oxig_det').val() === 'Cateter' || $('#oxig_det').val() === 'Mascara') ? $('#div-oxig')
-                .show() : $('#div-oxig').hide();
-        });
-    });
-
-    // Mostrar UTI se acomodação == UTI
-    document.getElementById("acomodacao_int").addEventListener("change", function () {
-        const divUti = document.querySelector("#container-uti");
-        if (divUti) divUti.style.display = (this.value === "UTI") ? "block" : "none";
-    });
-
-    // Checar se paciente já está internado
-    function teste() {
-        event.preventDefault();
-        $.ajax({
-            url: "check_internacao.php",
-            type: "POST",
-            data: {
-                id_paciente: $('#fk_paciente_int').val()
-            },
-            success: function (result) {
-                const alert_div = document.getElementById('alert_intern');
-                (String(result) == '1') ? alert_div.style.display = "block" : alert_div.style.display = "none";
-            }
+// Internação pertinente (quando tipo = Urgência)
+document.getElementById("tipo_admissao_int").addEventListener("change", function() {
+    const tipo = this.value;
+    const divPertinente = document.getElementById("div_int_pertinente_int");
+    const divRelPertinente = document.getElementById("div_rel_pertinente_int");
+    divPertinente.style.display = "none";
+    divRelPertinente.style.display = "none";
+    if (tipo === "Urgência") {
+        divPertinente.style.display = "block";
+        document.getElementById("int_pertinente_int").addEventListener("change", function() {
+            divRelPertinente.style.display = (this.value === "n") ? "block" : "none";
+        }, {
+            once: true
         });
     }
+});
 
-    // Validação de datas
-    document.getElementById("data_intern_int").addEventListener("blur", function () {
-        const input = this;
-        const dataInternacao = new Date(input.value);
-        const dataHoje = new Date();
-        const erroDiv = document.getElementById("erro-data-internacao");
+// JSON de antecedentes
+document.getElementById('fk_patologia2').addEventListener('change', function() {
+    const selectedOptions = Array.from(this.selectedOptions).map(o => parseInt(o.value, 10));
+    const fkPaciente = parseInt(document.getElementById('fk_paciente_int').value || '0', 10);
+    const fkInternacao = parseInt(document.getElementById('id_internacao').value || '0', 10);
+    const jsonAntecedentes = selectedOptions.map(idAntecedente => ({
+        fk_id_paciente: fkPaciente,
+        fk_internacao_ant_int: fkInternacao + 1,
+        intern_antec_ant_int: idAntecedente
+    }));
+    document.getElementById('json-antec').value = JSON.stringify(jsonAntecedentes);
+});
 
-        erroDiv.style.display = "none";
-        erroDiv.textContent = "";
-        if (!input.value) return;
-        const dataFormatadaHoje = dataHoje.toISOString().split("T")[0];
+// Mostrar/ocultar campos de alta conforme "Internado"
+document.addEventListener("DOMContentLoaded", function() {
+    const selectInternado = document.getElementById("internado_int");
+    const divDataAlta = document.getElementById("div-data-alta");
+    const divMotivoAlta = document.getElementById("div-motivo-alta");
 
-        if (input.value > dataFormatadaHoje) {
-            erroDiv.textContent = "A data da internação não pode ser maior que a data atual.";
-            erroDiv.style.display = "block";
-            input.value = "";
-            return setTimeout(() => {
-                erroDiv.style.display = "none";
-                erroDiv.textContent = "";
-            }, 5000);
+    function toggleDataAlta() {
+        if (selectInternado.value === "s") {
+            divDataAlta.style.display = "none";
+            divMotivoAlta.style.display = "none";
+            document.getElementById("data_alta_alt").value = "";
+            document.getElementById("tipo_alta_alt").value = "";
+        } else {
+            divDataAlta.style.display = "block";
+            divMotivoAlta.style.display = "block";
         }
+    }
+    toggleDataAlta();
+    selectInternado.addEventListener("change", toggleDataAlta);
+});
 
-        const diffDias = (dataHoje - dataInternacao) / (1000 * 60 * 60 * 24);
-        if (diffDias > 30) {
-            erroDiv.textContent = "Deseja prorrogar acima de 30 dias?";
-            erroDiv.style.display = "block";
-            setTimeout(() => {
-                erroDiv.style.display = "none";
-                erroDiv.textContent = "";
-            }, 7000);
-        }
-    });
-
-    document.getElementById("data_visita_int").addEventListener("change", function () {
-        const dataInternacao = new Date(document.getElementById("data_intern_int").value);
-        const dataVisita = new Date(this.value);
-        const hoje = new Date();
-        const seteDiasDepois = new Date();
-        seteDiasDepois.setDate(hoje.getDate() + 7);
-        const errorMessage = document.getElementById("error-message");
-        errorMessage.style.display = "none";
-        errorMessage.textContent = "";
-
-        if (document.getElementById("data_intern_int").value && dataVisita < dataInternacao) {
-            errorMessage.textContent = "A data da visita não pode ser menor que a data de internação.";
-            return errorMessage.style.display = "block";
-        }
-        if (dataVisita > seteDiasDepois) {
-            errorMessage.textContent = "A data da visita não pode ser maior que 7 dias da data atual.";
-            errorMessage.style.display = "block";
-        }
-    });
-
-    // Internação pertinente (quando tipo = Urgência)
-    document.getElementById("tipo_admissao_int").addEventListener("change", function () {
-        const tipo = this.value;
-        const divPertinente = document.getElementById("div_int_pertinente_int");
-        const divRelPertinente = document.getElementById("div_rel_pertinente_int");
-        divPertinente.style.display = "none";
-        divRelPertinente.style.display = "none";
-        if (tipo === "Urgência") {
-            divPertinente.style.display = "block";
-            document.getElementById("int_pertinente_int").addEventListener("change", function () {
-                divRelPertinente.style.display = (this.value === "n") ? "block" : "none";
-            }, {
-                once: true
-            });
-        }
-    });
-
-    // JSON de antecedentes
-    document.getElementById('fk_patologia2').addEventListener('change', function () {
-        const selectedOptions = Array.from(this.selectedOptions).map(o => parseInt(o.value, 10));
-        const fkPaciente = parseInt(document.getElementById('fk_paciente_int').value || '0', 10);
-        const fkInternacao = parseInt(document.getElementById('id_internacao').value || '0', 10);
-        const jsonAntecedentes = selectedOptions.map(idAntecedente => ({
-            fk_id_paciente: fkPaciente,
-            fk_internacao_ant_int: fkInternacao + 1,
-            intern_antec_ant_int: idAntecedente
-        }));
-        document.getElementById('json-antec').value = JSON.stringify(jsonAntecedentes);
-    });
-
-    // Mostrar/ocultar campos de alta conforme "Internado"
-    document.addEventListener("DOMContentLoaded", function () {
-        const selectInternado = document.getElementById("internado_int");
-        const divDataAlta = document.getElementById("div-data-alta");
-        const divMotivoAlta = document.getElementById("div-motivo-alta");
-
-        function toggleDataAlta() {
-            if (selectInternado.value === "s") {
-                divDataAlta.style.display = "none";
-                divMotivoAlta.style.display = "none";
-                document.getElementById("data_alta_alt").value = "";
-                document.getElementById("tipo_alta_alt").value = "";
-            } else {
-                divDataAlta.style.display = "block";
-                divMotivoAlta.style.display = "block";
-            }
-        }
-        toggleDataAlta();
-        selectInternado.addEventListener("change", toggleDataAlta);
-    });
-
-    // Chat toggle
-    document.getElementById("chat-header").addEventListener("click", function () {
-        const chatBody = document.getElementById("chat-body");
-        chatBody.style.display = (chatBody.style.display === "none") ? "block" : "none";
-    });
-    document.getElementById("chat-send").addEventListener("click", function () {
-        const inputField = document.getElementById("chat-input");
-        const message = (inputField.value || "").trim();
-        if (!message) return;
-        const messagesDiv = document.getElementById("chat-messages");
-        fetch("diversos/chatgpt_handler.php", {
+// Chat toggle
+document.getElementById("chat-header").addEventListener("click", function() {
+    const chatBody = document.getElementById("chat-body");
+    chatBody.style.display = (chatBody.style.display === "none") ? "block" : "none";
+});
+document.getElementById("chat-send").addEventListener("click", function() {
+    const inputField = document.getElementById("chat-input");
+    const message = (inputField.value || "").trim();
+    if (!message) return;
+    const messagesDiv = document.getElementById("chat-messages");
+    fetch("diversos/chatgpt_handler.php", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -1178,424 +1179,424 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                 message
             })
         })
-            .then(r => r.json())
-            .then(data => {
-                const botMessage = document.createElement("div");
-                botMessage.style.color = "green";
-                botMessage.textContent = "Bot: " + (data.reply || "Sem resposta");
-                messagesDiv.appendChild(botMessage);
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
-            })
-            .catch(() => {
-                const errorMessage = document.createElement("div");
-                errorMessage.style.color = "red";
-                errorMessage.textContent = "Erro ao conectar com o bot.";
-                messagesDiv.appendChild(errorMessage);
-            });
-        inputField.value = "";
-    });
+        .then(r => r.json())
+        .then(data => {
+            const botMessage = document.createElement("div");
+            botMessage.style.color = "green";
+            botMessage.textContent = "Bot: " + (data.reply || "Sem resposta");
+            messagesDiv.appendChild(botMessage);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        })
+        .catch(() => {
+            const errorMessage = document.createElement("div");
+            errorMessage.style.color = "red";
+            errorMessage.textContent = "Erro ao conectar com o bot.";
+            messagesDiv.appendChild(errorMessage);
+        });
+    inputField.value = "";
+});
 
-    /* ==========================================================
-       CADASTRO CENTRAL — LÓGICA ÚNICA (sem duplicações)
-       Regras:
-       - fk_usuario_int = ID do responsável selecionado
-       - visita_med_int / visita_enf_int = 's' / 'n' conforme tipo
-       - visita_auditor_prof_med = SEMPRE o ID (espelhado de fk_usuario_int) SE tipo != 'enf'; caso 'enf', fica vazio
-       - visita_auditor_prof_enf não é usado (fica vazio)
-       ========================================================== */
-    function mirrorVisitMedFromFk() {
-        const fk = document.getElementById('fk_usuario_int')?.value || '';
-        const tipo = document.getElementById('resp_tipo')?.value || '';
-        const medHidden = document.getElementById('visita_auditor_prof_med');
-        if (!medHidden) return;
-        medHidden.value = (tipo === 'enf') ? '' : fk;
+/* ==========================================================
+   CADASTRO CENTRAL — LÓGICA ÚNICA (sem duplicações)
+   Regras:
+   - fk_usuario_int = ID do responsável selecionado
+   - visita_med_int / visita_enf_int = 's' / 'n' conforme tipo
+   - visita_auditor_prof_med = SEMPRE o ID (espelhado de fk_usuario_int) SE tipo != 'enf'; caso 'enf', fica vazio
+   - visita_auditor_prof_enf não é usado (fica vazio)
+   ========================================================== */
+function mirrorVisitMedFromFk() {
+    const fk = document.getElementById('fk_usuario_int')?.value || '';
+    const tipo = document.getElementById('resp_tipo')?.value || '';
+    const medHidden = document.getElementById('visita_auditor_prof_med');
+    if (!medHidden) return;
+    medHidden.value = (tipo === 'enf') ? '' : fk;
+}
+document.addEventListener('DOMContentLoaded', mirrorVisitMedFromFk);
+
+(function() {
+    const respTipo = document.getElementById('resp_tipo');
+    const boxMed = document.getElementById('box_resp_med');
+    const boxEnf = document.getElementById('box_resp_enf');
+    const selMed = document.getElementById('resp_med_id');
+    const selEnf = document.getElementById('resp_enf_id');
+
+    const fkUsuario = document.getElementById('fk_usuario_int');
+    const flgMed = document.getElementById('visita_med_int');
+    const flgEnf = document.getElementById('visita_enf_int');
+    const emailMed = document.getElementById('visita_auditor_prof_med'); // usado para ID do médico responsável
+    const emailEnf = document.getElementById('visita_auditor_prof_enf'); // não utilizado (mantém vazio)
+
+    const idSessao = "<?= htmlspecialchars($idSessao) ?>";
+    const cargoSessao = "<?= addslashes($cargoSessao) ?>";
+
+    function hide(el) {
+        if (el) {
+            el.classList.add('d-none');
+            el.hidden = true;
+            el.style.display = '';
+        }
     }
-    document.addEventListener('DOMContentLoaded', mirrorVisitMedFromFk);
 
-    (function () {
-        const respTipo = document.getElementById('resp_tipo');
-        const boxMed = document.getElementById('box_resp_med');
-        const boxEnf = document.getElementById('box_resp_enf');
-        const selMed = document.getElementById('resp_med_id');
-        const selEnf = document.getElementById('resp_enf_id');
-
-        const fkUsuario = document.getElementById('fk_usuario_int');
-        const flgMed = document.getElementById('visita_med_int');
-        const flgEnf = document.getElementById('visita_enf_int');
-        const emailMed = document.getElementById('visita_auditor_prof_med'); // usado para ID do médico responsável
-        const emailEnf = document.getElementById('visita_auditor_prof_enf'); // não utilizado (mantém vazio)
-
-        const idSessao = "<?= htmlspecialchars($idSessao) ?>";
-        const cargoSessao = "<?= addslashes($cargoSessao) ?>";
-
-        function hide(el) {
-            if (el) {
-                el.classList.add('d-none');
-                el.hidden = true;
-                el.style.display = '';
-            }
+    function show(el) {
+        if (el) {
+            el.classList.remove('d-none');
+            el.hidden = false;
+            el.style.display = '';
         }
+    }
 
-        function show(el) {
-            if (el) {
-                el.classList.remove('d-none');
-                el.hidden = false;
-                el.style.display = '';
-            }
-        }
+    function resetToSessionUser() {
+        if (!fkUsuario) return;
+        fkUsuario.value = idSessao || '';
+        if (flgMed) flgMed.value = (cargoSessao === 'Med_auditor') ? 's' : 'n';
+        if (flgEnf) flgEnf.value = (cargoSessao === 'Enf_Auditor') ? 's' : 'n';
+        if (emailMed) emailMed.value = ''; // será setado por mirrorVisitMedFromFk
+        if (emailEnf) emailEnf.value = '';
+        mirrorVisitMedFromFk();
+    }
 
-        function resetToSessionUser() {
-            if (!fkUsuario) return;
-            fkUsuario.value = idSessao || '';
-            if (flgMed) flgMed.value = (cargoSessao === 'Med_auditor') ? 's' : 'n';
-            if (flgEnf) flgEnf.value = (cargoSessao === 'Enf_Auditor') ? 's' : 'n';
-            if (emailMed) emailMed.value = ''; // será setado por mirrorVisitMedFromFk
-            if (emailEnf) emailEnf.value = '';
-            mirrorVisitMedFromFk();
-        }
+    // inicia oculto
+    hide(boxMed);
+    hide(boxEnf);
+    resetToSessionUser();
 
-        // inicia oculto
+    respTipo?.addEventListener('change', function() {
+        const v = this.value;
+        if (selMed) selMed.value = '';
+        if (selEnf) selEnf.value = '';
+        if (flgMed) flgMed.value = 'n';
+        if (flgEnf) flgEnf.value = 'n';
+        if (emailMed) emailMed.value = '';
+        if (emailEnf) emailEnf.value = '';
+        if (fkUsuario) fkUsuario.value = idSessao;
+
         hide(boxMed);
         hide(boxEnf);
-        resetToSessionUser();
-
-        respTipo?.addEventListener('change', function () {
-            const v = this.value;
-            if (selMed) selMed.value = '';
-            if (selEnf) selEnf.value = '';
-            if (flgMed) flgMed.value = 'n';
-            if (flgEnf) flgEnf.value = 'n';
-            if (emailMed) emailMed.value = '';
-            if (emailEnf) emailEnf.value = '';
-            if (fkUsuario) fkUsuario.value = idSessao;
-
-            hide(boxMed);
-            hide(boxEnf);
-            if (v === 'med') {
-                show(boxMed);
-                if (flgMed) flgMed.value = 's';
-            }
-            if (v === 'enf') {
-                show(boxEnf);
-                if (flgEnf) flgEnf.value = 's';
-            }
-            mirrorVisitMedFromFk();
-        });
-
-        selMed?.addEventListener('change', function () {
-            const opt = this.selectedOptions[0];
-            if (!opt?.value) {
-                resetToSessionUser();
-                return;
-            }
-            if (fkUsuario) fkUsuario.value = opt.value;
+        if (v === 'med') {
+            show(boxMed);
             if (flgMed) flgMed.value = 's';
-            if (flgEnf) flgEnf.value = 'n';
-            if (emailEnf) emailEnf.value = '';
-            mirrorVisitMedFromFk();
-        });
-
-        selEnf?.addEventListener('change', function () {
-            const opt = this.selectedOptions[0];
-            if (!opt?.value) {
-                resetToSessionUser();
-                return;
-            }
-            if (fkUsuario) fkUsuario.value = opt.value;
-            if (flgMed) flgMed.value = 'n';
+        }
+        if (v === 'enf') {
+            show(boxEnf);
             if (flgEnf) flgEnf.value = 's';
-            if (emailMed) emailMed.value = ''; // tipo enf → campo do médico fica vazio
-            if (emailEnf) emailEnf.value = '';
-            mirrorVisitMedFromFk();
-        });
-    })();
+        }
+        mirrorVisitMedFromFk();
+    });
 
-    // SUBMIT AJAX
-    // formulario ajax para envio form sem refresh
-    $("#myForm").submit(function (event) {
-        event.preventDefault(); // Impede o envio tradicional do formulário
-        let post_url = $(this).attr("action"); // Obtém a URL de ação do formulário
-        let request_method = $(this).attr("method"); // Obtém o método do formulário (GET/POST)
-        let form_data = new FormData(this); // Cria um objeto FormData com os dados do formulário
-
-
-        // 1. Salva o valor selecionado do select de hospitais
-        const hospitalSelected = document.getElementById("hospital_selected").value;
-
-        // 1.A. Validação do Hospital
-        if (hospitalSelected === "") {
-            // Usa a div de alerta existente para exibir o erro
-            $('#alert').removeClass("alert-success").addClass("alert-danger");
-            $('#alert').fadeIn().html("<b>Erro:</b> O campo Hospital é obrigatório.");
-
-            // --- INÍCIO DA ALTERAÇÃO ---
-            // Adiciona borda vermelha para indicar erro no campo
-            $("#hospital_selected").css("border", "2px solid red");
-            // --- FIM DA ALTERAÇÃO ---
-
-            // Oculta a mensagem após 3 segundos
-            setTimeout(function () {
-                $('#alert').fadeOut('Slow');
-            }, 3000);
-
-            // Impede a execução do AJAX
+    selMed?.addEventListener('change', function() {
+        const opt = this.selectedOptions[0];
+        if (!opt?.value) {
+            resetToSessionUser();
             return;
         }
+        if (fkUsuario) fkUsuario.value = opt.value;
+        if (flgMed) flgMed.value = 's';
+        if (flgEnf) flgEnf.value = 'n';
+        if (emailEnf) emailEnf.value = '';
+        mirrorVisitMedFromFk();
+    });
 
-        // (Opcional, mas bom) Se passou na validação, garante que a borda não esteja vermelha
-        // A função myFunctionSelected já deve ter deixado verde se um valor foi selecionado.
-        // Esta linha é uma segurança extra caso algum cenário não dispare o 'onchange'.
-        // Se a borda já for verde (ou padrão), não fará mal.
-        if ($("#hospital_selected").css("border-color") === "rgb(255, 0, 0)") { // Verifica se a cor é vermelho
-            $("#hospital_selected").css("border", "2px solid green"); // Muda para verde se estava vermelha
+    selEnf?.addEventListener('change', function() {
+        const opt = this.selectedOptions[0];
+        if (!opt?.value) {
+            resetToSessionUser();
+            return;
         }
+        if (fkUsuario) fkUsuario.value = opt.value;
+        if (flgMed) flgMed.value = 'n';
+        if (flgEnf) flgEnf.value = 's';
+        if (emailMed) emailMed.value = ''; // tipo enf → campo do médico fica vazio
+        if (emailEnf) emailEnf.value = '';
+        mirrorVisitMedFromFk();
+    });
+})();
+
+// SUBMIT AJAX
+// formulario ajax para envio form sem refresh
+$("#myForm").submit(function(event) {
+    event.preventDefault(); // Impede o envio tradicional do formulário
+    let post_url = $(this).attr("action"); // Obtém a URL de ação do formulário
+    let request_method = $(this).attr("method"); // Obtém o método do formulário (GET/POST)
+    let form_data = new FormData(this); // Cria um objeto FormData com os dados do formulário
 
 
+    // 1. Salva o valor selecionado do select de hospitais
+    const hospitalSelected = document.getElementById("hospital_selected").value;
+
+    // 1.A. Validação do Hospital
+    if (hospitalSelected === "") {
+        // Usa a div de alerta existente para exibir o erro
+        $('#alert').removeClass("alert-success").addClass("alert-danger");
+        $('#alert').fadeIn().html("<b>Erro:</b> O campo Hospital é obrigatório.");
+
+        // --- INÍCIO DA ALTERAÇÃO ---
+        // Adiciona borda vermelha para indicar erro no campo
+        $("#hospital_selected").css("border", "2px solid red");
+        // --- FIM DA ALTERAÇÃO ---
+
+        // Oculta a mensagem após 3 segundos
+        setTimeout(function() {
+            $('#alert').fadeOut('Slow');
+        }, 3000);
+
+        // Impede a execução do AJAX
+        return;
+    }
+
+    // (Opcional, mas bom) Se passou na validação, garante que a borda não esteja vermelha
+    // A função myFunctionSelected já deve ter deixado verde se um valor foi selecionado.
+    // Esta linha é uma segurança extra caso algum cenário não dispare o 'onchange'.
+    // Se a borda já for verde (ou padrão), não fará mal.
+    if ($("#hospital_selected").css("border-color") === "rgb(255, 0, 0)") { // Verifica se a cor é vermelho
+        $("#hospital_selected").css("border", "2px solid green"); // Muda para verde se estava vermelha
+    }
+
+
+    $.ajax({
+        url: post_url,
+        type: request_method,
+        processData: false, // Impede o jQuery de processar os dados
+        contentType: false, // Impede o jQuery de definir o contentType
+        data: form_data,
+        success: function(result) {
+
+            if (3 < 4) { // Assumindo que esta condição é para sucesso (ajuste se necessário)
+
+                // Increment the reg_int value
+                const regIntInput = $("#RegInt");
+                const currentRegInt = parseInt(regIntInput.val());
+                const newRegInt = currentRegInt + 1;
+
+                regIntInput.val(newRegInt);
+
+                // . Success alert
+                $('#alert').removeClass("alert-danger").addClass("alert-success");
+                $('#alert').fadeIn().html("Cadastrado com sucesso");
+                setTimeout(function() {
+                    $('#alert').fadeOut('Slow');
+                }, 3000);
+
+                // 2. Resetando os campos de input, select e textarea EXCETO os campos `hidden` e o select do hospital
+                document.querySelectorAll('input, select, textarea').forEach((element) => {
+                    if (element.type !== "hidden" && element.id !== "hospital_selected") {
+                        element.value = '';
+                    }
+                });
+
+                // 3. Restaura o valor selecionado do select de hospitais (já feito antes do AJAX)
+                // document.getElementById("hospital_selected").value = hospitalSelected; // Não precisa redefinir aqui
+
+                // 4. Atualiza outros selects (exceto o de hospitais)
+                $('#fk_paciente_int').val('').selectpicker('refresh');
+                $('#fk_patologia2').val('').selectpicker('refresh');
+                $('#fk_patologia_int').val('').selectpicker('refresh');
+
+                // 5. Update other values
+                const adicionarValor = parseInt(document.querySelector("#proximoId_int")
+                    .textContent) + 1;
+                const ultimoReg = <?= $ultimoReg ?>;
+                const novoValorInternacao = parseInt(ultimoReg) + adicionarValor;
+
+                $("#proximoId_int").text(adicionarValor);
+                $("#proximoId_int").val(
+                    novoValorInternacao); // Este seletor estava incorreto, corrigido para val()
+
+                // $("#RegInt").val(newRegInt); // Já atualizado acima
+                $("#fk_int_tuss").val(novoValorInternacao);
+                $("#fk_internacao_uti").val(novoValorInternacao);
+                $("#fk_id_int").val(novoValorInternacao);
+                $("#fk_internacao_pror").val(novoValorInternacao);
+                $("#fk_internacao_ges").val(novoValorInternacao);
+                $("#fk_int_det").val(novoValorInternacao);
+                document.getElementById("internado_int").value = "s";
+                document.getElementById("internado_int").querySelector("option[value='s']")
+                    .selected = true;
+
+                // 6. Hide containers
+                const containers = [
+                    "#container-gestao",
+                    "#container-tuss",
+                    "#container-prorrog",
+                    "#container-uti",
+                    "#container-negoc",
+                    "#div-detalhado"
+                ];
+                containers.forEach((container) => {
+                    document.querySelector(container).style.display = "none";
+                });
+
+                // 7. Restaura a borda dos selects após o reset (exceto o de hospitais)
+                document.querySelectorAll(
+                    "#select_tuss, #select_gestao, #relatorio-detalhado, #select_prorrog, #select_uti, #select_negoc, select" // Removido 'select' genérico para evitar redefinir o hospital
+                ).forEach(select => {
+                    if (select.id !==
+                        "hospital_selected") { // Garante que não afeta o select de hospital
+                        select.value = ""; // Reseta o valor do select
+                        select.style.border = "1px solid #ced4da"; // Borda padrão Bootstrap
+                        select.style.color =
+                            "#6c757d"; // Cor padrão Bootstrap para placeholder
+                        select.style.fontWeight = "normal";
+                        select.style.backgroundColor = "#fff"; // Fundo padrão
+                    }
+                });
+                // Especificamente resetar os selects roxos para o estilo padrão deles
+                $('.select-purple').css({
+                    "color": "white",
+                    "font-weight": "normal",
+                    "border": "1px solid #5e2363",
+                    "background-color": "#5e2363"
+                });
+
+
+                // 8. Atualiza selects que usam Bootstrap Select (exceto o de hospitais)
+                // Já feito acima para paciente, patologia, etc. O reset dos selects roxos não usa selectpicker.
+
+
+                // 9. Success alert (já feito no início do success)
+                // $('#alert').removeClass("alert-danger").addClass("alert-success"); ...
+
+
+            } else if (result == '0') {
+
+                $('#alert').removeClass("alert-success").addClass("alert-danger");
+                $('#alert').fadeIn().html("Paciente possui internação ativa");
+                setTimeout(function() {
+                    $('#alert').fadeOut('Slow');
+                }, 2000);
+            }
+
+            // Clear additional fields
+            clearTussInputs();
+            clearProrrogInputs();
+
+        },
+
+        error: function(xhr, status, error) {
+            console.error("AJAX Error:", status, error);
+            console.log("XHR response:", xhr.responseText);
+        }
+    });
+});
+
+// Prorrogação: mostra container quando "s"
+document.addEventListener("DOMContentLoaded", function() {
+    const selectProrrog = document.getElementById("select_prorrog");
+    const containerProrrog = document.getElementById("container-prorrog");
+    if (selectProrrog && containerProrrog) {
+        function toggleProrrog() {
+            containerProrrog.style.display = (selectProrrog.value === "s") ? "block" : "none";
+        }
+        selectProrrog.addEventListener("change", toggleProrrog);
+        toggleProrrog();
+    }
+});
+
+// Carregar acomodações via hospital (para negociações/savings)
+$(document).ready(function() {
+    $('#hospital_selected').on('change', function() {
+        const id_hospital = $(this).val();
+        if (!id_hospital) return;
+        fetchAcomodacoes(id_hospital);
+    });
+
+    function fetchAcomodacoes(id_hospital) {
         $.ajax({
-            url: post_url,
-            type: request_method,
-            processData: false, // Impede o jQuery de processar os dados
-            contentType: false, // Impede o jQuery de definir o contentType
-            data: form_data,
-            success: function (result) {
-
-                if (3 < 4) { // Assumindo que esta condição é para sucesso (ajuste se necessário)
-
-                    // Increment the reg_int value
-                    const regIntInput = $("#RegInt");
-                    const currentRegInt = parseInt(regIntInput.val());
-                    const newRegInt = currentRegInt + 1;
-
-                    regIntInput.val(newRegInt);
-
-                    // . Success alert
-                    $('#alert').removeClass("alert-danger").addClass("alert-success");
-                    $('#alert').fadeIn().html("Cadastrado com sucesso");
-                    setTimeout(function () {
-                        $('#alert').fadeOut('Slow');
-                    }, 3000);
-
-                    // 2. Resetando os campos de input, select e textarea EXCETO os campos `hidden` e o select do hospital
-                    document.querySelectorAll('input, select, textarea').forEach((element) => {
-                        if (element.type !== "hidden" && element.id !== "hospital_selected") {
-                            element.value = '';
-                        }
-                    });
-
-                    // 3. Restaura o valor selecionado do select de hospitais (já feito antes do AJAX)
-                    // document.getElementById("hospital_selected").value = hospitalSelected; // Não precisa redefinir aqui
-
-                    // 4. Atualiza outros selects (exceto o de hospitais)
-                    $('#fk_paciente_int').val('').selectpicker('refresh');
-                    $('#fk_patologia2').val('').selectpicker('refresh');
-                    $('#fk_patologia_int').val('').selectpicker('refresh');
-
-                    // 5. Update other values
-                    const adicionarValor = parseInt(document.querySelector("#proximoId_int")
-                        .textContent) + 1;
-                    const ultimoReg = <?= $ultimoReg ?>;
-                    const novoValorInternacao = parseInt(ultimoReg) + adicionarValor;
-
-                    $("#proximoId_int").text(adicionarValor);
-                    $("#proximoId_int").val(
-                        novoValorInternacao); // Este seletor estava incorreto, corrigido para val()
-
-                    // $("#RegInt").val(newRegInt); // Já atualizado acima
-                    $("#fk_int_tuss").val(novoValorInternacao);
-                    $("#fk_internacao_uti").val(novoValorInternacao);
-                    $("#fk_id_int").val(novoValorInternacao);
-                    $("#fk_internacao_pror").val(novoValorInternacao);
-                    $("#fk_internacao_ges").val(novoValorInternacao);
-                    $("#fk_int_det").val(novoValorInternacao);
-                    document.getElementById("internado_int").value = "s";
-                    document.getElementById("internado_int").querySelector("option[value='s']")
-                        .selected = true;
-
-                    // 6. Hide containers
-                    const containers = [
-                        "#container-gestao",
-                        "#container-tuss",
-                        "#container-prorrog",
-                        "#container-uti",
-                        "#container-negoc",
-                        "#div-detalhado"
-                    ];
-                    containers.forEach((container) => {
-                        document.querySelector(container).style.display = "none";
-                    });
-
-                    // 7. Restaura a borda dos selects após o reset (exceto o de hospitais)
-                    document.querySelectorAll(
-                        "#select_tuss, #select_gestao, #relatorio-detalhado, #select_prorrog, #select_uti, #select_negoc, select" // Removido 'select' genérico para evitar redefinir o hospital
-                    ).forEach(select => {
-                        if (select.id !==
-                            "hospital_selected") { // Garante que não afeta o select de hospital
-                            select.value = ""; // Reseta o valor do select
-                            select.style.border = "1px solid #ced4da"; // Borda padrão Bootstrap
-                            select.style.color =
-                                "#6c757d"; // Cor padrão Bootstrap para placeholder
-                            select.style.fontWeight = "normal";
-                            select.style.backgroundColor = "#fff"; // Fundo padrão
-                        }
-                    });
-                    // Especificamente resetar os selects roxos para o estilo padrão deles
-                    $('.select-purple').css({
-                        "color": "white",
-                        "font-weight": "normal",
-                        "border": "1px solid #5e2363",
-                        "background-color": "#5e2363"
-                    });
-
-
-                    // 8. Atualiza selects que usam Bootstrap Select (exceto o de hospitais)
-                    // Já feito acima para paciente, patologia, etc. O reset dos selects roxos não usa selectpicker.
-
-
-                    // 9. Success alert (já feito no início do success)
-                    // $('#alert').removeClass("alert-danger").addClass("alert-success"); ...
-
-
-                } else if (result == '0') {
-
-                    $('#alert').removeClass("alert-success").addClass("alert-danger");
-                    $('#alert').fadeIn().html("Paciente possui internação ativa");
-                    setTimeout(function () {
-                        $('#alert').fadeOut('Slow');
-                    }, 2000);
-                }
-
-                // Clear additional fields
-                clearTussInputs();
-                clearProrrogInputs();
-
-            },
-
-            error: function (xhr, status, error) {
-                console.error("AJAX Error:", status, error);
-                console.log("XHR response:", xhr.responseText);
-            }
-        });
-    });
-
-    // Prorrogação: mostra container quando "s"
-    document.addEventListener("DOMContentLoaded", function () {
-        const selectProrrog = document.getElementById("select_prorrog");
-        const containerProrrog = document.getElementById("container-prorrog");
-        if (selectProrrog && containerProrrog) {
-            function toggleProrrog() {
-                containerProrrog.style.display = (selectProrrog.value === "s") ? "block" : "none";
-            }
-            selectProrrog.addEventListener("change", toggleProrrog);
-            toggleProrrog();
-        }
-    });
-
-    // Carregar acomodações via hospital (para negociações/savings)
-    $(document).ready(function () {
-        $('#hospital_selected').on('change', function () {
-            const id_hospital = $(this).val();
-            if (!id_hospital) return;
-            fetchAcomodacoes(id_hospital);
-        });
-
-        function fetchAcomodacoes(id_hospital) {
-            $.ajax({
-                url: 'process_acomodacao.php',
-                type: 'POST',
-                dataType: 'json',
-                data: {
-                    id_hospital
-                },
-                success: function (response) {
-                    if (response.status === 'success') populateSelects(response.acomodacoes);
-                    else console.error("Erro recebido do servidor:", response.message);
-                },
-                error: function (xhr, status, error) {
-                    console.error("Erro na requisição AJAX:", error, "Status:", status, "Resposta:", xhr
-                        .responseText);
-                },
-            });
-        }
-
-        function populateSelects(acomodacoes) {
-            let options = '<option value="">Selecione a Acomodação</option>';
-            acomodacoes.forEach(ac => {
-                options +=
-                    `<option value="${ac.id_acomodacao}-${ac.acomodacao_aco}" data-valor="${ac.valor_aco}">${ac.acomodacao_aco}</option>`;
-            });
-            $('select[name="troca_de"]').html(options);
-            $('select[name="troca_para"]').html(options);
-            $('input[name="saving"]').val('');
-            $('input[name="qtd"]').val('');
-            $('input[name="saving_show"]').val('').css('color', '');
-        }
-
-        $(document).on('change keyup', 'select[name="troca_de"], select[name="troca_para"], input[name="qtd"]',
-            function () {
-                calculateSavings($(this).closest('.negotiation-field-container'));
-            });
-
-        function calculateSavings(container) {
-            const trocaDeOption = container.find('select[name="troca_de"] option:selected');
-            const trocaParaOption = container.find('select[name="troca_para"] option:selected');
-            const quantidadeInput = container.find('input[name="qtd"]');
-            const trocaDeValor = parseFloat(trocaDeOption.attr('data-valor')) || 0;
-            const trocaParaValor = parseFloat(trocaParaOption.attr('data-valor')) || 0;
-            const quantidade = parseInt(quantidadeInput.val(), 10) || 0;
-
-            if (isNaN(trocaDeValor) || isNaN(trocaParaValor) || isNaN(quantidade)) {
-                container.find('input[name="saving"]').val('');
-                container.find('input[name="saving_show"]').val('').css('color', '');
-                return;
-            }
-            const saving = (trocaDeValor - trocaParaValor) * quantidade;
-            container.find('input[name="saving"]').val(saving.toFixed(2));
-            container.find('input[name="saving_show"]').val(
-                saving >= 0 ? `R$ ${saving.toFixed(2)}` : `-R$ ${Math.abs(saving).toFixed(2)}`
-            ).css('color', saving >= 0 ? 'green' : 'red');
-        }
-    });
-
-    // Segurança extra: antes de enviar, se houver auditor selecionado em algum anexo, marca "em auditoria"
-    (function () {
-        const fkAudMed = document.getElementById('fk_id_aud_med');
-        const fkAudEnf = document.getElementById('fk_id_aud_enf');
-        const aberto = document.getElementById('aberto_cap');
-        const emAud = document.getElementById('em_auditoria_cap');
-
-        document.getElementById('myForm')?.addEventListener('submit', function () {
-            const temMed = fkAudMed && fkAudMed.value;
-            const temEnf = fkAudEnf && fkAudEnf.value;
-            if (temMed || temEnf) {
-                if (aberto) aberto.value = 'n';
-                if (emAud) emAud.value = 's';
-            }
-        });
-    })();
-
-    function teste(evt) {
-        if (evt && typeof evt.preventDefault === 'function') evt.preventDefault();
-
-        $.ajax({
-            url: "check_internacao.php",
-            type: "POST",
+            url: 'process_acomodacao.php',
+            type: 'POST',
+            dataType: 'json',
             data: {
-                id_paciente: $('#fk_paciente_int').val()
+                id_hospital
             },
-            success: function (result) {
-                const alert_div = document.getElementById('alert_intern');
-                // garante comparação segura
-                const ativo = String(result).trim() === '1';
-                alert_div.style.display = ativo ? "block" : "none";
+            success: function(response) {
+                if (response.status === 'success') populateSelects(response.acomodacoes);
+                else console.error("Erro recebido do servidor:", response.message);
             },
-            error: function (xhr, status, err) {
-                console.error("Erro ao checar internação:", status, err, xhr.responseText);
-            }
+            error: function(xhr, status, error) {
+                console.error("Erro na requisição AJAX:", error, "Status:", status, "Resposta:", xhr
+                    .responseText);
+            },
         });
     }
+
+    function populateSelects(acomodacoes) {
+        let options = '<option value="">Selecione a Acomodação</option>';
+        acomodacoes.forEach(ac => {
+            options +=
+                `<option value="${ac.id_acomodacao}-${ac.acomodacao_aco}" data-valor="${ac.valor_aco}">${ac.acomodacao_aco}</option>`;
+        });
+        $('select[name="troca_de"]').html(options);
+        $('select[name="troca_para"]').html(options);
+        $('input[name="saving"]').val('');
+        $('input[name="qtd"]').val('');
+        $('input[name="saving_show"]').val('').css('color', '');
+    }
+
+    $(document).on('change keyup', 'select[name="troca_de"], select[name="troca_para"], input[name="qtd"]',
+        function() {
+            calculateSavings($(this).closest('.negotiation-field-container'));
+        });
+
+    function calculateSavings(container) {
+        const trocaDeOption = container.find('select[name="troca_de"] option:selected');
+        const trocaParaOption = container.find('select[name="troca_para"] option:selected');
+        const quantidadeInput = container.find('input[name="qtd"]');
+        const trocaDeValor = parseFloat(trocaDeOption.attr('data-valor')) || 0;
+        const trocaParaValor = parseFloat(trocaParaOption.attr('data-valor')) || 0;
+        const quantidade = parseInt(quantidadeInput.val(), 10) || 0;
+
+        if (isNaN(trocaDeValor) || isNaN(trocaParaValor) || isNaN(quantidade)) {
+            container.find('input[name="saving"]').val('');
+            container.find('input[name="saving_show"]').val('').css('color', '');
+            return;
+        }
+        const saving = (trocaDeValor - trocaParaValor) * quantidade;
+        container.find('input[name="saving"]').val(saving.toFixed(2));
+        container.find('input[name="saving_show"]').val(
+            saving >= 0 ? `R$ ${saving.toFixed(2)}` : `-R$ ${Math.abs(saving).toFixed(2)}`
+        ).css('color', saving >= 0 ? 'green' : 'red');
+    }
+});
+
+// Segurança extra: antes de enviar, se houver auditor selecionado em algum anexo, marca "em auditoria"
+(function() {
+    const fkAudMed = document.getElementById('fk_id_aud_med');
+    const fkAudEnf = document.getElementById('fk_id_aud_enf');
+    const aberto = document.getElementById('aberto_cap');
+    const emAud = document.getElementById('em_auditoria_cap');
+
+    document.getElementById('myForm')?.addEventListener('submit', function() {
+        const temMed = fkAudMed && fkAudMed.value;
+        const temEnf = fkAudEnf && fkAudEnf.value;
+        if (temMed || temEnf) {
+            if (aberto) aberto.value = 'n';
+            if (emAud) emAud.value = 's';
+        }
+    });
+})();
+
+function teste(evt) {
+    if (evt && typeof evt.preventDefault === 'function') evt.preventDefault();
+
+    $.ajax({
+        url: "check_internacao.php",
+        type: "POST",
+        data: {
+            id_paciente: $('#fk_paciente_int').val()
+        },
+        success: function(result) {
+            const alert_div = document.getElementById('alert_intern');
+            // garante comparação segura
+            const ativo = String(result).trim() === '1';
+            alert_div.style.display = ativo ? "block" : "none";
+        },
+        error: function(xhr, status, err) {
+            console.error("Erro ao checar internação:", status, err, xhr.responseText);
+        }
+    });
+}
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous">
-    </script>
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
