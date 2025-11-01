@@ -57,6 +57,9 @@ class capeanteDAO implements capeanteDAOInterface
         $capeante->valor_sadt                 = $data["valor_sadt"]              ?? null;
         $capeante->valor_taxa                 = $data["valor_taxa"]              ?? null;
         $capeante->valor_opme                 = $data["valor_opme"]              ?? null;
+        $capeante->valor_hemoderivados  = $data["valor_hemoderivados"]  ?? null;
+        $capeante->glosa_hemoderivados  = $data["glosa_hemoderivados"]  ?? null;
+
         $capeante->desconto_valor_cap         = $data["desconto_valor_cap"]      ?? null;
         $capeante->negociado_desconto_cap     = $data["negociado_desconto_cap"]  ?? null;
         $capeante->em_auditoria_cap           = $data["em_auditoria_cap"]        ?? null;
@@ -70,6 +73,7 @@ class capeanteDAO implements capeanteDAOInterface
         $capeante->fk_id_aud_adm              = $data["fk_id_aud_adm"]           ?? null;
         $capeante->fk_id_aud_hosp             = $data["fk_id_aud_hosp"]          ?? null;
         $capeante->impresso_cap               = $data["impresso_cap"]            ?? null;
+
 
         // Flags de faturamento + alias
         $capeante->conta_faturada_cap         = $data["conta_faturada_cap"]      ?? null;

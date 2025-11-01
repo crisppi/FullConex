@@ -16,6 +16,7 @@ class capeante
   public $exchangerate;
   public $glosa_diaria;
   public $glosa_honorarios;
+  public $glosa_hemoderivados;
   public $glosa_matmed;
   public $glosa_materiais;
   public $glosa_medicamentos;
@@ -39,6 +40,7 @@ class capeante
   public $valor_glosa_med;
   public $valor_glosa_total;
   public $valor_honorarios;
+  public $valor_hemoderivados;
   public $valor_matmed;
   public $valor_materiais;
   public $valor_medicamentos;

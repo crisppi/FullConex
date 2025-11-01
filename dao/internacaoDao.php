@@ -1369,6 +1369,7 @@ class internacaoDAO implements internacaoDAOInterface
     ca.valor_glosa_med,
     ca.valor_glosa_total,
     ca.valor_honorarios,
+    ca.valor_hemoderivados,
     ca.valor_matmed,
     ca.valor_oxig,
     ca.valor_sadt,
@@ -1484,6 +1485,7 @@ class internacaoDAO implements internacaoDAOInterface
     ca.valor_glosa_med,
     ca.valor_glosa_total,
     ca.valor_honorarios,
+    ca.valor_hemoderivados,
     ca.valor_matmed,
     ca.valor_oxig,
     ca.valor_sadt,
@@ -3125,69 +3127,123 @@ WHERE
     {
         $sql = "
         SELECT
-            -- INTERNACAO (existente)
+            -- INTERNACAO
             ac.id_internacao,
             ac.data_intern_int,
             ac.senha_int,
             ac.acomodacao_int,
 
-            -- PACIENTE / HOSPITAL (existentes)
+            -- PACIENTE / HOSPITAL
+            pa.id_paciente,
             pa.nome_pac,
+            ho.id_hospital,
             ho.nome_hosp,
 
-            -- CAPEANTE (colunas principais)
+            -- CAPEANTE (principais)
             ca.id_capeante,
             ca.fk_int_capeante,
             ca.parcial_capeante,
             ca.parcial_num,
             ca.data_inicial_capeante,
             ca.data_final_capeante,
+            ca.data_fech_capeante,
             ca.valor_apresentado_capeante,
             ca.valor_final_capeante,
+            ca.lote_cap,
+            ca.acomodacao_cap,
+            ca.pacote,
+            ca.encerrado_cap,
+            ca.em_auditoria_cap,
+            ca.aberto_cap,
+            ca.validacao_cap,
+            ca.desconto_valor_cap,
 
-            -- totais/flags
-            ca.glosa_total              AS glosa_total,
-            ca.adm_check                AS adm_check,
-            ca.med_check                AS med_check,
-            ca.enfer_check              AS enfer_check,
+            -- Controles (se existirem)
+            ca.fk_id_aud_med,
+            ca.fk_id_aud_enf,
+            ca.fk_id_aud_adm,
 
-            -- FKs de usuários
-            ca.fk_id_aud_med            AS fk_id_aud_med,
-            ca.fk_id_aud_enf            AS fk_id_aud_enf,
-            ca.fk_id_aud_adm            AS fk_id_aud_adm,
+            -- Flags de auditoria
+            ca.adm_check,
+            ca.med_check,
+            ca.enfer_check,
 
-            -- valores e glosas por grupo (existentes)
-            ca.valor_diarias            AS valor_diarias,
-            ca.glosa_diaria             AS glosa_diaria,
-            ca.valor_oxig               AS valor_oxig,
-            ca.glosa_oxig               AS glosa_oxig,
-            ca.valor_taxa               AS valor_taxa,
-            ca.glosa_taxas              AS glosa_taxas,
-            ca.valor_matmed             AS valor_matmed,
-            ca.glosa_matmed             AS glosa_matmed,
-            ca.valor_sadt               AS valor_sadt,
-            ca.glosa_sadt               AS glosa_sadt,
-            ca.valor_honorarios         AS valor_honorarios,
-            ca.glosa_honorarios         AS glosa_honorarios,
-            ca.valor_opme               AS valor_opme,
-            ca.glosa_opme               AS glosa_opme,
-            ca.desconto_valor_cap       AS desconto_valor_cap,
+            -- Cálculo de glosa total (somando tabelas novas)
+            (
+                COALESCE(gap.glosa_total_ap, 0) +
+                COALESCE(guti.glosa_total_uti, 0) +
+                COALESCE(gcc.glosa_total_cc, 0)
+            ) AS glosa_total,
 
-            -- NOVOS CAMPOS
-            ca.valor_medicamentos       AS valor_medicamentos,
-            ca.valor_materiais          AS valor_materiais,
-            ca.glosa_materiais          AS glosa_materiais,
-            ca.glosa_medicamentos       AS glosa_medicamentos,
-            ca.acomodacao_cap           AS acomodacao_cap
-
+            -- Valor final calculado
+            (
+                ca.valor_apresentado_capeante -
+                (
+                    COALESCE(gap.glosa_total_ap, 0) +
+                    COALESCE(guti.glosa_total_uti, 0) +
+                    COALESCE(gcc.glosa_total_cc, 0)
+                )
+            ) AS valor_final_calc
 
         FROM tb_internacao ac
-        LEFT JOIN tb_capeante ca
-               ON ca.fk_int_capeante = ac.id_internacao
-        LEFT JOIN tb_paciente pa
-               ON pa.id_paciente = ac.fk_paciente_int
-        LEFT JOIN tb_hospital ho
-               ON ho.id_hospital = ac.fk_hospital_int
+        LEFT JOIN tb_paciente pa ON pa.id_paciente = ac.fk_paciente_int
+        LEFT JOIN tb_hospital ho ON ho.id_hospital = ac.fk_hospital_int
+        LEFT JOIN tb_capeante ca ON ca.fk_int_capeante = ac.id_internacao
+
+        -- Glosas AP
+        LEFT JOIN (
+            SELECT fk_capeante,
+                SUM(
+                    CAST(REPLACE(REPLACE(IFNULL(ap_terapias_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
+                    CAST(REPLACE(REPLACE(IFNULL(ap_taxas_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
+                    CAST(REPLACE(REPLACE(IFNULL(ap_mat_consumo_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
+                    CAST(REPLACE(REPLACE(IFNULL(ap_medicametos_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
+                    CAST(REPLACE(REPLACE(IFNULL(ap_gases_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
+                    CAST(REPLACE(REPLACE(IFNULL(ap_mat_espec_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
+                    CAST(REPLACE(REPLACE(IFNULL(ap_exames_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
+                    CAST(REPLACE(REPLACE(IFNULL(ap_hemoderivados_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
+                    CAST(REPLACE(REPLACE(IFNULL(ap_honorarios_glosado,''),',','.'),'.','') AS DECIMAL(14,2))
+                ) AS glosa_total_ap
+            FROM tb_cap_valores_ap
+            GROUP BY fk_capeante
+        ) AS gap ON gap.fk_capeante = ca.id_capeante
+
+        -- Glosas UTI
+        LEFT JOIN (
+            SELECT fk_capeante,
+                SUM(
+                    CAST(REPLACE(REPLACE(IFNULL(uti_terapias_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
+                    CAST(REPLACE(REPLACE(IFNULL(uti_taxas_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
+                    CAST(REPLACE(REPLACE(IFNULL(uti_mat_consumo_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
+                    CAST(REPLACE(REPLACE(IFNULL(uti_medicametos_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
+                    CAST(REPLACE(REPLACE(IFNULL(uti_gases_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
+                    CAST(REPLACE(REPLACE(IFNULL(uti_mat_espec_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
+                    CAST(REPLACE(REPLACE(IFNULL(uti_exames_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
+                    CAST(REPLACE(REPLACE(IFNULL(uti_hemoderivados_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
+                    CAST(REPLACE(REPLACE(IFNULL(uti_honorarios_glosado,''),',','.'),'.','') AS DECIMAL(14,2))
+                ) AS glosa_total_uti
+            FROM tb_cap_valores_uti
+            GROUP BY fk_capeante
+        ) AS guti ON guti.fk_capeante = ca.id_capeante
+
+        -- Glosas CC
+        LEFT JOIN (
+            SELECT fk_capeante,
+                SUM(
+                    CAST(REPLACE(REPLACE(IFNULL(cc_terapias_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
+                    CAST(REPLACE(REPLACE(IFNULL(cc_taxas_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
+                    CAST(REPLACE(REPLACE(IFNULL(cc_mat_consumo_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
+                    CAST(REPLACE(REPLACE(IFNULL(cc_medicametos_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
+                    CAST(REPLACE(REPLACE(IFNULL(cc_gases_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
+                    CAST(REPLACE(REPLACE(IFNULL(cc_mat_espec_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
+                    CAST(REPLACE(REPLACE(IFNULL(cc_exames_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
+                    CAST(REPLACE(REPLACE(IFNULL(cc_hemoderivados_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
+                    CAST(REPLACE(REPLACE(IFNULL(cc_honorarios_glosado,''),',','.'),'.','') AS DECIMAL(14,2))
+                ) AS glosa_total_cc
+            FROM tb_cap_valores_cc
+            GROUP BY fk_capeante
+        ) AS gcc ON gcc.fk_capeante = ca.id_capeante
+
         WHERE 1=1
     ";
 

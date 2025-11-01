@@ -362,6 +362,11 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                             style="font-size: 1rem; margin-right:5px; color: rgb(77, 155, 67);">
                                         </span> Contas para Auditar</a></li>
                                 <li>
+                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_cap_rah.php"><span
+                                            id="boot-icon1" class="bi bi-currency-dollar"
+                                            style="font-size: 1rem; margin-right:5px; color: rgb(77, 155, 67);">
+                                        </span> Rah - Contas para Auditar</a></li>
+                                <li>
                                 <li>
                                     <hr class="dropdown-divider">
                                 </li>

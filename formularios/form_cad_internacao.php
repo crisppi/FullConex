@@ -212,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
   font-size: 1.2em;
   font-weight: 600;
   color: #000;
-  background-image: linear-gradient(90deg, #ffffff 0%, #f8f2fa 40%, #e0bde7 70%, #b983ca 100%);
+background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   white-space: nowrap;
 ">
@@ -516,7 +516,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
 
             <!-- Chat Widget -->
-            <div id="chat-widget" style="position: fixed; bottom: 20px; right: 20px; width: 300px; z-index: 9999;">
+            <!-- <div id="chat-widget" style="position: fixed; bottom: 20px; right: 20px; width: 300px; z-index: 9999;">
                 <div id="chat-header" style="background-color: #007bff; color: white; padding: 10px; cursor: pointer;">
                     Chat - Assistente Virtual
                 </div>
@@ -530,7 +530,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             style="margin-top: 5px; width: 100%; background-color: #007bff; color: white; border: none; padding:5px;">Enviar</button>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
             <div style="margin-top: 10px;">
                 <label for="acoes_int">Ações da Auditoria</label>
@@ -575,7 +575,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             <div id="div-detalhado" class="form-group row" style="margin-left:-12px">
                 <div class="form-group row">
-                    <input type="text" readonly id="fk_int_det" name="fk_int_det" value="<?= ($ultimoReg + 1) ?>">
+                    <input type="hidden" readonly id="fk_int_det" name="fk_int_det" value="<?= ($ultimoReg + 1) ?>">
 
                     <div class="form-group col-sm-2">
                         <label class="control-label" for="curativo_det">Curativo</label>
@@ -850,10 +850,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         <div>
             <hr>
-            <button type="submit" class="btn btn-success">
-                <i style="font-size: 1rem;margin-right:5px;" class="fa-solid fa-check edit-icon"></i>
+            <!-- ... dentro do <form id="myForm"> ... -->
+
+            <button type="submit" class="btn btn-success btn-lg fixed-submit">
+                <i class="fa-solid fa-check edit-icon" style="font-size:1rem;margin-right:8px;"></i>
                 Cadastrar
             </button>
+
+
             <br><br>
             <div style="width:500px;display:none" class="alert" id="alert" role="alert"></div>
         </div>
