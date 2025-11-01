@@ -942,81 +942,129 @@ select.form-select:focus {
 </script>
 
 <!-- Cálculo da coluna "Cobrado Após" (apenas acrescentado) -->
-<!-- Cálculo da coluna "Cobrado Após" (substituir o script anterior) -->
 <script>
+/* =========================================================================
+   CÁLCULOS RAH
+   - Linha: Cobrado Após = max(0, Cobrado Antes - Glosado Após)
+   - Bloco (data-group="..."): soma Cobrado / Glosado / Cobrado Após
+   - Totais gerais: se existirem (#total_cobrado, #total_glosado, #total_liberado)
+   - Robusto com maskMoney (formatações "R$ 1.234,56")
+   ========================================================================= */
 (function() {
-    // sempre use a mesma instância global do jQuery do projeto
     var $ = window.jQuery;
 
-    // Converte "R$ 1.234,56" -> 1234.56
+    // --- Utils moeda ---
     function moneyToFloat(s) {
+        if (s == null) return 0;
+        s = ('' + s).trim();
         if (!s) return 0;
-        s = ('' + s).replace(/\./g, '').replace(',', '.');
-        s = s.replace(/[^\d.\-]/g, '');
+        // remove R$, espaços, milhares e troca vírgula decimal
+        s = s.replace(/[^\d.,-]/g, '').replace(/\./g, '').replace(',', '.');
         var v = parseFloat(s);
         return isNaN(v) ? 0 : v;
     }
-    // 1234.5 -> "R$ 1.234,50"
+
     function floatToMoney(v) {
         if (!isFinite(v)) v = 0;
         var parts = v.toFixed(2).split('.');
-        var i = parts[0],
-            d = parts[1];
-        i = i.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        return 'R$ ' + i + ',' + d;
+        var i = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        return 'R$ ' + i + ',' + parts[1];
     }
 
+    // --- Linha ---
     function recalcRow($row) {
-        var vCob = moneyToFloat($row.find('.rah-cobrado').val() || '');
-        var vGlo = moneyToFloat($row.find('.rah-glosado').val() || '');
-        var vApo = vCob - vGlo;
-        if (vApo < 0) vApo = 0;
-        $row.find('.rah-liberado').val(floatToMoney(vApo));
+        var vCob = moneyToFloat($row.find('.rah-cobrado').val());
+        var vGlo = moneyToFloat($row.find('.rah-glosado').val());
+        var vLib = Math.max(0, vCob - vGlo);
+        $row.find('.rah-liberado').val(floatToMoney(vLib));
     }
 
-    function recalcTotals() {
+    // --- Bloco (consolidado local) ---
+    function recalcBlock($block) {
         var tCob = 0,
             tGlo = 0,
-            tApo = 0;
+            tLib = 0;
+        $block.find('.tuss-row').each(function() {
+            var $r = $(this);
+            tCob += moneyToFloat($r.find('.rah-cobrado').val());
+            tGlo += moneyToFloat($r.find('.rah-glosado').val());
+            tLib += moneyToFloat($r.find('.rah-liberado').val());
+        });
+        // escreve nos campos do próprio bloco, se existirem
+        var $cob = $block.find('.grp-total-cobrado');
+        var $glo = $block.find('.grp-total-glosado');
+        var $lib = $block.find('.grp-total-liberado');
+        if ($cob.length) $cob.val(floatToMoney(tCob));
+        if ($glo.length) $glo.val(floatToMoney(tGlo));
+        if ($lib.length) $lib.val(floatToMoney(tLib));
+    }
+
+    // --- Totais gerais (opcional) ---
+    function recalcGrandTotals() {
+        var tCob = 0,
+            tGlo = 0,
+            tLib = 0;
         $('.tuss-row').each(function() {
             var $r = $(this);
             tCob += moneyToFloat($r.find('.rah-cobrado').val());
             tGlo += moneyToFloat($r.find('.rah-glosado').val());
-            tApo += moneyToFloat($r.find('.rah-liberado').val());
+            tLib += moneyToFloat($r.find('.rah-liberado').val());
         });
         if ($('#total_cobrado').length) $('#total_cobrado').val(floatToMoney(tCob));
         if ($('#total_glosado').length) $('#total_glosado').val(floatToMoney(tGlo));
-        if ($('#total_liberado').length) $('#total_liberado').val(floatToMoney(tApo));
+        if ($('#total_liberado').length) $('#total_liberado').val(floatToMoney(tLib));
 
-        if ($('#valor_final_capeante').length) {
-            var desc = parseFloat(($('#desconto_valor_cap').val() || '').replace(',', '.')) || 0;
-            $('#valor_final_capeante').val(floatToMoney(tApo * (1 - desc / 100)));
+        // Se houver desconto (%) e valor_final_capeante, aplica no liberado geral
+        var $desc = $('#desconto_valor_cap');
+        var $valFinal = $('#valor_final_capeante');
+        if ($desc.length && $valFinal.length) {
+            var d = parseFloat(($desc.val() || '').replace(',', '.')) || 0;
+            var vf = tLib * (1 - d / 100);
+            $valFinal.val(floatToMoney(vf));
         }
+    }
+
+    // --- Orquestração ---
+    function recalcAround($row) {
+        // recalcula a linha
+        recalcRow($row);
+        // bloco mais próximo (com .block); se tiver consolidado, ele será atualizado
+        var $block = $row.closest('.block');
+        if ($block.length) recalcBlock($block);
+        // totais gerais (se existirem)
+        recalcGrandTotals();
     }
 
     function recalcAll() {
         $('.tuss-row').each(function() {
             recalcRow($(this));
         });
-        recalcTotals();
+        // cada bloco com consolidado local
+        $('.block').each(function() {
+            recalcBlock($(this));
+        });
+        recalcGrandTotals();
     }
 
-    // Delegação: captura mudanças mesmo com maskMoney
+    // --- Eventos (funciona com maskMoney) ---
     $(document).on('input change keyup', '.rah-cobrado, .rah-glosado', function() {
-        var $row = $(this).closest('.tuss-row');
-        recalcRow($row);
-        recalcTotals();
+        recalcAround($(this).closest('.tuss-row'));
     });
 
-    // Se houver campo de desconto, reflita nos totais
-    $(document).on('input change keyup', '#desconto_valor_cap', recalcTotals);
-
-    // Recalcular no carregamento (e após a máscara aplicar formatação)
+    // Dispara no carregamento; depois do maskMoney formatar, roda de novo
     $(function() {
-        // primeira passada
         recalcAll();
-        // depois que a maskMoney tocar nos campos
-        setTimeout(recalcAll, 50);
+        setTimeout(recalcAll, 60);
     });
+
+    // Exponha utilitários, se precisar em outros scripts
+    window.RAHCalc = {
+        moneyToFloat,
+        floatToMoney,
+        recalcRow,
+        recalcBlock,
+        recalcGrandTotals,
+        recalcAll
+    };
 })();
 </script>
