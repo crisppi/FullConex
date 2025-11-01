@@ -55,9 +55,6 @@ $defaults = [
     'nome_pac' => null,
     'nome_hosp' => null,
     'data_intern_int' => null,
-    'acomodacao_int' => null,
-    'acomodacao_cap' => null,
-    'lote_cap' => null,
     'pacote' => 'n',
     'parcial_capeante' => 'n',
     'parcial_num' => null,
@@ -244,6 +241,31 @@ select.form-select:focus {
         font-size: .8rem;
     }
 }
+
+/* cabeçalho clicável com indicador */
+.block h5.toggle {
+    cursor: pointer;
+    position: relative;
+    user-select: none;
+    padding-right: 28px;
+    /* espaço pro caret */
+}
+
+.block h5.toggle::after {
+    content: "▸";
+    position: absolute;
+    right: 10px;
+    top: 6px;
+    transition: transform .2s ease-in-out;
+    font-weight: 700;
+    opacity: .6;
+}
+
+/* quando aberto (aria-expanded=true), gira o caret */
+.block h5.toggle[aria-expanded="true"]::after {
+    transform: rotate(90deg);
+    opacity: 1;
+}
 </style>
 
 <!-- ========================= FORM ========================= -->
@@ -255,13 +277,13 @@ select.form-select:focus {
 
     <!-- IDENTIFICAÇÃO -->
     <div class="block">
-        <h5>Identificação</h5>
+        <h4>Identificação</h4>
         <div class="row g-3">
-            <div class="col-md-2">
+            <div class="col-md-1">
                 <label class="form-label">ID Capeante</label>
                 <input type="text" class="form-control" value="<?= $hi($fv('id_capeante')) ?>" readonly>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-1">
                 <label class="form-label">ID Internação</label>
                 <input type="text" class="form-control" value="<?= $hi($fv('id_internacao')) ?>" readonly>
             </div>
@@ -273,31 +295,17 @@ select.form-select:focus {
                 <label class="form-label">Hospital</label>
                 <input type="text" class="form-control" value="<?= $h($fv('nome_hosp')) ?>" readonly>
             </div>
-        </div>
-
-        <div class="row g-3 mt-1">
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="form-label">Data Internação</label>
                 <input type="text" class="form-control" value="<?= $fmtDateBR($fv('data_intern_int')) ?>" readonly>
             </div>
-            <div class="col-md-3">
-                <label class="form-label">Acomodação (Internação)</label>
-                <input type="text" class="form-control" value="<?= $h($fv('acomodacao_int')) ?>" readonly>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Acomodação (Conta)</label>
-                <input type="text" class="form-control" name="acomodacao_cap" value="<?= $h($fv('acomodacao_cap')) ?>">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Lote</label>
-                <input type="text" class="form-control" name="lote_cap" value="<?= $h($fv('lote_cap')) ?>">
-            </div>
         </div>
+
     </div>
 
     <!-- PERÍODO E VALORES GERAIS -->
     <div class="block">
-        <h5>Período e Totais</h5>
+        <h4>Período e Totais</h4>
         <div class="row g-3">
             <div class="col-md-3">
                 <label class="form-label">Data Inicial</label>
@@ -348,147 +356,162 @@ select.form-select:focus {
                 <label class="form-label">Data Fechamento</label>
                 <input type="date" class="form-control" name="data_fech_capeante" value="<?= $h($hojeYMD) ?>">
             </div>
+            <div class="col-md-3">
+                <label class="form-label">Data Digitação</label>
+                <input type="date" class="form-control" name="data_digit_capeante" value="<?= $h($hojeYMD) ?>">
+            </div>
         </div>
     </div>
     <!-- DIÁRIAS (formato PDF) -->
     <div class="block" data-group="diarias">
-        <h5>Diárias</h5>
+        <!-- TÍTULO / TOGGLER -->
+        <h5>
+            Diárias
+        </h5>
 
-        <div class="tuss-grid">
-            <div class="tg-head tg-col-desc">Diária</div>
-            <div class="tg-head tg-col-qtd">Qtd.</div>
-            <div class="tg-head tg-col-cob">Cobrado Antes</div>
-            <div class="tg-head tg-col-glo">Glosado Após</div>
-            <div class="tg-head tg-col-lib">Cobrado Após</div>
-            <div class="tg-head tg-col-obs">Observação</div>
+        <!-- CONTEÚDO COLAPSÁVEL (tuss-grid + totais) -->
+        <div id="grp-diarias" class="collapse">
+            <div class="tuss-grid mt-3">
+                <div class="tg-head tg-col-desc">Diária</div>
+                <div class="tg-head tg-col-qtd">Qtd.</div>
+                <div class="tg-head tg-col-cob">Cobrado Antes</div>
+                <div class="tg-head tg-col-glo">Glosado Após</div>
+                <div class="tg-head tg-col-lib">Cobrado Após</div>
+                <div class="tg-head tg-col-obs">Observação</div>
 
-            <!-- QUARTO / APTO -->
-            <div class="tuss-row rah-row">
-                <div class="tg-lab tg-col-desc">Quarto / Apto</div>
-                <input name="ac_quarto_qtd" class="form-control tg-col-qtd" placeholder="Qtd.">
-                <input name="ac_quarto_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
-                    placeholder="R$ 0,00">
-                <input name="ac_quarto_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
-                    placeholder="R$ 0,00">
-                <input name="ac_quarto_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
-                    placeholder="R$ 0,00" readonly>
-                <input name="ac_quarto_obs" class="form-control tg-col-obs" placeholder="Observação">
+                <!-- QUARTO / APTO -->
+                <div class="tuss-row rah-row">
+                    <div class="tg-lab tg-col-desc">Quarto / Apto</div>
+                    <input name="ac_quarto_qtd" class="form-control tg-col-qtd" placeholder="Qtd.">
+                    <input name="ac_quarto_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                        placeholder="R$ 0,00">
+                    <input name="ac_quarto_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                        placeholder="R$ 0,00">
+                    <input name="ac_quarto_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                        placeholder="R$ 0,00" readonly>
+                    <input name="ac_quarto_obs" class="form-control tg-col-obs" placeholder="Observação">
+                </div>
+
+                <!-- DAY CLINIC -->
+                <div class="tuss-row rah-row">
+                    <div class="tg-lab tg-col-desc">Day Clinic</div>
+                    <input name="ac_dayclinic_qtd" class="form-control tg-col-qtd" placeholder="Qtd.">
+                    <input name="ac_dayclinic_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                        placeholder="R$ 0,00">
+                    <input name="ac_dayclinic_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                        placeholder="R$ 0,00">
+                    <input name="ac_dayclinic_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                        placeholder="R$ 0,00" readonly>
+                    <input name="ac_dayclinic_obs" class="form-control tg-col-obs" placeholder="Observação">
+                </div>
+
+                <!-- UTI -->
+                <div class="tuss-row rah-row">
+                    <div class="tg-lab tg-col-desc">UTI</div>
+                    <input name="ac_uti_qtd" class="form-control tg-col-qtd" placeholder="Qtd.">
+                    <input name="ac_uti_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                        placeholder="R$ 0,00">
+                    <input name="ac_uti_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                        placeholder="R$ 0,00">
+                    <input name="ac_uti_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                        placeholder="R$ 0,00" readonly>
+                    <input name="ac_uti_obs" class="form-control tg-col-obs" placeholder="Observação">
+                </div>
+
+                <!-- UTI / SEMI -->
+                <div class="tuss-row rah-row">
+                    <div class="tg-lab tg-col-desc">UTI / Semi</div>
+                    <input name="ac_utisemi_qtd" class="form-control tg-col-qtd" placeholder="Qtd.">
+                    <input name="ac_utisemi_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                        placeholder="R$ 0,00">
+                    <input name="ac_utisemi_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                        placeholder="R$ 0,00">
+                    <input name="ac_utisemi_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                        placeholder="R$ 0,00" readonly>
+                    <input name="ac_utisemi_obs" class="form-control tg-col-obs" placeholder="Observação">
+                </div>
+
+                <!-- ENFERMARIA -->
+                <div class="tuss-row rah-row">
+                    <div class="tg-lab tg-col-desc">Enfermaria</div>
+                    <input name="ac_enfermaria_qtd" class="form-control tg-col-qtd" placeholder="Qtd.">
+                    <input name="ac_enfermaria_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                        placeholder="R$ 0,00">
+                    <input name="ac_enfermaria_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                        placeholder="R$ 0,00">
+                    <input name="ac_enfermaria_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                        placeholder="R$ 0,00" readonly>
+                    <input name="ac_enfermaria_obs" class="form-control tg-col-obs" placeholder="Observação">
+                </div>
+
+                <!-- BERÇÁRIO -->
+                <div class="tuss-row rah-row">
+                    <div class="tg-lab tg-col-desc">Berçário</div>
+                    <input name="ac_bercario_qtd" class="form-control tg-col-qtd" placeholder="Qtd.">
+                    <input name="ac_bercario_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                        placeholder="R$ 0,00">
+                    <input name="ac_bercario_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                        placeholder="R$ 0,00">
+                    <input name="ac_bercario_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                        placeholder="R$ 0,00" readonly>
+                    <input name="ac_bercario_obs" class="form-control tg-col-obs" placeholder="Observação">
+                </div>
+
+                <!-- ACOMPANHANTE -->
+                <div class="tuss-row rah-row">
+                    <div class="tg-lab tg-col-desc">Acompanhante</div>
+                    <input name="ac_acompanhante_qtd" class="form-control tg-col-qtd" placeholder="Qtd.">
+                    <input name="ac_acompanhante_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                        placeholder="R$ 0,00">
+                    <input name="ac_acompanhante_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                        placeholder="R$ 0,00">
+                    <input name="ac_acompanhante_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                        placeholder="R$ 0,00" readonly>
+                    <input name="ac_acompanhante_obs" class="form-control tg-col-obs" placeholder="Observação">
+                </div>
+
+                <!-- ISOLAMENTO -->
+                <div class="tuss-row rah-row">
+                    <div class="tg-lab tg-col-desc">Isolamento</div>
+                    <input name="ac_isolamento_qtd" class="form-control tg-col-qtd" placeholder="Qtd.">
+                    <input name="ac_isolamento_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                        placeholder="R$ 0,00">
+                    <input name="ac_isolamento_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                        placeholder="R$ 0,00">
+                    <input name="ac_isolamento_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                        placeholder="R$ 0,00" readonly>
+                    <input name="ac_isolamento_obs" class="form-control tg-col-obs" placeholder="Observação">
+                </div>
             </div>
 
-            <!-- DAY CLINIC -->
-            <div class="tuss-row rah-row">
-                <div class="tg-lab tg-col-desc">Day Clinic</div>
-                <input name="ac_dayclinic_qtd" class="form-control tg-col-qtd" placeholder="Qtd.">
-                <input name="ac_dayclinic_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
-                    placeholder="R$ 0,00">
-                <input name="ac_dayclinic_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
-                    placeholder="R$ 0,00">
-                <input name="ac_dayclinic_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
-                    placeholder="R$ 0,00" readonly>
-                <input name="ac_dayclinic_obs" class="form-control tg-col-obs" placeholder="Observação">
-            </div>
-
-            <!-- UTI -->
-            <div class="tuss-row rah-row">
-                <div class="tg-lab tg-col-desc">UTI</div>
-                <input name="ac_uti_qtd" class="form-control tg-col-qtd" placeholder="Qtd.">
-                <input name="ac_uti_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado" placeholder="R$ 0,00">
-                <input name="ac_uti_glosado" class="form-control dinheiro tg-col-glo rah-glosado" placeholder="R$ 0,00">
-                <input name="ac_uti_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
-                    placeholder="R$ 0,00" readonly>
-                <input name="ac_uti_obs" class="form-control tg-col-obs" placeholder="Observação">
-            </div>
-
-            <!-- UTI / SEMI -->
-            <div class="tuss-row rah-row">
-                <div class="tg-lab tg-col-desc">UTI / Semi</div>
-                <input name="ac_utisemi_qtd" class="form-control tg-col-qtd" placeholder="Qtd.">
-                <input name="ac_utisemi_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
-                    placeholder="R$ 0,00">
-                <input name="ac_utisemi_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
-                    placeholder="R$ 0,00">
-                <input name="ac_utisemi_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
-                    placeholder="R$ 0,00" readonly>
-                <input name="ac_utisemi_obs" class="form-control tg-col-obs" placeholder="Observação">
-            </div>
-
-            <!-- ENFERMARIA -->
-            <div class="tuss-row rah-row">
-                <div class="tg-lab tg-col-desc">Enfermaria</div>
-                <input name="ac_enfermaria_qtd" class="form-control tg-col-qtd" placeholder="Qtd.">
-                <input name="ac_enfermaria_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
-                    placeholder="R$ 0,00">
-                <input name="ac_enfermaria_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
-                    placeholder="R$ 0,00">
-                <input name="ac_enfermaria_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
-                    placeholder="R$ 0,00" readonly>
-                <input name="ac_enfermaria_obs" class="form-control tg-col-obs" placeholder="Observação">
-            </div>
-
-            <!-- BERÇÁRIO -->
-            <div class="tuss-row rah-row">
-                <div class="tg-lab tg-col-desc">Berçário</div>
-                <input name="ac_bercario_qtd" class="form-control tg-col-qtd" placeholder="Qtd.">
-                <input name="ac_bercario_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
-                    placeholder="R$ 0,00">
-                <input name="ac_bercario_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
-                    placeholder="R$ 0,00">
-                <input name="ac_bercario_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
-                    placeholder="R$ 0,00" readonly>
-                <input name="ac_bercario_obs" class="form-control tg-col-obs" placeholder="Observação">
-            </div>
-
-            <!-- ACOMPANHANTE -->
-            <div class="tuss-row rah-row">
-                <div class="tg-lab tg-col-desc">Acompanhante</div>
-                <input name="ac_acompanhante_qtd" class="form-control tg-col-qtd" placeholder="Qtd.">
-                <input name="ac_acompanhante_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
-                    placeholder="R$ 0,00">
-                <input name="ac_acompanhante_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
-                    placeholder="R$ 0,00">
-                <input name="ac_acompanhante_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
-                    placeholder="R$ 0,00" readonly>
-                <input name="ac_acompanhante_obs" class="form-control tg-col-obs" placeholder="Observação">
-            </div>
-
-            <!-- ISOLAMENTO -->
-            <div class="tuss-row rah-row">
-                <div class="tg-lab tg-col-desc">Isolamento</div>
-                <input name="ac_isolamento_qtd" class="form-control tg-col-qtd" placeholder="Qtd.">
-                <input name="ac_isolamento_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
-                    placeholder="R$ 0,00">
-                <input name="ac_isolamento_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
-                    placeholder="R$ 0,00">
-                <input name="ac_isolamento_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
-                    placeholder="R$ 0,00" readonly>
-                <input name="ac_isolamento_obs" class="form-control tg-col-obs" placeholder="Observação">
-            </div>
-        </div>
-
-        <!-- CONSOLIDADO LOCAL (Diárias) -->
-        <div class="row g-2 mt-2 grp-totais">
-            <div class="col-md-3">
-                <label class="form-label">Total Cobrado (Diárias)</label>
-                <input type="text" name="diarias_total_cobrado" class="form-control dinheiro grp-total-cobrado" readonly
-                    value="R$ 0,00">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Total Glosado (Diárias)</label>
-                <input type="text" name="diarias_total_glosado" class="form-control dinheiro grp-total-glosado" readonly
-                    value="R$ 0,00">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Total Cobrado Após (Diárias)</label>
-                <input type="text" name="diarias_total_liberado" class="form-control dinheiro grp-total-liberado"
-                    readonly value="R$ 0,00">
+            <!-- CONSOLIDADO LOCAL (Diárias) -->
+            <div class="row g-2 mt-2 grp-totais">
+                <div class="col-md-3">
+                    <label class="form-label">Total Cobrado (Diárias)</label>
+                    <input type="text" name="diarias_total_cobrado" class="form-control dinheiro grp-total-cobrado"
+                        readonly value="R$ 0,00">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Total Glosado (Diárias)</label>
+                    <input type="text" name="diarias_total_glosado" class="form-control dinheiro grp-total-glosado"
+                        readonly value="R$ 0,00">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Total Cobrado Após (Diárias)</label>
+                    <input type="text" name="diarias_total_liberado" class="form-control dinheiro grp-total-liberado"
+                        readonly value="R$ 0,00">
+                </div>
             </div>
         </div>
     </div>
 
 
+
+
     <!-- SETOR: APTO / ENFERMARIA -->
-    <div class="block apto">
+    <div class="block apto" data-group="apto">
         <h5>Setor Apto / Enfermaria</h5>
+
         <div class="tuss-grid">
             <div class="tg-head tg-col-desc">Descrição</div>
             <div class="tg-head tg-col-qtd">Qtd.</div>
@@ -497,7 +520,7 @@ select.form-select:focus {
             <div class="tg-head tg-col-lib">Cobrado Após</div>
             <div class="tg-head tg-col-obs">Observação</div>
 
-            <div class="tuss-row">
+            <div class="tuss-row rah-row">
                 <div class="tg-lab tg-col-desc">Terapias</div>
                 <input name="ap_terapias_qtd" class="form-control tg-col-qtd" placeholder="Qtd">
                 <input name="ap_terapias_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
@@ -509,7 +532,7 @@ select.form-select:focus {
                 <input name="ap_terapias_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
 
-            <div class="tuss-row">
+            <div class="tuss-row rah-row">
                 <div class="tg-lab tg-col-desc">Taxas / Aluguéis</div>
                 <input name="ap_taxas_qtd" class="form-control tg-col-qtd">
                 <input name="ap_taxas_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
@@ -521,7 +544,7 @@ select.form-select:focus {
                 <input name="ap_taxas_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
 
-            <div class="tuss-row">
+            <div class="tuss-row rah-row">
                 <div class="tg-lab tg-col-desc">Material de Consumo</div>
                 <input name="ap_mat_consumo_qtd" class="form-control tg-col-qtd">
                 <input name="ap_mat_consumo_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
@@ -533,7 +556,7 @@ select.form-select:focus {
                 <input name="ap_mat_consumo_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
 
-            <div class="tuss-row">
+            <div class="tuss-row rah-row">
                 <div class="tg-lab tg-col-desc">Medicamentos</div>
                 <input name="ap_medicametos_qtd" class="form-control tg-col-qtd">
                 <input name="ap_medicametos_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
@@ -545,7 +568,7 @@ select.form-select:focus {
                 <input name="ap_medicametos_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
 
-            <div class="tuss-row">
+            <div class="tuss-row rah-row">
                 <div class="tg-lab tg-col-desc">Gases Medicinais</div>
                 <input name="ap_gases_qtd" class="form-control tg-col-qtd">
                 <input name="ap_gases_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
@@ -557,7 +580,7 @@ select.form-select:focus {
                 <input name="ap_gases_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
 
-            <div class="tuss-row">
+            <div class="tuss-row rah-row">
                 <div class="tg-lab tg-col-desc">Material Especial</div>
                 <input name="ap_mat_espec_qtd" class="form-control tg-col-qtd">
                 <input name="ap_mat_espec_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
@@ -569,7 +592,7 @@ select.form-select:focus {
                 <input name="ap_mat_espec_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
 
-            <div class="tuss-row">
+            <div class="tuss-row rah-row">
                 <div class="tg-lab tg-col-desc">Exames / SADT</div>
                 <input name="ap_exames_qtd" class="form-control tg-col-qtd">
                 <input name="ap_exames_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
@@ -581,7 +604,7 @@ select.form-select:focus {
                 <input name="ap_exames_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
 
-            <div class="tuss-row">
+            <div class="tuss-row rah-row">
                 <div class="tg-lab tg-col-desc">Hemoderivados</div>
                 <input name="ap_hemoderivados_qtd" class="form-control tg-col-qtd">
                 <input name="ap_hemoderivados_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
@@ -593,7 +616,7 @@ select.form-select:focus {
                 <input name="ap_hemoderivados_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
 
-            <div class="tuss-row">
+            <div class="tuss-row rah-row">
                 <div class="tg-lab tg-col-desc">Honorários</div>
                 <input name="ap_honorarios_qtd" class="form-control tg-col-qtd">
                 <input name="ap_honorarios_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
@@ -605,27 +628,32 @@ select.form-select:focus {
                 <input name="ap_honorarios_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
         </div>
-        <!-- CONSOLIDADO LOCAL (Apto/Enfermaria) -->
+
+        <!-- CONSOLIDADO LOCAL (Apto) -->
         <div class="row g-2 mt-2 grp-totais">
             <div class="col-md-3">
                 <label class="form-label">Total Cobrado (Apto)</label>
-                <input type="text" class="form-control dinheiro grp-total-cobrado" readonly value="R$ 0,00">
+                <input type="text" name="apto_total_cobrado" class="form-control dinheiro grp-total-cobrado" readonly
+                    value="R$ 0,00">
             </div>
             <div class="col-md-3">
                 <label class="form-label">Total Glosado (Apto)</label>
-                <input type="text" class="form-control dinheiro grp-total-glosado" readonly value="R$ 0,00">
+                <input type="text" name="apto_total_glosado" class="form-control dinheiro grp-total-glosado" readonly
+                    value="R$ 0,00">
             </div>
             <div class="col-md-3">
                 <label class="form-label">Total Cobrado Após (Apto)</label>
-                <input type="text" class="form-control dinheiro grp-total-liberado" readonly value="R$ 0,00">
+                <input type="text" name="apto_total_liberado" class="form-control dinheiro grp-total-liberado" readonly
+                    value="R$ 0,00">
             </div>
         </div>
-
     </div>
 
+
     <!-- SETOR: UTI -->
-    <div class="block uti">
+    <div class="block uti" data-group="uti">
         <h5>Setor UTI</h5>
+
         <div class="tuss-grid">
             <div class="tg-head tg-col-desc">Descrição</div>
             <div class="tg-head tg-col-qtd">Qtd.</div>
@@ -634,7 +662,7 @@ select.form-select:focus {
             <div class="tg-head tg-col-lib">Cobrado Após</div>
             <div class="tg-head tg-col-obs">Observação</div>
 
-            <div class="tuss-row">
+            <div class="tuss-row rah-row">
                 <div class="tg-lab tg-col-desc">Terapias</div>
                 <input name="uti_terapias_qtd" class="form-control tg-col-qtd">
                 <input name="uti_terapias_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
@@ -646,7 +674,7 @@ select.form-select:focus {
                 <input name="uti_terapias_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
 
-            <div class="tuss-row">
+            <div class="tuss-row rah-row">
                 <div class="tg-lab tg-col-desc">Taxas / Aluguéis</div>
                 <input name="uti_taxas_qtd" class="form-control tg-col-qtd">
                 <input name="uti_taxas_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
@@ -658,7 +686,7 @@ select.form-select:focus {
                 <input name="uti_taxas_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
 
-            <div class="tuss-row">
+            <div class="tuss-row rah-row">
                 <div class="tg-lab tg-col-desc">Material de Consumo</div>
                 <input name="uti_mat_consumo_qtd" class="form-control tg-col-qtd">
                 <input name="uti_mat_consumo_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
@@ -670,7 +698,7 @@ select.form-select:focus {
                 <input name="uti_mat_consumo_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
 
-            <div class="tuss-row">
+            <div class="tuss-row rah-row">
                 <div class="tg-lab tg-col-desc">Medicamentos</div>
                 <input name="uti_medicametos_qtd" class="form-control tg-col-qtd">
                 <input name="uti_medicametos_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
@@ -682,7 +710,7 @@ select.form-select:focus {
                 <input name="uti_medicametos_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
 
-            <div class="tuss-row">
+            <div class="tuss-row rah-row">
                 <div class="tg-lab tg-col-desc">Gases Medicinais</div>
                 <input name="uti_gases_qtd" class="form-control tg-col-qtd">
                 <input name="uti_gases_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
@@ -694,7 +722,7 @@ select.form-select:focus {
                 <input name="uti_gases_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
 
-            <div class="tuss-row">
+            <div class="tuss-row rah-row">
                 <div class="tg-lab tg-col-desc">Material Especial</div>
                 <input name="uti_mat_espec_qtd" class="form-control tg-col-qtd">
                 <input name="uti_mat_espec_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
@@ -706,7 +734,7 @@ select.form-select:focus {
                 <input name="uti_mat_espec_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
 
-            <div class="tuss-row">
+            <div class="tuss-row rah-row">
                 <div class="tg-lab tg-col-desc">Exames / SADT</div>
                 <input name="uti_exames_qtd" class="form-control tg-col-qtd">
                 <input name="uti_exames_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
@@ -718,7 +746,7 @@ select.form-select:focus {
                 <input name="uti_exames_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
 
-            <div class="tuss-row">
+            <div class="tuss-row rah-row">
                 <div class="tg-lab tg-col-desc">Hemoderivados</div>
                 <input name="uti_hemoderivados_qtd" class="form-control tg-col-qtd">
                 <input name="uti_hemoderivados_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
@@ -730,7 +758,7 @@ select.form-select:focus {
                 <input name="uti_hemoderivados_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
 
-            <div class="tuss-row">
+            <div class="tuss-row rah-row">
                 <div class="tg-lab tg-col-desc">Honorários</div>
                 <input name="uti_honorarios_qtd" class="form-control tg-col-qtd">
                 <input name="uti_honorarios_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
@@ -742,27 +770,31 @@ select.form-select:focus {
                 <input name="uti_honorarios_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
         </div>
-        <!-- CONSOLIDADO LOCAL (ATI) -->
+
+        <!-- CONSOLIDADO LOCAL (UTI) -->
         <div class="row g-2 mt-2 grp-totais">
             <div class="col-md-3">
                 <label class="form-label">Total Cobrado (UTI)</label>
-                <input type="text" class="form-control dinheiro grp-total-cobrado" readonly value="R$ 0,00">
+                <input type="text" name="uti_total_cobrado" class="form-control dinheiro grp-total-cobrado" readonly
+                    value="R$ 0,00">
             </div>
             <div class="col-md-3">
                 <label class="form-label">Total Glosado (UTI)</label>
-                <input type="text" class="form-control dinheiro grp-total-glosado" readonly value="R$ 0,00">
+                <input type="text" name="uti_total_glosado" class="form-control dinheiro grp-total-glosado" readonly
+                    value="R$ 0,00">
             </div>
             <div class="col-md-3">
                 <label class="form-label">Total Cobrado Após (UTI)</label>
-                <input type="text" class="form-control dinheiro grp-total-liberado" readonly value="R$ 0,00">
+                <input type="text" name="uti_total_liberado" class="form-control dinheiro grp-total-liberado" readonly
+                    value="R$ 0,00">
             </div>
         </div>
-
     </div>
 
     <!-- SETOR: CENTRO CIRÚRGICO -->
-    <div class="block cc">
+    <div class="block cc" data-group="cc">
         <h5>Setor Centro Cirúrgico</h5>
+
         <div class="tuss-grid">
             <div class="tg-head tg-col-desc">Descrição</div>
             <div class="tg-head tg-col-qtd">Qtd.</div>
@@ -771,7 +803,7 @@ select.form-select:focus {
             <div class="tg-head tg-col-lib">Cobrado Após</div>
             <div class="tg-head tg-col-obs">Observação</div>
 
-            <div class="tuss-row">
+            <div class="tuss-row rah-row">
                 <div class="tg-lab tg-col-desc">Terapias</div>
                 <input name="cc_terapias_qtd" class="form-control tg-col-qtd">
                 <input name="cc_terapias_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
@@ -783,7 +815,7 @@ select.form-select:focus {
                 <input name="cc_terapias_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
 
-            <div class="tuss-row">
+            <div class="tuss-row rah-row">
                 <div class="tg-lab tg-col-desc">Taxas / Aluguéis</div>
                 <input name="cc_taxas_qtd" class="form-control tg-col-qtd">
                 <input name="cc_taxas_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
@@ -795,7 +827,7 @@ select.form-select:focus {
                 <input name="cc_taxas_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
 
-            <div class="tuss-row">
+            <div class="tuss-row rah-row">
                 <div class="tg-lab tg-col-desc">Material de Consumo</div>
                 <input name="cc_mat_consumo_qtd" class="form-control tg-col-qtd">
                 <input name="cc_mat_consumo_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
@@ -807,7 +839,7 @@ select.form-select:focus {
                 <input name="cc_mat_consumo_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
 
-            <div class="tuss-row">
+            <div class="tuss-row rah-row">
                 <div class="tg-lab tg-col-desc">Medicamentos</div>
                 <input name="cc_medicametos_qtd" class="form-control tg-col-qtd">
                 <input name="cc_medicametos_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
@@ -819,7 +851,7 @@ select.form-select:focus {
                 <input name="cc_medicametos_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
 
-            <div class="tuss-row">
+            <div class="tuss-row rah-row">
                 <div class="tg-lab tg-col-desc">Gases Medicinais</div>
                 <input name="cc_gases_qtd" class="form-control tg-col-qtd">
                 <input name="cc_gases_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
@@ -831,7 +863,7 @@ select.form-select:focus {
                 <input name="cc_gases_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
 
-            <div class="tuss-row">
+            <div class="tuss-row rah-row">
                 <div class="tg-lab tg-col-desc">Material Especial</div>
                 <input name="cc_mat_espec_qtd" class="form-control tg-col-qtd">
                 <input name="cc_mat_espec_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
@@ -843,7 +875,7 @@ select.form-select:focus {
                 <input name="cc_mat_espec_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
 
-            <div class="tuss-row">
+            <div class="tuss-row rah-row">
                 <div class="tg-lab tg-col-desc">Exames / SADT</div>
                 <input name="cc_exames_qtd" class="form-control tg-col-qtd">
                 <input name="cc_exames_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
@@ -855,7 +887,7 @@ select.form-select:focus {
                 <input name="cc_exames_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
 
-            <div class="tuss-row">
+            <div class="tuss-row rah-row">
                 <div class="tg-lab tg-col-desc">Hemoderivados</div>
                 <input name="cc_hemoderivados_qtd" class="form-control tg-col-qtd">
                 <input name="cc_hemoderivados_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
@@ -867,7 +899,7 @@ select.form-select:focus {
                 <input name="cc_hemoderivados_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
 
-            <div class="tuss-row">
+            <div class="tuss-row rah-row">
                 <div class="tg-lab tg-col-desc">Honorários</div>
                 <input name="cc_honorarios_qtd" class="form-control tg-col-qtd">
                 <input name="cc_honorarios_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
@@ -879,23 +911,27 @@ select.form-select:focus {
                 <input name="cc_honorarios_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
         </div>
+
         <!-- CONSOLIDADO LOCAL (CC) -->
         <div class="row g-2 mt-2 grp-totais">
             <div class="col-md-3">
                 <label class="form-label">Total Cobrado (CC)</label>
-                <input type="text" class="form-control dinheiro grp-total-cobrado" readonly value="R$ 0,00">
+                <input type="text" name="cc_total_cobrado" class="form-control dinheiro grp-total-cobrado" readonly
+                    value="R$ 0,00">
             </div>
             <div class="col-md-3">
                 <label class="form-label">Total Glosado (CC)</label>
-                <input type="text" class="form-control dinheiro grp-total-glosado" readonly value="R$ 0,00">
+                <input type="text" name="cc_total_glosado" class="form-control dinheiro grp-total-glosado" readonly
+                    value="R$ 0,00">
             </div>
             <div class="col-md-3">
                 <label class="form-label">Total Cobrado Após (CC)</label>
-                <input type="text" class="form-control dinheiro grp-total-liberado" readonly value="R$ 0,00">
+                <input type="text" name="cc_total_liberado" class="form-control dinheiro grp-total-liberado" readonly
+                    value="R$ 0,00">
             </div>
         </div>
-
     </div>
+
 
     <!-- AÇÕES -->
     <div class="block">
@@ -1114,5 +1150,141 @@ select.form-select:focus {
         recalcGrandTotals,
         recalcAll
     };
+})();
+</script>
+<script>
+(function() {
+    var $ = window.jQuery;
+
+    // Reaplica máscara e força o recálculo do grupo quando a collapse abrir
+    document.addEventListener('shown.bs.collapse', function(ev) {
+        var $target = $(ev.target); // o div .collapse aberto
+        var $block = $target.closest('.block');
+
+        // aplica mascara nos campos desse bloco
+        if ($.fn.maskMoney) {
+            $block.find('.dinheiro').maskMoney({
+                thousands: '.',
+                decimal: ',',
+                allowZero: true,
+                precision: 2
+            });
+        }
+
+        // dispara um recálculo local simulando mudança nos campos
+        // (o seu script global já escuta os eventos e soma por bloco)
+        $block.find('.rah-cobrado,.rah-glosado').first().trigger('input');
+    });
+
+
+})();
+</script>
+<script>
+document.addEventListener('shown.bs.collapse', function(e) {
+    const btn = document.querySelector('[data-bs-target="#' + e.target.id + '"] .toggle-caret');
+    if (btn) btn.classList.add('rotate-180');
+});
+document.addEventListener('hidden.bs.collapse', function(e) {
+    const btn = document.querySelector('[data-bs-target="#' + e.target.id + '"] .toggle-caret');
+    if (btn) btn.classList.remove('rotate-180');
+});
+</script>
+<style>
+.rotate-180 {
+    transform: rotate(180deg);
+    transition: transform .2s;
+}
+</style>
+<style>
+/* Cursor e setinha no título */
+.block>h5 {
+    cursor: pointer;
+    position: relative;
+    padding-left: 28px;
+}
+
+.block>h5::before {
+    content: "▸";
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-weight: 900;
+    opacity: .7;
+}
+
+.block>h5[aria-expanded="true"]::before {
+    content: "▾";
+}
+
+/* transição suave opcional (para quem não quer slide) */
+/* .block-body{ transition:max-height .2s ease; overflow:hidden; } */
+</style>
+
+<style>
+/* Cursor e setinha só para blocos colapsáveis */
+.block>h5 {
+    position: relative;
+    padding-left: 28px;
+}
+
+.block>h5:not([data-static="1"]) {
+    cursor: pointer;
+}
+
+.block>h5:not([data-static="1"])::before {
+    content: "▸";
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-weight: 900;
+    opacity: .7;
+}
+
+.block>h5[aria-expanded="true"]:not([data-static="1"])::before {
+    content: "▾";
+}
+</style>
+
+<script>
+(function() {
+    var $ = window.jQuery;
+    if (!$) return;
+
+    function isNaoColapsavel(t) {
+        t = (t || "").trim().toLowerCase();
+        return t === "identificação" || t === "periodo e totais" || t === "período e totais";
+    }
+
+    $('.block').each(function() {
+        var $block = $(this);
+        var $title = $block.children('h5').first();
+        if (!$title.length) return;
+
+        var $body = $title.nextAll();
+        if (!$body.length) return;
+
+        if (isNaoColapsavel($title.text())) {
+            // Sempre aberto e sem interação
+            $title.attr({
+                'data-static': '1',
+                'aria-expanded': 'true'
+            });
+            $body.show();
+            $title.off('click.rahCollapse'); // garante sem toggle
+            return;
+        }
+
+        // Colapsável: inicia fechado
+        $title.attr('aria-expanded', 'false');
+        $body.hide();
+
+        $title.off('click.rahCollapse').on('click.rahCollapse', function() {
+            var expanded = $title.attr('aria-expanded') === 'true';
+            $title.attr('aria-expanded', expanded ? 'false' : 'true');
+            $body.stop(true, true).slideToggle(160);
+        });
+    });
 })();
 </script>
