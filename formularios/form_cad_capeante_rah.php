@@ -605,6 +605,22 @@ select.form-select:focus {
                 <input name="ap_honorarios_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
         </div>
+        <!-- CONSOLIDADO LOCAL (Apto/Enfermaria) -->
+        <div class="row g-2 mt-2 grp-totais">
+            <div class="col-md-3">
+                <label class="form-label">Total Cobrado (Apto)</label>
+                <input type="text" class="form-control dinheiro grp-total-cobrado" readonly value="R$ 0,00">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Total Glosado (Apto)</label>
+                <input type="text" class="form-control dinheiro grp-total-glosado" readonly value="R$ 0,00">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Total Cobrado Após (Apto)</label>
+                <input type="text" class="form-control dinheiro grp-total-liberado" readonly value="R$ 0,00">
+            </div>
+        </div>
+
     </div>
 
     <!-- SETOR: UTI -->
@@ -726,6 +742,22 @@ select.form-select:focus {
                 <input name="uti_honorarios_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
         </div>
+        <!-- CONSOLIDADO LOCAL (ATI) -->
+        <div class="row g-2 mt-2 grp-totais">
+            <div class="col-md-3">
+                <label class="form-label">Total Cobrado (UTI)</label>
+                <input type="text" class="form-control dinheiro grp-total-cobrado" readonly value="R$ 0,00">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Total Glosado (UTI)</label>
+                <input type="text" class="form-control dinheiro grp-total-glosado" readonly value="R$ 0,00">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Total Cobrado Após (UTI)</label>
+                <input type="text" class="form-control dinheiro grp-total-liberado" readonly value="R$ 0,00">
+            </div>
+        </div>
+
     </div>
 
     <!-- SETOR: CENTRO CIRÚRGICO -->
@@ -847,6 +879,22 @@ select.form-select:focus {
                 <input name="cc_honorarios_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
         </div>
+        <!-- CONSOLIDADO LOCAL (CC) -->
+        <div class="row g-2 mt-2 grp-totais">
+            <div class="col-md-3">
+                <label class="form-label">Total Cobrado (CC)</label>
+                <input type="text" class="form-control dinheiro grp-total-cobrado" readonly value="R$ 0,00">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Total Glosado (CC)</label>
+                <input type="text" class="form-control dinheiro grp-total-glosado" readonly value="R$ 0,00">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Total Cobrado Após (CC)</label>
+                <input type="text" class="form-control dinheiro grp-total-liberado" readonly value="R$ 0,00">
+            </div>
+        </div>
+
     </div>
 
     <!-- AÇÕES -->
