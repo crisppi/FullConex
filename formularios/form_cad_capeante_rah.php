@@ -807,63 +807,81 @@ select.form-select:focus {
 </script>
 
 <!-- Cálculo da coluna "Cobrado Após" (apenas acrescentado) -->
+<!-- Cálculo da coluna "Cobrado Após" (substituir o script anterior) -->
 <script>
 (function() {
-    const moneyToFloat = (s) => {
+    // sempre use a mesma instância global do jQuery do projeto
+    var $ = window.jQuery;
+
+    // Converte "R$ 1.234,56" -> 1234.56
+    function moneyToFloat(s) {
         if (!s) return 0;
-        s = ('' + s).trim().replace(/\./g, '').replace(',', '.');
-        s = s.replace(/[^\d\.\-]/g, '');
-        const v = parseFloat(s);
+        s = ('' + s).replace(/\./g, '').replace(',', '.');
+        s = s.replace(/[^\d.\-]/g, '');
+        var v = parseFloat(s);
         return isNaN(v) ? 0 : v;
-    };
-    const floatToMoney = (v) => {
+    }
+    // 1234.5 -> "R$ 1.234,50"
+    function floatToMoney(v) {
         if (!isFinite(v)) v = 0;
-        const parts = v.toFixed(2).split('.');
-        let i = parts[0],
+        var parts = v.toFixed(2).split('.');
+        var i = parts[0],
             d = parts[1];
         i = i.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
         return 'R$ ' + i + ',' + d;
-    };
+    }
 
     function recalcRow($row) {
-        const vCob = moneyToFloat($row.find('.rah-cobrado').val()); // Cobrado
-        const vGlo = moneyToFloat($row.find('.rah-glosado').val()); // Glosado
-        let vApo = vCob - vGlo;
-        if (vApo < 0) vApo = 0; // Cobrado Após
+        var vCob = moneyToFloat($row.find('.rah-cobrado').val() || '');
+        var vGlo = moneyToFloat($row.find('.rah-glosado').val() || '');
+        var vApo = vCob - vGlo;
+        if (vApo < 0) vApo = 0;
         $row.find('.rah-liberado').val(floatToMoney(vApo));
     }
 
     function recalcTotals() {
-        // Se existir bloco de totais na página, atualiza; caso não exista, não quebra
-        let tCob = 0,
+        var tCob = 0,
             tGlo = 0,
             tApo = 0;
-        jQuery('.tuss-row').each(function() {
-            const $r = jQuery(this);
+        $('.tuss-row').each(function() {
+            var $r = $(this);
             tCob += moneyToFloat($r.find('.rah-cobrado').val());
             tGlo += moneyToFloat($r.find('.rah-glosado').val());
             tApo += moneyToFloat($r.find('.rah-liberado').val());
         });
-        if (jQuery('#total_cobrado').length) jQuery('#total_cobrado').val(floatToMoney(tCob));
-        if (jQuery('#total_glosado').length) jQuery('#total_glosado').val(floatToMoney(tGlo));
-        if (jQuery('#total_liberado').length) jQuery('#total_liberado').val(floatToMoney(tApo));
-        if (jQuery('#valor_final_capeante').length) {
-            const desconto = parseFloat((jQuery('#desconto_valor_cap').val() || '').replace(',', '.')) || 0;
-            jQuery('#valor_final_capeante').val(floatToMoney(tApo * (1 - desconto / 100)));
+        if ($('#total_cobrado').length) $('#total_cobrado').val(floatToMoney(tCob));
+        if ($('#total_glosado').length) $('#total_glosado').val(floatToMoney(tGlo));
+        if ($('#total_liberado').length) $('#total_liberado').val(floatToMoney(tApo));
+
+        if ($('#valor_final_capeante').length) {
+            var desc = parseFloat(($('#desconto_valor_cap').val() || '').replace(',', '.')) || 0;
+            $('#valor_final_capeante').val(floatToMoney(tApo * (1 - desc / 100)));
         }
     }
 
-    jQuery(function() {
-        jQuery('.tuss-row').each(function() {
-            const $r = jQuery(this);
-            $r.on('input', '.rah-cobrado, .rah-glosado', function() {
-                recalcRow($r);
-                recalcTotals();
-            });
-            recalcRow($r);
+    function recalcAll() {
+        $('.tuss-row').each(function() {
+            recalcRow($(this));
         });
         recalcTotals();
-        jQuery('#desconto_valor_cap').on('input', recalcTotals);
+    }
+
+    // Delegação: captura mudanças mesmo com maskMoney
+    $(document).on('input change keyup', '.rah-cobrado, .rah-glosado', function() {
+        var $row = $(this).closest('.tuss-row');
+        recalcRow($row);
+        recalcTotals();
+    });
+
+    // Se houver campo de desconto, reflita nos totais
+    $(document).on('input change keyup', '#desconto_valor_cap', recalcTotals);
+
+    // Recalcular no carregamento (e após a máscara aplicar formatação)
+    $(function() {
+        // primeira passada
+        recalcAll();
+        // depois que a maskMoney tocar nos campos
+        setTimeout(recalcAll, 50);
     });
 })();
 </script>
