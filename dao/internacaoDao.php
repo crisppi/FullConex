@@ -3125,21 +3125,50 @@ WHERE
     }
     public function selectAllInternacaoCap2($where = null, $order = null, $limit = null)
     {
+        // helper para somar VARCHAR(20) monetário "1.234,56"
+        $C = function (string $col) {
+            return "CAST(REPLACE(REPLACE(IFNULL($col,''), '.', ''), ',', '.') AS DECIMAL(14,2))";
+        };
+
+        $sum_ap  = implode(" + ", [
+            $C('vap.ap_terapias_glosado'),
+            $C('vap.ap_taxas_glosado'),
+            $C('vap.ap_mat_consumo_glosado'),
+            $C('vap.ap_medicametos_glosado'),
+            $C('vap.ap_gases_glosado'),
+            $C('vap.ap_mat_espec_glosado'),
+            $C('vap.ap_exames_glosado'),
+            $C('vap.ap_hemoderivados_glosado'),
+            $C('vap.ap_honorarios_glosado')
+        ]);
+
+        $sum_uti = implode(" + ", [
+            $C('vu.uti_terapias_glosado'),
+            $C('vu.uti_taxas_glosado'),
+            $C('vu.uti_mat_consumo_glosado'),
+            $C('vu.uti_medicametos_glosado'),
+            $C('vu.uti_gases_glosado'),
+            $C('vu.uti_mat_espec_glosado'),
+            $C('vu.uti_exames_glosado'),
+            $C('vu.uti_hemoderivados_glosado'),
+            $C('vu.uti_honorarios_glosado')
+        ]);
+
+        $sum_cc  = implode(" + ", [
+            $C('vc.cc_terapias_glosado'),
+            $C('vc.cc_taxas_glosado'),
+            $C('vc.cc_mat_consumo_glosado'),
+            $C('vc.cc_medicametos_glosado'),
+            $C('vc.cc_gases_glosado'),
+            $C('vc.cc_mat_espec_glosado'),
+            $C('vc.cc_exames_glosado'),
+            $C('vc.cc_hemoderivados_glosado'),
+            $C('vc.cc_honorarios_glosado')
+        ]);
+
         $sql = "
         SELECT
-            -- INTERNACAO
-            ac.id_internacao,
-            ac.data_intern_int,
-            ac.senha_int,
-            ac.acomodacao_int,
-
-            -- PACIENTE / HOSPITAL
-            pa.id_paciente,
-            pa.nome_pac,
-            ho.id_hospital,
-            ho.nome_hosp,
-
-            -- CAPEANTE (principais)
+            -- CAPEANTE (sempre vem)
             ca.id_capeante,
             ca.fk_int_capeante,
             ca.parcial_capeante,
@@ -3149,99 +3178,61 @@ WHERE
             ca.data_fech_capeante,
             ca.valor_apresentado_capeante,
             ca.valor_final_capeante,
-            ca.lote_cap,
+            ca.desconto_valor_cap,
             ca.acomodacao_cap,
+            ca.lote_cap,
             ca.pacote,
             ca.encerrado_cap,
             ca.em_auditoria_cap,
             ca.aberto_cap,
             ca.validacao_cap,
-            ca.desconto_valor_cap,
-
-            -- Controles (se existirem)
-            ca.fk_id_aud_med,
-            ca.fk_id_aud_enf,
-            ca.fk_id_aud_adm,
-
-            -- Flags de auditoria
             ca.adm_check,
             ca.med_check,
             ca.enfer_check,
 
-            -- Cálculo de glosa total (somando tabelas novas)
-            (
-                COALESCE(gap.glosa_total_ap, 0) +
-                COALESCE(guti.glosa_total_uti, 0) +
-                COALESCE(gcc.glosa_total_cc, 0)
-            ) AS glosa_total,
+            -- INTERNACAO (virá se fk_int_capeante estiver correto)
+            ac.id_internacao,
+            ac.data_intern_int,
+            ac.senha_int,
+            ac.acomodacao_int,
 
-            -- Valor final calculado
-            (
-                ca.valor_apresentado_capeante -
-                (
-                    COALESCE(gap.glosa_total_ap, 0) +
-                    COALESCE(guti.glosa_total_uti, 0) +
-                    COALESCE(gcc.glosa_total_cc, 0)
-                )
-            ) AS valor_final_calc
+            -- PACIENTE / HOSPITAL
+            pa.nome_pac,
+            ho.nome_hosp,
 
-        FROM tb_internacao ac
-        LEFT JOIN tb_paciente pa ON pa.id_paciente = ac.fk_paciente_int
-        LEFT JOIN tb_hospital ho ON ho.id_hospital = ac.fk_hospital_int
-        LEFT JOIN tb_capeante ca ON ca.fk_int_capeante = ac.id_internacao
+            -- Glosas agregadas das tabelas novas
+            COALESCE(gap.glosa_total_ap, 0)   AS glosa_total_ap,
+            COALESCE(guti.glosa_total_uti, 0) AS glosa_total_uti,
+            COALESCE(gcc.glosa_total_cc, 0)   AS glosa_total_cc,
 
-        -- Glosas AP
+            -- Total e final calculados
+            (COALESCE(gap.glosa_total_ap,0) + COALESCE(guti.glosa_total_uti,0) + COALESCE(gcc.glosa_total_cc,0)) AS valor_glosa_total,
+            (ca.valor_apresentado_capeante - (COALESCE(gap.glosa_total_ap,0) + COALESCE(guti.glosa_total_uti,0) + COALESCE(gcc.glosa_total_cc,0))) AS valor_final_capeante_calc
+
+        FROM tb_capeante ca
+        LEFT JOIN tb_internacao ac ON ac.id_internacao = ca.fk_int_capeante
+        LEFT JOIN tb_paciente   pa ON pa.id_paciente   = ac.fk_paciente_int
+        LEFT JOIN tb_hospital   ho ON ho.id_hospital   = ac.fk_hospital_int
+
+        -- AP
         LEFT JOIN (
-            SELECT fk_capeante,
-                SUM(
-                    CAST(REPLACE(REPLACE(IFNULL(ap_terapias_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
-                    CAST(REPLACE(REPLACE(IFNULL(ap_taxas_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
-                    CAST(REPLACE(REPLACE(IFNULL(ap_mat_consumo_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
-                    CAST(REPLACE(REPLACE(IFNULL(ap_medicametos_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
-                    CAST(REPLACE(REPLACE(IFNULL(ap_gases_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
-                    CAST(REPLACE(REPLACE(IFNULL(ap_mat_espec_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
-                    CAST(REPLACE(REPLACE(IFNULL(ap_exames_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
-                    CAST(REPLACE(REPLACE(IFNULL(ap_hemoderivados_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
-                    CAST(REPLACE(REPLACE(IFNULL(ap_honorarios_glosado,''),',','.'),'.','') AS DECIMAL(14,2))
-                ) AS glosa_total_ap
-            FROM tb_cap_valores_ap
-            GROUP BY fk_capeante
+            SELECT vap.fk_capeante, COALESCE(SUM($sum_ap),0) AS glosa_total_ap
+            FROM tb_cap_valores_ap vap
+            GROUP BY vap.fk_capeante
         ) AS gap ON gap.fk_capeante = ca.id_capeante
 
-        -- Glosas UTI
+        -- UTI
         LEFT JOIN (
-            SELECT fk_capeante,
-                SUM(
-                    CAST(REPLACE(REPLACE(IFNULL(uti_terapias_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
-                    CAST(REPLACE(REPLACE(IFNULL(uti_taxas_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
-                    CAST(REPLACE(REPLACE(IFNULL(uti_mat_consumo_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
-                    CAST(REPLACE(REPLACE(IFNULL(uti_medicametos_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
-                    CAST(REPLACE(REPLACE(IFNULL(uti_gases_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
-                    CAST(REPLACE(REPLACE(IFNULL(uti_mat_espec_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
-                    CAST(REPLACE(REPLACE(IFNULL(uti_exames_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
-                    CAST(REPLACE(REPLACE(IFNULL(uti_hemoderivados_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
-                    CAST(REPLACE(REPLACE(IFNULL(uti_honorarios_glosado,''),',','.'),'.','') AS DECIMAL(14,2))
-                ) AS glosa_total_uti
-            FROM tb_cap_valores_uti
-            GROUP BY fk_capeante
+            SELECT vu.fk_capeante, COALESCE(SUM($sum_uti),0) AS glosa_total_uti
+            FROM tb_cap_valores_uti vu
+            GROUP BY vu.fk_capeante
         ) AS guti ON guti.fk_capeante = ca.id_capeante
 
-        -- Glosas CC
+        -- CC
         LEFT JOIN (
-            SELECT fk_capeante,
-                SUM(
-                    CAST(REPLACE(REPLACE(IFNULL(cc_terapias_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
-                    CAST(REPLACE(REPLACE(IFNULL(cc_taxas_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
-                    CAST(REPLACE(REPLACE(IFNULL(cc_mat_consumo_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
-                    CAST(REPLACE(REPLACE(IFNULL(cc_medicametos_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
-                    CAST(REPLACE(REPLACE(IFNULL(cc_gases_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
-                    CAST(REPLACE(REPLACE(IFNULL(cc_mat_espec_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
-                    CAST(REPLACE(REPLACE(IFNULL(cc_exames_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
-                    CAST(REPLACE(REPLACE(IFNULL(cc_hemoderivados_glosado,''),',','.'),'.','') AS DECIMAL(14,2)) +
-                    CAST(REPLACE(REPLACE(IFNULL(cc_honorarios_glosado,''),',','.'),'.','') AS DECIMAL(14,2))
-                ) AS glosa_total_cc
-            FROM tb_cap_valores_cc
-            GROUP BY fk_capeante
+            SELECT vc.fk_capeante, COALESCE(SUM($sum_cc),0) AS glosa_total_cc
+            FROM tb_cap_valores_cc vc
+            GROUP BY vc.fk_capeante
         ) AS gcc ON gcc.fk_capeante = ca.id_capeante
 
         WHERE 1=1
@@ -3251,12 +3242,13 @@ WHERE
             $sql .= " AND ($where) ";
         }
 
+        // ordenação segura
         $allowedOrder = [
+            'ca.id_capeante',
             'ac.id_internacao',
             'ac.data_intern_int',
             'pa.nome_pac',
             'ho.nome_hosp',
-            'ca.id_capeante',
             'ca.data_inicial_capeante',
             'ca.data_final_capeante'
         ];
@@ -3273,17 +3265,12 @@ WHERE
                     }
                 }
             }
-            if ($clean) {
-                $sql .= " ORDER BY " . implode(', ', $clean);
-            }
+            if ($clean) $sql .= " ORDER BY " . implode(', ', $clean);
         }
 
         if (!empty($limit)) {
-            if (preg_match('/^\s*\d+\s*(,\s*\d+\s*)?$/', $limit)) {
-                $sql .= " LIMIT $limit";
-            } else {
-                $sql .= " LIMIT " . (int)$limit;
-            }
+            if (preg_match('/^\s*\d+\s*(,\s*\d+\s*)?$/', $limit)) $sql .= " LIMIT $limit";
+            else $sql .= " LIMIT " . (int)$limit;
         }
 
         $stmt = $this->conn->prepare($sql);

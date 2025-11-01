@@ -1,37 +1,31 @@
 <?php
-// form_capeante_auditRah.php
 
-declare(strict_types=1);
+/** =========================================================================
+ *  formularios/form_capeante_auditRah.php
+ *  Formulário “Capeante RAH” — página única, layout TUSS
+ *  - Empilhado por setores (Apto/Enfermaria, UTI, Centro Cirúrgico)
+ *  - Cada linha: Descrição | Qtd | Cobrado | Glosado | Cobrado Após (calc) | Observação
+ *  - Usa selectAllInternacaoCap2() para carregar identificação
+ *  ====================================================================== */
 
-// ================== BOOT BÁSICO (ajuste caminhos conforme seu projeto) ==================
-require_once("templates/header.php");     // seu header padrão
-require_once("models/message.php");
-
-// Models/DAOs usados apenas para pintar cabeçalho do form
-require_once("models/internacao.php");
-require_once("dao/internacaoDao.php");
-
-require_once("models/paciente.php");
-require_once("dao/pacienteDao.php");
-
-require_once("models/capeante.php");
-require_once("dao/capeanteDao.php");
-
-require_once("models/hospital.php");
-require_once("dao/hospitalDao.php");
-
-require_once("models/usuario.php");
-require_once("dao/usuarioDao.php");
-
-// $conn e $BASE_URL devem existir a partir do seu bootstrap (globals)
 if (isset($conn) && $conn instanceof PDO) {
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 }
+
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
-// ================== HELPERS LOCAIS (tolerantes) ==================
+/* Dependências principais do projeto */
+require_once "models/usuario.php";
+require_once "dao/usuarioDao.php";
+
+require_once "dao/internacaoDao.php";
+require_once "dao/pacienteDao.php";
+require_once "dao/capeanteDao.php";
+require_once "dao/patologiaDao.php";
+
+/* Helpers */
 $h = function ($v) {
     return htmlspecialchars((string)($v ?? ''), ENT_QUOTES, 'UTF-8');
 };
@@ -44,411 +38,702 @@ $fmtDateBR = function ($d): string {
     return $ts ? date('d/m/Y', $ts) : '';
 };
 
-// ================== PARÂMETROS DE ENTRADA ==================
-$type          = (string)(filter_input(INPUT_GET, 'type') ?? 'create'); // create|update
+/* Instâncias */
+$internacaoDAO = new internacaoDAO($conn, $BASE_URL);
+$capeanteDAO   = new capeanteDAO($conn, $BASE_URL);
+
+/* Parâmetros */
 $id_capeante   = filter_input(INPUT_GET, 'id_capeante', FILTER_VALIDATE_INT) ?: null;
 $id_internacao = filter_input(INPUT_GET, 'id_internacao', FILTER_VALIDATE_INT) ?: null;
+$type          = (string)(filter_input(INPUT_GET, 'type') ?? 'update');
 
-// ================== CARREGAMENTO DE CONTEXTO (pintar header do form) ==================
-$internacaoDao = new internacaoDAO($conn, $BASE_URL);
-$capeanteDao   = new capeanteDAO($conn, $BASE_URL);
-
-$order   = "ac.data_intern_int DESC, ac.id_internacao DESC";
-$limite  = null;
-$obLimit = null;
-$intern  = [];
-if ($type === 'create' && $id_internacao) {
-    $intern = $internacaoDao->selectAllInternacaoCap2("ac.id_internacao = " . (int)$id_internacao, $order, $obLimit);
-} elseif ($type !== 'create' && $id_capeante) {
-    $intern = $internacaoDao->selectAllInternacaoCap2("ca.id_capeante = " . (int)$id_capeante, $order, $obLimit);
-}
-$internRowDefaults = [
-    'id_capeante'                  => $id_capeante,
-    'id_internacao'                => $id_internacao,
-    'nome_pac'                     => null,
-    'nome_hosp'                    => null,
-    'data_intern_int'              => null,
-    'acomodacao_int'               => null,
-    'acomodacao_cap'               => null,
-    'lote_cap'                     => null,
-    'pacote'                       => 'n',
-    'parcial_capeante'             => 'n',
-    'parcial_num'                  => null,
-    'data_inicial_capeante'        => null,
-    'data_final_capeante'          => null,
-    'data_fech_capeante'           => date('Y-m-d'),
-    'valor_diarias'                => null,
-    'glosa_diaria'                 => null,
-    'valor_apresentado_capeante'   => null,
-    'valor_glosa_total'            => null,
-    'valor_final_capeante'         => null,
-    'desconto_valor_cap'           => null,
-    // campos de outras sessões (se já vierem da base, mantém)
-    'valor_taxa'                   => null,
-    'valor_materiais'              => null,
-    'valor_medicamentos'           => null,
-    'valor_honorarios'             => null,
-    'valor_sadt'                   => null,
-    'valor_opme'                   => null
+/* Recupera 1 linha principal */
+$defaults = [
+    'id_capeante' => null,
+    'fk_int_capeante' => null,
+    'id_internacao' => null,
+    'nome_pac' => null,
+    'nome_hosp' => null,
+    'data_intern_int' => null,
+    'acomodacao_int' => null,
+    'acomodacao_cap' => null,
+    'lote_cap' => null,
+    'pacote' => 'n',
+    'parcial_capeante' => 'n',
+    'parcial_num' => null,
+    'data_inicial_capeante' => null,
+    'data_final_capeante' => null,
+    'valor_apresentado_capeante' => null,
+    'valor_final_capeante' => null,
+    'glosa_total' => null,
+    'valor_diarias' => null,
+    'glosa_diaria' => null,
+    'valor_taxa' => null,
+    'valor_materiais' => null,
+    'valor_medicamentos' => null,
+    'valor_sadt' => null,
+    'valor_honorarios' => null,
+    'valor_opme' => null
 ];
-$internRow = $internRowDefaults;
-if (is_array($intern) && isset($intern[0]) && is_array($intern[0])) {
-    $internRow = array_merge($internRow, $intern[0]);
+
+$where = '';
+$order = 'ac.data_intern_int DESC, ac.id_internacao DESC';
+if ($type === 'create' && $id_internacao)      $where = 'ac.id_internacao = ' . (int)$id_internacao;
+elseif ($id_capeante)                           $where = 'ca.id_capeante = ' . (int)$id_capeante;
+
+$row = $defaults;
+if ($where) {
+    $lista = $internacaoDAO->selectAllInternacaoCap2($where, $order, null);
+    if (is_array($lista) && isset($lista[0]) && is_array($lista[0])) {
+        $row = array_merge($defaults, $lista[0]);
+    }
 }
-$val = function (string $k) use ($internRow) {
-    return $internRow[$k] ?? null;
+$fv = function (string $k) use ($row) {
+    return $row[$k] ?? null;
 };
-
-// ================== PÁGINA ÚNICA (EMPILHADA) ==================
+$hojeYMD = date('Y-m-d');
 ?>
-<div class="container-fluid px-0" id="main-container" style="margin-top:10px; background:#f5f6f8; min-height:100vh;">
+<!-- ========================= ESTILOS ========================= -->
+<style>
+body {
+    background-color: #f5f7fa;
+    font-family: "Nunito", "Helvetica Neue", Arial, sans-serif;
+    color: #212529;
+}
 
-    <form action="<?= $h($BASE_URL) ?>process_capeante.php" id="form-capeante" method="POST"
-        enctype="multipart/form-data">
-        <?php if ($type === "create"): ?>
-        <input type="hidden" name="type" value="create">
-        <input type="hidden" name="id_capeante" value="">
-        <?php else: ?>
-        <input type="hidden" name="type" value="update">
-        <input type="hidden" name="id_capeante" value="<?= $hi($val('id_capeante')) ?>">
-        <?php endif; ?>
+form#form-capeante-rah {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 10px 10px 40px 10px;
+}
 
-        <input type="hidden" id="fk_int_capeante" name="fk_int_capeante"
-            value="<?= $hi($val('id_internacao') ?: $id_internacao) ?>">
-        <input type="hidden" id="fk_user_cap" name="fk_user_cap" value="<?= $hi($_SESSION['id_usuario'] ?? 0) ?>">
-        <input type="hidden" id="aberto_cap" name="aberto_cap" value="n">
-        <input type="hidden" id="em_auditoria_cap" name="em_auditoria_cap" value="s">
+.block {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: .5rem;
+    padding: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .05);
+}
 
-        <!-- ================== IDENTIFICAÇÃO ================== -->
-        <div class="card border-0 shadow-sm rounded-3 mb-4">
-            <div class="card-body">
-                <h5 class="mb-3">Identificação</h5>
-                <div class="row g-3">
-                    <div class="col-md-2">
-                        <label class="form-label">Código Capeante</label>
-                        <input type="text" class="form-control" value="<?= $h($val('id_capeante')) ?>" readonly>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Internação</label>
-                        <input type="text" class="form-control"
-                            value="<?= $h($val('id_internacao') ?: $id_internacao) ?>" readonly>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Paciente</label>
-                        <input type="text" class="form-control" value="<?= $h($val('nome_pac')) ?>" readonly>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Hospital</label>
-                        <input type="text" class="form-control" value="<?= $h($val('nome_hosp')) ?>" readonly>
-                    </div>
+.block+.block {
+    margin-top: 18px;
+}
 
-                    <div class="col-md-3">
-                        <label for="data_inicial_capeante" class="form-label">Data Inicial</label>
-                        <input type="date" id="data_inicial_capeante" name="data_inicial_capeante" class="form-control"
-                            value="<?= $h($val('data_inicial_capeante') ?: $val('data_intern_int')) ?>" required>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="data_final_capeante" class="form-label">Data Final</label>
-                        <input type="date" id="data_final_capeante" name="data_final_capeante" class="form-control"
-                            value="<?= $h($val('data_final_capeante')) ?>">
-                    </div>
-                    <div class="col-md-3">
-                        <label for="acomodacao_cap" class="form-label">Acomodação</label>
-                        <input type="text" id="acomodacao_cap" name="acomodacao_cap" class="form-control"
-                            value="<?= $h($val('acomodacao_int') ?: $val('acomodacao_cap')) ?>">
-                    </div>
-                    <div class="col-md-3">
-                        <label for="lote_cap" class="form-label">Lote</label>
-                        <input type="text" id="lote_cap" name="lote_cap" class="form-control"
-                            value="<?= $h($val('lote_cap')) ?>">
-                    </div>
+.block h5 {
+    background: #f8f9fa;
+    border-left: 6px solid #0d6efd;
+    padding: 6px 10px;
+    margin: -12px -12px 14px -12px;
+    font-weight: 800;
+    font-size: 1.02rem;
+    color: #0d6efd;
+    border-top-right-radius: 4px;
+}
 
-                    <div class="col-md-3">
-                        <label for="pacote" class="form-label">Pacote</label>
-                        <?php $pacoteVal = ($val('pacote') ?? 'n'); ?>
-                        <select id="pacote" name="pacote" class="form-select">
-                            <option value="n" <?= $pacoteVal === 'n' ? 'selected' : '' ?>>Não</option>
-                            <option value="s" <?= $pacoteVal === 's' ? 'selected' : '' ?>>Sim</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="parcial_capeante" class="form-label">Parcial</label>
-                        <?php $parcialDefault = ($type === 'create' ? 's' : (($val('parcial_capeante') ?? 'n') === 's' ? 's' : 'n')); ?>
-                        <select id="parcial_capeante" name="parcial_capeante" class="form-select">
-                            <option value="n" <?= $parcialDefault === 'n' ? 'selected' : '' ?>>Não</option>
-                            <option value="s" <?= $parcialDefault === 's' ? 'selected' : '' ?>>Sim</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="parcial_num" class="form-label">Número Parcial</label>
-                        <input type="number" id="parcial_num" name="parcial_num" class="form-control"
-                            value="<?= $h($val('parcial_num')) ?>" <?= $parcialDefault === 's' ? '' : 'disabled' ?>>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="data_fech_capeante" class="form-label">Data Fechamento</label>
-                        <input type="date" id="data_fech_capeante" name="data_fech_capeante" class="form-control"
-                            value="<?= $h($val('data_fech_capeante') ?: date('Y-m-d')) ?>">
-                    </div>
-                </div>
+label.form-label {
+    font-weight: 600;
+    font-size: .85rem;
+    color: #495057;
+}
+
+input.form-control,
+select.form-select {
+    border: 1px solid #ced4da;
+    font-size: .9rem;
+    height: 34px;
+    padding: 4px 8px;
+}
+
+input.form-control:focus,
+select.form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 .1rem rgba(13, 110, 253, .25);
+}
+
+/* === GRID TUSS COM COLUNA CALCULADA ===
+   Descrição | Qtd | Cobrado | Glosado | Cobrado Após (calc) | Observação */
+.tuss-grid {
+    display: grid;
+    grid-template-columns: minmax(240px, 1.2fr) 110px 160px 160px 160px 1fr;
+    gap: 8px 10px;
+    align-items: center;
+}
+
+.tuss-grid .tg-head {
+    font-weight: 700;
+    font-size: .85rem;
+    color: #495057;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    padding: 6px 8px;
+}
+
+.tuss-grid .tg-lab {
+    font-weight: 600;
+    color: #343a40;
+}
+
+.tuss-grid input.form-control {
+    height: 34px;
+    padding: 4px 8px;
+}
+
+.tuss-row {
+    display: contents;
+}
+
+.tg-col-desc {
+    grid-column: 1;
+}
+
+.tg-col-qtd {
+    grid-column: 2;
+}
+
+.tg-col-cob {
+    grid-column: 3;
+    text-align: right;
+}
+
+.tg-col-glo {
+    grid-column: 4;
+    text-align: right;
+}
+
+/* NOVA COLUNA CALCULADA */
+.tg-col-lib {
+    grid-column: 5;
+    text-align: right;
+}
+
+.tg-col-obs {
+    grid-column: 6;
+}
+
+.block.apto h5 {
+    border-left-color: #198754;
+    color: #198754;
+}
+
+.block.uti h5 {
+    border-left-color: #fd7e14;
+    color: #fd7e14;
+}
+
+.block.cc h5 {
+    border-left-color: #6f42c1;
+    color: #6f42c1;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+@media (max-width:768px) {
+    .tuss-grid {
+        grid-template-columns: minmax(150px, 1fr) 80px 120px 120px 120px 1fr;
+    }
+
+    .block h5 {
+        font-size: .95rem;
+    }
+
+    label.form-label {
+        font-size: .8rem;
+    }
+}
+</style>
+
+<!-- ========================= FORM ========================= -->
+<form id="form-capeante-rah" action="<?= $h($BASE_URL) ?>process_capeanteRah.php" method="POST"
+    enctype="multipart/form-data">
+    <input type="hidden" name="type" value="<?= $h($type) ?>">
+    <input type="hidden" name="id_capeante" value="<?= $hi($fv('id_capeante')) ?>">
+    <input type="hidden" name="fk_int_capeante" value="<?= $hi($fv('id_internacao') ?: $fv('fk_int_capeante')) ?>">
+
+    <!-- IDENTIFICAÇÃO -->
+    <div class="block">
+        <h5>Identificação</h5>
+        <div class="row g-3">
+            <div class="col-md-2">
+                <label class="form-label">ID Capeante</label>
+                <input type="text" class="form-control" value="<?= $hi($fv('id_capeante')) ?>" readonly>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">ID Internação</label>
+                <input type="text" class="form-control" value="<?= $hi($fv('id_internacao')) ?>" readonly>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Paciente</label>
+                <input type="text" class="form-control" value="<?= $h($fv('nome_pac')) ?>" readonly>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Hospital</label>
+                <input type="text" class="form-control" value="<?= $h($fv('nome_hosp')) ?>" readonly>
             </div>
         </div>
 
-        <!-- ================== DIÁRIAS (ACOMODAÇÕES) ================== -->
-        <div class="card border-0 shadow-sm rounded-3 mb-4">
-            <div class="card-body">
-                <h5 class="mb-3">Acomodações (Diárias)</h5>
-                <div class="table-responsive">
-                    <table class="table table-sm align-middle">
-                        <thead>
-                            <tr>
-                                <th style="min-width:160px;">Tipo</th>
-                                <th>Qtd.</th>
-                                <th>Cobrado</th>
-                                <th>Glosado</th>
-                                <th>Após auditoria</th>
-                                <th>Observação</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            $tipos = ['QUARTO/APTO', 'DAY CLINIC', 'UTI', 'UTI/SEMI', 'ENFERMARIA', 'BERÇÁRIO', 'ACOMPANHANTE', 'ISOLAMENTO'];
-                            foreach ($tipos as $i => $t): ?>
-                            <tr>
-                                <td><?= $h($t) ?></td>
-                                <td><input type="text" class="form-control form-control-sm diarias-qtd"
-                                        data-row="<?= $i ?>"></td>
-                                <td><input type="text" class="form-control form-control-sm dinheiro diarias-cob"
-                                        data-row="<?= $i ?>"></td>
-                                <td><input type="text" class="form-control form-control-sm dinheiro diarias-glo"
-                                        data-row="<?= $i ?>"></td>
-                                <td><input type="text" class="form-control form-control-sm dinheiro diarias-apr"
-                                        data-row="<?= $i ?>" readonly></td>
-                                <td><input type="text" class="form-control form-control-sm diarias-obs"
-                                        data-row="<?= $i ?>"></td>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
+        <div class="row g-3 mt-1">
+            <div class="col-md-3">
+                <label class="form-label">Data Internação</label>
+                <input type="text" class="form-control" value="<?= $fmtDateBR($fv('data_intern_int')) ?>" readonly>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Acomodação (Internação)</label>
+                <input type="text" class="form-control" value="<?= $h($fv('acomodacao_int')) ?>" readonly>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Acomodação (Conta)</label>
+                <input type="text" class="form-control" name="acomodacao_cap" value="<?= $h($fv('acomodacao_cap')) ?>">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Lote</label>
+                <input type="text" class="form-control" name="lote_cap" value="<?= $h($fv('lote_cap')) ?>">
+            </div>
+        </div>
+    </div>
 
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label for="valor_diarias" class="form-label">Valor Diárias (total)</label>
-                        <input type="text" class="form-control dinheiro" id="valor_diarias" name="valor_diarias"
-                            value="<?= is_numeric($val('valor_diarias')) ? number_format((float)$val('valor_diarias'), 2, ',', '.') : '' ?>">
-                    </div>
-                    <div class="col-md-6">
-                        <label for="glosa_diaria" class="form-label">Glosa Diárias (total)</label>
-                        <input type="text" class="form-control dinheiro" id="glosa_diaria" name="glosa_diaria"
-                            value="<?= is_numeric($val('glosa_diaria')) ? number_format((float)$val('glosa_diaria'), 2, ',', '.') : '' ?>">
-                    </div>
-                </div>
+    <!-- PERÍODO E VALORES GERAIS -->
+    <div class="block">
+        <h5>Período e Totais</h5>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Data Inicial</label>
+                <input type="date" class="form-control" name="data_inicial_capeante"
+                    value="<?= $h($fv('data_inicial_capeante') ?: $fv('data_intern_int')) ?>">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Data Final</label>
+                <input type="date" class="form-control" name="data_final_capeante"
+                    value="<?= $h($fv('data_final_capeante')) ?>">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Valor Apresentado</label>
+                <input type="text" class="form-control dinheiro" name="valor_apresentado_capeante"
+                    value="<?= is_numeric($fv('valor_apresentado_capeante')) ? number_format((float)$fv('valor_apresentado_capeante'), 2, ',', '.') : '' ?>"
+                    placeholder="R$ 0,00">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Valor Final</label>
+                <input type="text" class="form-control dinheiro" name="valor_final_capeante"
+                    value="<?= is_numeric($fv('valor_final_capeante')) ? number_format((float)$fv('valor_final_capeante'), 2, ',', '.') : '' ?>"
+                    placeholder="R$ 0,00">
             </div>
         </div>
 
-        <?php
-        // Linhas padrão para as três seções (AP/UTI/CC)
-        $apRows  = [
-            ['TERAPIAS', 'ap_terapias'],
-            ['TAXAS / ALUGUÉIS', 'ap_taxas'],
-            ['MATERIAL DE CONSUMO', 'ap_mat_consumo'],
-            ['MEDICAMENTOS', 'ap_medicametos'],
-            ['GASES MEDICINAIS', 'ap_gases'],
-            ['MATERIAL ESPECIAL', 'ap_mat_espec'],
-            ['EXAMES', 'ap_exames'],
-            ['HEMODERIVADOS', 'ap_hemoderivados'],
-            ['HONORÁRIOS', 'ap_honorarios'],
-        ];
-        $utiRows = [
-            ['TERAPIAS', 'uti_terapias'],
-            ['TAXAS / ALUGUÉIS', 'uti_taxas'],
-            ['MATERIAL DE CONSUMO', 'uti_mat_consumo'],
-            ['MEDICAMENTOS', 'uti_medicametos'],
-            ['GASES MEDICINAIS', 'uti_gases'],
-            ['MATERIAL ESPECIAL', 'uti_mat_espec'],
-            ['EXAMES', 'uti_exames'],
-            ['HEMODERIVADOS', 'uti_hemoderivados'],
-            ['HONORÁRIOS', 'uti_honorarios'],
-        ];
-        $ccRows  = [
-            ['TERAPIAS', 'cc_terapias'],
-            ['TAXAS / ALUGUÉIS', 'cc_taxas'],
-            ['MATERIAL DE CONSUMO', 'cc_mat_consumo'],
-            ['MEDICAMENTOS', 'cc_medicametos'],
-            ['GASES MEDICINAIS', 'cc_gases'],
-            ['MATERIAL ESPECIAL', 'cc_mat_espec'],
-            ['EXAMES', 'cc_exames'],
-            ['HEMODERIVADOS', 'cc_hemoderivados'],
-            ['HONORÁRIOS', 'cc_honorarios'],
-        ];
-        ?>
-
-        <!-- ================== AP ================== -->
-        <div class="card border-0 shadow-sm rounded-3 mb-4">
-            <div class="card-body">
-                <h5 class="mb-3">Despesas no Quarto/Enfermaria (AP)</h5>
-                <div class="table-responsive">
-                    <table class="table table-sm align-middle">
-                        <thead>
-                            <tr>
-                                <th style="min-width:220px;">Item</th>
-                                <th>Qtd.</th>
-                                <th>Cobrado</th>
-                                <th>Glosado</th>
-                                <th>Após auditoria</th>
-                                <th>Observação</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($apRows as [$label, $prefix]): ?>
-                            <tr>
-                                <td><?= $h($label) ?></td>
-                                <td><input name="<?= $prefix ?>_qtd" class="form-control form-control-sm"
-                                        value="<?= $h($val($prefix . '_qtd')) ?>"></td>
-                                <td><input name="<?= $prefix ?>_cobrado" class="form-control form-control-sm dinheiro"
-                                        value="<?= $h($val($prefix . '_cobrado')) ?>"></td>
-                                <td><input name="<?= $prefix ?>_glosado" class="form-control form-control-sm dinheiro"
-                                        value="<?= $h($val($prefix . '_glosado')) ?>"></td>
-                                <td><input class="form-control form-control-sm dinheiro" data-aprov-of="<?= $prefix ?>"
-                                        readonly></td>
-                                <td><input name="<?= $prefix ?>_obs" class="form-control form-control-sm"
-                                        value="<?= $h($val($prefix . '_obs')) ?>"></td>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
+        <div class="row g-3 mt-1">
+            <div class="col-md-3">
+                <label class="form-label">Pacote</label>
+                <?php $pacoteVal = ($fv('pacote') ?? 'n'); ?>
+                <select name="pacote" class="form-select">
+                    <option value="n" <?= $pacoteVal === 'n' ? 'selected' : ''; ?>>Não</option>
+                    <option value="s" <?= $pacoteVal === 's' ? 'selected' : ''; ?>>Sim</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Parcial</label>
+                <?php $parcialVal = ($fv('parcial_capeante') ?? 'n'); ?>
+                <select name="parcial_capeante" class="form-select" id="parcial_capeante">
+                    <option value="n" <?= $parcialVal === 'n' ? 'selected' : ''; ?>>Não</option>
+                    <option value="s" <?= $parcialVal === 's' ? 'selected' : ''; ?>>Sim</option>
+                </select>
+            </div>
+            <div class="col-md-3" id="wrap_parcial_num" style="<?= $parcialVal === 's' ? '' : 'display:none' ?>">
+                <label class="form-label">Número da Parcial</label>
+                <input type="number" class="form-control" name="parcial_num" value="<?= $h($fv('parcial_num')) ?>">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Data Fechamento</label>
+                <input type="date" class="form-control" name="data_fech_capeante" value="<?= $h($hojeYMD) ?>">
             </div>
         </div>
+    </div>
 
-        <!-- ================== UTI ================== -->
-        <div class="card border-0 shadow-sm rounded-3 mb-4">
-            <div class="card-body">
-                <h5 class="mb-3">Despesas na UTI</h5>
-                <div class="table-responsive">
-                    <table class="table table-sm align-middle">
-                        <thead>
-                            <tr>
-                                <th style="min-width:220px;">Item</th>
-                                <th>Qtd.</th>
-                                <th>Cobrado</th>
-                                <th>Glosado</th>
-                                <th>Após auditoria</th>
-                                <th>Observação</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($utiRows as [$label, $prefix]): ?>
-                            <tr>
-                                <td><?= $h($label) ?></td>
-                                <td><input name="<?= $prefix ?>_qtd" class="form-control form-control-sm"
-                                        value="<?= $h($val($prefix . '_qtd')) ?>"></td>
-                                <td><input name="<?= $prefix ?>_cobrado" class="form-control form-control-sm dinheiro"
-                                        value="<?= $h($val($prefix . '_cobrado')) ?>"></td>
-                                <td><input name="<?= $prefix ?>_glosado" class="form-control form-control-sm dinheiro"
-                                        value="<?= $h($val($prefix . '_glosado')) ?>"></td>
-                                <td><input class="form-control form-control-sm dinheiro" data-aprov-of="<?= $prefix ?>"
-                                        readonly></td>
-                                <td><input name="<?= $prefix ?>_obs" class="form-control form-control-sm"
-                                        value="<?= $h($val($prefix . '_obs')) ?>"></td>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
+    <!-- SETOR: APTO / ENFERMARIA -->
+    <div class="block apto">
+        <h5>Setor Apto / Enfermaria</h5>
+        <div class="tuss-grid">
+            <div class="tg-head tg-col-desc">Descrição</div>
+            <div class="tg-head tg-col-qtd">Qtd.</div>
+            <div class="tg-head tg-col-cob">Cobrado</div>
+            <div class="tg-head tg-col-glo">Glosado</div>
+            <div class="tg-head tg-col-lib">Cobrado Após</div>
+            <div class="tg-head tg-col-obs">Observação</div>
+
+            <div class="tuss-row">
+                <div class="tg-lab tg-col-desc">Terapias</div>
+                <input name="ap_terapias_qtd" class="form-control tg-col-qtd" placeholder="Qtd">
+                <input name="ap_terapias_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="ap_terapias_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="ap_terapias_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="ap_terapias_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <div class="tuss-row">
+                <div class="tg-lab tg-col-desc">Taxas / Aluguéis</div>
+                <input name="ap_taxas_qtd" class="form-control tg-col-qtd">
+                <input name="ap_taxas_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="ap_taxas_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="ap_taxas_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="ap_taxas_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <div class="tuss-row">
+                <div class="tg-lab tg-col-desc">Material de Consumo</div>
+                <input name="ap_mat_consumo_qtd" class="form-control tg-col-qtd">
+                <input name="ap_mat_consumo_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="ap_mat_consumo_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="ap_mat_consumo_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="ap_mat_consumo_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <div class="tuss-row">
+                <div class="tg-lab tg-col-desc">Medicamentos</div>
+                <input name="ap_medicametos_qtd" class="form-control tg-col-qtd">
+                <input name="ap_medicametos_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="ap_medicametos_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="ap_medicametos_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="ap_medicametos_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <div class="tuss-row">
+                <div class="tg-lab tg-col-desc">Gases Medicinais</div>
+                <input name="ap_gases_qtd" class="form-control tg-col-qtd">
+                <input name="ap_gases_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="ap_gases_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="ap_gases_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="ap_gases_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <div class="tuss-row">
+                <div class="tg-lab tg-col-desc">Material Especial</div>
+                <input name="ap_mat_espec_qtd" class="form-control tg-col-qtd">
+                <input name="ap_mat_espec_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="ap_mat_espec_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="ap_mat_espec_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="ap_mat_espec_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <div class="tuss-row">
+                <div class="tg-lab tg-col-desc">Exames / SADT</div>
+                <input name="ap_exames_qtd" class="form-control tg-col-qtd">
+                <input name="ap_exames_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="ap_exames_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="ap_exames_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="ap_exames_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <div class="tuss-row">
+                <div class="tg-lab tg-col-desc">Hemoderivados</div>
+                <input name="ap_hemoderivados_qtd" class="form-control tg-col-qtd">
+                <input name="ap_hemoderivados_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="ap_hemoderivados_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="ap_hemoderivados_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="ap_hemoderivados_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <div class="tuss-row">
+                <div class="tg-lab tg-col-desc">Honorários</div>
+                <input name="ap_honorarios_qtd" class="form-control tg-col-qtd">
+                <input name="ap_honorarios_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="ap_honorarios_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="ap_honorarios_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="ap_honorarios_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
         </div>
+    </div>
 
-        <!-- ================== CC ================== -->
-        <div class="card border-0 shadow-sm rounded-3 mb-4">
-            <div class="card-body">
-                <h5 class="mb-3">Despesas no Centro Cirúrgico (CC)</h5>
-                <div class="table-responsive">
-                    <table class="table table-sm align-middle">
-                        <thead>
-                            <tr>
-                                <th style="min-width:220px;">Item</th>
-                                <th>Qtd.</th>
-                                <th>Cobrado</th>
-                                <th>Glosado</th>
-                                <th>Após auditoria</th>
-                                <th>Observação</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($ccRows as [$label, $prefix]): ?>
-                            <tr>
-                                <td><?= $h($label) ?></td>
-                                <td><input name="<?= $prefix ?>_qtd" class="form-control form-control-sm"
-                                        value="<?= $h($val($prefix . '_qtd')) ?>"></td>
-                                <td><input name="<?= $prefix ?>_cobrado" class="form-control form-control-sm dinheiro"
-                                        value="<?= $h($val($prefix . '_cobrado')) ?>"></td>
-                                <td><input name="<?= $prefix ?>_glosado" class="form-control form-control-sm dinheiro"
-                                        value="<?= $h($val($prefix . '_glosado')) ?>"></td>
-                                <td><input class="form-control form-control-sm dinheiro" data-aprov-of="<?= $prefix ?>"
-                                        readonly></td>
-                                <td><input name="<?= $prefix ?>_obs" class="form-control form-control-sm"
-                                        value="<?= $h($val($prefix . '_obs')) ?>"></td>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
+    <!-- SETOR: UTI -->
+    <div class="block uti">
+        <h5>Setor UTI</h5>
+        <div class="tuss-grid">
+            <div class="tg-head tg-col-desc">Descrição</div>
+            <div class="tg-head tg-col-qtd">Qtd.</div>
+            <div class="tg-head tg-col-cob">Cobrado</div>
+            <div class="tg-head tg-col-glo">Glosado</div>
+            <div class="tg-head tg-col-lib">Cobrado Após</div>
+            <div class="tg-head tg-col-obs">Observação</div>
+
+            <div class="tuss-row">
+                <div class="tg-lab tg-col-desc">Terapias</div>
+                <input name="uti_terapias_qtd" class="form-control tg-col-qtd">
+                <input name="uti_terapias_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="uti_terapias_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="uti_terapias_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="uti_terapias_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <div class="tuss-row">
+                <div class="tg-lab tg-col-desc">Taxas / Aluguéis</div>
+                <input name="uti_taxas_qtd" class="form-control tg-col-qtd">
+                <input name="uti_taxas_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="uti_taxas_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="uti_taxas_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="uti_taxas_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <div class="tuss-row">
+                <div class="tg-lab tg-col-desc">Material de Consumo</div>
+                <input name="uti_mat_consumo_qtd" class="form-control tg-col-qtd">
+                <input name="uti_mat_consumo_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="uti_mat_consumo_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="uti_mat_consumo_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="uti_mat_consumo_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <div class="tuss-row">
+                <div class="tg-lab tg-col-desc">Medicamentos</div>
+                <input name="uti_medicametos_qtd" class="form-control tg-col-qtd">
+                <input name="uti_medicametos_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="uti_medicametos_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="uti_medicametos_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="uti_medicametos_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <div class="tuss-row">
+                <div class="tg-lab tg-col-desc">Gases Medicinais</div>
+                <input name="uti_gases_qtd" class="form-control tg-col-qtd">
+                <input name="uti_gases_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="uti_gases_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="uti_gases_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="uti_gases_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <div class="tuss-row">
+                <div class="tg-lab tg-col-desc">Material Especial</div>
+                <input name="uti_mat_espec_qtd" class="form-control tg-col-qtd">
+                <input name="uti_mat_espec_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="uti_mat_espec_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="uti_mat_espec_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="uti_mat_espec_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <div class="tuss-row">
+                <div class="tg-lab tg-col-desc">Exames / SADT</div>
+                <input name="uti_exames_qtd" class="form-control tg-col-qtd">
+                <input name="uti_exames_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="uti_exames_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="uti_exames_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="uti_exames_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <div class="tuss-row">
+                <div class="tg-lab tg-col-desc">Hemoderivados</div>
+                <input name="uti_hemoderivados_qtd" class="form-control tg-col-qtd">
+                <input name="uti_hemoderivados_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="uti_hemoderivados_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="uti_hemoderivados_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="uti_hemoderivados_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <div class="tuss-row">
+                <div class="tg-lab tg-col-desc">Honorários</div>
+                <input name="uti_honorarios_qtd" class="form-control tg-col-qtd">
+                <input name="uti_honorarios_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="uti_honorarios_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="uti_honorarios_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="uti_honorarios_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
         </div>
+    </div>
 
-        <!-- ================== TOTAIS & OUTROS ================== -->
-        <div class="card border-0 shadow-sm rounded-3 mb-4">
-            <div class="card-body">
-                <h5 class="mb-3">Totais & Outros</h5>
-                <div class="row g-3">
-                    <div class="col-md-3">
-                        <label class="form-label" for="valor_apresentado_capeante">Valor Apresentado</label>
-                        <input type="text" class="form-control dinheiro" id="valor_apresentado_capeante"
-                            name="valor_apresentado_capeante"
-                            value="<?= is_numeric($val('valor_apresentado_capeante')) ? number_format((float)$val('valor_apresentado_capeante'), 2, ',', '.') : '' ?>"
-                            required>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Total Glosas</label>
-                        <input type="text" class="form-control dinheiro" id="total_glosas_geral"
-                            name="valor_glosa_total" readonly>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Valor Final (após glosas)</label>
-                        <input type="text" class="form-control dinheiro" id="total_final_apos"
-                            name="valor_final_capeante" readonly>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label" for="desconto_valor_cap">Desconto (%)</label>
-                        <input type="number" class="form-control" id="desconto_valor_cap" name="desconto_valor_cap"
-                            value="<?= $h($val('desconto_valor_cap')) ?>">
-                    </div>
-                </div>
+    <!-- SETOR: CENTRO CIRÚRGICO -->
+    <div class="block cc">
+        <h5>Setor Centro Cirúrgico</h5>
+        <div class="tuss-grid">
+            <div class="tg-head tg-col-desc">Descrição</div>
+            <div class="tg-head tg-col-qtd">Qtd.</div>
+            <div class="tg-head tg-col-cob">Cobrado</div>
+            <div class="tg-head tg-col-glo">Glosado</div>
+            <div class="tg-head tg-col-lib">Cobrado Após</div>
+            <div class="tg-head tg-col-obs">Observação</div>
 
-                <div class="d-flex gap-2 mt-4">
-                    <button type="submit" class="btn btn-success"><i class="fas fa-check"></i> Salvar</button>
-                    <button type="button" class="btn btn-outline-primary"
-                        onclick="baixarPDF(<?= $hi($val('id_capeante')) ?>, <?= $hi($val('id_internacao') ?: $id_internacao) ?>)">
-                        <i class="bi bi-download"></i> Salvar PDF
-                    </button>
-                    <button type="button" class="btn btn-outline-secondary"
-                        onclick="enviarPDF(<?= $hi($val('id_capeante')) ?>, <?= $hi($val('id_internacao') ?: $id_internacao) ?>)">
-                        <i class="bi bi-envelope-fill"></i> Email PDF
-                    </button>
-                </div>
+            <div class="tuss-row">
+                <div class="tg-lab tg-col-desc">Terapias</div>
+                <input name="cc_terapias_qtd" class="form-control tg-col-qtd">
+                <input name="cc_terapias_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="cc_terapias_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="cc_terapias_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="cc_terapias_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <div class="tuss-row">
+                <div class="tg-lab tg-col-desc">Taxas / Aluguéis</div>
+                <input name="cc_taxas_qtd" class="form-control tg-col-qtd">
+                <input name="cc_taxas_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="cc_taxas_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="cc_taxas_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="cc_taxas_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <div class="tuss-row">
+                <div class="tg-lab tg-col-desc">Material de Consumo</div>
+                <input name="cc_mat_consumo_qtd" class="form-control tg-col-qtd">
+                <input name="cc_mat_consumo_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="cc_mat_consumo_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="cc_mat_consumo_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="cc_mat_consumo_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <div class="tuss-row">
+                <div class="tg-lab tg-col-desc">Medicamentos</div>
+                <input name="cc_medicametos_qtd" class="form-control tg-col-qtd">
+                <input name="cc_medicametos_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="cc_medicametos_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="cc_medicametos_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="cc_medicametos_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <div class="tuss-row">
+                <div class="tg-lab tg-col-desc">Gases Medicinais</div>
+                <input name="cc_gases_qtd" class="form-control tg-col-qtd">
+                <input name="cc_gases_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="cc_gases_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="cc_gases_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="cc_gases_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <div class="tuss-row">
+                <div class="tg-lab tg-col-desc">Material Especial</div>
+                <input name="cc_mat_espec_qtd" class="form-control tg-col-qtd">
+                <input name="cc_mat_espec_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="cc_mat_espec_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="cc_mat_espec_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="cc_mat_espec_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <div class="tuss-row">
+                <div class="tg-lab tg-col-desc">Exames / SADT</div>
+                <input name="cc_exames_qtd" class="form-control tg-col-qtd">
+                <input name="cc_exames_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="cc_exames_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="cc_exames_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="cc_exames_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <div class="tuss-row">
+                <div class="tg-lab tg-col-desc">Hemoderivados</div>
+                <input name="cc_hemoderivados_qtd" class="form-control tg-col-qtd">
+                <input name="cc_hemoderivados_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="cc_hemoderivados_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="cc_hemoderivados_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="cc_hemoderivados_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <div class="tuss-row">
+                <div class="tg-lab tg-col-desc">Honorários</div>
+                <input name="cc_honorarios_qtd" class="form-control tg-col-qtd">
+                <input name="cc_honorarios_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="cc_honorarios_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="cc_honorarios_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="cc_honorarios_obs" class="form-control tg-col-obs" placeholder="Observação">
             </div>
         </div>
+    </div>
 
-    </form>
-</div>
+    <!-- AÇÕES -->
+    <div class="block">
+        <div class="actions">
+            <button type="submit" class="btn btn-success"><i class="bi bi-check-lg"></i> Salvar</button>
+            <button type="button" class="btn btn-outline-primary" id="btnSalvarPDF"><i class="bi bi-download"></i>
+                Salvar PDF</button>
+            <button type="button" class="btn btn-outline-secondary" id="btnEnviarEmail"><i
+                    class="bi bi-envelope-fill"></i> Enviar PDF por e-mail</button>
+        </div>
+        <iframe id="iframeDownload" style="display:none;"></iframe>
+        <div id="mensagemStatus"
+            style="display:none;margin-top:10px;padding:10px;border-radius:5px;font-weight:bold;text-align:center;">
+        </div>
+    </div>
+</form>
 
-<!-- ================== JS (máscara + cálculos) ================== -->
-
-<!-- jQuery -->
+<!-- ========================= SCRIPTS ========================= -->
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 
-<!-- SHIM: evita erro se algum script chamar .maskMoney antes do plugin carregar -->
+<!-- SHIM anti-erro para maskMoney (se carregar depois) -->
 <script>
 (function(w) {
     var $ = w.jQuery;
@@ -461,151 +746,124 @@ $val = function (string $k) use ($internRow) {
     }
 })(window);
 </script>
-
-<!-- Plugin maskMoney -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-maskmoney/3.0.2/jquery.maskMoney.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
+<!-- Inicialização / Comportamentos -->
 <script>
 (function() {
     function aplicarMascara(ctx) {
-        if (!window.jQuery || !jQuery.fn || typeof jQuery.fn.maskMoney !== 'function' || jQuery.fn.maskMoney
-            .__stub__) return;
+        if (!window.jQuery || !jQuery.fn || typeof jQuery.fn.maskMoney !== 'function') return;
         jQuery(ctx || document).find('.dinheiro').each(function() {
             jQuery(this).maskMoney({
                 thousands: '.',
                 decimal: ',',
                 allowZero: true,
-                allowNegative: false,
                 precision: 2
             });
         });
     }
+
     jQuery(function() {
         aplicarMascara(document);
+
+        $('#parcial_capeante').on('change', function() {
+            if (this.value === 's') {
+                $('#wrap_parcial_num').show();
+            } else {
+                $('#wrap_parcial_num').hide();
+            }
+        });
+
+        $('#btnSalvarPDF').on('click', function() {
+            const idCapeante = <?= $hi($fv('id_capeante')) ?>;
+            const idInternacao = <?= $hi($fv('id_internacao') ?: $fv('fk_int_capeante')) ?>;
+            const iframe = document.getElementById('iframeDownload');
+            iframe.src = 'process_capeante_pdf.php?id_capeante=' + idCapeante +
+                '&fk_int_capeante=' + idInternacao + '&save_only=1';
+            mostrarMensagem('Capeante salvo em PDF com sucesso!', '#198754');
+        });
+
+        $('#btnEnviarEmail').on('click', function() {
+            const idCapeante = <?= $hi($fv('id_capeante')) ?>;
+            const idInternacao = <?= $hi($fv('id_internacao') ?: $fv('fk_int_capeante')) ?>;
+            fetch('process_capeante_pdf.php?id_capeante=' + idCapeante + '&fk_int_capeante=' +
+                idInternacao);
+            mostrarMensagem('Email enviado com sucesso!', '#0d6efd');
+        });
     });
+
+    function mostrarMensagem(texto, cor) {
+        const div = document.getElementById('mensagemStatus');
+        div.textContent = texto;
+        div.style.backgroundColor = cor;
+        div.style.color = 'white';
+        div.style.display = 'block';
+        setTimeout(() => {
+            div.style.display = 'none';
+        }, 5000);
+    }
 })();
 </script>
 
+<!-- Cálculo da coluna "Cobrado Após" (apenas acrescentado) -->
 <script>
 (function() {
-    function parseBR(v) {
-        if (!v) return 0;
-        v = (v + '').replace(/\./g, '').replace(',', '.');
-        var n = parseFloat(v);
-        return isNaN(n) ? 0 : n;
+    const moneyToFloat = (s) => {
+        if (!s) return 0;
+        s = ('' + s).trim().replace(/\./g, '').replace(',', '.');
+        s = s.replace(/[^\d\.\-]/g, '');
+        const v = parseFloat(s);
+        return isNaN(v) ? 0 : v;
+    };
+    const floatToMoney = (v) => {
+        if (!isFinite(v)) v = 0;
+        const parts = v.toFixed(2).split('.');
+        let i = parts[0],
+            d = parts[1];
+        i = i.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        return 'R$ ' + i + ',' + d;
+    };
+
+    function recalcRow($row) {
+        const vCob = moneyToFloat($row.find('.rah-cobrado').val()); // Cobrado
+        const vGlo = moneyToFloat($row.find('.rah-glosado').val()); // Glosado
+        let vApo = vCob - vGlo;
+        if (vApo < 0) vApo = 0; // Cobrado Após
+        $row.find('.rah-liberado').val(floatToMoney(vApo));
     }
 
-    function fmtBR(n) {
-        return (n || 0).toLocaleString('pt-BR', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
+    function recalcTotals() {
+        // Se existir bloco de totais na página, atualiza; caso não exista, não quebra
+        let tCob = 0,
+            tGlo = 0,
+            tApo = 0;
+        jQuery('.tuss-row').each(function() {
+            const $r = jQuery(this);
+            tCob += moneyToFloat($r.find('.rah-cobrado').val());
+            tGlo += moneyToFloat($r.find('.rah-glosado').val());
+            tApo += moneyToFloat($r.find('.rah-liberado').val());
         });
+        if (jQuery('#total_cobrado').length) jQuery('#total_cobrado').val(floatToMoney(tCob));
+        if (jQuery('#total_glosado').length) jQuery('#total_glosado').val(floatToMoney(tGlo));
+        if (jQuery('#total_liberado').length) jQuery('#total_liberado').val(floatToMoney(tApo));
+        if (jQuery('#valor_final_capeante').length) {
+            const desconto = parseFloat((jQuery('#desconto_valor_cap').val() || '').replace(',', '.')) || 0;
+            jQuery('#valor_final_capeante').val(floatToMoney(tApo * (1 - desconto / 100)));
+        }
     }
 
-    function recomputeAfterForPrefix(prefix, scope) {
-        var cob = parseBR($(scope).find('input[name="' + prefix + '_cobrado"]').val());
-        var glo = parseBR($(scope).find('input[name="' + prefix + '_glosado"]').val());
-        var apr = Math.max(cob - glo, 0);
-        $(scope).find('input[data-aprov-of="' + prefix + '"]').val(fmtBR(apr));
-        return {
-            cob,
-            glo,
-            apr
-        };
-    }
-
-    function somarGrupo($tbody) {
-        var totC = 0,
-            totG = 0,
-            totA = 0;
-        $tbody.find('input[data-aprov-of]').each(function() {
-            var prefix = $(this).attr('data-aprov-of');
-            var row = $(this).closest('tr');
-            var r = recomputeAfterForPrefix(prefix, row);
-            totC += r.cob;
-            totG += r.glo;
-            totA += r.apr;
+    jQuery(function() {
+        jQuery('.tuss-row').each(function() {
+            const $r = jQuery(this);
+            $r.on('input', '.rah-cobrado, .rah-glosado', function() {
+                recalcRow($r);
+                recalcTotals();
+            });
+            recalcRow($r);
         });
-        return {
-            totC,
-            totG,
-            totA
-        };
-    }
-
-    function recomputeDiarias() {
-        var dC = 0,
-            dG = 0;
-        $('.diarias-cob').each(function() {
-            dC += parseBR(this.value);
-        });
-        $('.diarias-glo').each(function() {
-            dG += parseBR(this.value);
-        });
-        $('.diarias-apr').each(function(i, el) {
-            var row = $(el).closest('tr');
-            var c = parseBR(row.find('.diarias-cob').val());
-            var g = parseBR(row.find('.diarias-glo').val());
-            $(el).val(fmtBR(Math.max(c - g, 0)));
-        });
-        $('#valor_diarias').val(fmtBR(dC)).trigger('change');
-        $('#glosa_diaria').val(fmtBR(dG)).trigger('change');
-        return {
-            totC: dC,
-            totG: dG,
-            totA: Math.max(dC - dG, 0)
-        };
-    }
-
-    function recomputeAll() {
-        var gAP = somarGrupo($('table:contains("Despesas no Quarto") tbody'));
-        var gUTI = somarGrupo($('table:contains("Despesas na UTI") tbody'));
-        var gCC = somarGrupo($('table:contains("Centro Cirúrgico") tbody'));
-        var gDia = recomputeDiarias();
-
-        var totalGlosas = gAP.totG + gUTI.totG + gCC.totG + gDia.totG;
-        $('#total_glosas_geral').val(fmtBR(totalGlosas));
-
-        var apresentado = parseBR($('#valor_apresentado_capeante').val());
-        var final = Math.max(apresentado - totalGlosas, 0);
-        $('#total_final_apos').val(fmtBR(final));
-    }
-
-    $(document).on('input change', 'input[name$="_cobrado"], input[name$="_glosado"]', recomputeAll);
-    $(document).on('input change', '.diarias-cob, .diarias-glo', recomputeAll);
-    $(document).on('input change', '#valor_apresentado_capeante, #desconto_valor_cap', recomputeAll);
-    $('#parcial_capeante').on('change', function() {
-        $('#parcial_num').prop('disabled', $(this).val() !== 's');
-    });
-
-    $(function() {
-        recomputeAll();
+        recalcTotals();
+        jQuery('#desconto_valor_cap').on('input', recalcTotals);
     });
 })();
-</script>
-
-<script>
-// Botões PDF (mantém compatível com seu fluxo atual)
-function baixarPDF(idCapeante, idInternacao) {
-    if (!idCapeante || !idInternacao) {
-        return;
-    }
-    var iframe = document.getElementById("iframeDownload");
-    if (!iframe) {
-        iframe = document.createElement('iframe');
-        iframe.id = 'iframeDownload';
-        iframe.style.display = 'none';
-        document.body.appendChild(iframe);
-    }
-    iframe.src = "process_capeante_pdf.php?id_capeante=" + idCapeante + "&fk_int_capeante=" + idInternacao +
-        "&save_only=1";
-}
-
-function enviarPDF(idCapeante, idInternacao) {
-    if (!idCapeante || !idInternacao) {
-        return;
-    }
-    fetch("process_capeante_pdf.php?id_capeante=" + idCapeante + "&fk_int_capeante=" + idInternacao)
-        .catch(() => {});
-}
 </script>
