@@ -266,7 +266,157 @@ select.form-select:focus {
     transform: rotate(90deg);
     opacity: 1;
 }
+
+
+/* Identificação – estilo "Visitas" */
+.id-card {
+    background: #fff;
+    border: 1px solid #e6dff0;
+    border-radius: 18px;
+    box-shadow: 0 2px 10px rgba(94, 35, 99, .06);
+    margin: 14px 0;
+}
+
+.id-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: linear-gradient(180deg, #ffffff 0%, #faf7fc 100%);
+    border-radius: 18px;
+}
+
+.id-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #5e2363, #7a3a86);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 900;
+    font-size: 1.05rem;
+    box-shadow: 0 4px 10px rgba(94, 35, 99, .2);
+}
+
+.id-title {
+    flex: 1;
+    min-width: 0
+}
+
+.id-name {
+    font-weight: 900;
+    color: #5e2363;
+    font-size: 1.1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.id-sub {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    color: #7a7684;
+    margin-top: 2px;
+}
+
+.id-chip {
+    background: #f5eef7;
+    border: 1px solid #e6dff0;
+    color: #59445e;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: .85rem;
+    font-weight: 700;
+}
+
+.id-sep {
+    opacity: .6
+}
+
+.id-right {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center
+}
+
+.id-pill {
+    background: #fbfbfe;
+    border: 1px solid #e6dff0;
+    border-radius: 12px;
+    padding: 6px 10px;
+    font-size: .9rem;
+    font-weight: 800;
+    color: #2c2a32;
+}
+
+@media (max-width:768px) {
+    .id-right {
+        width: 100%;
+        justify-content: flex-start
+    }
+}
+
+/* ====== Card estilo "Visitas" para Período e Totais ====== */
+.sec-card {
+    background: #fff;
+    border: 1px solid #e6dff0;
+    border-radius: 18px;
+    box-shadow: 0 2px 10px rgba(94, 35, 99, .06);
+    margin: 14px 0;
+}
+
+.sec-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 16px 10px 16px;
+    background: linear-gradient(180deg, #ffffff 0%, #faf7fc 100%);
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+}
+
+.sec-title {
+    font-weight: 900;
+    color: #5e2363;
+    font-size: 1.05rem;
+}
+
+.sec-right {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fbfbfe;
+    border: 1px solid #e6dff0;
+    border-radius: 12px;
+    padding: 6px 10px;
+    font-size: .9rem;
+    color: #2c2a32;
+}
+
+.pill span {
+    opacity: .75;
+    font-weight: 700;
+}
+
+.pill strong {
+    font-weight: 900;
+}
+
+.sec-body {
+    padding: 14px 16px 16px 16px;
+}
 </style>
+
 
 <!-- ========================= FORM ========================= -->
 <form id="form-capeante-rah" action="<?= $h($BASE_URL) ?>process_capeanteRah.php" method="POST"
@@ -276,92 +426,104 @@ select.form-select:focus {
     <input type="hidden" name="fk_int_capeante" value="<?= $hi($fv('id_internacao') ?: $fv('fk_int_capeante')) ?>">
 
     <!-- IDENTIFICAÇÃO -->
-    <div class="block">
-        <h4>Identificação</h4>
-        <div class="row g-3">
-            <div class="col-md-1">
-                <label class="form-label">ID Capeante</label>
-                <input type="text" class="form-control" value="<?= $hi($fv('id_capeante')) ?>" readonly>
+    <div class="id-card">
+        <div class="id-header">
+            <!-- Avatar com inicial do paciente -->
+            <div class="id-avatar">
+                <?= strtoupper(mb_substr($h($fv('nome_pac') ?: 'P'), 0, 1, 'UTF-8')) ?>
             </div>
-            <div class="col-md-1">
-                <label class="form-label">ID Internação</label>
-                <input type="text" class="form-control" value="<?= $hi($fv('id_internacao')) ?>" readonly>
+
+            <!-- Título + chips -->
+            <div class="id-title">
+                <div class="id-name"><?= $h($fv('nome_pac')) ?></div>
+                <div class="id-sub">
+                    <span class="id-chip">
+                        <i class="bi bi-hospital" style="margin-right:6px;"></i><?= $h($fv('nome_hosp')) ?>
+                    </span>
+                    <span class="id-sep">•</span>
+                    <span class="id-chip">
+                        <i class="bi bi-calendar-event"
+                            style="margin-right:6px;"></i><?= $fmtDateBR($fv('data_intern_int')) ?>
+                    </span>
+                    <span class="id-chip">
+                        <i class="bi bi-card-list" style="margin-right:6px;"></i><?= $fmtDateBR($fv('senha_int')) ?>
+                    </span>
+                </div>
             </div>
-            <div class="col-md-4">
-                <label class="form-label">Paciente</label>
-                <input type="text" class="form-control" value="<?= $h($fv('nome_pac')) ?>" readonly>
-            </div>
-            <div class="col-md-4">
-                <label class="form-label">Hospital</label>
-                <input type="text" class="form-control" value="<?= $h($fv('nome_hosp')) ?>" readonly>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label">Data Internação</label>
-                <input type="text" class="form-control" value="<?= $fmtDateBR($fv('data_intern_int')) ?>" readonly>
+
+            <!-- Infos à direita -->
+            <div class="id-right">
+                <div class="id-pill">ID Capeante: <?= $hi($fv('id_capeante')) ?></div>
+                <div class="id-pill">ID Internação: <?= $hi($fv('id_internacao')) ?></div>
             </div>
         </div>
-
     </div>
 
     <!-- PERÍODO E VALORES GERAIS -->
-    <div class="block">
-        <h4>Período e Totais</h4>
-        <div class="row g-3">
-            <div class="col-md-3">
-                <label class="form-label">Data Inicial</label>
-                <input type="date" class="form-control" name="data_inicial_capeante"
-                    value="<?= $h($fv('data_inicial_capeante') ?: $fv('data_intern_int')) ?>">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Data Final</label>
-                <input type="date" class="form-control" name="data_final_capeante"
-                    value="<?= $h($fv('data_final_capeante')) ?>">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Valor Apresentado</label>
-                <input type="text" class="form-control dinheiro" name="valor_apresentado_capeante"
-                    value="<?= is_numeric($fv('valor_apresentado_capeante')) ? number_format((float)$fv('valor_apresentado_capeante'), 2, ',', '.') : '' ?>"
-                    placeholder="R$ 0,00">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Valor Final</label>
-                <input type="text" class="form-control dinheiro" name="valor_final_capeante"
-                    value="<?= is_numeric($fv('valor_final_capeante')) ? number_format((float)$fv('valor_final_capeante'), 2, ',', '.') : '' ?>"
-                    placeholder="R$ 0,00">
-            </div>
+    <div class="sec-card">
+        <div class="sec-header">
+            <div class="sec-title">Período e Totais</div>
         </div>
 
-        <div class="row g-3 mt-1">
-            <div class="col-md-3">
-                <label class="form-label">Pacote</label>
-                <?php $pacoteVal = ($fv('pacote') ?? 'n'); ?>
-                <select name="pacote" class="form-select">
-                    <option value="n" <?= $pacoteVal === 'n' ? 'selected' : ''; ?>>Não</option>
-                    <option value="s" <?= $pacoteVal === 's' ? 'selected' : ''; ?>>Sim</option>
-                </select>
+        <div class="sec-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Data Inicial</label>
+                    <input type="date" class="form-control" name="data_inicial_capeante"
+                        value="<?= $h($fv('data_inicial_capeante') ?: $fv('data_intern_int')) ?>">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Data Final</label>
+                    <input type="date" class="form-control" name="data_final_capeante"
+                        value="<?= $h($fv('data_final_capeante')) ?>">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Valor Apresentado</label>
+                    <input type="text" class="form-control dinheiro" id="inp_val_apr" name="valor_apresentado_capeante"
+                        value="<?= is_numeric($fv('valor_apresentado_capeante')) ? number_format((float)$fv('valor_apresentado_capeante'), 2, ',', '.') : '' ?>"
+                        placeholder="R$ 0,00">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Valor Final</label>
+                    <input type="text" class="form-control dinheiro" id="inp_val_fin" name="valor_final_capeante"
+                        value="<?= is_numeric($fv('valor_final_capeante')) ? number_format((float)$fv('valor_final_capeante'), 2, ',', '.') : '' ?>"
+                        placeholder="R$ 0,00">
+                </div>
             </div>
-            <div class="col-md-3">
-                <label class="form-label">Parcial</label>
-                <?php $parcialVal = ($fv('parcial_capeante') ?? 'n'); ?>
-                <select name="parcial_capeante" class="form-select" id="parcial_capeante">
-                    <option value="n" <?= $parcialVal === 'n' ? 'selected' : ''; ?>>Não</option>
-                    <option value="s" <?= $parcialVal === 's' ? 'selected' : ''; ?>>Sim</option>
-                </select>
-            </div>
-            <div class="col-md-3" id="wrap_parcial_num" style="<?= $parcialVal === 's' ? '' : 'display:none' ?>">
-                <label class="form-label">Número da Parcial</label>
-                <input type="number" class="form-control" name="parcial_num" value="<?= $h($fv('parcial_num')) ?>">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Data Fechamento</label>
-                <input type="date" class="form-control" name="data_fech_capeante" value="<?= $h($hojeYMD) ?>">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Data Digitação</label>
-                <input type="date" class="form-control" name="data_digit_capeante" value="<?= $h($hojeYMD) ?>">
+
+            <div class="row g-3 mt-1">
+                <div class="col-md-3">
+                    <label class="form-label">Pacote</label>
+                    <?php $pacoteVal = ($fv('pacote') ?? 'n'); ?>
+                    <select name="pacote" class="form-select">
+                        <option value="n" <?= $pacoteVal === 'n' ? 'selected' : ''; ?>>Não</option>
+                        <option value="s" <?= $pacoteVal === 's' ? 'selected' : ''; ?>>Sim</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Parcial</label>
+                    <?php $parcialVal = ($fv('parcial_capeante') ?? 'n'); ?>
+                    <select name="parcial_capeante" class="form-select" id="parcial_capeante">
+                        <option value="n" <?= $parcialVal === 'n' ? 'selected' : ''; ?>>Não</option>
+                        <option value="s" <?= $parcialVal === 's' ? 'selected' : ''; ?>>Sim</option>
+                    </select>
+                </div>
+                <div class="col-md-3" id="wrap_parcial_num" style="<?= $parcialVal === 's' ? '' : 'display:none' ?>">
+                    <label class="form-label">Número da Parcial</label>
+                    <input type="number" class="form-control" name="parcial_num" value="<?= $h($fv('parcial_num')) ?>">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Data Fechamento</label>
+                    <input type="date" class="form-control" name="data_fech_capeante" value="<?= $h($hojeYMD) ?>">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Data Digitação</label>
+                    <input type="date" class="form-control" name="data_digit_capeante" value="<?= $h($hojeYMD) ?>">
+                </div>
             </div>
         </div>
     </div>
+
     <!-- DIÁRIAS (formato PDF) -->
     <div class="block" data-group="diarias">
         <!-- TÍTULO / TOGGLER -->
@@ -1094,19 +1256,17 @@ select.form-select:focus {
             tGlo += moneyToFloat($r.find('.rah-glosado').val());
             tLib += moneyToFloat($r.find('.rah-liberado').val());
         });
+
         if ($('#total_cobrado').length) $('#total_cobrado').val(floatToMoney(tCob));
         if ($('#total_glosado').length) $('#total_glosado').val(floatToMoney(tGlo));
         if ($('#total_liberado').length) $('#total_liberado').val(floatToMoney(tLib));
 
-        // Se houver desconto (%) e valor_final_capeante, aplica no liberado geral
-        var $desc = $('#desconto_valor_cap');
-        var $valFinal = $('#valor_final_capeante');
-        if ($desc.length && $valFinal.length) {
-            var d = parseFloat(($desc.val() || '').replace(',', '.')) || 0;
-            var vf = tLib * (1 - d / 100);
-            $valFinal.val(floatToMoney(vf));
+
+        if (window.RAHSync && typeof RAHSync.syncPeriodTotals === 'function') {
+            RAHSync.syncPeriodTotals(tCob, tLib);
         }
     }
+
 
     // --- Orquestração ---
     function recalcAround($row) {
@@ -1119,16 +1279,24 @@ select.form-select:focus {
         recalcGrandTotals();
     }
 
-    function recalcAll() {
-        $('.tuss-row').each(function() {
-            recalcRow($(this));
-        });
-        // cada bloco com consolidado local
-        $('.block').each(function() {
-            recalcBlock($(this));
-        });
-        recalcGrandTotals();
-    }
+    $(function() {
+        recalcAll();
+        setTimeout(function() {
+            recalcAll();
+            // sincroniza os pills/hidden mesmo sem digitação
+            if (window.RAHResumo && typeof RAHResumo.aplicar === 'function') {
+                // Usa totais já escritos na tela para não recalcular de novo
+                var tCob = 0,
+                    tLib = 0;
+                $('.tuss-row').each(function() {
+                    var $r = $(this);
+                    tCob += RAHCalc.moneyToFloat($r.find('.rah-cobrado').val());
+                    tLib += RAHCalc.moneyToFloat($r.find('.rah-liberado').val());
+                });
+                RAHResumo.aplicar(tCob, tLib);
+            }
+        }, 80);
+    });
 
     // --- Eventos (funciona com maskMoney) ---
     $(document).on('input change keyup', '.rah-cobrado, .rah-glosado', function() {
@@ -1286,5 +1454,177 @@ document.addEventListener('hidden.bs.collapse', function(e) {
             $body.stop(true, true).slideToggle(160);
         });
     });
+})();
+</script>
+<script>
+/* Atualiza os inputs hidden e os pills do cabeçalho */
+(function() {
+    var $ = window.jQuery;
+
+    window.RAHResumo = {
+        aplicar: function(tCob, tLib) {
+            // Valor Apresentado
+            if (window.RAHCalc && typeof RAHCalc.floatToMoney === 'function') {
+                var mCob = RAHCalc.floatToMoney(tCob);
+                var mLib = RAHCalc.floatToMoney(tLib);
+
+                if ($('#inp_val_apr').length) $('#inp_val_apr').val(mCob);
+                if ($('#pill_val_apr').length) $('#pill_val_apr').text(mCob);
+
+                // Valor Final (padrão = liberado)
+                var vf = tLib;
+
+                var $desc = $('#desconto_valor_cap');
+                if ($desc.length) {
+                    var d = parseFloat(($desc.val() || '').replace(',', '.')) || 0;
+                    vf = tLib * (1 - d / 100);
+                }
+                var mVf = RAHCalc.floatToMoney(vf);
+
+                if ($('#inp_val_fin').length) $('#inp_val_fin').val(mVf);
+                if ($('#pill_val_fin').length) $('#pill_val_fin').text(mVf);
+            }
+        }
+    };
+})();
+</script>
+<script>
+/* Bridge: joga os totais globais nos campos do bloco “Período e Totais”
+   - Valor Apresentado  => soma Cobrado Antes
+   - Valor Final        => soma Cobrado Após (ajusta desconto se existir) */
+(function() {
+    var $ = window.jQuery;
+
+    function syncPeriodTotals(tCob, tLib) {
+        if (!window.RAHCalc) return;
+
+        // Apresentado
+        var mCob = RAHCalc.floatToMoney(tCob);
+        var $inpApr = $('[name="valor_apresentado_capeante"]');
+        if ($inpApr.length) $inpApr.val(mCob);
+        $('.pill-val-apr').text(mCob); // opcional: se tiver “pill”
+
+        // Final = Liberado (com desconto %, se existir)
+        var $desc = $('#desconto_valor_cap');
+        var d = 0;
+        if ($desc.length) d = parseFloat(($desc.val() || '').replace(',', '.')) || 0;
+
+        var vFinal = tLib * (1 - d / 100);
+        var mFinal = RAHCalc.floatToMoney(vFinal);
+
+        var $inpFinal = $('[name="valor_final_capeante"]');
+        if ($inpFinal.length) $inpFinal.val(mFinal);
+        $('.pill-val-fin').text(mFinal); // opcional: se tiver “pill”
+    }
+
+    // expõe para uso no recalcGrandTotals
+    window.RAHSync = {
+        syncPeriodTotals
+    };
+})();
+</script>
+<script>
+/* =======================================================================
+   ESPELHO "PERÍODO E TOTAIS"
+   - Valor Apresentado  = soma de todos os "Cobrado Antes"
+   - Valor Final        = soma de todos os "Cobrado Após" (aplica desconto % se existir)
+   - Não depende do seu recalcGrandTotals: calcula sozinho e preenche sempre.
+   ======================================================================= */
+(function() {
+    var $ = window.jQuery;
+
+    // Usa utilitários do seu RAHCalc se existirem; senão, define fallback
+    var moneyToFloat = (window.RAHCalc && RAHCalc.moneyToFloat) || function(s) {
+        if (s == null) return 0;
+        s = ('' + s).trim();
+        if (!s) return 0;
+        s = s.replace(/[^\d.,-]/g, '').replace(/\./g, '').replace(',', '.');
+        var v = parseFloat(s);
+        return isNaN(v) ? 0 : v;
+    };
+
+    var floatToMoney = (window.RAHCalc && RAHCalc.floatToMoney) || function(v) {
+        if (!isFinite(v)) v = 0;
+        var p = v.toFixed(2).split('.');
+        var i = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        return 'R$ ' + i + ',' + p[1];
+    };
+
+    function somarGlobais() {
+        var tCob = 0,
+            tLib = 0;
+        // Soma todos os blocos do formulário
+        $('.tuss-row').each(function() {
+            var $r = $(this);
+            tCob += moneyToFloat($r.find('.rah-cobrado').val());
+            tLib += moneyToFloat($r.find('.rah-liberado').val());
+        });
+
+        // Aplica desconto (%) se existir
+        var $desc = $('#desconto_valor_cap');
+        var d = 0;
+        if ($desc.length) d = parseFloat(($desc.val() || '').replace(',', '.')) || 0;
+        var vFinal = tLib * (1 - d / 100);
+
+        return {
+            tCob: tCob,
+            vFinal: vFinal
+        };
+    }
+
+    function setMoney($inp, valorFmt, valorNum) {
+        if (!$inp || !$inp.length) return;
+        // Se maskMoney estiver disponível, usa a API 'mask' para formatar corretamente
+        if ($.fn && $.fn.maskMoney && $.fn.maskMoney.__stub__ !== true) {
+            // quando passamos número para 'mask', ele já formata
+            $inp.maskMoney('mask', Number(valorNum));
+        } else {
+            $inp.val(valorFmt).trigger('change');
+        }
+    }
+
+    function espelhar() {
+        var tot = somarGlobais();
+        var mApr = floatToMoney(tot.tCob);
+        var mFin = floatToMoney(tot.vFinal);
+
+        // Campos reais do bloco "Período e Totais"
+        var $inpApr = $('[name="valor_apresentado_capeante"]').first();
+        var $inpFin = $('[name="valor_final_capeante"]').first();
+
+        setMoney($inpApr, mApr, tot.tCob);
+        setMoney($inpFin, mFin, tot.vFinal);
+
+        // (opcional) se você tiver "pílulas" visuais
+        $('.pill-val-apr').text(mApr);
+        $('.pill-val-fin').text(mFin);
+    }
+
+    function bind() {
+        // Sempre que mexer nos valores de linha, reflete nos totais do período
+        $(document).on('input change keyup', '.rah-cobrado, .rah-glosado, #desconto_valor_cap', espelhar);
+
+        // Ao abrir colapsáveis, reaplica máscara e espelha
+        document.addEventListener('shown.bs.collapse', function(ev) {
+            var $blk = $(ev.target).closest('.block');
+            if ($blk.length && $.fn && $.fn.maskMoney && $.fn.maskMoney.__stub__ !== true) {
+                $blk.find('.dinheiro').maskMoney({
+                    thousands: '.',
+                    decimal: ',',
+                    allowZero: true,
+                    precision: 2
+                });
+            }
+            espelhar();
+        });
+
+        // Primeira passada na carga + pequena rechecagem pós-mask
+        $(function() {
+            espelhar();
+            setTimeout(espelhar, 80);
+        });
+    }
+
+    if ($) bind();
 })();
 </script>
