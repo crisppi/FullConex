@@ -350,6 +350,141 @@ select.form-select:focus {
             </div>
         </div>
     </div>
+    <!-- DIÁRIAS (formato PDF) -->
+    <div class="block" data-group="diarias">
+        <h5>Diárias</h5>
+
+        <div class="tuss-grid">
+            <div class="tg-head tg-col-desc">Diária</div>
+            <div class="tg-head tg-col-qtd">Qtd.</div>
+            <div class="tg-head tg-col-cob">Cobrado Antes</div>
+            <div class="tg-head tg-col-glo">Glosado Após</div>
+            <div class="tg-head tg-col-lib">Cobrado Após</div>
+            <div class="tg-head tg-col-obs">Observação</div>
+
+            <!-- QUARTO / APTO -->
+            <div class="tuss-row rah-row">
+                <div class="tg-lab tg-col-desc">Quarto / Apto</div>
+                <input name="ac_quarto_qtd" class="form-control tg-col-qtd" placeholder="Qtd.">
+                <input name="ac_quarto_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="ac_quarto_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="ac_quarto_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="ac_quarto_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <!-- DAY CLINIC -->
+            <div class="tuss-row rah-row">
+                <div class="tg-lab tg-col-desc">Day Clinic</div>
+                <input name="ac_dayclinic_qtd" class="form-control tg-col-qtd" placeholder="Qtd.">
+                <input name="ac_dayclinic_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="ac_dayclinic_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="ac_dayclinic_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="ac_dayclinic_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <!-- UTI -->
+            <div class="tuss-row rah-row">
+                <div class="tg-lab tg-col-desc">UTI</div>
+                <input name="ac_uti_qtd" class="form-control tg-col-qtd" placeholder="Qtd.">
+                <input name="ac_uti_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado" placeholder="R$ 0,00">
+                <input name="ac_uti_glosado" class="form-control dinheiro tg-col-glo rah-glosado" placeholder="R$ 0,00">
+                <input name="ac_uti_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="ac_uti_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <!-- UTI / SEMI -->
+            <div class="tuss-row rah-row">
+                <div class="tg-lab tg-col-desc">UTI / Semi</div>
+                <input name="ac_utisemi_qtd" class="form-control tg-col-qtd" placeholder="Qtd.">
+                <input name="ac_utisemi_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="ac_utisemi_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="ac_utisemi_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="ac_utisemi_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <!-- ENFERMARIA -->
+            <div class="tuss-row rah-row">
+                <div class="tg-lab tg-col-desc">Enfermaria</div>
+                <input name="ac_enfermaria_qtd" class="form-control tg-col-qtd" placeholder="Qtd.">
+                <input name="ac_enfermaria_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="ac_enfermaria_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="ac_enfermaria_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="ac_enfermaria_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <!-- BERÇÁRIO -->
+            <div class="tuss-row rah-row">
+                <div class="tg-lab tg-col-desc">Berçário</div>
+                <input name="ac_bercario_qtd" class="form-control tg-col-qtd" placeholder="Qtd.">
+                <input name="ac_bercario_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="ac_bercario_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="ac_bercario_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="ac_bercario_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <!-- ACOMPANHANTE -->
+            <div class="tuss-row rah-row">
+                <div class="tg-lab tg-col-desc">Acompanhante</div>
+                <input name="ac_acompanhante_qtd" class="form-control tg-col-qtd" placeholder="Qtd.">
+                <input name="ac_acompanhante_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="ac_acompanhante_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="ac_acompanhante_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="ac_acompanhante_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <!-- ISOLAMENTO -->
+            <div class="tuss-row rah-row">
+                <div class="tg-lab tg-col-desc">Isolamento</div>
+                <input name="ac_isolamento_qtd" class="form-control tg-col-qtd" placeholder="Qtd.">
+                <input name="ac_isolamento_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="ac_isolamento_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="ac_isolamento_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="ac_isolamento_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+        </div>
+
+        <!-- CONSOLIDADO LOCAL (Diárias) -->
+        <div class="row g-2 mt-2 grp-totais">
+            <div class="col-md-3">
+                <label class="form-label">Total Cobrado (Diárias)</label>
+                <input type="text" name="diarias_total_cobrado" class="form-control dinheiro grp-total-cobrado" readonly
+                    value="R$ 0,00">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Total Glosado (Diárias)</label>
+                <input type="text" name="diarias_total_glosado" class="form-control dinheiro grp-total-glosado" readonly
+                    value="R$ 0,00">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Total Cobrado Após (Diárias)</label>
+                <input type="text" name="diarias_total_liberado" class="form-control dinheiro grp-total-liberado"
+                    readonly value="R$ 0,00">
+            </div>
+        </div>
+    </div>
+
 
     <!-- SETOR: APTO / ENFERMARIA -->
     <div class="block apto">
