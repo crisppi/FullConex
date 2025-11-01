@@ -415,12 +415,95 @@ select.form-select:focus {
 .sec-body {
     padding: 14px 16px 16px 16px;
 }
+
+/* Compacta o espaço entre Identificação e o header seguinte */
+.id-card {
+    margin-bottom: 6px;
+}
+
+/* antes: 14px */
+.id-card+.sec-card {
+    margin-top: 6px;
+}
+
+/* antes: 14px */
+.sec-header {
+    padding-top: 10px;
+    padding-bottom: 6px;
+}
+
+/* antes: 16px/10px */
+/* opcional: deixar o header da identificação um pouco mais enxuto */
+.id-header {
+    padding-bottom: 10px;
+}
+
+/* antes: 16px */
 </style>
 
+<style>
+/* 1) Espaço entre o topo (navbar) e a Identificação */
+form#form-capeante-rah {
+    padding-top: 0;
+}
+
+/* antes: 10px */
+.id-card {
+    margin-top: 4px;
+    margin-bottom: 6px;
+}
+
+/* antes: 14px 0 */
+.id-header {
+    padding-top: 12px;
+    padding-bottom: 10px;
+}
+
+/* antes: 16px/16px */
+
+/* 2) Espaço entre Identificação ↔ “Período e Totais” */
+.id-card+.sec-card {
+    margin-top: 6px;
+}
+
+/* antes: 14px */
+.sec-card {
+    margin-top: 6px;
+    margin-bottom: 10px;
+}
+
+.sec-header {
+    padding-top: 10px;
+    padding-bottom: 8px;
+}
+
+/* antes: 16px/10px */
+
+/* 3) Espaço entre os cabeçalhos dos blocos colapsáveis (Diárias, Apto, UTI, CC) */
+.block {
+    padding: 8px 10px;
+}
+
+/* antes: 12px */
+.block+.block {
+    margin-top: 10px;
+}
+
+/* antes: 18px */
+.block>h5 {
+    margin: -8px -8px 6px -8px;
+    padding: 6px 8px;
+}
+
+/* antes: -12px ... 14px */
+/* quando o bloco estiver fechado, deixa ainda mais compacto */
+.block>h5[aria-expanded="false"] {
+    margin-bottom: 2px;
+}
+</style>
 
 <!-- ========================= FORM ========================= -->
-<form id="form-capeante-rah" action="<?= $h($BASE_URL) ?>process_capeanteRah.php" method="POST"
-    enctype="multipart/form-data">
+<form id="form-capeante-rah" action="<?= $h($BASE_URL) ?>process_rah.php" method="POST" enctype="multipart/form-data">
     <input type="hidden" name="type" value="<?= $h($type) ?>">
     <input type="hidden" name="id_capeante" value="<?= $hi($fv('id_capeante')) ?>">
     <input type="hidden" name="fk_int_capeante" value="<?= $hi($fv('id_internacao') ?: $fv('fk_int_capeante')) ?>">

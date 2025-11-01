@@ -48,6 +48,7 @@ class capeante
   public $valor_sadt;
   public $valor_taxa;
   public $valor_opme;
+  public $data_digit_capeante;
   public $desconto_valor_cap;
   public $negociado_desconto_cap;
   public $encerrado_cap;
