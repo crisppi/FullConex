@@ -731,8 +731,8 @@ form#form-capeante-rah {
             <div class="tuss-grid mt-3">
                 <div class="tg-head tg-col-desc">Diária</div>
                 <div class="tg-head tg-col-qtd">Qtd.</div>
-                <div class="tg-head tg-col-cob">Cobrado Antes</div>
-                <div class="tg-head tg-col-glo">Glosado Após</div>
+                <div class="tg-head tg-col-cob">Cobrado</div>
+                <div class="tg-head tg-col-glo">Glosado</div>
                 <div class="tg-head tg-col-lib">Cobrado Após</div>
                 <div class="tg-head tg-col-obs">Observação</div>
 
@@ -1387,7 +1387,7 @@ form#form-capeante-rah {
 <script>
 /* =========================================================================
    CÁLCULOS RAH
-   - Linha: Cobrado Após = max(0, Cobrado Antes - Glosado Após)
+   - Linha: Cobrado Após = max(0, Cobrado - Glosado)
    - Bloco (data-group="..."): soma Cobrado / Glosado / Cobrado Após
    - Totais gerais: se existirem (#total_cobrado, #total_glosado, #total_liberado)
    - Robusto com maskMoney (formatações "R$ 1.234,56")
@@ -1686,7 +1686,7 @@ document.addEventListener('hidden.bs.collapse', function(e) {
 </script>
 <script>
 /* Bridge: joga os totais globais nos campos do bloco “Período e Totais”
-   - Valor Apresentado  => soma Cobrado Antes
+   - Valor Apresentado  => soma Cobrado
    - Valor Final        => soma Cobrado Após (ajusta desconto se existir) */
 (function() {
     var $ = window.jQuery;
@@ -1722,7 +1722,7 @@ document.addEventListener('hidden.bs.collapse', function(e) {
 <script>
 /* =======================================================================
    ESPELHO "PERÍODO E TOTAIS"
-   - Valor Apresentado  = soma de todos os "Cobrado Antes"
+   - Valor Apresentado  = soma de todos os "Cobrado"
    - Valor Final        = soma de todos os "Cobrado Após" (aplica desconto % se existir)
    - Não depende do seu recalcGrandTotals: calcula sozinho e preenche sempre.
    ======================================================================= */
