@@ -25,6 +25,18 @@ require_once "dao/pacienteDao.php";
 require_once "dao/capeanteDao.php";
 require_once "dao/patologiaDao.php";
 
+// === CAD CENTRAL: DAOs e listas ===
+if (!isset($usuarioDao) || !($usuarioDao instanceof UserDAO)) {
+    $usuarioDao = new UserDAO($conn, $BASE_URL);
+}
+$usuariosAtivos = $usuarioDao->findMedicosEnfermeiros(); // médicos e enfermeiros
+$usuariosAdm    = $usuarioDao->findAdministrativos();    // administrativos
+
+// Se o projeto às vezes usa usuarioDAO (minúsculo), mantém alias:
+if (!class_exists('userDAO') && class_exists('usuarioDAO')) {
+    class_alias('usuarioDAO', 'userDAO');
+}
+
 /* Helpers */
 $h = function ($v) {
     return htmlspecialchars((string)($v ?? ''), ENT_QUOTES, 'UTF-8');
@@ -89,6 +101,40 @@ $fv = function (string $k) use ($row) {
     return $row[$k] ?? null;
 };
 $hojeYMD = date('Y-m-d');
+
+// === CAD CENTRAL: helpers de cargo/visibilidade ===
+$cargoSessao = (string)($_SESSION['cargo'] ?? '');
+
+$isMed = function ($cargo) {
+    $c = mb_strtolower((string)$cargo, 'UTF-8');
+    return in_array($c, ['med_auditor', 'medico_auditor'], true) || str_contains($c, 'med');
+};
+$isEnf = function ($cargo) {
+    $c = mb_strtolower((string)$cargo, 'UTF-8');
+    return in_array($c, ['enf_auditor', 'enfer_auditor'], true) || str_contains($c, 'enf');
+};
+$isAdm = function ($cargo) {
+    $c = mb_strtolower((string)$cargo, 'UTF-8');
+    return in_array($c, ['adm', 'administrador', 'administrativo'], true);
+};
+
+// Quem pode ver o bloco? (oculta para Méd/Enf)
+$mostrarCadastroCentral = !($isMed($cargoSessao) || $isEnf($cargoSessao));
+
+// Estado padrão do seletor "Ativar"
+function isProfAssistencial(string $cargo): bool
+{
+    $norm = mb_strtolower(trim($cargo), 'UTF-8');
+    $norm = preg_replace('/[\s\-]+/', '_', $norm);
+    if (in_array($norm, ['med_auditor', 'enf_auditor', 'adm'], true)) return true;
+    return (bool)preg_match('/^(med|enf)_?auditor$|^adm$/i', $norm);
+}
+$cadastroCentralDefault = isProfAssistencial($cargoSessao) ? 'n' : 's';
+
+// Valores previamente salvos (se edição)
+$medSelecionado = (int)($fv('fk_id_aud_med') ?? 0);
+$enfSelecionado = (int)($fv('fk_id_aud_enf') ?? 0);
+$admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
 ?>
 <!-- ========================= ESTILOS ========================= -->
 <style>
@@ -507,6 +553,9 @@ form#form-capeante-rah {
     <input type="hidden" name="type" value="<?= $h($type) ?>">
     <input type="hidden" name="id_capeante" value="<?= $hi($fv('id_capeante')) ?>">
     <input type="hidden" name="fk_int_capeante" value="<?= $hi($fv('id_internacao') ?: $fv('fk_int_capeante')) ?>">
+    <input type="hidden" id="fk_id_aud_med" name="fk_id_aud_med" value="<?= (int)($fv('fk_id_aud_med') ?? 0) ?>">
+    <input type="hidden" id="fk_id_aud_enf" name="fk_id_aud_enf" value="<?= (int)($fv('fk_id_aud_enf') ?? 0) ?>">
+    <input type="hidden" id="fk_id_aud_adm" name="fk_id_aud_adm" value="<?= (int)($fv('fk_id_aud_adm') ?? 0) ?>">
 
     <!-- IDENTIFICAÇÃO -->
     <div class="id-card">
@@ -606,6 +655,69 @@ form#form-capeante-rah {
             </div>
         </div>
     </div>
+
+    <?php if ($mostrarCadastroCentral): ?>
+    <div class="sec-card">
+        <div class="sec-header">
+            <div class="sec-title">Cadastro Equipe</div>
+            <div class="sec-right">
+                <div class="pill"><span>Status:</span> <strong id="cc-pill">—</strong></div>
+            </div>
+        </div>
+        <div class="sec-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-12 col-lg-2">
+                    <label for="cadastro_central_cap" class="form-label">Ativar</label>
+                    <select class="form-select form-select-sm" id="cadastro_central_cap" name="cadastro_central_cap">
+                        <option value="n" <?= $cadastroCentralDefault === 'n' ? 'selected' : '' ?>>Não</option>
+                        <option value="s" <?= $cadastroCentralDefault === 's' ? 'selected' : '' ?>>Sim</option>
+                    </select>
+                </div>
+
+                <div class="col-12 col-lg-3">
+                    <label class="form-label" for="cad_central_med_id">Médico(a)</label>
+                    <select class="form-select form-select-sm" id="cad_central_med_id" name="fk_id_aud_med">
+                        <option value="">Selecione</option>
+                        <?php foreach ($usuariosAtivos as $u): if ($isMed($u['cargo_user'] ?? '')):
+                                    $id = (int)($u['id_usuario'] ?? 0);
+                                    $nome = (string)($u['usuario_user'] ?? '');
+                                    $sel = ($id === $medSelecionado) ? 'selected' : ''; ?>
+                        <option value="<?= $id ?>" <?= $sel ?>><?= $h($nome) ?></option>
+                        <?php endif;
+                            endforeach; ?>
+                    </select>
+                </div>
+
+                <div class="col-12 col-lg-3">
+                    <label class="form-label" for="cad_central_enf_id">Enfermeiro(a)</label>
+                    <select class="form-select form-select-sm" id="cad_central_enf_id" name="fk_id_aud_enf">
+                        <option value="">Selecione</option>
+                        <?php foreach ($usuariosAtivos as $u): if ($isEnf($u['cargo_user'] ?? '')):
+                                    $id = (int)($u['id_usuario'] ?? 0);
+                                    $nome = (string)($u['usuario_user'] ?? '');
+                                    $sel = ($id === $enfSelecionado) ? 'selected' : ''; ?>
+                        <option value="<?= $id ?>" <?= $sel ?>><?= $h($nome) ?></option>
+                        <?php endif;
+                            endforeach; ?>
+                    </select>
+                </div>
+
+                <div class="col-12 col-lg-3">
+                    <label class="form-label" for="cad_central_adm_id">Administrativo(a)</label>
+                    <select class="form-select form-select-sm" id="cad_central_adm_id" name="fk_id_aud_adm">
+                        <option value="">Selecione</option>
+                        <?php foreach ($usuariosAdm as $u):
+                                $id = (int)($u['id_usuario'] ?? 0);
+                                $nome = (string)($u['usuario_user'] ?? '');
+                                $sel = ($id === $admSelecionado) ? 'selected' : ''; ?>
+                        <option value="<?= $id ?>" <?= $sel ?>><?= $h($nome) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
 
     <!-- DIÁRIAS (formato PDF) -->
     <div class="block" data-group="diarias">
@@ -755,7 +867,7 @@ form#form-capeante-rah {
 
     <!-- SETOR: APTO / ENFERMARIA -->
     <div class="block apto" data-group="apto">
-        <h5>Setor Apto / Enfermaria</h5>
+        <h5>Apto / Enfermaria</h5>
 
         <div class="tuss-grid">
             <div class="tg-head tg-col-desc">Descrição</div>
@@ -897,7 +1009,7 @@ form#form-capeante-rah {
 
     <!-- SETOR: UTI -->
     <div class="block uti" data-group="uti">
-        <h5>Setor UTI</h5>
+        <h5>UTI</h5>
 
         <div class="tuss-grid">
             <div class="tg-head tg-col-desc">Descrição</div>
@@ -1038,7 +1150,7 @@ form#form-capeante-rah {
 
     <!-- SETOR: CENTRO CIRÚRGICO -->
     <div class="block cc" data-group="cc">
-        <h5>Setor Centro Cirúrgico</h5>
+        <h5>Centro Cirúrgico</h5>
 
         <div class="tuss-grid">
             <div class="tg-head tg-col-desc">Descrição</div>
@@ -1185,7 +1297,8 @@ form#form-capeante-rah {
             <button type="button" class="btn btn-outline-primary" id="btnSalvarPDF"><i class="bi bi-download"></i>
                 Salvar PDF</button>
             <button type="button" class="btn btn-outline-secondary" id="btnEnviarEmail"><i
-                    class="bi bi-envelope-fill"></i> Enviar PDF por e-mail</button>
+                    class="bi bi-envelope-fill"></i>
+                Enviar PDF por e-mail</button>
         </div>
         <iframe id="iframeDownload" style="display:none;"></iframe>
         <div id="mensagemStatus"
@@ -1709,5 +1822,85 @@ document.addEventListener('hidden.bs.collapse', function(e) {
     }
 
     if ($) bind();
+})();
+</script>
+<script>
+// Liga/desliga selects conforme "Ativar" e atualiza pill
+(function() {
+    function setEnabled(el, on) {
+        if (!el) return;
+        el.disabled = !on;
+        if (!on) el.value = "";
+    }
+
+    function updateUI() {
+        var on = (document.getElementById('cadastro_central_cap')?.value || 'n') === 's';
+        setEnabled(document.getElementById('cad_central_med_id'), on);
+        setEnabled(document.getElementById('cad_central_enf_id'), on);
+        setEnabled(document.getElementById('cad_central_adm_id'), on);
+        var pill = document.getElementById('cc-pill');
+        if (pill) pill.textContent = on ? 'Ativo' : 'Inativo';
+    }
+    document.addEventListener('change', function(e) {
+        if (e.target && e.target.id === 'cadastro_central_cap') updateUI();
+    });
+    document.addEventListener('DOMContentLoaded', updateUI);
+})();
+</script>
+
+<script>
+// Preenche selects a partir dos hidden (se houver valores salvos)
+(function() {
+    function setSelectByValue(sel, value, fallback) {
+        if (!sel || !value || value === "0") return;
+        var opt = sel.querySelector('option[value="' + value + '"]');
+        if (!opt) {
+            opt = document.createElement('option');
+            opt.value = value;
+            opt.textContent = fallback || ('Selecionado (ID ' + value + ')');
+            sel.insertBefore(opt, sel.firstChild);
+        }
+        sel.value = value;
+    }
+
+    function fireChange(el) {
+        if (!el) return;
+        try {
+            el.dispatchEvent(new Event('change', {
+                bubbles: true
+            }));
+        } catch (e) {
+            var evt = document.createEvent('HTMLEvents');
+            evt.initEvent('change', true, false);
+            el.dispatchEvent(evt);
+        }
+    }
+
+    function hydrate() {
+        var selCentral = document.getElementById('cadastro_central_cap');
+        var selMed = document.getElementById('cad_central_med_id');
+        var selEnf = document.getElementById('cad_central_enf_id');
+        var selAdm = document.getElementById('cad_central_adm_id');
+
+        var fkMed = (document.getElementById('fk_id_aud_med') || {}).value || "";
+        var fkEnf = (document.getElementById('fk_id_aud_enf') || {}).value || "";
+        var fkAdm = (document.getElementById('fk_id_aud_adm') || {}).value || "";
+
+        if (selCentral && ((fkMed && fkMed !== '0') || (fkEnf && fkEnf !== '0') || (fkAdm && fkAdm !== '0'))) {
+            selCentral.value = 's';
+            fireChange(selCentral);
+        }
+        setSelectByValue(selMed, fkMed, 'Médico selecionado (ID ' + fkMed + ')');
+        setSelectByValue(selEnf, fkEnf, 'Enfermeiro(a) selecionado(a) (ID ' + fkEnf + ')');
+        setSelectByValue(selAdm, fkAdm, 'Administrativo selecionado (ID ' + fkAdm + ')');
+
+        // dispara change para manter coerência
+        fireChange(selMed);
+        fireChange(selEnf);
+        fireChange(selAdm);
+        fireChange(selCentral);
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hydrate);
+    else hydrate();
 })();
 </script>
