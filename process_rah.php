@@ -1,20 +1,21 @@
 <?php
-/* ============================================================
+
+/**
  * process_rah.php
  * Processa o formulário "Capeante RAH" (layout TUSS em blocos)
  * - Atualiza identificação/períodos na tb_capeante
- * - Persiste grupos em tb_cap_valores_ap / _uti / _cc
- *   usando fk_capeante e os nomes legados (ap_/uti_/cc_)
- * ============================================================ */
+ * - Persiste grupos em tb_cap_valores_ap / _uti / _cc / _diar
+ *   usando fk_capeante e nomes legados (ap_/uti_/cc_/*ac_)
+ */
 
-require_once("globals.php");
-require_once("db.php");
+require_once "globals.php";
+require_once "db.php";
 
-require_once("models/capeante.php");
-require_once("dao/capeanteDao.php");
+require_once "models/capeante.php";
+require_once "dao/capeanteDao.php";
 
-require_once("models/message.php");
-require_once("dao/usuarioDao.php");
+require_once "models/message.php";
+require_once "dao/usuarioDao.php";
 
 $message     = new Message($BASE_URL);
 $capeanteDao = new capeanteDAO($conn, $BASE_URL);
@@ -56,8 +57,7 @@ function to_varchar20($num)
 {
     if ($num === null) $num = 0;
     $num = (float)$num;
-    // 2 casas, ponto como decimal (mais seguro para cast numérico no MySQL)
-    return number_format($num, 2, '.', '');
+    return number_format($num, 2, '.', ''); // ex.: 1234.56
 }
 
 /* ---------- Captura chaves/identificação ---------- */
@@ -99,7 +99,7 @@ function somaCampo($arr, $chave)
 }
 
 /* ============================================================
- * DIÁRIAS
+ * DIÁRIAS (linhas AC_*)
  * ============================================================ */
 $diarias_ids = [
     'ac_quarto',
@@ -181,9 +181,9 @@ function somarSetor($calc)
     }
     return [$tCob, $tGlo, $tLib];
 }
-list($ap_cob, $ap_glo, $ap_lib)     = somarSetor($ap_calc);
-list($uti_cob, $uti_glo, $uti_lib)  = somarSetor($uti_calc);
-list($cc_cob, $cc_glo, $cc_lib)     = somarSetor($cc_calc);
+list($ap_cob,  $ap_glo,  $ap_lib)  = somarSetor($ap_calc);
+list($uti_cob, $uti_glo, $uti_lib) = somarSetor($uti_calc);
+list($cc_cob,  $cc_glo,  $cc_lib)  = somarSetor($cc_calc);
 
 /* ---------- Totais globais ---------- */
 $total_cobrado  = (float)$diarias_cob + $ap_cob + $uti_cob + $cc_cob;
@@ -242,7 +242,7 @@ if ($type === 'create') {
     $cap->valor_apresentado_capeante  = $valor_apresentado;
     $cap->valor_final_capeante        = $valor_final;
 
-    // Totais por categoria permanecem (compatibilidade)
+    // Totais por categoria (compatibilidade)
     $cap->valor_diarias               = $valor_diarias;
     $cap->valor_taxa                  = $valor_taxa;
     $cap->valor_materiais             = $valor_materiais;
@@ -266,12 +266,13 @@ if ($type === 'create') {
     $cap->last_cap                    = 1;
 
     $capeanteDao->create($cap);
-    // recupera o ID criado para salvar grupos
-    $id_capeante = $cap->id_capeante ?? null;
-    if (!$id_capeante) {
-        // fallback: buscar último inserido dessa internação
-        $id_capeante = $conn->lastInsertId();
+
+    // Recupera o ID criado para salvar grupos
+    $novoId = $cap->id_capeante ?? null;
+    if (!$novoId) {
+        $novoId = (int)$conn->lastInsertId();
     }
+    $id_capeante = (int)$novoId;
 } else {
     $cap = new capeante();
     $cap->id_capeante                 = $id_capeante;
@@ -287,7 +288,7 @@ if ($type === 'create') {
     $cap->valor_apresentado_capeante  = $valor_apresentado;
     $cap->valor_final_capeante        = $valor_final;
 
-    // Totais por categoria (mantidos para compatibilidade)
+    // Totais por categoria (compatibilidade)
     $cap->valor_diarias               = $valor_diarias;
     $cap->valor_taxa                  = $valor_taxa;
     $cap->valor_materiais             = $valor_materiais;
@@ -315,69 +316,65 @@ if ($type === 'create') {
 error_log("[RAH] Capeante ID {$id_capeante} | Cobrado={$total_cobrado} | Glosado={$total_glosado} | Liberado={$total_liberado}");
 
 /* ============================================================
- * Persistência dos grupos AP / UTI / CC
+ * Persistência dos grupos AP / UTI / CC / DIÁRIAS
  * - Usa fk_capeante
- * - Nomes legados (ap_/uti_/cc_), varchar(20) para valores
+ * - Nomes legados (ap_/uti_/cc_/ac_)
  * - Upsert manual (existe? UPDATE : INSERT)
  * ============================================================ */
 
-/* Upsert genérico para tabela de grupo (AP/UTI/CC) */
+/* Upsert genérico para tabela de grupo (AP/UTI/CC/DIAR) */
 function rah_upsert_grupo(PDO $conn, string $tabela, int $fk_capeante, array $mapCatToLegacyCols, array $calcPorCat)
 {
     // Verifica se já existe registro para fk_capeante
-    $exists = false;
     $stmt = $conn->prepare("SELECT 1 FROM {$tabela} WHERE fk_capeante = ? LIMIT 1");
     $stmt->execute([$fk_capeante]);
     $exists = (bool)$stmt->fetchColumn();
 
-    // Monta SET clause e bind
-    $cols = ['fk_capeante'];
-    $vals = [$fk_capeante];
+    if ($exists) {
+        $sets = [];
+        $valsUpd = [];
+        foreach ($mapCatToLegacyCols as $cat => $legacyPrefix) {
+            $row = $calcPorCat[$cat] ?? ['qtd' => 0, 'cobrado' => 0, 'glosado' => 0, 'obs' => null];
 
-    foreach ($mapCatToLegacyCols as $cat => $legacyPrefix) {
-        $row = $calcPorCat[$cat] ?? ['qtd' => 0, 'cobrado' => 0, 'glosado' => 0, 'lib' => 0, 'obs' => null];
+            $qtd     = (int)($row['qtd'] ?? 0);
+            $cobrado = to_varchar20($row['cobrado'] ?? 0);
+            $glosado = to_varchar20($row['glosado'] ?? 0);
+            $obs     = $row['obs'] ?? null;
 
-        $qtd     = (int)($row['qtd'] ?? 0);
-        $cobrado = to_varchar20($row['cobrado'] ?? 0);
-        $glosado = to_varchar20($row['glosado'] ?? 0);
-        $obs     = strPOST($legacyPrefix . "_obs"); // pega OBS direto do POST pelo mesmo prefixo (já capturado antes, mas garantimos)
+            $sets[]    = "{$legacyPrefix}_qtd = ?";
+            $sets[]    = "{$legacyPrefix}_cobrado = ?";
+            $sets[]    = "{$legacyPrefix}_glosado = ?";
+            $sets[]    = "{$legacyPrefix}_obs = ?";
 
-        // Nomes legados:
-        $colQtd  = "{$legacyPrefix}_qtd";
-        $colCob  = "{$legacyPrefix}_cobrado";
-        $colGlo  = "{$legacyPrefix}_glosado";
-        $colObs  = "{$legacyPrefix}_obs";
-
-        if ($exists) {
-            // UPDATE: montamos dinamicamente
-            $sets[] = "{$colQtd} = ?";
-            $sets[] = "{$colCob} = ?";
-            $sets[] = "{$colGlo} = ?";
-            $sets[] = "{$colObs} = ?";
             $valsUpd[] = (string)$qtd;
             $valsUpd[] = $cobrado;
             $valsUpd[] = $glosado;
             $valsUpd[] = $obs;
-        } else {
-            // INSERT: acumulamos colunas e valores
-            $cols[] = $colQtd;
-            $vals[] = (string)$qtd;
-            $cols[] = $colCob;
-            $vals[] = $cobrado;
-            $cols[] = $colGlo;
-            $vals[] = $glosado;
-            $cols[] = $colObs;
-            $vals[] = $obs;
         }
-    }
-
-    if ($exists) {
-        $sql = "UPDATE {$tabela} SET " . implode(', ', $sets) . " WHERE fk_capeante = ?";
         $valsUpd[] = $fk_capeante;
+        $sql = "UPDATE {$tabela} SET " . implode(', ', $sets) . " WHERE fk_capeante = ?";
         $st = $conn->prepare($sql);
         $st->execute($valsUpd);
     } else {
-        // Garante colunas em ordem
+        $cols = ['fk_capeante'];
+        $vals = [$fk_capeante];
+        foreach ($mapCatToLegacyCols as $cat => $legacyPrefix) {
+            $row = $calcPorCat[$cat] ?? ['qtd' => 0, 'cobrado' => 0, 'glosado' => 0, 'obs' => null];
+
+            $qtd     = (int)($row['qtd'] ?? 0);
+            $cobrado = to_varchar20($row['cobrado'] ?? 0);
+            $glosado = to_varchar20($row['glosado'] ?? 0);
+            $obs     = $row['obs'] ?? null;
+
+            $cols[] = "{$legacyPrefix}_qtd";
+            $vals[] = (string)$qtd;
+            $cols[] = "{$legacyPrefix}_cobrado";
+            $vals[] = $cobrado;
+            $cols[] = "{$legacyPrefix}_glosado";
+            $vals[] = $glosado;
+            $cols[] = "{$legacyPrefix}_obs";
+            $vals[] = $obs;
+        }
         $ph = implode(',', array_fill(0, count($cols), '?'));
         $sql = "INSERT INTO {$tabela} (" . implode(',', $cols) . ") VALUES ({$ph})";
         $st = $conn->prepare($sql);
@@ -419,12 +416,23 @@ $map_cc = [
     'hemoderivados' => 'cc_hemoderivados',
     'honorarios'    => 'cc_honorarios',
 ];
+$map_diar = [
+    'ac_quarto'       => 'ac_quarto',
+    'ac_dayclinic'    => 'ac_dayclinic',
+    'ac_uti'          => 'ac_uti',
+    'ac_utisemi'      => 'ac_utisemi',
+    'ac_enfermaria'   => 'ac_enfermaria',
+    'ac_bercario'     => 'ac_bercario',
+    'ac_acompanhante' => 'ac_acompanhante',
+    'ac_isolamento'   => 'ac_isolamento',
+];
 
-/* Salva grupos */
+/* Salva grupos (somente se temos id_capeante válido) */
 if ($id_capeante) {
-    rah_upsert_grupo($conn, 'tb_cap_valores_ap',  (int)$id_capeante, $map_ap,  $ap_calc);
-    rah_upsert_grupo($conn, 'tb_cap_valores_uti', (int)$id_capeante, $map_uti, $uti_calc);
-    rah_upsert_grupo($conn, 'tb_cap_valores_cc',  (int)$id_capeante, $map_cc,  $cc_calc);
+    rah_upsert_grupo($conn, 'tb_cap_valores_ap',   (int)$id_capeante, $map_ap,   $ap_calc);
+    rah_upsert_grupo($conn, 'tb_cap_valores_uti',  (int)$id_capeante, $map_uti,  $uti_calc);
+    rah_upsert_grupo($conn, 'tb_cap_valores_cc',   (int)$id_capeante, $map_cc,   $cc_calc);
+    rah_upsert_grupo($conn, 'tb_cap_valores_diar', (int)$id_capeante, $map_diar, $diarias_rows);
 }
 
 /* Redireciona de volta */
