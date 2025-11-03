@@ -306,9 +306,51 @@ $internacao = new internacaoDAO($conn, $BASE_URL);
     </div>
 </div>
 
+<!-- Modal: Confirmar reversão -->
+<div class="modal fade" id="modalReverterAlta" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:1rem;">
+            <div class="modal-header">
+                <h5 class="modal-title">Reverter alta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                Confirmar a reversão de <strong><span id="qtdAltasSel">0</span></strong> alta(s)?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="btnConfirmReverter" class="btn btn-danger">Confirmar reversão</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Mensagem (info/erro) -->
+<div class="modal fade" id="modalMsg" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:1rem;">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalMsgTitle">Aviso</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body" id="modalMsgBody">...</div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <script>
 (function($) {
-    // ---- Helpers de rota/filtros atuais
+    // Helpers de modal
+    function showMsg(title, body) {
+        $('#modalMsgTitle').text(title || 'Aviso');
+        $('#modalMsgBody').html(body || '');
+        new bootstrap.Modal(document.getElementById('modalMsg')).show();
+    }
+
     function reloadLista() {
         loadContent(
             'list_internacao_alta.php?pesquisa_nome=<?= $pesquisa_nome ?>' +
@@ -321,7 +363,7 @@ $internacao = new internacaoDAO($conn, $BASE_URL);
         );
     }
 
-    // ---- SUBMIT do formulário (com namespace para não duplicar)
+    // Submit filtros
     $(document)
         .off('submit.alta', '#select-internacao-form')
         .on('submit.alta', '#select-internacao-form', function(e) {
@@ -338,50 +380,55 @@ $internacao = new internacaoDAO($conn, $BASE_URL);
                     if (tableContent) $('#table-content').html(tableContent);
                 },
                 error: function() {
-                    $('#responseMessage').html('Ocorreu um erro ao enviar o formulário.');
+                    showMsg('Erro', 'Ocorreu um erro ao enviar o formulário.');
                 }
             });
         });
 
-    // ---- Clique no botão "Remover alta(s)" (único bind, com namespace)
+    // Estado dos IDs das altas selecionadas
+    let idsSelecionados = [];
+
+    // Abrir modal de confirmação
     $(document)
         .off('click.alta', '#btnRemoveAltas')
         .on('click.alta', '#btnRemoveAltas', function(e) {
             e.preventDefault();
-
-            const ids = $('.ckAlta:checked').map(function() {
+            idsSelecionados = $('.ckAlta:checked').map(function() {
                 return $(this).val();
             }).get();
-            if (!ids.length) {
-                alert('Selecione pelo menos uma alta.');
+            if (!idsSelecionados.length) {
+                showMsg('Seleção necessária', 'Selecione pelo menos uma alta para reverter.');
                 return;
             }
+            $('#qtdAltasSel').text(idsSelecionados.length);
+            new bootstrap.Modal(document.getElementById('modalReverterAlta')).show();
+        });
 
-            if (!confirm('Confirmar a reversão de ' + ids.length + ' alta(s)?')) return;
-
+    // Confirmar reversão
+    $(document)
+        .off('click.alta', '#btnConfirmReverter')
+        .on('click.alta', '#btnConfirmReverter', function() {
             var $btn = $(this);
             $btn.prop('disabled', true);
 
             $.ajax({
-                url: 'alta_reverter.php', // endpoint final
+                url: 'alta_reverter.php',
                 type: 'POST',
                 data: {
-                    ids: ids
+                    ids: idsSelecionados
                 },
                 success: function(resp) {
-                    try {
-                        const j = (typeof resp === 'string') ? JSON.parse(resp) : resp;
-                        if (j && j.ok) {
-                            reloadLista();
-                        } else {
-                            alert((j && j.msg) ? j.msg : 'Falha ao reverter.');
-                        }
-                    } catch (err) {
-                        alert('Erro inesperado ao processar a resposta.');
+                    const j = (typeof resp === 'string') ? JSON.parse(resp) : resp;
+                    if (j && j.ok) {
+                        bootstrap.Modal.getInstance(document.getElementById('modalReverterAlta'))
+                            .hide();
+                        reloadLista();
+                    } else {
+                        showMsg('Falha', (j && j.msg) ? j.msg : 'Falha ao reverter.');
                     }
                 },
                 error: function() {
-                    alert('Erro de comunicação.');
+                    showMsg('Erro de comunicação', 'Não foi possível contatar o servidor.');
                 },
                 complete: function() {
                     $btn.prop('disabled', false);
@@ -389,13 +436,14 @@ $internacao = new internacaoDAO($conn, $BASE_URL);
             });
         });
 
-    // ---- Primeira carga
+    // Primeira carga
     $(function() {
         reloadLista();
     });
 
 })(jQuery);
 </script>
+
 
 
 <script src="./js/input-estilo.js"></script>
@@ -412,50 +460,3 @@ $internacao = new internacaoDAO($conn, $BASE_URL);
 
 <script src="./scripts/cadastro/general.js"></script>
 <script src="./js/ajaxNav.js"></script>
-<script>
-$(document).on('click', '#btnRemoveAltas', function(e) {
-    e.preventDefault();
-
-    const ids = $('.ckAlta:checked').map(function() {
-        return $(this).val();
-    }).get();
-    if (!ids.length) {
-        alert('Selecione pelo menos uma alta.');
-        return;
-    }
-
-    if (!confirm('Confirmar marcação de NÃO internado para ' + ids.length + ' alta(s)?')) return;
-
-    $.ajax({
-        url: 'alta_reverter.php',
-        type: 'POST',
-        data: {
-            ids: ids
-        },
-        success: function(resp) {
-            try {
-                const j = (typeof resp === 'string') ? JSON.parse(resp) : resp;
-                if (j.ok) {
-                    // Recarrega mantendo filtros/paginação atuais
-                    loadContent(
-                        'list_internacao_alta.php?pesquisa_nome=<?php print $pesquisa_nome ?>' +
-                        '&pesquisa_pac=<?php print $pesquisa_pac ?>' +
-                        '&pesqInternado=<?php print $pesqInternado ?>' +
-                        '&limite=<?php print $limite ?>' +
-                        '&ordenar=<?php print $ordenar ?>' +
-                        '&pag=<?php print $_GET["pag"] ?? 1 ?>' +
-                        '&bl=<?php print $_GET["bl"] ?? 0 ?>'
-                    );
-                    return;
-                }
-                alert(j.msg || 'Falha ao atualizar.');
-            } catch (e) {
-                alert('Erro inesperado.');
-            }
-        },
-        error: function() {
-            alert('Erro de comunicação.');
-        }
-    });
-});
-</script>
