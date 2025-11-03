@@ -4,8 +4,8 @@
  * process_rah.php
  * Processa o formulário "Capeante RAH" (layout TUSS em blocos)
  * - Atualiza identificação/períodos na tb_capeante
- * - Persiste grupos em tb_cap_valores_ap / _uti / _cc / _diar
- *   usando fk_capeante e nomes legados (ap_/uti_/cc_/*ac_)
+ * - Persiste grupos em tb_cap_valores_ap / _uti / _cc / _diar / _out
+ *   usando fk_capeante e nomes legados (ap_/uti_/cc_/ac_/outros_)
  */
 
 require_once "globals.php";
@@ -120,13 +120,13 @@ $diarias_glo = somaCampo($diarias_rows, 'glosado');
 $diarias_lib = somaCampo($diarias_rows, 'lib');
 
 /* ============================================================
- * APTO / ENFERMARIA (mapeia categorias → prefixos do FORM)
+ * APTO / ENFERMARIA
  * ============================================================ */
 $ap_form = [
     'terapias'       => 'ap_terapias',
     'taxas'          => 'ap_taxas',
     'mat_consumo'    => 'ap_mat_consumo',
-    'medicamentos'   => 'ap_medicametos',   // coluna legada com "medicamEtos"
+    'medicamentos'   => 'ap_medicametos',   // legado com "medicamEtos"
     'gases'          => 'ap_gases',
     'mat_especial'   => 'ap_mat_espec',
     'exames'         => 'ap_exames',
@@ -170,6 +170,16 @@ $cc_form = [
 $cc_calc = [];
 foreach ($cc_form as $cat => $pfx) $cc_calc[$cat] = capturarLinha($pfx);
 
+/* ============================================================
+ * OUTROS (Pacote / Remoção)
+ * ============================================================ */
+$outros_form = [
+    'pacote'  => 'outros_pacote',
+    'remocao' => 'outros_remocao'
+];
+$outros_calc = [];
+foreach ($outros_form as $cat => $pfx) $outros_calc[$cat] = capturarLinha($pfx);
+
 /* ---------- Totais por setor ---------- */
 function somarSetor($calc)
 {
@@ -181,20 +191,22 @@ function somarSetor($calc)
     }
     return [$tCob, $tGlo, $tLib];
 }
-list($ap_cob,  $ap_glo,  $ap_lib)  = somarSetor($ap_calc);
-list($uti_cob, $uti_glo, $uti_lib) = somarSetor($uti_calc);
-list($cc_cob,  $cc_glo,  $cc_lib)  = somarSetor($cc_calc);
+list($ap_cob,     $ap_glo,     $ap_lib)     = somarSetor($ap_calc);
+list($uti_cob,    $uti_glo,    $uti_lib)    = somarSetor($uti_calc);
+list($cc_cob,     $cc_glo,     $cc_lib)     = somarSetor($cc_calc);
+list($outros_cob, $outros_glo, $outros_lib) = somarSetor($outros_calc);
 
-/* ---------- Totais globais ---------- */
-$total_cobrado  = (float)$diarias_cob + $ap_cob + $uti_cob + $cc_cob;
-$total_glosado  = (float)$diarias_glo + $ap_glo + $uti_glo + $cc_glo;
-$total_liberado = (float)$diarias_lib + $ap_lib + $uti_lib + $cc_lib;
+/* ---------- Totais globais (COM OUTROS) ---------- */
+$total_cobrado  = (float)$diarias_cob + $ap_cob + $uti_cob + $cc_cob + $outros_cob;
+$total_glosado  = (float)$diarias_glo + $ap_glo + $uti_glo + $cc_glo + $outros_glo;
+$total_liberado = (float)$diarias_lib + $ap_lib + $uti_lib + $cc_lib + $outros_lib;
 
-/* ---------- Totais por categoria (soma dos 3 setores) ---------- */
+/* ---------- Totais por categoria (AP/UTI/CC) ----------
+   Mantemos a compatibilidade das colunas agregadas no capeante.
+   (OUTROS não entra nas categorias clássicas) */
 $cat_sum = function ($key) use ($ap_calc, $uti_calc, $cc_calc) {
     return (float)($ap_calc[$key]['lib'] + $uti_calc[$key]['lib'] + $cc_calc[$key]['lib']);
 };
-/* glosas por categoria */
 $cat_glo = function ($key) use ($ap_calc, $uti_calc, $cc_calc) {
     return (float)($ap_calc[$key]['glosado'] + $uti_calc[$key]['glosado'] + $cc_calc[$key]['glosado']);
 };
@@ -316,14 +328,24 @@ if ($type === 'create') {
 error_log("[RAH] Capeante ID {$id_capeante} | Cobrado={$total_cobrado} | Glosado={$total_glosado} | Liberado={$total_liberado}");
 
 /* ============================================================
- * Persistência dos grupos AP / UTI / CC / DIÁRIAS
+ * Persistência dos grupos AP / UTI / CC / DIÁRIAS / OUTROS
  * - Usa fk_capeante
- * - Nomes legados (ap_/uti_/cc_/ac_)
+ * - Nomes legados (ap_/uti_/cc_/ac_/outros_)
  * - Upsert manual (existe? UPDATE : INSERT)
  * ============================================================ */
 
-/* Upsert genérico para tabela de grupo (AP/UTI/CC/DIAR) */
-function rah_upsert_grupo(PDO $conn, string $tabela, int $fk_capeante, array $mapCatToLegacyCols, array $calcPorCat)
+/**
+ * Upsert genérico para tabela de grupo (AP/UTI/CC/DIAR/OUT).
+ * $extraCols permite incluir colunas suplementares (ex.: fk_int_capeante).
+ *
+ * @param PDO    $conn
+ * @param string $tabela
+ * @param int    $fk_capeante
+ * @param array  $mapCatToLegacyCols  ex.: ['terapias'=>'ap_terapias', ...]
+ * @param array  $calcPorCat          ex.: ['terapias'=>['qtd'=>..,'cobrado'=>..,'glosado'=>..,'obs'=>..], ...]
+ * @param array  $extraCols           ex.: ['fk_int_capeante' => 123]
+ */
+function rah_upsert_grupo(PDO $conn, string $tabela, int $fk_capeante, array $mapCatToLegacyCols, array $calcPorCat, array $extraCols = [])
 {
     // Verifica se já existe registro para fk_capeante
     $stmt = $conn->prepare("SELECT 1 FROM {$tabela} WHERE fk_capeante = ? LIMIT 1");
@@ -333,6 +355,14 @@ function rah_upsert_grupo(PDO $conn, string $tabela, int $fk_capeante, array $ma
     if ($exists) {
         $sets = [];
         $valsUpd = [];
+
+        // Extras também no UPDATE (exceto fk_capeante)
+        foreach ($extraCols as $col => $val) {
+            if ($col === 'fk_capeante') continue;
+            $sets[]    = "{$col} = ?";
+            $valsUpd[] = $val;
+        }
+
         foreach ($mapCatToLegacyCols as $cat => $legacyPrefix) {
             $row = $calcPorCat[$cat] ?? ['qtd' => 0, 'cobrado' => 0, 'glosado' => 0, 'obs' => null];
 
@@ -358,6 +388,14 @@ function rah_upsert_grupo(PDO $conn, string $tabela, int $fk_capeante, array $ma
     } else {
         $cols = ['fk_capeante'];
         $vals = [$fk_capeante];
+
+        // Extras entram no INSERT (exceto fk_capeante)
+        foreach ($extraCols as $col => $val) {
+            if ($col === 'fk_capeante') continue;
+            $cols[] = $col;
+            $vals[] = $val;
+        }
+
         foreach ($mapCatToLegacyCols as $cat => $legacyPrefix) {
             $row = $calcPorCat[$cat] ?? ['qtd' => 0, 'cobrado' => 0, 'glosado' => 0, 'obs' => null];
 
@@ -426,13 +464,35 @@ $map_diar = [
     'ac_acompanhante' => 'ac_acompanhante',
     'ac_isolamento'   => 'ac_isolamento',
 ];
+$map_out = [
+    'pacote'  => 'outros_pacote',
+    'remocao' => 'outros_remocao',
+];
 
 /* Salva grupos (somente se temos id_capeante válido) */
 if ($id_capeante) {
+
+    // Garante fk_internacao válido para o grupo OUTROS (FK na tabela)
+    if (!$fk_internacao) {
+        $fk_internacao = (int)$conn
+            ->query("SELECT fk_int_capeante FROM tb_capeante WHERE id_capeante = " . (int)$id_capeante)
+            ->fetchColumn();
+    }
+
     rah_upsert_grupo($conn, 'tb_cap_valores_ap',   (int)$id_capeante, $map_ap,   $ap_calc);
     rah_upsert_grupo($conn, 'tb_cap_valores_uti',  (int)$id_capeante, $map_uti,  $uti_calc);
     rah_upsert_grupo($conn, 'tb_cap_valores_cc',   (int)$id_capeante, $map_cc,   $cc_calc);
     rah_upsert_grupo($conn, 'tb_cap_valores_diar', (int)$id_capeante, $map_diar, $diarias_rows);
+
+    // NOVO: OUTROS com extraCols para satisfazer a FK fk_int_capeante
+    rah_upsert_grupo(
+        $conn,
+        'tb_cap_valores_out',
+        (int)$id_capeante,
+        $map_out,
+        $outros_calc,
+        ['fk_int_capeante' => (int)$fk_internacao]
+    );
 }
 
 /* Redireciona de volta */

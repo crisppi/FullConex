@@ -138,414 +138,414 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
 ?>
 <!-- ========================= ESTILOS ========================= -->
 <style>
-body {
-    background-color: #f5f7fa;
-    font-family: "Nunito", "Helvetica Neue", Arial, sans-serif;
-    color: #212529;
-}
+    body {
+        background-color: #f5f7fa;
+        font-family: "Nunito", "Helvetica Neue", Arial, sans-serif;
+        color: #212529;
+    }
 
-form#form-capeante-rah {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 10px 10px 40px 10px;
-}
+    form#form-capeante-rah {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 10px 10px 40px 10px;
+    }
 
-.block {
-    background: #fff;
-    border: 1px solid #dee2e6;
-    border-radius: .5rem;
-    padding: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, .05);
-}
+    .block {
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: .5rem;
+        padding: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, .05);
+    }
 
-.block+.block {
-    margin-top: 18px;
-}
-
-.block h5 {
-    background: #f8f9fa;
-    border-left: 6px solid #0d6efd;
-    padding: 6px 10px;
-    margin: -12px -12px 14px -12px;
-    font-weight: 800;
-    font-size: 1.02rem;
-    color: #0d6efd;
-    border-top-right-radius: 4px;
-}
-
-label.form-label {
-    font-weight: 600;
-    font-size: .85rem;
-    color: #495057;
-}
-
-input.form-control,
-select.form-select {
-    border: 1px solid #ced4da;
-    font-size: .9rem;
-    height: 34px;
-    padding: 4px 8px;
-}
-
-input.form-control:focus,
-select.form-select:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 .1rem rgba(13, 110, 253, .25);
-}
-
-/* === GRID TUSS COM COLUNA CALCULADA ===
-   Descrição | Qtd | Cobrado | Glosado | Cobrado Após (calc) | Observação */
-.tuss-grid {
-    display: grid;
-    grid-template-columns: minmax(240px, 1.2fr) 110px 160px 160px 160px 1fr;
-    gap: 8px 10px;
-    align-items: center;
-}
-
-.tuss-grid .tg-head {
-    font-weight: 700;
-    font-size: .85rem;
-    color: #495057;
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
-    padding: 6px 8px;
-}
-
-.tuss-grid .tg-lab {
-    font-weight: 600;
-    color: #343a40;
-}
-
-.tuss-grid input.form-control {
-    height: 34px;
-    padding: 4px 8px;
-}
-
-.tuss-row {
-    display: contents;
-}
-
-.tg-col-desc {
-    grid-column: 1;
-}
-
-.tg-col-qtd {
-    grid-column: 2;
-}
-
-.tg-col-cob {
-    grid-column: 3;
-    text-align: right;
-}
-
-.tg-col-glo {
-    grid-column: 4;
-    text-align: right;
-}
-
-/* NOVA COLUNA CALCULADA */
-.tg-col-lib {
-    grid-column: 5;
-    text-align: right;
-}
-
-.tg-col-obs {
-    grid-column: 6;
-}
-
-.block.apto h5 {
-    border-left-color: #198754;
-    color: #198754;
-}
-
-.block.uti h5 {
-    border-left-color: #fd7e14;
-    color: #fd7e14;
-}
-
-.block.cc h5 {
-    border-left-color: #6f42c1;
-    color: #6f42c1;
-}
-
-.actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-@media (max-width:768px) {
-    .tuss-grid {
-        grid-template-columns: minmax(150px, 1fr) 80px 120px 120px 120px 1fr;
+    .block+.block {
+        margin-top: 18px;
     }
 
     .block h5 {
-        font-size: .95rem;
+        background: #f8f9fa;
+        border-left: 6px solid #0d6efd;
+        padding: 6px 10px;
+        margin: -12px -12px 14px -12px;
+        font-weight: 800;
+        font-size: 1.02rem;
+        color: #0d6efd;
+        border-top-right-radius: 4px;
     }
 
     label.form-label {
-        font-size: .8rem;
+        font-weight: 600;
+        font-size: .85rem;
+        color: #495057;
     }
-}
 
-/* cabeçalho clicável com indicador */
-.block h5.toggle {
-    cursor: pointer;
-    position: relative;
-    user-select: none;
-    padding-right: 28px;
-    /* espaço pro caret */
-}
+    input.form-control,
+    select.form-select {
+        border: 1px solid #ced4da;
+        font-size: .9rem;
+        height: 34px;
+        padding: 4px 8px;
+    }
 
-.block h5.toggle::after {
-    content: "▸";
-    position: absolute;
-    right: 10px;
-    top: 6px;
-    transition: transform .2s ease-in-out;
-    font-weight: 700;
-    opacity: .6;
-}
+    input.form-control:focus,
+    select.form-select:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 .1rem rgba(13, 110, 253, .25);
+    }
 
-/* quando aberto (aria-expanded=true), gira o caret */
-.block h5.toggle[aria-expanded="true"]::after {
-    transform: rotate(90deg);
-    opacity: 1;
-}
+    /* === GRID TUSS COM COLUNA CALCULADA ===
+   Descrição | Qtd | Cobrado | Glosado | Cobrado Após (calc) | Observação */
+    .tuss-grid {
+        display: grid;
+        grid-template-columns: minmax(240px, 1.2fr) 110px 160px 160px 160px 1fr;
+        gap: 8px 10px;
+        align-items: center;
+    }
+
+    .tuss-grid .tg-head {
+        font-weight: 700;
+        font-size: .85rem;
+        color: #495057;
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        padding: 6px 8px;
+    }
+
+    .tuss-grid .tg-lab {
+        font-weight: 600;
+        color: #343a40;
+    }
+
+    .tuss-grid input.form-control {
+        height: 34px;
+        padding: 4px 8px;
+    }
+
+    .tuss-row {
+        display: contents;
+    }
+
+    .tg-col-desc {
+        grid-column: 1;
+    }
+
+    .tg-col-qtd {
+        grid-column: 2;
+    }
+
+    .tg-col-cob {
+        grid-column: 3;
+        text-align: right;
+    }
+
+    .tg-col-glo {
+        grid-column: 4;
+        text-align: right;
+    }
+
+    /* NOVA COLUNA CALCULADA */
+    .tg-col-lib {
+        grid-column: 5;
+        text-align: right;
+    }
+
+    .tg-col-obs {
+        grid-column: 6;
+    }
+
+    .block.apto h5 {
+        border-left-color: #198754;
+        color: #198754;
+    }
+
+    .block.uti h5 {
+        border-left-color: #fd7e14;
+        color: #fd7e14;
+    }
+
+    .block.cc h5 {
+        border-left-color: #6f42c1;
+        color: #6f42c1;
+    }
+
+    .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    @media (max-width:768px) {
+        .tuss-grid {
+            grid-template-columns: minmax(150px, 1fr) 80px 120px 120px 120px 1fr;
+        }
+
+        .block h5 {
+            font-size: .95rem;
+        }
+
+        label.form-label {
+            font-size: .8rem;
+        }
+    }
+
+    /* cabeçalho clicável com indicador */
+    .block h5.toggle {
+        cursor: pointer;
+        position: relative;
+        user-select: none;
+        padding-right: 28px;
+        /* espaço pro caret */
+    }
+
+    .block h5.toggle::after {
+        content: "▸";
+        position: absolute;
+        right: 10px;
+        top: 6px;
+        transition: transform .2s ease-in-out;
+        font-weight: 700;
+        opacity: .6;
+    }
+
+    /* quando aberto (aria-expanded=true), gira o caret */
+    .block h5.toggle[aria-expanded="true"]::after {
+        transform: rotate(90deg);
+        opacity: 1;
+    }
 
 
-/* Identificação – estilo "Visitas" */
-.id-card {
-    background: #fff;
-    border: 1px solid #e6dff0;
-    border-radius: 18px;
-    box-shadow: 0 2px 10px rgba(94, 35, 99, .06);
-    margin: 14px 0;
-}
+    /* Identificação – estilo "Visitas" */
+    .id-card {
+        background: #fff;
+        border: 1px solid #e6dff0;
+        border-radius: 18px;
+        box-shadow: 0 2px 10px rgba(94, 35, 99, .06);
+        margin: 14px 0;
+    }
 
-.id-header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 16px;
-    background: linear-gradient(180deg, #ffffff 0%, #faf7fc 100%);
-    border-radius: 18px;
-}
+    .id-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px;
+        background: linear-gradient(180deg, #ffffff 0%, #faf7fc 100%);
+        border-radius: 18px;
+    }
 
-.id-avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 16px;
-    background: linear-gradient(135deg, #5e2363, #7a3a86);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-weight: 900;
-    font-size: 1.05rem;
-    box-shadow: 0 4px 10px rgba(94, 35, 99, .2);
-}
+    .id-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #5e2363, #7a3a86);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: 900;
+        font-size: 1.05rem;
+        box-shadow: 0 4px 10px rgba(94, 35, 99, .2);
+    }
 
-.id-title {
-    flex: 1;
-    min-width: 0
-}
+    .id-title {
+        flex: 1;
+        min-width: 0
+    }
 
-.id-name {
-    font-weight: 900;
-    color: #5e2363;
-    font-size: 1.1rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
+    .id-name {
+        font-weight: 900;
+        color: #5e2363;
+        font-size: 1.1rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 
-.id-sub {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    color: #7a7684;
-    margin-top: 2px;
-}
+    .id-sub {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        color: #7a7684;
+        margin-top: 2px;
+    }
 
-.id-chip {
-    background: #f5eef7;
-    border: 1px solid #e6dff0;
-    color: #59445e;
-    border-radius: 999px;
-    padding: 4px 10px;
-    font-size: .85rem;
-    font-weight: 700;
-}
+    .id-chip {
+        background: #f5eef7;
+        border: 1px solid #e6dff0;
+        color: #59445e;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: .85rem;
+        font-weight: 700;
+    }
 
-.id-sep {
-    opacity: .6
-}
+    .id-sep {
+        opacity: .6
+    }
 
-.id-right {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    align-items: center
-}
-
-.id-pill {
-    background: #fbfbfe;
-    border: 1px solid #e6dff0;
-    border-radius: 12px;
-    padding: 6px 10px;
-    font-size: .9rem;
-    font-weight: 800;
-    color: #2c2a32;
-}
-
-@media (max-width:768px) {
     .id-right {
-        width: 100%;
-        justify-content: flex-start
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center
     }
-}
 
-/* ====== Card estilo "Visitas" para Período e Totais ====== */
-.sec-card {
-    background: #fff;
-    border: 1px solid #e6dff0;
-    border-radius: 18px;
-    box-shadow: 0 2px 10px rgba(94, 35, 99, .06);
-    margin: 14px 0;
-}
+    .id-pill {
+        background: #fbfbfe;
+        border: 1px solid #e6dff0;
+        border-radius: 12px;
+        padding: 6px 10px;
+        font-size: .9rem;
+        font-weight: 800;
+        color: #2c2a32;
+    }
 
-.sec-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 16px 10px 16px;
-    background: linear-gradient(180deg, #ffffff 0%, #faf7fc 100%);
-    border-top-left-radius: 18px;
-    border-top-right-radius: 18px;
-}
+    @media (max-width:768px) {
+        .id-right {
+            width: 100%;
+            justify-content: flex-start
+        }
+    }
 
-.sec-title {
-    font-weight: 900;
-    color: #5e2363;
-    font-size: 1.05rem;
-}
+    /* ====== Card estilo "Visitas" para Período e Totais ====== */
+    .sec-card {
+        background: #fff;
+        border: 1px solid #e6dff0;
+        border-radius: 18px;
+        box-shadow: 0 2px 10px rgba(94, 35, 99, .06);
+        margin: 14px 0;
+    }
 
-.sec-right {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
+    .sec-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 16px 10px 16px;
+        background: linear-gradient(180deg, #ffffff 0%, #faf7fc 100%);
+        border-top-left-radius: 18px;
+        border-top-right-radius: 18px;
+    }
 
-.pill {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: #fbfbfe;
-    border: 1px solid #e6dff0;
-    border-radius: 12px;
-    padding: 6px 10px;
-    font-size: .9rem;
-    color: #2c2a32;
-}
+    .sec-title {
+        font-weight: 900;
+        color: #5e2363;
+        font-size: 1.05rem;
+    }
 
-.pill span {
-    opacity: .75;
-    font-weight: 700;
-}
+    .sec-right {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
 
-.pill strong {
-    font-weight: 900;
-}
+    .pill {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #fbfbfe;
+        border: 1px solid #e6dff0;
+        border-radius: 12px;
+        padding: 6px 10px;
+        font-size: .9rem;
+        color: #2c2a32;
+    }
 
-.sec-body {
-    padding: 14px 16px 16px 16px;
-}
+    .pill span {
+        opacity: .75;
+        font-weight: 700;
+    }
 
-/* Compacta o espaço entre Identificação e o header seguinte */
-.id-card {
-    margin-bottom: 6px;
-}
+    .pill strong {
+        font-weight: 900;
+    }
 
-/* antes: 14px */
-.id-card+.sec-card {
-    margin-top: 6px;
-}
+    .sec-body {
+        padding: 14px 16px 16px 16px;
+    }
 
-/* antes: 14px */
-.sec-header {
-    padding-top: 10px;
-    padding-bottom: 6px;
-}
+    /* Compacta o espaço entre Identificação e o header seguinte */
+    .id-card {
+        margin-bottom: 6px;
+    }
 
-/* antes: 16px/10px */
-/* opcional: deixar o header da identificação um pouco mais enxuto */
-.id-header {
-    padding-bottom: 10px;
-}
+    /* antes: 14px */
+    .id-card+.sec-card {
+        margin-top: 6px;
+    }
 
-/* antes: 16px */
+    /* antes: 14px */
+    .sec-header {
+        padding-top: 10px;
+        padding-bottom: 6px;
+    }
+
+    /* antes: 16px/10px */
+    /* opcional: deixar o header da identificação um pouco mais enxuto */
+    .id-header {
+        padding-bottom: 10px;
+    }
+
+    /* antes: 16px */
 </style>
 
 <style>
-/* 1) Espaço entre o topo (navbar) e a Identificação */
-form#form-capeante-rah {
-    padding-top: 0;
-}
+    /* 1) Espaço entre o topo (navbar) e a Identificação */
+    form#form-capeante-rah {
+        padding-top: 0;
+    }
 
-/* antes: 10px */
-.id-card {
-    margin-top: 4px;
-    margin-bottom: 6px;
-}
+    /* antes: 10px */
+    .id-card {
+        margin-top: 4px;
+        margin-bottom: 6px;
+    }
 
-/* antes: 14px 0 */
-.id-header {
-    padding-top: 12px;
-    padding-bottom: 10px;
-}
+    /* antes: 14px 0 */
+    .id-header {
+        padding-top: 12px;
+        padding-bottom: 10px;
+    }
 
-/* antes: 16px/16px */
+    /* antes: 16px/16px */
 
-/* 2) Espaço entre Identificação ↔ “Período e Totais” */
-.id-card+.sec-card {
-    margin-top: 6px;
-}
+    /* 2) Espaço entre Identificação ↔ “Período e Totais” */
+    .id-card+.sec-card {
+        margin-top: 6px;
+    }
 
-/* antes: 14px */
-.sec-card {
-    margin-top: 6px;
-    margin-bottom: 10px;
-}
+    /* antes: 14px */
+    .sec-card {
+        margin-top: 6px;
+        margin-bottom: 10px;
+    }
 
-.sec-header {
-    padding-top: 10px;
-    padding-bottom: 8px;
-}
+    .sec-header {
+        padding-top: 10px;
+        padding-bottom: 8px;
+    }
 
-/* antes: 16px/10px */
+    /* antes: 16px/10px */
 
-/* 3) Espaço entre os cabeçalhos dos blocos colapsáveis (Diárias, Apto, UTI, CC) */
-.block {
-    padding: 8px 10px;
-}
+    /* 3) Espaço entre os cabeçalhos dos blocos colapsáveis (Diárias, Apto, UTI, CC) */
+    .block {
+        padding: 8px 10px;
+    }
 
-/* antes: 12px */
-.block+.block {
-    margin-top: 10px;
-}
+    /* antes: 12px */
+    .block+.block {
+        margin-top: 10px;
+    }
 
-/* antes: 18px */
-.block>h5 {
-    margin: -8px -8px 6px -8px;
-    padding: 6px 8px;
-}
+    /* antes: 18px */
+    .block>h5 {
+        margin: -8px -8px 6px -8px;
+        padding: 6px 8px;
+    }
 
-/* antes: -12px ... 14px */
-/* quando o bloco estiver fechado, deixa ainda mais compacto */
-.block>h5[aria-expanded="false"] {
-    margin-bottom: 2px;
-}
+    /* antes: -12px ... 14px */
+    /* quando o bloco estiver fechado, deixa ainda mais compacto */
+    .block>h5[aria-expanded="false"] {
+        margin-bottom: 2px;
+    }
 </style>
 
 <!-- ========================= FORM ========================= -->
@@ -657,66 +657,66 @@ form#form-capeante-rah {
     </div>
 
     <?php if ($mostrarCadastroCentral): ?>
-    <div class="sec-card">
-        <div class="sec-header">
-            <div class="sec-title">Cadastro Equipe</div>
-            <div class="sec-right">
-                <div class="pill"><span>Status:</span> <strong id="cc-pill">—</strong></div>
-            </div>
-        </div>
-        <div class="sec-body">
-            <div class="row g-3 align-items-end">
-                <div class="col-12 col-lg-2">
-                    <label for="cadastro_central_cap" class="form-label">Ativar</label>
-                    <select class="form-select form-select-sm" id="cadastro_central_cap" name="cadastro_central_cap">
-                        <option value="n" <?= $cadastroCentralDefault === 'n' ? 'selected' : '' ?>>Não</option>
-                        <option value="s" <?= $cadastroCentralDefault === 's' ? 'selected' : '' ?>>Sim</option>
-                    </select>
+        <div class="sec-card">
+            <div class="sec-header">
+                <div class="sec-title">Cadastro Equipe</div>
+                <div class="sec-right">
+                    <div class="pill"><span>Status:</span> <strong id="cc-pill">—</strong></div>
                 </div>
+            </div>
+            <div class="sec-body">
+                <div class="row g-3 align-items-end">
+                    <div class="col-12 col-lg-2">
+                        <label for="cadastro_central_cap" class="form-label">Ativar</label>
+                        <select class="form-select form-select-sm" id="cadastro_central_cap" name="cadastro_central_cap">
+                            <option value="n" <?= $cadastroCentralDefault === 'n' ? 'selected' : '' ?>>Não</option>
+                            <option value="s" <?= $cadastroCentralDefault === 's' ? 'selected' : '' ?>>Sim</option>
+                        </select>
+                    </div>
 
-                <div class="col-12 col-lg-3">
-                    <label class="form-label" for="cad_central_med_id">Médico(a)</label>
-                    <select class="form-select form-select-sm" id="cad_central_med_id" name="fk_id_aud_med">
-                        <option value="">Selecione</option>
-                        <?php foreach ($usuariosAtivos as $u): if ($isMed($u['cargo_user'] ?? '')):
+                    <div class="col-12 col-lg-3">
+                        <label class="form-label" for="cad_central_med_id">Médico(a)</label>
+                        <select class="form-select form-select-sm" id="cad_central_med_id" name="fk_id_aud_med">
+                            <option value="">Selecione</option>
+                            <?php foreach ($usuariosAtivos as $u): if ($isMed($u['cargo_user'] ?? '')):
                                     $id = (int)($u['id_usuario'] ?? 0);
                                     $nome = (string)($u['usuario_user'] ?? '');
                                     $sel = ($id === $medSelecionado) ? 'selected' : ''; ?>
-                        <option value="<?= $id ?>" <?= $sel ?>><?= $h($nome) ?></option>
-                        <?php endif;
+                                    <option value="<?= $id ?>" <?= $sel ?>><?= $h($nome) ?></option>
+                            <?php endif;
                             endforeach; ?>
-                    </select>
-                </div>
+                        </select>
+                    </div>
 
-                <div class="col-12 col-lg-3">
-                    <label class="form-label" for="cad_central_enf_id">Enfermeiro(a)</label>
-                    <select class="form-select form-select-sm" id="cad_central_enf_id" name="fk_id_aud_enf">
-                        <option value="">Selecione</option>
-                        <?php foreach ($usuariosAtivos as $u): if ($isEnf($u['cargo_user'] ?? '')):
+                    <div class="col-12 col-lg-3">
+                        <label class="form-label" for="cad_central_enf_id">Enfermeiro(a)</label>
+                        <select class="form-select form-select-sm" id="cad_central_enf_id" name="fk_id_aud_enf">
+                            <option value="">Selecione</option>
+                            <?php foreach ($usuariosAtivos as $u): if ($isEnf($u['cargo_user'] ?? '')):
                                     $id = (int)($u['id_usuario'] ?? 0);
                                     $nome = (string)($u['usuario_user'] ?? '');
                                     $sel = ($id === $enfSelecionado) ? 'selected' : ''; ?>
-                        <option value="<?= $id ?>" <?= $sel ?>><?= $h($nome) ?></option>
-                        <?php endif;
+                                    <option value="<?= $id ?>" <?= $sel ?>><?= $h($nome) ?></option>
+                            <?php endif;
                             endforeach; ?>
-                    </select>
-                </div>
+                        </select>
+                    </div>
 
-                <div class="col-12 col-lg-3">
-                    <label class="form-label" for="cad_central_adm_id">Administrativo(a)</label>
-                    <select class="form-select form-select-sm" id="cad_central_adm_id" name="fk_id_aud_adm">
-                        <option value="">Selecione</option>
-                        <?php foreach ($usuariosAdm as $u):
+                    <div class="col-12 col-lg-3">
+                        <label class="form-label" for="cad_central_adm_id">Administrativo(a)</label>
+                        <select class="form-select form-select-sm" id="cad_central_adm_id" name="fk_id_aud_adm">
+                            <option value="">Selecione</option>
+                            <?php foreach ($usuariosAdm as $u):
                                 $id = (int)($u['id_usuario'] ?? 0);
                                 $nome = (string)($u['usuario_user'] ?? '');
                                 $sel = ($id === $admSelecionado) ? 'selected' : ''; ?>
-                        <option value="<?= $id ?>" <?= $sel ?>><?= $h($nome) ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                                <option value="<?= $id ?>" <?= $sel ?>><?= $h($nome) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
     <?php endif; ?>
 
     <!-- DIÁRIAS (formato PDF) -->
@@ -1288,6 +1288,64 @@ form#form-capeante-rah {
             </div>
         </div>
     </div>
+    <!-- SETOR: OUTROS -->
+    <div class="block" data-group="outros">
+        <h5>Outros</h5>
+
+        <div class="tuss-grid">
+            <div class="tg-head tg-col-desc">Descrição</div>
+            <div class="tg-head tg-col-qtd">Qtd.</div>
+            <div class="tg-head tg-col-cob">Cobrado</div>
+            <div class="tg-head tg-col-glo">Glosado</div>
+            <div class="tg-head tg-col-lib">Cobrado Após</div>
+            <div class="tg-head tg-col-obs">Observação</div>
+
+            <!-- PACOTE -->
+            <div class="tuss-row rah-row">
+                <div class="tg-lab tg-col-desc">Pacote</div>
+                <input name="outros_pacote_qtd" class="form-control tg-col-qtd" placeholder="Qtd">
+                <input name="outros_pacote_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="outros_pacote_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="outros_pacote_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="outros_pacote_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+
+            <!-- REMOÇÃO -->
+            <div class="tuss-row rah-row">
+                <div class="tg-lab tg-col-desc">Remoção</div>
+                <input name="outros_remocao_qtd" class="form-control tg-col-qtd" placeholder="Qtd">
+                <input name="outros_remocao_cobrado" class="form-control dinheiro tg-col-cob rah-cobrado"
+                    placeholder="R$ 0,00">
+                <input name="outros_remocao_glosado" class="form-control dinheiro tg-col-glo rah-glosado"
+                    placeholder="R$ 0,00">
+                <input name="outros_remocao_liberado" class="form-control dinheiro tg-col-lib rah-liberado"
+                    placeholder="R$ 0,00" readonly>
+                <input name="outros_remocao_obs" class="form-control tg-col-obs" placeholder="Observação">
+            </div>
+        </div>
+
+        <!-- CONSOLIDADO LOCAL (Outros) -->
+        <div class="row g-2 mt-2 grp-totais">
+            <div class="col-md-3">
+                <label class="form-label">Total Cobrado (Outros)</label>
+                <input type="text" name="outros_total_cobrado" class="form-control dinheiro grp-total-cobrado" readonly
+                    value="R$ 0,00">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Total Glosado (Outros)</label>
+                <input type="text" name="outros_total_glosado" class="form-control dinheiro grp-total-glosado" readonly
+                    value="R$ 0,00">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Total Cobrado Após (Outros)</label>
+                <input type="text" name="outros_total_liberado" class="form-control dinheiro grp-total-liberado"
+                    readonly value="R$ 0,00">
+            </div>
+        </div>
+    </div>
 
 
     <!-- AÇÕES -->
@@ -1312,595 +1370,595 @@ form#form-capeante-rah {
 
 <!-- SHIM anti-erro para maskMoney (se carregar depois) -->
 <script>
-(function(w) {
-    var $ = w.jQuery;
-    if (!$) return;
-    if (!$.fn.maskMoney) {
-        $.fn.maskMoney = function() {
-            return this;
-        };
-        $.fn.maskMoney.__stub__ = true;
-    }
-})(window);
+    (function(w) {
+        var $ = w.jQuery;
+        if (!$) return;
+        if (!$.fn.maskMoney) {
+            $.fn.maskMoney = function() {
+                return this;
+            };
+            $.fn.maskMoney.__stub__ = true;
+        }
+    })(window);
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-maskmoney/3.0.2/jquery.maskMoney.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
 <!-- Inicialização / Comportamentos -->
 <script>
-(function() {
-    function aplicarMascara(ctx) {
-        if (!window.jQuery || !jQuery.fn || typeof jQuery.fn.maskMoney !== 'function') return;
-        jQuery(ctx || document).find('.dinheiro').each(function() {
-            jQuery(this).maskMoney({
-                thousands: '.',
-                decimal: ',',
-                allowZero: true,
-                precision: 2
+    (function() {
+        function aplicarMascara(ctx) {
+            if (!window.jQuery || !jQuery.fn || typeof jQuery.fn.maskMoney !== 'function') return;
+            jQuery(ctx || document).find('.dinheiro').each(function() {
+                jQuery(this).maskMoney({
+                    thousands: '.',
+                    decimal: ',',
+                    allowZero: true,
+                    precision: 2
+                });
+            });
+        }
+
+        jQuery(function() {
+            aplicarMascara(document);
+
+            $('#parcial_capeante').on('change', function() {
+                if (this.value === 's') {
+                    $('#wrap_parcial_num').show();
+                } else {
+                    $('#wrap_parcial_num').hide();
+                }
+            });
+
+            $('#btnSalvarPDF').on('click', function() {
+                const idCapeante = <?= $hi($fv('id_capeante')) ?>;
+                const idInternacao = <?= $hi($fv('id_internacao') ?: $fv('fk_int_capeante')) ?>;
+                const iframe = document.getElementById('iframeDownload');
+                iframe.src = 'process_capeante_pdf.php?id_capeante=' + idCapeante +
+                    '&fk_int_capeante=' + idInternacao + '&save_only=1';
+                mostrarMensagem('Capeante salvo em PDF com sucesso!', '#198754');
+            });
+
+            $('#btnEnviarEmail').on('click', function() {
+                const idCapeante = <?= $hi($fv('id_capeante')) ?>;
+                const idInternacao = <?= $hi($fv('id_internacao') ?: $fv('fk_int_capeante')) ?>;
+                fetch('process_capeante_pdf.php?id_capeante=' + idCapeante + '&fk_int_capeante=' +
+                    idInternacao);
+                mostrarMensagem('Email enviado com sucesso!', '#0d6efd');
             });
         });
-    }
 
-    jQuery(function() {
-        aplicarMascara(document);
-
-        $('#parcial_capeante').on('change', function() {
-            if (this.value === 's') {
-                $('#wrap_parcial_num').show();
-            } else {
-                $('#wrap_parcial_num').hide();
-            }
-        });
-
-        $('#btnSalvarPDF').on('click', function() {
-            const idCapeante = <?= $hi($fv('id_capeante')) ?>;
-            const idInternacao = <?= $hi($fv('id_internacao') ?: $fv('fk_int_capeante')) ?>;
-            const iframe = document.getElementById('iframeDownload');
-            iframe.src = 'process_capeante_pdf.php?id_capeante=' + idCapeante +
-                '&fk_int_capeante=' + idInternacao + '&save_only=1';
-            mostrarMensagem('Capeante salvo em PDF com sucesso!', '#198754');
-        });
-
-        $('#btnEnviarEmail').on('click', function() {
-            const idCapeante = <?= $hi($fv('id_capeante')) ?>;
-            const idInternacao = <?= $hi($fv('id_internacao') ?: $fv('fk_int_capeante')) ?>;
-            fetch('process_capeante_pdf.php?id_capeante=' + idCapeante + '&fk_int_capeante=' +
-                idInternacao);
-            mostrarMensagem('Email enviado com sucesso!', '#0d6efd');
-        });
-    });
-
-    function mostrarMensagem(texto, cor) {
-        const div = document.getElementById('mensagemStatus');
-        div.textContent = texto;
-        div.style.backgroundColor = cor;
-        div.style.color = 'white';
-        div.style.display = 'block';
-        setTimeout(() => {
-            div.style.display = 'none';
-        }, 5000);
-    }
-})();
+        function mostrarMensagem(texto, cor) {
+            const div = document.getElementById('mensagemStatus');
+            div.textContent = texto;
+            div.style.backgroundColor = cor;
+            div.style.color = 'white';
+            div.style.display = 'block';
+            setTimeout(() => {
+                div.style.display = 'none';
+            }, 5000);
+        }
+    })();
 </script>
 
 <!-- Cálculo da coluna "Cobrado Após" (apenas acrescentado) -->
 <script>
-/* =========================================================================
+    /* =========================================================================
    CÁLCULOS RAH
    - Linha: Cobrado Após = max(0, Cobrado - Glosado)
    - Bloco (data-group="..."): soma Cobrado / Glosado / Cobrado Após
    - Totais gerais: se existirem (#total_cobrado, #total_glosado, #total_liberado)
    - Robusto com maskMoney (formatações "R$ 1.234,56")
    ========================================================================= */
-(function() {
-    var $ = window.jQuery;
+    (function() {
+        var $ = window.jQuery;
 
-    // --- Utils moeda ---
-    function moneyToFloat(s) {
-        if (s == null) return 0;
-        s = ('' + s).trim();
-        if (!s) return 0;
-        // remove R$, espaços, milhares e troca vírgula decimal
-        s = s.replace(/[^\d.,-]/g, '').replace(/\./g, '').replace(',', '.');
-        var v = parseFloat(s);
-        return isNaN(v) ? 0 : v;
-    }
-
-    function floatToMoney(v) {
-        if (!isFinite(v)) v = 0;
-        var parts = v.toFixed(2).split('.');
-        var i = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        return 'R$ ' + i + ',' + parts[1];
-    }
-
-    // --- Linha ---
-    function recalcRow($row) {
-        var vCob = moneyToFloat($row.find('.rah-cobrado').val());
-        var vGlo = moneyToFloat($row.find('.rah-glosado').val());
-        var vLib = Math.max(0, vCob - vGlo);
-        $row.find('.rah-liberado').val(floatToMoney(vLib));
-    }
-
-    // --- Bloco (consolidado local) ---
-    function recalcBlock($block) {
-        var tCob = 0,
-            tGlo = 0,
-            tLib = 0;
-        $block.find('.tuss-row').each(function() {
-            var $r = $(this);
-            tCob += moneyToFloat($r.find('.rah-cobrado').val());
-            tGlo += moneyToFloat($r.find('.rah-glosado').val());
-            tLib += moneyToFloat($r.find('.rah-liberado').val());
-        });
-        // escreve nos campos do próprio bloco, se existirem
-        var $cob = $block.find('.grp-total-cobrado');
-        var $glo = $block.find('.grp-total-glosado');
-        var $lib = $block.find('.grp-total-liberado');
-        if ($cob.length) $cob.val(floatToMoney(tCob));
-        if ($glo.length) $glo.val(floatToMoney(tGlo));
-        if ($lib.length) $lib.val(floatToMoney(tLib));
-    }
-
-    // --- Totais gerais (opcional) ---
-    function recalcGrandTotals() {
-        var tCob = 0,
-            tGlo = 0,
-            tLib = 0;
-        $('.tuss-row').each(function() {
-            var $r = $(this);
-            tCob += moneyToFloat($r.find('.rah-cobrado').val());
-            tGlo += moneyToFloat($r.find('.rah-glosado').val());
-            tLib += moneyToFloat($r.find('.rah-liberado').val());
-        });
-
-        if ($('#total_cobrado').length) $('#total_cobrado').val(floatToMoney(tCob));
-        if ($('#total_glosado').length) $('#total_glosado').val(floatToMoney(tGlo));
-        if ($('#total_liberado').length) $('#total_liberado').val(floatToMoney(tLib));
-
-
-        if (window.RAHSync && typeof RAHSync.syncPeriodTotals === 'function') {
-            RAHSync.syncPeriodTotals(tCob, tLib);
+        // --- Utils moeda ---
+        function moneyToFloat(s) {
+            if (s == null) return 0;
+            s = ('' + s).trim();
+            if (!s) return 0;
+            // remove R$, espaços, milhares e troca vírgula decimal
+            s = s.replace(/[^\d.,-]/g, '').replace(/\./g, '').replace(',', '.');
+            var v = parseFloat(s);
+            return isNaN(v) ? 0 : v;
         }
-    }
+
+        function floatToMoney(v) {
+            if (!isFinite(v)) v = 0;
+            var parts = v.toFixed(2).split('.');
+            var i = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            return 'R$ ' + i + ',' + parts[1];
+        }
+
+        // --- Linha ---
+        function recalcRow($row) {
+            var vCob = moneyToFloat($row.find('.rah-cobrado').val());
+            var vGlo = moneyToFloat($row.find('.rah-glosado').val());
+            var vLib = Math.max(0, vCob - vGlo);
+            $row.find('.rah-liberado').val(floatToMoney(vLib));
+        }
+
+        // --- Bloco (consolidado local) ---
+        function recalcBlock($block) {
+            var tCob = 0,
+                tGlo = 0,
+                tLib = 0;
+            $block.find('.tuss-row').each(function() {
+                var $r = $(this);
+                tCob += moneyToFloat($r.find('.rah-cobrado').val());
+                tGlo += moneyToFloat($r.find('.rah-glosado').val());
+                tLib += moneyToFloat($r.find('.rah-liberado').val());
+            });
+            // escreve nos campos do próprio bloco, se existirem
+            var $cob = $block.find('.grp-total-cobrado');
+            var $glo = $block.find('.grp-total-glosado');
+            var $lib = $block.find('.grp-total-liberado');
+            if ($cob.length) $cob.val(floatToMoney(tCob));
+            if ($glo.length) $glo.val(floatToMoney(tGlo));
+            if ($lib.length) $lib.val(floatToMoney(tLib));
+        }
+
+        // --- Totais gerais (opcional) ---
+        function recalcGrandTotals() {
+            var tCob = 0,
+                tGlo = 0,
+                tLib = 0;
+            $('.tuss-row').each(function() {
+                var $r = $(this);
+                tCob += moneyToFloat($r.find('.rah-cobrado').val());
+                tGlo += moneyToFloat($r.find('.rah-glosado').val());
+                tLib += moneyToFloat($r.find('.rah-liberado').val());
+            });
+
+            if ($('#total_cobrado').length) $('#total_cobrado').val(floatToMoney(tCob));
+            if ($('#total_glosado').length) $('#total_glosado').val(floatToMoney(tGlo));
+            if ($('#total_liberado').length) $('#total_liberado').val(floatToMoney(tLib));
 
 
-    // --- Orquestração ---
-    function recalcAround($row) {
-        // recalcula a linha
-        recalcRow($row);
-        // bloco mais próximo (com .block); se tiver consolidado, ele será atualizado
-        var $block = $row.closest('.block');
-        if ($block.length) recalcBlock($block);
-        // totais gerais (se existirem)
-        recalcGrandTotals();
-    }
+            if (window.RAHSync && typeof RAHSync.syncPeriodTotals === 'function') {
+                RAHSync.syncPeriodTotals(tCob, tLib);
+            }
+        }
 
-    $(function() {
-        recalcAll();
-        setTimeout(function() {
+
+        // --- Orquestração ---
+        function recalcAround($row) {
+            // recalcula a linha
+            recalcRow($row);
+            // bloco mais próximo (com .block); se tiver consolidado, ele será atualizado
+            var $block = $row.closest('.block');
+            if ($block.length) recalcBlock($block);
+            // totais gerais (se existirem)
+            recalcGrandTotals();
+        }
+
+        $(function() {
             recalcAll();
-            // sincroniza os pills/hidden mesmo sem digitação
-            if (window.RAHResumo && typeof RAHResumo.aplicar === 'function') {
-                // Usa totais já escritos na tela para não recalcular de novo
-                var tCob = 0,
-                    tLib = 0;
-                $('.tuss-row').each(function() {
-                    var $r = $(this);
-                    tCob += RAHCalc.moneyToFloat($r.find('.rah-cobrado').val());
-                    tLib += RAHCalc.moneyToFloat($r.find('.rah-liberado').val());
-                });
-                RAHResumo.aplicar(tCob, tLib);
-            }
-        }, 80);
-    });
-
-    // --- Eventos (funciona com maskMoney) ---
-    $(document).on('input change keyup', '.rah-cobrado, .rah-glosado', function() {
-        recalcAround($(this).closest('.tuss-row'));
-    });
-
-    // Dispara no carregamento; depois do maskMoney formatar, roda de novo
-    $(function() {
-        recalcAll();
-        setTimeout(recalcAll, 60);
-    });
-
-    // Exponha utilitários, se precisar em outros scripts
-    window.RAHCalc = {
-        moneyToFloat,
-        floatToMoney,
-        recalcRow,
-        recalcBlock,
-        recalcGrandTotals,
-        recalcAll
-    };
-})();
-</script>
-<script>
-(function() {
-    var $ = window.jQuery;
-
-    // Reaplica máscara e força o recálculo do grupo quando a collapse abrir
-    document.addEventListener('shown.bs.collapse', function(ev) {
-        var $target = $(ev.target); // o div .collapse aberto
-        var $block = $target.closest('.block');
-
-        // aplica mascara nos campos desse bloco
-        if ($.fn.maskMoney) {
-            $block.find('.dinheiro').maskMoney({
-                thousands: '.',
-                decimal: ',',
-                allowZero: true,
-                precision: 2
-            });
-        }
-
-        // dispara um recálculo local simulando mudança nos campos
-        // (o seu script global já escuta os eventos e soma por bloco)
-        $block.find('.rah-cobrado,.rah-glosado').first().trigger('input');
-    });
-
-
-})();
-</script>
-<script>
-document.addEventListener('shown.bs.collapse', function(e) {
-    const btn = document.querySelector('[data-bs-target="#' + e.target.id + '"] .toggle-caret');
-    if (btn) btn.classList.add('rotate-180');
-});
-document.addEventListener('hidden.bs.collapse', function(e) {
-    const btn = document.querySelector('[data-bs-target="#' + e.target.id + '"] .toggle-caret');
-    if (btn) btn.classList.remove('rotate-180');
-});
-</script>
-<style>
-.rotate-180 {
-    transform: rotate(180deg);
-    transition: transform .2s;
-}
-</style>
-<style>
-/* Cursor e setinha no título */
-.block>h5 {
-    cursor: pointer;
-    position: relative;
-    padding-left: 28px;
-}
-
-.block>h5::before {
-    content: "▸";
-    position: absolute;
-    left: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-weight: 900;
-    opacity: .7;
-}
-
-.block>h5[aria-expanded="true"]::before {
-    content: "▾";
-}
-
-/* transição suave opcional (para quem não quer slide) */
-/* .block-body{ transition:max-height .2s ease; overflow:hidden; } */
-</style>
-
-<style>
-/* Cursor e setinha só para blocos colapsáveis */
-.block>h5 {
-    position: relative;
-    padding-left: 28px;
-}
-
-.block>h5:not([data-static="1"]) {
-    cursor: pointer;
-}
-
-.block>h5:not([data-static="1"])::before {
-    content: "▸";
-    position: absolute;
-    left: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-weight: 900;
-    opacity: .7;
-}
-
-.block>h5[aria-expanded="true"]:not([data-static="1"])::before {
-    content: "▾";
-}
-</style>
-
-<script>
-(function() {
-    var $ = window.jQuery;
-    if (!$) return;
-
-    function isNaoColapsavel(t) {
-        t = (t || "").trim().toLowerCase();
-        return t === "identificação" || t === "periodo e totais" || t === "período e totais";
-    }
-
-    $('.block').each(function() {
-        var $block = $(this);
-        var $title = $block.children('h5').first();
-        if (!$title.length) return;
-
-        var $body = $title.nextAll();
-        if (!$body.length) return;
-
-        if (isNaoColapsavel($title.text())) {
-            // Sempre aberto e sem interação
-            $title.attr({
-                'data-static': '1',
-                'aria-expanded': 'true'
-            });
-            $body.show();
-            $title.off('click.rahCollapse'); // garante sem toggle
-            return;
-        }
-
-        // Colapsável: inicia fechado
-        $title.attr('aria-expanded', 'false');
-        $body.hide();
-
-        $title.off('click.rahCollapse').on('click.rahCollapse', function() {
-            var expanded = $title.attr('aria-expanded') === 'true';
-            $title.attr('aria-expanded', expanded ? 'false' : 'true');
-            $body.stop(true, true).slideToggle(160);
-        });
-    });
-})();
-</script>
-<script>
-/* Atualiza os inputs hidden e os pills do cabeçalho */
-(function() {
-    var $ = window.jQuery;
-
-    window.RAHResumo = {
-        aplicar: function(tCob, tLib) {
-            // Valor Apresentado
-            if (window.RAHCalc && typeof RAHCalc.floatToMoney === 'function') {
-                var mCob = RAHCalc.floatToMoney(tCob);
-                var mLib = RAHCalc.floatToMoney(tLib);
-
-                if ($('#inp_val_apr').length) $('#inp_val_apr').val(mCob);
-                if ($('#pill_val_apr').length) $('#pill_val_apr').text(mCob);
-
-                // Valor Final (padrão = liberado)
-                var vf = tLib;
-
-                var $desc = $('#desconto_valor_cap');
-                if ($desc.length) {
-                    var d = parseFloat(($desc.val() || '').replace(',', '.')) || 0;
-                    vf = tLib * (1 - d / 100);
+            setTimeout(function() {
+                recalcAll();
+                // sincroniza os pills/hidden mesmo sem digitação
+                if (window.RAHResumo && typeof RAHResumo.aplicar === 'function') {
+                    // Usa totais já escritos na tela para não recalcular de novo
+                    var tCob = 0,
+                        tLib = 0;
+                    $('.tuss-row').each(function() {
+                        var $r = $(this);
+                        tCob += RAHCalc.moneyToFloat($r.find('.rah-cobrado').val());
+                        tLib += RAHCalc.moneyToFloat($r.find('.rah-liberado').val());
+                    });
+                    RAHResumo.aplicar(tCob, tLib);
                 }
-                var mVf = RAHCalc.floatToMoney(vf);
-
-                if ($('#inp_val_fin').length) $('#inp_val_fin').val(mVf);
-                if ($('#pill_val_fin').length) $('#pill_val_fin').text(mVf);
-            }
-        }
-    };
-})();
-</script>
-<script>
-/* Bridge: joga os totais globais nos campos do bloco “Período e Totais”
-   - Valor Apresentado  => soma Cobrado
-   - Valor Final        => soma Cobrado Após (ajusta desconto se existir) */
-(function() {
-    var $ = window.jQuery;
-
-    function syncPeriodTotals(tCob, tLib) {
-        if (!window.RAHCalc) return;
-
-        // Apresentado
-        var mCob = RAHCalc.floatToMoney(tCob);
-        var $inpApr = $('[name="valor_apresentado_capeante"]');
-        if ($inpApr.length) $inpApr.val(mCob);
-        $('.pill-val-apr').text(mCob); // opcional: se tiver “pill”
-
-        // Final = Liberado (com desconto %, se existir)
-        var $desc = $('#desconto_valor_cap');
-        var d = 0;
-        if ($desc.length) d = parseFloat(($desc.val() || '').replace(',', '.')) || 0;
-
-        var vFinal = tLib * (1 - d / 100);
-        var mFinal = RAHCalc.floatToMoney(vFinal);
-
-        var $inpFinal = $('[name="valor_final_capeante"]');
-        if ($inpFinal.length) $inpFinal.val(mFinal);
-        $('.pill-val-fin').text(mFinal); // opcional: se tiver “pill”
-    }
-
-    // expõe para uso no recalcGrandTotals
-    window.RAHSync = {
-        syncPeriodTotals
-    };
-})();
-</script>
-<script>
-/* =======================================================================
-   ESPELHO "PERÍODO E TOTAIS"
-   - Valor Apresentado  = soma de todos os "Cobrado"
-   - Valor Final        = soma de todos os "Cobrado Após" (aplica desconto % se existir)
-   - Não depende do seu recalcGrandTotals: calcula sozinho e preenche sempre.
-   ======================================================================= */
-(function() {
-    var $ = window.jQuery;
-
-    // Usa utilitários do seu RAHCalc se existirem; senão, define fallback
-    var moneyToFloat = (window.RAHCalc && RAHCalc.moneyToFloat) || function(s) {
-        if (s == null) return 0;
-        s = ('' + s).trim();
-        if (!s) return 0;
-        s = s.replace(/[^\d.,-]/g, '').replace(/\./g, '').replace(',', '.');
-        var v = parseFloat(s);
-        return isNaN(v) ? 0 : v;
-    };
-
-    var floatToMoney = (window.RAHCalc && RAHCalc.floatToMoney) || function(v) {
-        if (!isFinite(v)) v = 0;
-        var p = v.toFixed(2).split('.');
-        var i = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        return 'R$ ' + i + ',' + p[1];
-    };
-
-    function somarGlobais() {
-        var tCob = 0,
-            tLib = 0;
-        // Soma todos os blocos do formulário
-        $('.tuss-row').each(function() {
-            var $r = $(this);
-            tCob += moneyToFloat($r.find('.rah-cobrado').val());
-            tLib += moneyToFloat($r.find('.rah-liberado').val());
+            }, 80);
         });
 
-        // Aplica desconto (%) se existir
-        var $desc = $('#desconto_valor_cap');
-        var d = 0;
-        if ($desc.length) d = parseFloat(($desc.val() || '').replace(',', '.')) || 0;
-        var vFinal = tLib * (1 - d / 100);
+        // --- Eventos (funciona com maskMoney) ---
+        $(document).on('input change keyup', '.rah-cobrado, .rah-glosado', function() {
+            recalcAround($(this).closest('.tuss-row'));
+        });
 
-        return {
-            tCob: tCob,
-            vFinal: vFinal
+        // Dispara no carregamento; depois do maskMoney formatar, roda de novo
+        $(function() {
+            recalcAll();
+            setTimeout(recalcAll, 60);
+        });
+
+        // Exponha utilitários, se precisar em outros scripts
+        window.RAHCalc = {
+            moneyToFloat,
+            floatToMoney,
+            recalcRow,
+            recalcBlock,
+            recalcGrandTotals,
+            recalcAll
         };
-    }
+    })();
+</script>
+<script>
+    (function() {
+        var $ = window.jQuery;
 
-    function setMoney($inp, valorFmt, valorNum) {
-        if (!$inp || !$inp.length) return;
-        // Se maskMoney estiver disponível, usa a API 'mask' para formatar corretamente
-        if ($.fn && $.fn.maskMoney && $.fn.maskMoney.__stub__ !== true) {
-            // quando passamos número para 'mask', ele já formata
-            $inp.maskMoney('mask', Number(valorNum));
-        } else {
-            $inp.val(valorFmt).trigger('change');
-        }
-    }
-
-    function espelhar() {
-        var tot = somarGlobais();
-        var mApr = floatToMoney(tot.tCob);
-        var mFin = floatToMoney(tot.vFinal);
-
-        // Campos reais do bloco "Período e Totais"
-        var $inpApr = $('[name="valor_apresentado_capeante"]').first();
-        var $inpFin = $('[name="valor_final_capeante"]').first();
-
-        setMoney($inpApr, mApr, tot.tCob);
-        setMoney($inpFin, mFin, tot.vFinal);
-
-        // (opcional) se você tiver "pílulas" visuais
-        $('.pill-val-apr').text(mApr);
-        $('.pill-val-fin').text(mFin);
-    }
-
-    function bind() {
-        // Sempre que mexer nos valores de linha, reflete nos totais do período
-        $(document).on('input change keyup', '.rah-cobrado, .rah-glosado, #desconto_valor_cap', espelhar);
-
-        // Ao abrir colapsáveis, reaplica máscara e espelha
+        // Reaplica máscara e força o recálculo do grupo quando a collapse abrir
         document.addEventListener('shown.bs.collapse', function(ev) {
-            var $blk = $(ev.target).closest('.block');
-            if ($blk.length && $.fn && $.fn.maskMoney && $.fn.maskMoney.__stub__ !== true) {
-                $blk.find('.dinheiro').maskMoney({
+            var $target = $(ev.target); // o div .collapse aberto
+            var $block = $target.closest('.block');
+
+            // aplica mascara nos campos desse bloco
+            if ($.fn.maskMoney) {
+                $block.find('.dinheiro').maskMoney({
                     thousands: '.',
                     decimal: ',',
                     allowZero: true,
                     precision: 2
                 });
             }
-            espelhar();
+
+            // dispara um recálculo local simulando mudança nos campos
+            // (o seu script global já escuta os eventos e soma por bloco)
+            $block.find('.rah-cobrado,.rah-glosado').first().trigger('input');
         });
 
-        // Primeira passada na carga + pequena rechecagem pós-mask
-        $(function() {
-            espelhar();
-            setTimeout(espelhar, 80);
-        });
-    }
 
-    if ($) bind();
-})();
+    })();
 </script>
 <script>
-// Liga/desliga selects conforme "Ativar" e atualiza pill
-(function() {
-    function setEnabled(el, on) {
-        if (!el) return;
-        el.disabled = !on;
-        if (!on) el.value = "";
-    }
-
-    function updateUI() {
-        var on = (document.getElementById('cadastro_central_cap')?.value || 'n') === 's';
-        setEnabled(document.getElementById('cad_central_med_id'), on);
-        setEnabled(document.getElementById('cad_central_enf_id'), on);
-        setEnabled(document.getElementById('cad_central_adm_id'), on);
-        var pill = document.getElementById('cc-pill');
-        if (pill) pill.textContent = on ? 'Ativo' : 'Inativo';
-    }
-    document.addEventListener('change', function(e) {
-        if (e.target && e.target.id === 'cadastro_central_cap') updateUI();
+    document.addEventListener('shown.bs.collapse', function(e) {
+        const btn = document.querySelector('[data-bs-target="#' + e.target.id + '"] .toggle-caret');
+        if (btn) btn.classList.add('rotate-180');
     });
-    document.addEventListener('DOMContentLoaded', updateUI);
-})();
+    document.addEventListener('hidden.bs.collapse', function(e) {
+        const btn = document.querySelector('[data-bs-target="#' + e.target.id + '"] .toggle-caret');
+        if (btn) btn.classList.remove('rotate-180');
+    });
+</script>
+<style>
+    .rotate-180 {
+        transform: rotate(180deg);
+        transition: transform .2s;
+    }
+</style>
+<style>
+    /* Cursor e setinha no título */
+    .block>h5 {
+        cursor: pointer;
+        position: relative;
+        padding-left: 28px;
+    }
+
+    .block>h5::before {
+        content: "▸";
+        position: absolute;
+        left: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-weight: 900;
+        opacity: .7;
+    }
+
+    .block>h5[aria-expanded="true"]::before {
+        content: "▾";
+    }
+
+    /* transição suave opcional (para quem não quer slide) */
+    /* .block-body{ transition:max-height .2s ease; overflow:hidden; } */
+</style>
+
+<style>
+    /* Cursor e setinha só para blocos colapsáveis */
+    .block>h5 {
+        position: relative;
+        padding-left: 28px;
+    }
+
+    .block>h5:not([data-static="1"]) {
+        cursor: pointer;
+    }
+
+    .block>h5:not([data-static="1"])::before {
+        content: "▸";
+        position: absolute;
+        left: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-weight: 900;
+        opacity: .7;
+    }
+
+    .block>h5[aria-expanded="true"]:not([data-static="1"])::before {
+        content: "▾";
+    }
+</style>
+
+<script>
+    (function() {
+        var $ = window.jQuery;
+        if (!$) return;
+
+        function isNaoColapsavel(t) {
+            t = (t || "").trim().toLowerCase();
+            return t === "identificação" || t === "periodo e totais" || t === "período e totais";
+        }
+
+        $('.block').each(function() {
+            var $block = $(this);
+            var $title = $block.children('h5').first();
+            if (!$title.length) return;
+
+            var $body = $title.nextAll();
+            if (!$body.length) return;
+
+            if (isNaoColapsavel($title.text())) {
+                // Sempre aberto e sem interação
+                $title.attr({
+                    'data-static': '1',
+                    'aria-expanded': 'true'
+                });
+                $body.show();
+                $title.off('click.rahCollapse'); // garante sem toggle
+                return;
+            }
+
+            // Colapsável: inicia fechado
+            $title.attr('aria-expanded', 'false');
+            $body.hide();
+
+            $title.off('click.rahCollapse').on('click.rahCollapse', function() {
+                var expanded = $title.attr('aria-expanded') === 'true';
+                $title.attr('aria-expanded', expanded ? 'false' : 'true');
+                $body.stop(true, true).slideToggle(160);
+            });
+        });
+    })();
+</script>
+<script>
+    /* Atualiza os inputs hidden e os pills do cabeçalho */
+    (function() {
+        var $ = window.jQuery;
+
+        window.RAHResumo = {
+            aplicar: function(tCob, tLib) {
+                // Valor Apresentado
+                if (window.RAHCalc && typeof RAHCalc.floatToMoney === 'function') {
+                    var mCob = RAHCalc.floatToMoney(tCob);
+                    var mLib = RAHCalc.floatToMoney(tLib);
+
+                    if ($('#inp_val_apr').length) $('#inp_val_apr').val(mCob);
+                    if ($('#pill_val_apr').length) $('#pill_val_apr').text(mCob);
+
+                    // Valor Final (padrão = liberado)
+                    var vf = tLib;
+
+                    var $desc = $('#desconto_valor_cap');
+                    if ($desc.length) {
+                        var d = parseFloat(($desc.val() || '').replace(',', '.')) || 0;
+                        vf = tLib * (1 - d / 100);
+                    }
+                    var mVf = RAHCalc.floatToMoney(vf);
+
+                    if ($('#inp_val_fin').length) $('#inp_val_fin').val(mVf);
+                    if ($('#pill_val_fin').length) $('#pill_val_fin').text(mVf);
+                }
+            }
+        };
+    })();
+</script>
+<script>
+    /* Bridge: joga os totais globais nos campos do bloco “Período e Totais”
+   - Valor Apresentado  => soma Cobrado
+   - Valor Final        => soma Cobrado Após (ajusta desconto se existir) */
+    (function() {
+        var $ = window.jQuery;
+
+        function syncPeriodTotals(tCob, tLib) {
+            if (!window.RAHCalc) return;
+
+            // Apresentado
+            var mCob = RAHCalc.floatToMoney(tCob);
+            var $inpApr = $('[name="valor_apresentado_capeante"]');
+            if ($inpApr.length) $inpApr.val(mCob);
+            $('.pill-val-apr').text(mCob); // opcional: se tiver “pill”
+
+            // Final = Liberado (com desconto %, se existir)
+            var $desc = $('#desconto_valor_cap');
+            var d = 0;
+            if ($desc.length) d = parseFloat(($desc.val() || '').replace(',', '.')) || 0;
+
+            var vFinal = tLib * (1 - d / 100);
+            var mFinal = RAHCalc.floatToMoney(vFinal);
+
+            var $inpFinal = $('[name="valor_final_capeante"]');
+            if ($inpFinal.length) $inpFinal.val(mFinal);
+            $('.pill-val-fin').text(mFinal); // opcional: se tiver “pill”
+        }
+
+        // expõe para uso no recalcGrandTotals
+        window.RAHSync = {
+            syncPeriodTotals
+        };
+    })();
+</script>
+<script>
+    /* =======================================================================
+   ESPELHO "PERÍODO E TOTAIS"
+   - Valor Apresentado  = soma de todos os "Cobrado"
+   - Valor Final        = soma de todos os "Cobrado Após" (aplica desconto % se existir)
+   - Não depende do seu recalcGrandTotals: calcula sozinho e preenche sempre.
+   ======================================================================= */
+    (function() {
+        var $ = window.jQuery;
+
+        // Usa utilitários do seu RAHCalc se existirem; senão, define fallback
+        var moneyToFloat = (window.RAHCalc && RAHCalc.moneyToFloat) || function(s) {
+            if (s == null) return 0;
+            s = ('' + s).trim();
+            if (!s) return 0;
+            s = s.replace(/[^\d.,-]/g, '').replace(/\./g, '').replace(',', '.');
+            var v = parseFloat(s);
+            return isNaN(v) ? 0 : v;
+        };
+
+        var floatToMoney = (window.RAHCalc && RAHCalc.floatToMoney) || function(v) {
+            if (!isFinite(v)) v = 0;
+            var p = v.toFixed(2).split('.');
+            var i = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            return 'R$ ' + i + ',' + p[1];
+        };
+
+        function somarGlobais() {
+            var tCob = 0,
+                tLib = 0;
+            // Soma todos os blocos do formulário
+            $('.tuss-row').each(function() {
+                var $r = $(this);
+                tCob += moneyToFloat($r.find('.rah-cobrado').val());
+                tLib += moneyToFloat($r.find('.rah-liberado').val());
+            });
+
+            // Aplica desconto (%) se existir
+            var $desc = $('#desconto_valor_cap');
+            var d = 0;
+            if ($desc.length) d = parseFloat(($desc.val() || '').replace(',', '.')) || 0;
+            var vFinal = tLib * (1 - d / 100);
+
+            return {
+                tCob: tCob,
+                vFinal: vFinal
+            };
+        }
+
+        function setMoney($inp, valorFmt, valorNum) {
+            if (!$inp || !$inp.length) return;
+            // Se maskMoney estiver disponível, usa a API 'mask' para formatar corretamente
+            if ($.fn && $.fn.maskMoney && $.fn.maskMoney.__stub__ !== true) {
+                // quando passamos número para 'mask', ele já formata
+                $inp.maskMoney('mask', Number(valorNum));
+            } else {
+                $inp.val(valorFmt).trigger('change');
+            }
+        }
+
+        function espelhar() {
+            var tot = somarGlobais();
+            var mApr = floatToMoney(tot.tCob);
+            var mFin = floatToMoney(tot.vFinal);
+
+            // Campos reais do bloco "Período e Totais"
+            var $inpApr = $('[name="valor_apresentado_capeante"]').first();
+            var $inpFin = $('[name="valor_final_capeante"]').first();
+
+            setMoney($inpApr, mApr, tot.tCob);
+            setMoney($inpFin, mFin, tot.vFinal);
+
+            // (opcional) se você tiver "pílulas" visuais
+            $('.pill-val-apr').text(mApr);
+            $('.pill-val-fin').text(mFin);
+        }
+
+        function bind() {
+            // Sempre que mexer nos valores de linha, reflete nos totais do período
+            $(document).on('input change keyup', '.rah-cobrado, .rah-glosado, #desconto_valor_cap', espelhar);
+
+            // Ao abrir colapsáveis, reaplica máscara e espelha
+            document.addEventListener('shown.bs.collapse', function(ev) {
+                var $blk = $(ev.target).closest('.block');
+                if ($blk.length && $.fn && $.fn.maskMoney && $.fn.maskMoney.__stub__ !== true) {
+                    $blk.find('.dinheiro').maskMoney({
+                        thousands: '.',
+                        decimal: ',',
+                        allowZero: true,
+                        precision: 2
+                    });
+                }
+                espelhar();
+            });
+
+            // Primeira passada na carga + pequena rechecagem pós-mask
+            $(function() {
+                espelhar();
+                setTimeout(espelhar, 80);
+            });
+        }
+
+        if ($) bind();
+    })();
+</script>
+<script>
+    // Liga/desliga selects conforme "Ativar" e atualiza pill
+    (function() {
+        function setEnabled(el, on) {
+            if (!el) return;
+            el.disabled = !on;
+            if (!on) el.value = "";
+        }
+
+        function updateUI() {
+            var on = (document.getElementById('cadastro_central_cap')?.value || 'n') === 's';
+            setEnabled(document.getElementById('cad_central_med_id'), on);
+            setEnabled(document.getElementById('cad_central_enf_id'), on);
+            setEnabled(document.getElementById('cad_central_adm_id'), on);
+            var pill = document.getElementById('cc-pill');
+            if (pill) pill.textContent = on ? 'Ativo' : 'Inativo';
+        }
+        document.addEventListener('change', function(e) {
+            if (e.target && e.target.id === 'cadastro_central_cap') updateUI();
+        });
+        document.addEventListener('DOMContentLoaded', updateUI);
+    })();
 </script>
 
 <script>
-// Preenche selects a partir dos hidden (se houver valores salvos)
-(function() {
-    function setSelectByValue(sel, value, fallback) {
-        if (!sel || !value || value === "0") return;
-        var opt = sel.querySelector('option[value="' + value + '"]');
-        if (!opt) {
-            opt = document.createElement('option');
-            opt.value = value;
-            opt.textContent = fallback || ('Selecionado (ID ' + value + ')');
-            sel.insertBefore(opt, sel.firstChild);
+    // Preenche selects a partir dos hidden (se houver valores salvos)
+    (function() {
+        function setSelectByValue(sel, value, fallback) {
+            if (!sel || !value || value === "0") return;
+            var opt = sel.querySelector('option[value="' + value + '"]');
+            if (!opt) {
+                opt = document.createElement('option');
+                opt.value = value;
+                opt.textContent = fallback || ('Selecionado (ID ' + value + ')');
+                sel.insertBefore(opt, sel.firstChild);
+            }
+            sel.value = value;
         }
-        sel.value = value;
-    }
 
-    function fireChange(el) {
-        if (!el) return;
-        try {
-            el.dispatchEvent(new Event('change', {
-                bubbles: true
-            }));
-        } catch (e) {
-            var evt = document.createEvent('HTMLEvents');
-            evt.initEvent('change', true, false);
-            el.dispatchEvent(evt);
+        function fireChange(el) {
+            if (!el) return;
+            try {
+                el.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
+            } catch (e) {
+                var evt = document.createEvent('HTMLEvents');
+                evt.initEvent('change', true, false);
+                el.dispatchEvent(evt);
+            }
         }
-    }
 
-    function hydrate() {
-        var selCentral = document.getElementById('cadastro_central_cap');
-        var selMed = document.getElementById('cad_central_med_id');
-        var selEnf = document.getElementById('cad_central_enf_id');
-        var selAdm = document.getElementById('cad_central_adm_id');
+        function hydrate() {
+            var selCentral = document.getElementById('cadastro_central_cap');
+            var selMed = document.getElementById('cad_central_med_id');
+            var selEnf = document.getElementById('cad_central_enf_id');
+            var selAdm = document.getElementById('cad_central_adm_id');
 
-        var fkMed = (document.getElementById('fk_id_aud_med') || {}).value || "";
-        var fkEnf = (document.getElementById('fk_id_aud_enf') || {}).value || "";
-        var fkAdm = (document.getElementById('fk_id_aud_adm') || {}).value || "";
+            var fkMed = (document.getElementById('fk_id_aud_med') || {}).value || "";
+            var fkEnf = (document.getElementById('fk_id_aud_enf') || {}).value || "";
+            var fkAdm = (document.getElementById('fk_id_aud_adm') || {}).value || "";
 
-        if (selCentral && ((fkMed && fkMed !== '0') || (fkEnf && fkEnf !== '0') || (fkAdm && fkAdm !== '0'))) {
-            selCentral.value = 's';
+            if (selCentral && ((fkMed && fkMed !== '0') || (fkEnf && fkEnf !== '0') || (fkAdm && fkAdm !== '0'))) {
+                selCentral.value = 's';
+                fireChange(selCentral);
+            }
+            setSelectByValue(selMed, fkMed, 'Médico selecionado (ID ' + fkMed + ')');
+            setSelectByValue(selEnf, fkEnf, 'Enfermeiro(a) selecionado(a) (ID ' + fkEnf + ')');
+            setSelectByValue(selAdm, fkAdm, 'Administrativo selecionado (ID ' + fkAdm + ')');
+
+            // dispara change para manter coerência
+            fireChange(selMed);
+            fireChange(selEnf);
+            fireChange(selAdm);
             fireChange(selCentral);
         }
-        setSelectByValue(selMed, fkMed, 'Médico selecionado (ID ' + fkMed + ')');
-        setSelectByValue(selEnf, fkEnf, 'Enfermeiro(a) selecionado(a) (ID ' + fkEnf + ')');
-        setSelectByValue(selAdm, fkAdm, 'Administrativo selecionado (ID ' + fkAdm + ')');
-
-        // dispara change para manter coerência
-        fireChange(selMed);
-        fireChange(selEnf);
-        fireChange(selAdm);
-        fireChange(selCentral);
-    }
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hydrate);
-    else hydrate();
-})();
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hydrate);
+        else hydrate();
+    })();
 </script>
