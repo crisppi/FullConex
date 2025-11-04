@@ -7,6 +7,7 @@ class capeante
   public $aud_enf_capeante;
   public $aud_med_capeante;
   public $data_fech_capeante;
+  public $data_digit_capeante;
   public $data_final_capeante;
   public $data_inicial_capeante;
   public $diarias_capeante;
@@ -48,7 +49,6 @@ class capeante
   public $valor_sadt;
   public $valor_taxa;
   public $valor_opme;
-  public $data_digit_capeante;
   public $desconto_valor_cap;
   public $negociado_desconto_cap;
   public $encerrado_cap;

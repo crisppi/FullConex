@@ -57,6 +57,8 @@ class capeanteDAO implements capeanteDAOInterface
         $capeante->valor_sadt                 = $data["valor_sadt"]              ?? null;
         $capeante->valor_taxa                 = $data["valor_taxa"]              ?? null;
         $capeante->valor_opme                 = $data["valor_opme"]              ?? null;
+        $capeante->data_digit_capeante = $data['data_digit_capeante'] ?? null;
+
         $capeante->valor_hemoderivados  = $data["valor_hemoderivados"]  ?? null;
         $capeante->glosa_hemoderivados  = $data["glosa_hemoderivados"]  ?? null;
 
@@ -153,13 +155,13 @@ class capeanteDAO implements capeanteDAOInterface
         $stmt = $this->conn->prepare("
             INSERT INTO tb_capeante (
                 adm_capeante, adm_check, aud_enf_capeante, aud_med_capeante,
-                data_fech_capeante, data_final_capeante, data_inicial_capeante,
+                data_fech_capeante, data_digit_capeante, data_final_capeante, data_inicial_capeante,
                 diarias_capeante, lote_cap, glosa_diaria, glosa_honorarios,
                 glosa_matmed, glosa_oxig, glosa_sadt, glosa_taxas, glosa_opme,
                 med_check, enfer_check, pacote, parcial_capeante, parcial_num,
                 acomodacao_cap,
                 fk_int_capeante, fk_user_cap, valor_apresentado_capeante, valor_diarias,
-                valor_final_capeante, valor_glosa_enf, valor_glosa_med, valor_glosa_total,
+                valor_final_capeante, valor_glosa_enf, valor_glosa_med, valor_glosa_total,  
                 valor_honorarios, valor_matmed, valor_oxig, valor_sadt, valor_opme,
                 senha_finalizada, desconto_valor_cap, negociado_desconto_cap,
                 em_auditoria_cap, aberto_cap, encerrado_cap, valor_taxa,
@@ -169,7 +171,7 @@ class capeanteDAO implements capeanteDAOInterface
                 valor_medicamentos, valor_materiais, glosa_medicamentos, glosa_materiais
             ) VALUES (
                 :adm_capeante, :adm_check, :aud_enf_capeante, :aud_med_capeante,
-                :data_fech_capeante, :data_final_capeante, :data_inicial_capeante,
+                :data_fech_capeante, :data_digit_capeante,:data_final_capeante, :data_inicial_capeante,
                 :diarias_capeante, :lote_cap, :glosa_diaria, :glosa_honorarios,
                 :glosa_matmed, :glosa_oxig, :glosa_sadt, :glosa_taxas, :glosa_opme,
                 :med_check, :enfer_check, :pacote, :parcial_capeante, :parcial_num,
@@ -192,6 +194,7 @@ class capeanteDAO implements capeanteDAOInterface
         $stmt->bindParam(":aud_enf_capeante", $capeante->aud_enf_capeante);
         $stmt->bindParam(":aud_med_capeante", $capeante->aud_med_capeante);
         $stmt->bindParam(":data_fech_capeante", $capeante->data_fech_capeante);
+        $stmt->bindParam(":data_digit_capeante", $capeante->data_digit_capeante);
         $stmt->bindParam(":data_final_capeante", $capeante->data_final_capeante);
         $stmt->bindParam(":data_inicial_capeante", $capeante->data_inicial_capeante);
         $stmt->bindParam(":diarias_capeante", $capeante->diarias_capeante);
@@ -258,6 +261,7 @@ class capeanteDAO implements capeanteDAOInterface
                 aud_enf_capeante = :aud_enf_capeante,
                 aud_med_capeante = :aud_med_capeante,
                 data_fech_capeante = :data_fech_capeante,
+                data_digit_capeante = :data_digit_capeante,
                 data_final_capeante = :data_final_capeante,
                 data_inicial_capeante = :data_inicial_capeante,
                 diarias_capeante = :diarias_capeante,
@@ -324,6 +328,7 @@ class capeanteDAO implements capeanteDAOInterface
             $stmt->bindParam(":aud_enf_capeante", $capeante->aud_enf_capeante);
             $stmt->bindParam(":aud_med_capeante", $capeante->aud_med_capeante);
             $stmt->bindParam(":data_fech_capeante", $capeante->data_fech_capeante);
+            $stmt->bindParam(":data_digit_capeante", $capeante->data_digit_capeante);
             $stmt->bindParam(":data_final_capeante", $capeante->data_final_capeante);
             $stmt->bindParam(":data_inicial_capeante", $capeante->data_inicial_capeante);
             $stmt->bindParam(":diarias_capeante", $capeante->diarias_capeante);
