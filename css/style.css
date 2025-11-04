@@ -890,3 +890,35 @@ select {
     font-size: 12px;
     line-height: 1;
 }
+/* --- FORÇAR LARGURA TOTAL NESTA PÁGINA --- */
+
+/* Se o form estiver dentro de .container/.container-* do Bootstrap,
+     expande só esta página sem afetar as demais */
+.container:has(#form-capeante-rah),
+.container-sm:has(#form-capeante-rah),
+.container-md:has(#form-capeante-rah),
+.container-lg:has(#form-capeante-rah),
+.container-xl:has(#form-capeante-rah),
+.container-xxl:has(#form-capeante-rah) {
+    max-width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* O próprio form passa a ocupar a tela toda */
+form#form-capeante-rah {
+    max-width: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding-left: 8px;
+    /* ajuste fino da “borda” lateral */
+    padding-right: 8px;
+    /* pode trocar para 0 se quiser colado na borda */
+}
+
+/* Opcional: deixa os cards visualmente “esticados” sem parecer espremidos */
+@media (min-width: 1200px) {
+    .tuss-grid {
+        grid-template-columns: minmax(280px, 2fr) 120px 180px 180px 180px 1.2fr;
+    }
+}
