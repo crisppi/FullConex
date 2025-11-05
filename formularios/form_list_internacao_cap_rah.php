@@ -224,7 +224,9 @@ if ($qtdIntItens > $limite) {
 
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"
         integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
-
+    <div class="d-flex justify-content-between align-items-center" style="margin-bottom: 10px;">
+        <h4 class="page-title" style="color: #3A3A3A;">Listagem - Capeantes</h4>
+    </div>
     <div class="complete-table">
 
         <div id="navbarToggleExternalContent" class="table-filters">

@@ -198,3 +198,10 @@ Stack trace:
 #2 /Applications/AMPPS/www/FullConex/list_internacao_cap_jornada.php(20): include_once('/Applications/A...')
 #3 {main}
   thrown in /Applications/AMPPS/www/FullConex/dao/internacaoDao.php on line 1312
+[04-Nov-2025 22:45:49 America/Sao_Paulo] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'ca.valor_hemoderivados' in 'SELECT' in /Applications/AMPPS/www/FullConex/dao/internacaoDao.php:1312
+Stack trace:
+#0 /Applications/AMPPS/www/FullConex/dao/internacaoDao.php(1312): PDO->query('SELECT \n    ac....')
+#1 /Applications/AMPPS/www/FullConex/formularios/form_list_internacao_cap_jornada.php(78): internacaoDAO->selectAllInternacaoCap('', 'ORDER BY id_int...', '')
+#2 /Applications/AMPPS/www/FullConex/list_internacao_cap_jornada.php(20): include_once('/Applications/A...')
+#3 {main}
+  thrown in /Applications/AMPPS/www/FullConex/dao/internacaoDao.php on line 1312
