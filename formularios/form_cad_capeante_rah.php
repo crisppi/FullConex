@@ -1474,7 +1474,7 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
                     class="bi bi-envelope-fill"></i>
                 Enviar PDF por e-mail</button>
         </div>
-        <iframe id="iframeDownload" style="display:none;"></iframe>
+        <iframe id="iframeDownload" name="iframeDownload" style="display:none;"></iframe>
         <div id="mensagemStatus"
             style="display:none;margin-top:10px;padding:10px;border-radius:5px;font-weight:bold;text-align:center;">
         </div>
@@ -1483,6 +1483,94 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
 
 <!-- ========================= SCRIPTS ========================= -->
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script>
+    // Guard: evita ReferenceError se algum script chamar recalcAll antes da definição real.
+    window.recalcAll = window.recalcAll || function() {};
+</script>
+<!-- Shim para evitar erro quando bootstrap-select não está carregado -->
+<script>
+    (function(w) {
+        var $ = w.jQuery;
+        if (!$) return;
+
+        if (!$.fn.selectpicker) {
+            // API mínima compatível (no-op), mantém encadeamento e aceita comandos string
+            $.fn.selectpicker = function(cmd) {
+                // aceita chamadas como: .selectpicker('refresh'), .selectpicker('render'), etc.
+                return this;
+            };
+            // marca somente para debug (não afeta nada)
+            $.fn.selectpicker.__stub__ = true;
+        }
+    })(window);
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const btn = document.getElementById('btnSalvarPDF');
+        const form = document.getElementById('form-capeante-rah');
+        if (!btn || !form) return;
+
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const idCapeante = form.querySelector('[name="id_capeante"]')?.value?.trim() || '';
+            if (!idCapeante) {
+                mostrarMensagem('Salve o capeante antes de gerar o PDF.', '#ffc107');
+                return;
+            }
+
+            const formData = new FormData(form);
+            formData.set('prefer_post', '1');
+            formData.set('id_capeante', idCapeante);
+
+            const btnOriginal = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Gerando...';
+
+            try {
+                const qs = new URLSearchParams({
+                    id_capeante: idCapeante,
+                    download: '1'
+                });
+                const resp = await fetch('export_capeante_rah_pdf.php?' + qs.toString(), {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'same-origin'
+                });
+
+                const contentType = resp.headers.get('content-type') || '';
+                if (!resp.ok) {
+                    const errTxt = contentType.includes('application/json') ? JSON.stringify(await resp.json()) : await resp.text();
+                    throw new Error(errTxt || 'Falha desconhecida ao gerar PDF.');
+                }
+                if (contentType.includes('application/json')) {
+                    const data = await resp.json();
+                    if (!data.ok) throw new Error(data.error || 'Erro ao exportar.');
+                    mostrarMensagem('PDF salvo em ' + (data.file_path || 'exports/'), '#198754');
+                    return;
+                }
+
+                const blob = await resp.blob();
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'RAH_Capeante_' + idCapeante + '.pdf';
+                document.body.appendChild(link);
+                link.click();
+                setTimeout(() => {
+                    URL.revokeObjectURL(url);
+                    link.remove();
+                }, 1500);
+            } catch (err) {
+                console.error(err);
+                mostrarMensagem('Falha ao gerar PDF: ' + (err.message || err), '#dc3545');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = btnOriginal;
+            }
+        });
+    });
+</script>
 
 <!-- SHIM anti-erro para maskMoney (se carregar depois) -->
 <script>
@@ -1526,19 +1614,19 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
                 }
             });
 
-            $('#btnSalvarPDF').on('click', function() {
-                const idCapeante = <?= $hi($fv('id_capeante')) ?>;
-                const idInternacao = <?= $hi($fv('id_internacao') ?: $fv('fk_int_capeante')) ?>;
-                const iframe = document.getElementById('iframeDownload');
-                iframe.src = 'process_capeante_pdf.php?id_capeante=' + idCapeante +
-                    '&fk_int_capeante=' + idInternacao + '&save_only=1';
-                mostrarMensagem('Capeante salvo em PDF com sucesso!', '#198754');
-            });
+            // $('#btnSalvarPDF').on('click', function() {
+            //     const idCapeante = <?= $hi($fv('id_capeante')) ?>;
+            //     const idInternacao = <?= $hi($fv('id_internacao') ?: $fv('fk_int_capeante')) ?>;
+            //     const iframe = document.getElementById('iframeDownload');
+            //     iframe.src = 'export_capeante_rah_pdf.php?id_capeante=' + idCapeante +
+            //         '&fk_int_capeante=' + idInternacao + '&download=1';
+            //     mostrarMensagem('Capeante salvo em PDF com sucesso!', '#198754');
+            // });
 
             $('#btnEnviarEmail').on('click', function() {
                 const idCapeante = <?= $hi($fv('id_capeante')) ?>;
                 const idInternacao = <?= $hi($fv('id_internacao') ?: $fv('fk_int_capeante')) ?>;
-                fetch('process_capeante_pdf.php?id_capeante=' + idCapeante + '&fk_int_capeante=' +
+                fetch('export_capeante_rah_pdf.php?id_capeante=' + idCapeante + '&fk_int_capeante=' +
                     idInternacao);
                 mostrarMensagem('Email enviado com sucesso!', '#0d6efd');
             });
@@ -1554,6 +1642,7 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
                 div.style.display = 'none';
             }, 5000);
         }
+        window.mostrarMensagem = mostrarMensagem;
     })();
 </script>
 
@@ -1562,9 +1651,8 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
     /* =========================================================================
    CÁLCULOS RAH
    - Linha: Cobrado Após = max(0, Cobrado - Glosado)
-   - Bloco (data-group="..."): soma Cobrado / Glosado / Cobrado Após
-   - Totais gerais: se existirem (#total_cobrado, #total_glosado, #total_liberado)
-   - Robusto com maskMoney (formatações "R$ 1.234,56")
+   - Bloco: soma Cobrado / Glosado / Cobrado Após
+   - Totais gerais: soma de todos os blocos
    ========================================================================= */
     (function() {
         var $ = window.jQuery;
@@ -1574,7 +1662,6 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
             if (s == null) return 0;
             s = ('' + s).trim();
             if (!s) return 0;
-            // remove R$, espaços, milhares e troca vírgula decimal
             s = s.replace(/[^\d.,-]/g, '').replace(/\./g, '').replace(',', '.');
             var v = parseFloat(s);
             return isNaN(v) ? 0 : v;
@@ -1582,9 +1669,9 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
 
         function floatToMoney(v) {
             if (!isFinite(v)) v = 0;
-            var parts = v.toFixed(2).split('.');
-            var i = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-            return 'R$ ' + i + ',' + parts[1];
+            var p = v.toFixed(2).split('.');
+            var i = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            return 'R$ ' + i + ',' + p[1];
         }
 
         // --- Linha ---
@@ -1595,7 +1682,7 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
             $row.find('.rah-liberado').val(floatToMoney(vLib));
         }
 
-        // --- Bloco (consolidado local) ---
+        // --- Bloco (consolidados locais) ---
         function recalcBlock($block) {
             var tCob = 0,
                 tGlo = 0,
@@ -1606,7 +1693,6 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
                 tGlo += moneyToFloat($r.find('.rah-glosado').val());
                 tLib += moneyToFloat($r.find('.rah-liberado').val());
             });
-            // escreve nos campos do próprio bloco, se existirem
             var $cob = $block.find('.grp-total-cobrado');
             var $glo = $block.find('.grp-total-glosado');
             var $lib = $block.find('.grp-total-liberado');
@@ -1615,7 +1701,7 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
             if ($lib.length) $lib.val(floatToMoney(tLib));
         }
 
-        // --- Totais gerais (opcional) ---
+        // --- Totais gerais (opcional, se existirem no layout) ---
         function recalcGrandTotals() {
             var tCob = 0,
                 tGlo = 0,
@@ -1626,60 +1712,51 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
                 tGlo += moneyToFloat($r.find('.rah-glosado').val());
                 tLib += moneyToFloat($r.find('.rah-liberado').val());
             });
-
             if ($('#total_cobrado').length) $('#total_cobrado').val(floatToMoney(tCob));
             if ($('#total_glosado').length) $('#total_glosado').val(floatToMoney(tGlo));
             if ($('#total_liberado').length) $('#total_liberado').val(floatToMoney(tLib));
 
-
+            // Bridge opcional para espelhar nos inputs de “Período e Totais”
             if (window.RAHSync && typeof RAHSync.syncPeriodTotals === 'function') {
                 RAHSync.syncPeriodTotals(tCob, tLib);
             }
         }
 
-
         // --- Orquestração ---
         function recalcAround($row) {
-            // recalcula a linha
             recalcRow($row);
-            // bloco mais próximo (com .block); se tiver consolidado, ele será atualizado
             var $block = $row.closest('.block');
             if ($block.length) recalcBlock($block);
-            // totais gerais (se existirem)
             recalcGrandTotals();
         }
 
-        $(function() {
-            recalcAll();
-            setTimeout(function() {
-                recalcAll();
-                // sincroniza os pills/hidden mesmo sem digitação
-                if (window.RAHResumo && typeof RAHResumo.aplicar === 'function') {
-                    // Usa totais já escritos na tela para não recalcular de novo
-                    var tCob = 0,
-                        tLib = 0;
-                    $('.tuss-row').each(function() {
-                        var $r = $(this);
-                        tCob += RAHCalc.moneyToFloat($r.find('.rah-cobrado').val());
-                        tLib += RAHCalc.moneyToFloat($r.find('.rah-liberado').val());
-                    });
-                    RAHResumo.aplicar(tCob, tLib);
-                }
-            }, 80);
-        });
+        // **FUNÇÃO GLOBAL**
+        function recalcAll() {
+            // Recalcula todas as linhas
+            $('.tuss-row').each(function() {
+                recalcRow($(this));
+            });
+            // Recalcula cada bloco
+            $('.block').each(function() {
+                var $blk = $(this);
+                if ($blk.find('.tuss-row').length) recalcBlock($blk);
+            });
+            // Totais gerais
+            recalcGrandTotals();
+        }
 
-        // --- Eventos (funciona com maskMoney) ---
+        // Eventos de digitação
         $(document).on('input change keyup', '.rah-cobrado, .rah-glosado', function() {
             recalcAround($(this).closest('.tuss-row'));
         });
 
-        // Dispara no carregamento; depois do maskMoney formatar, roda de novo
+        // Primeira passada na carga + pós-maskMoney
         $(function() {
             recalcAll();
             setTimeout(recalcAll, 60);
         });
 
-        // Exponha utilitários, se precisar em outros scripts
+        // Expor utilitários e função global
         window.RAHCalc = {
             moneyToFloat,
             floatToMoney,
@@ -1688,8 +1765,10 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
             recalcGrandTotals,
             recalcAll
         };
+        window.recalcAll = recalcAll;
     })();
 </script>
+
 <script>
     (function() {
         var $ = window.jQuery;

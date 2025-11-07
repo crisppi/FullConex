@@ -4,3 +4,15 @@
 [UNCAUGHT] PDOException: SQLSTATE[HY000] [1049] Unknown database 'fullcare' in /Applications/AMPPS/www/FullConex/export_capeante_pdf.php:71
 #0 /Applications/AMPPS/www/FullConex/export_capeante_pdf.php(71): PDO->__construct('mysql:host=loca...', 'root', Object(SensitiveParameterValue), Array)
 #1 {main}
+[UNCAUGHT] PDOException: SQLSTATE[HY000] [1049] Unknown database 'fullconex' in /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php:77
+#0 /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php(77): PDO->__construct('mysql:host=loca...', 'root', Object(SensitiveParameterValue), Array)
+#1 {main}
+[UNCAUGHT] PDOException: SQLSTATE[HY000] [1049] Unknown database 'fullconex' in /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php:77
+#0 /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php(77): PDO->__construct('mysql:host=loca...', 'root', Object(SensitiveParameterValue), Array)
+#1 {main}
+[UNCAUGHT] TypeError: safe(): Argument #1 ($s) must be of type ?string, int given, called in /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php on line 447 in /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php:101
+#0 /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php(447): safe(5)
+#1 {main}
+[UNCAUGHT] TypeError: safe(): Argument #1 ($s) must be of type ?string, int given, called in /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php on line 447 in /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php:101
+#0 /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php(447): safe(5)
+#1 {main}
