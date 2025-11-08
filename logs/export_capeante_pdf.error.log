@@ -28,3 +28,26 @@
 [UNCAUGHT] PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'i.data_alta_int' in 'SELECT' in /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php:229
 #0 /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php(229): PDO->prepare('\nSELECT\n  c.*,\n...')
 #1 {main}
+[UNCAUGHT] TypeError: preg_match(): Argument #2 ($subject) must be of type string, int given in /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php:253
+#0 /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php(253): preg_match('/_(cobrado|glos...', 0)
+#1 {main}[UNCAUGHT] TypeError: preg_match(): Argument #2 ($subject) must be of type string, int given in /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php:257
+#0 /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php(257): preg_match('/_(cobrado|glos...', 0)
+#1 {main}
+
+[UNCAUGHT] PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'COALESCE(al.data_alta_alt, c.data_final_capeante) AS data_alta_int,
+  
+SELECT...' at line 1 in /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php:243
+#0 /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php(243): PDO->prepare('\nCOALESCE(al.da...')
+#1 {main}
+[UNCAUGHT] TypeError: preg_match(): Argument #2 ($subject) must be of type string, int given in /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php:257
+#0 /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php(257): preg_match('/_(cobrado|glos...', 0)
+#1 {main}
+[UNCAUGHT] TypeError: preg_match(): Argument #2 ($subject) must be of type string, int given in /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php:242
+#0 /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php(242): preg_match('/_(cobrado|glos...', 0)
+#1 {main}
+[UNCAUGHT] TypeError: preg_match(): Argument #2 ($subject) must be of type string, int given in /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php:242
+#0 /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php(242): preg_match('/_(cobrado|glos...', 0)
+#1 {main}
+[UNCAUGHT] TypeError: preg_match(): Argument #2 ($subject) must be of type string, int given in /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php:257
+#0 /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php(257): preg_match('/_(cobrado|glos...', 0)
+#1 {main}
