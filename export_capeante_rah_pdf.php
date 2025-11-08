@@ -409,7 +409,7 @@ $pdf->SetAutoPageBreak(true, 16);
 $pdf->setPrintHeader(false);
 $pdf->setPrintFooter(false);
 $pdf->AddPage();
-$pdf->SetFont('helvetica', '', 9);
+$pdf->SetFont('helvetica', '', 8);
 
 /* ---------- CABEÇALHO NO LAYOUT DO PDF ENVIADO ---------- */
 $cell = function (string $label, $val, string $w, string $align = 'L') {
@@ -469,9 +469,9 @@ function renderGroupTable(TCPDF $pdf, string $titulo, array $linhas): void
   }));
   if (empty($linhas)) return;
 
-  $pdf->SetFont('helvetica', 'B', 10);
+  $pdf->SetFont('helvetica', 'B', 9);
   $pdf->Cell(0, 7, $titulo, 0, 1, 'L');
-  $pdf->SetFont('helvetica', '', 9);
+  $pdf->SetFont('helvetica', '', 8);
 
   $thead = '
   <style>
@@ -483,9 +483,9 @@ function renderGroupTable(TCPDF $pdf, string $titulo, array $linhas): void
     <tr class="th">
       <td width="46%">Descrição</td>
       <td width="8%"  align="center">Qtd</td>
-      <td width="15%" align="right">Cobrado Antes</td>
+      <td width="15%" align="right">Cobrado</td>
       <td width="15%" align="right">Glosado</td>
-      <td width="16%" align="right">Cobrado Após</td>
+      <td width="16%" align="right">Liberado</td>
     </tr>';
 
   $rows = '';
