@@ -22,10 +22,14 @@ class capeanteDAO implements capeanteDAOInterface
         $capeante = new capeante();
 
         $capeante->id_capeante                = $data["id_capeante"]             ?? null;
-        $capeante->adm_capeante               = $data["adm_capeante"]            ?? null;
-        $capeante->adm_check                  = $data["adm_check"]               ?? null;
+        // FLAGS de auditoria (todas)
         $capeante->aud_enf_capeante           = $data["aud_enf_capeante"]        ?? null;
         $capeante->aud_med_capeante           = $data["aud_med_capeante"]        ?? null;
+        $capeante->aud_adm_capeante           = $data["aud_adm_capeante"]        ?? null;
+        $capeante->med_check                  = $data["med_check"]               ?? null;
+        $capeante->enfer_check                = $data["enfer_check"]             ?? null;
+        $capeante->adm_check                  = $data["adm_check"]               ?? null;
+
         $capeante->data_fech_capeante         = $data["data_fech_capeante"]      ?? null;
         $capeante->data_final_capeante        = $data["data_final_capeante"]     ?? null;
         $capeante->data_inicial_capeante      = $data["data_inicial_capeante"]   ?? null;
@@ -38,8 +42,6 @@ class capeanteDAO implements capeanteDAOInterface
         $capeante->glosa_sadt                 = $data["glosa_sadt"]              ?? null;
         $capeante->glosa_taxas                = $data["glosa_taxas"]             ?? null;
         $capeante->glosa_opme                 = $data["glosa_opme"]              ?? null;
-        $capeante->med_check                  = $data["med_check"]               ?? null;
-        $capeante->enfer_check                = $data["enfer_check"]             ?? null;
         $capeante->pacote                     = $data["pacote"]                  ?? null;
         $capeante->parcial_capeante           = $data["parcial_capeante"]        ?? null;
         $capeante->parcial_num                = $data["parcial_num"]             ?? null;
@@ -55,12 +57,11 @@ class capeanteDAO implements capeanteDAOInterface
         $capeante->valor_matmed               = $data["valor_matmed"]            ?? null;
         $capeante->valor_oxig                 = $data["valor_oxig"]              ?? null;
         $capeante->valor_sadt                 = $data["valor_sadt"]              ?? null;
-        $capeante->valor_taxa                 = $data["valor_taxa"]              ?? null;
         $capeante->valor_opme                 = $data["valor_opme"]              ?? null;
-        $capeante->data_digit_capeante = $data['data_digit_capeante'] ?? null;
+        $capeante->data_digit_capeante        = $data['data_digit_capeante']     ?? null;
 
-        $capeante->valor_hemoderivados  = $data["valor_hemoderivados"]  ?? null;
-        $capeante->glosa_hemoderivados  = $data["glosa_hemoderivados"]  ?? null;
+        $capeante->valor_hemoderivados        = $data["valor_hemoderivados"]     ?? null;
+        $capeante->glosa_hemoderivados        = $data["glosa_hemoderivados"]     ?? null;
 
         $capeante->desconto_valor_cap         = $data["desconto_valor_cap"]      ?? null;
         $capeante->negociado_desconto_cap     = $data["negociado_desconto_cap"]  ?? null;
@@ -75,7 +76,6 @@ class capeanteDAO implements capeanteDAOInterface
         $capeante->fk_id_aud_adm              = $data["fk_id_aud_adm"]           ?? null;
         $capeante->fk_id_aud_hosp             = $data["fk_id_aud_hosp"]          ?? null;
         $capeante->impresso_cap               = $data["impresso_cap"]            ?? null;
-
 
         // Flags de faturamento + alias
         $capeante->conta_faturada_cap         = $data["conta_faturada_cap"]      ?? null;
@@ -154,11 +154,11 @@ class capeanteDAO implements capeanteDAOInterface
 
         $stmt = $this->conn->prepare("
             INSERT INTO tb_capeante (
-                adm_capeante, adm_check, aud_enf_capeante, aud_med_capeante,
+                aud_adm_capeante, aud_enf_capeante, aud_med_capeante,
                 data_fech_capeante, data_digit_capeante, data_final_capeante, data_inicial_capeante,
                 diarias_capeante, lote_cap, glosa_diaria, glosa_honorarios,
                 glosa_matmed, glosa_oxig, glosa_sadt, glosa_taxas, glosa_opme,
-                med_check, enfer_check, pacote, parcial_capeante, parcial_num,
+                med_check, enfer_check, adm_check, pacote, parcial_capeante, parcial_num,
                 acomodacao_cap,
                 fk_int_capeante, fk_user_cap, valor_apresentado_capeante, valor_diarias,
                 valor_final_capeante, valor_glosa_enf, valor_glosa_med, valor_glosa_total,  
@@ -167,14 +167,13 @@ class capeanteDAO implements capeanteDAOInterface
                 em_auditoria_cap, aberto_cap, encerrado_cap, valor_taxa,
                 usuario_create_cap, data_create_cap, conta_parada_cap, parada_motivo_cap,
                 fk_id_aud_enf, fk_id_aud_med, fk_id_aud_adm, fk_id_aud_hosp,
-                -- NOVOS CAMPOS
                 valor_medicamentos, valor_materiais, glosa_medicamentos, glosa_materiais
             ) VALUES (
-                :adm_capeante, :adm_check, :aud_enf_capeante, :aud_med_capeante,
-                :data_fech_capeante, :data_digit_capeante,:data_final_capeante, :data_inicial_capeante,
+                :aud_adm_capeante, :aud_enf_capeante, :aud_med_capeante,
+                :data_fech_capeante, :data_digit_capeante, :data_final_capeante, :data_inicial_capeante,
                 :diarias_capeante, :lote_cap, :glosa_diaria, :glosa_honorarios,
                 :glosa_matmed, :glosa_oxig, :glosa_sadt, :glosa_taxas, :glosa_opme,
-                :med_check, :enfer_check, :pacote, :parcial_capeante, :parcial_num,
+                :med_check, :enfer_check, :adm_check, :pacote, :parcial_capeante, :parcial_num,
                 :acomodacao_cap,
                 :fk_int_capeante, :fk_user_cap, :valor_apresentado_capeante, :valor_diarias,
                 :valor_final_capeante, :valor_glosa_enf, :valor_glosa_med, :valor_glosa_total,
@@ -183,14 +182,12 @@ class capeanteDAO implements capeanteDAOInterface
                 :em_auditoria_cap, :aberto_cap, :encerrado_cap, :valor_taxa,
                 :usuario_create_cap, :data_create_cap, :conta_parada_cap, :parada_motivo_cap,
                 :fk_id_aud_enf, :fk_id_aud_med, :fk_id_aud_adm, :fk_id_aud_hosp,
-                -- binds novos
                 :valor_medicamentos, :valor_materiais, :glosa_medicamentos, :glosa_materiais
             )
         ");
 
         // binds (originais)
-        $stmt->bindParam(":adm_capeante", $capeante->adm_capeante);
-        $stmt->bindParam(":adm_check", $capeante->adm_check);
+        $stmt->bindParam(":aud_adm_capeante", $capeante->aud_adm_capeante);
         $stmt->bindParam(":aud_enf_capeante", $capeante->aud_enf_capeante);
         $stmt->bindParam(":aud_med_capeante", $capeante->aud_med_capeante);
         $stmt->bindParam(":data_fech_capeante", $capeante->data_fech_capeante);
@@ -206,8 +203,11 @@ class capeanteDAO implements capeanteDAOInterface
         $stmt->bindParam(":glosa_sadt", $capeante->glosa_sadt);
         $stmt->bindParam(":glosa_taxas", $capeante->glosa_taxas);
         $stmt->bindParam(":glosa_opme", $capeante->glosa_opme);
+
         $stmt->bindParam(":med_check", $capeante->med_check);
         $stmt->bindParam(":enfer_check", $capeante->enfer_check);
+        $stmt->bindParam(":adm_check", $capeante->adm_check);
+
         $stmt->bindParam(":pacote", $capeante->pacote);
         $stmt->bindParam(":parcial_capeante", $capeante->parcial_capeante);
         $stmt->bindParam(":parcial_num", $capeante->parcial_num);
@@ -254,74 +254,72 @@ class capeanteDAO implements capeanteDAOInterface
     /** UPDATE */
     public function update(capeante $capeante)
     {
+        $sql = "UPDATE tb_capeante SET
+        aud_adm_capeante = :aud_adm_capeante,
+        adm_check = :adm_check,
+        aud_enf_capeante = :aud_enf_capeante,
+        aud_med_capeante = :aud_med_capeante,
+        data_fech_capeante = :data_fech_capeante,
+        data_digit_capeante = :data_digit_capeante,
+        data_final_capeante = :data_final_capeante,
+        data_inicial_capeante = :data_inicial_capeante,
+        diarias_capeante = :diarias_capeante,
+        glosa_diaria = :glosa_diaria,
+        lote_cap = :lote_cap,
+        glosa_honorarios = :glosa_honorarios,
+        glosa_matmed = :glosa_matmed,
+        glosa_oxig = :glosa_oxig,
+        glosa_sadt = :glosa_sadt,
+        glosa_taxas = :glosa_taxas,
+        glosa_opme = :glosa_opme,
+        med_check = :med_check,
+        enfer_check = :enfer_check,
+        pacote = :pacote,
+        acomodacao_cap = :acomodacao_cap,
+        parcial_capeante = :parcial_capeante,
+        parcial_num = :parcial_num,
+        fk_int_capeante = :fk_int_capeante,
+        fk_user_cap = :fk_user_cap,
+        valor_apresentado_capeante = :valor_apresentado_capeante,
+        valor_diarias = :valor_diarias,
+        valor_final_capeante = :valor_final_capeante,
+        valor_glosa_enf = :valor_glosa_enf,
+        valor_glosa_med = :valor_glosa_med,
+        valor_glosa_total = :valor_glosa_total,
+        valor_honorarios = :valor_honorarios,
+        valor_matmed = :valor_matmed,
+        valor_oxig = :valor_oxig,
+        valor_sadt = :valor_sadt,
+        valor_taxa = :valor_taxa,
+        valor_opme = :valor_opme,
+        senha_finalizada = :senha_finalizada,
+        desconto_valor_cap = :desconto_valor_cap,
+        negociado_desconto_cap = :negociado_desconto_cap,
+        em_auditoria_cap = :em_auditoria_cap,
+        aberto_cap = :aberto_cap,
+        encerrado_cap = :encerrado_cap,
+        usuario_create_cap = :usuario_create_cap,
+        data_create_cap = :data_create_cap,
+        conta_parada_cap = :conta_parada_cap,
+        parada_motivo_cap = :parada_motivo_cap,
+        impresso_cap = :impresso_cap,
+        fk_id_aud_enf = :fk_id_aud_enf,
+        fk_id_aud_med = :fk_id_aud_med,
+        fk_id_aud_adm = :fk_id_aud_adm,
+        fk_id_aud_hosp = :fk_id_aud_hosp,
+        validacao_cap = :validacao_cap,
+        -- NOVOS CAMPOS
+        valor_medicamentos = :valor_medicamentos,
+        valor_materiais    = :valor_materiais,
+        glosa_medicamentos = :glosa_medicamentos,
+        glosa_materiais    = :glosa_materiais
+        WHERE id_capeante = :id_capeante";
+
         try {
-            $sql = "UPDATE tb_capeante SET
-                adm_capeante = :adm_capeante,
-                adm_check = :adm_check,
-                aud_enf_capeante = :aud_enf_capeante,
-                aud_med_capeante = :aud_med_capeante,
-                data_fech_capeante = :data_fech_capeante,
-                data_digit_capeante = :data_digit_capeante,
-                data_final_capeante = :data_final_capeante,
-                data_inicial_capeante = :data_inicial_capeante,
-                diarias_capeante = :diarias_capeante,
-                glosa_diaria = :glosa_diaria,
-                lote_cap = :lote_cap,
-                glosa_honorarios = :glosa_honorarios,
-                glosa_matmed = :glosa_matmed,
-                glosa_oxig = :glosa_oxig,
-                glosa_sadt = :glosa_sadt,
-                glosa_taxas = :glosa_taxas,
-                glosa_opme = :glosa_opme,
-                med_check = :med_check,
-                enfer_check = :enfer_check,
-                pacote = :pacote,
-                acomodacao_cap = :acomodacao_cap,
-                parcial_capeante = :parcial_capeante,
-                parcial_num = :parcial_num,
-                fk_int_capeante = :fk_int_capeante,
-                fk_user_cap = :fk_user_cap,
-                valor_apresentado_capeante = :valor_apresentado_capeante,
-                valor_diarias = :valor_diarias,
-                valor_final_capeante = :valor_final_capeante,
-                valor_glosa_enf = :valor_glosa_enf,
-                valor_glosa_med = :valor_glosa_med,
-                valor_glosa_total = :valor_glosa_total,
-                valor_honorarios = :valor_honorarios,
-                valor_matmed = :valor_matmed,
-                valor_oxig = :valor_oxig,
-                valor_sadt = :valor_sadt,
-                valor_taxa = :valor_taxa,
-                valor_opme = :valor_opme,
-                senha_finalizada = :senha_finalizada,
-                desconto_valor_cap = :desconto_valor_cap,
-                negociado_desconto_cap = :negociado_desconto_cap,
-                em_auditoria_cap = :em_auditoria_cap,
-                aberto_cap = :aberto_cap,
-                encerrado_cap = :encerrado_cap,
-                usuario_create_cap = :usuario_create_cap,
-                data_create_cap = :data_create_cap,
-                conta_parada_cap = :conta_parada_cap,
-                parada_motivo_cap = :parada_motivo_cap,
-                impresso_cap = :impresso_cap,
-                fk_id_aud_enf = :fk_id_aud_enf,
-                fk_id_aud_med = :fk_id_aud_med,
-                fk_id_aud_adm = :fk_id_aud_adm,
-                fk_id_aud_hosp = :fk_id_aud_hosp,
-                validacao_cap = :validacao_cap,
-
-                -- NOVOS CAMPOS
-                valor_medicamentos = :valor_medicamentos,
-                valor_materiais    = :valor_materiais,
-                glosa_medicamentos = :glosa_medicamentos,
-                glosa_materiais    = :glosa_materiais
-
-                WHERE id_capeante = :id_capeante";
-
             $stmt = $this->conn->prepare($sql);
 
-            // binds (originais)
-            $stmt->bindParam(":adm_capeante", $capeante->adm_capeante);
+            // === BINDS (iguais aos seus; mantidos) ===
+            $stmt->bindParam(":aud_adm_capeante", $capeante->aud_adm_capeante);
             $stmt->bindParam(":adm_check", $capeante->adm_check);
             $stmt->bindParam(":med_check", $capeante->med_check);
             $stmt->bindParam(":enfer_check", $capeante->enfer_check);
@@ -341,7 +339,7 @@ class capeanteDAO implements capeanteDAOInterface
             $stmt->bindParam(":glosa_taxas", $capeante->glosa_taxas);
             $stmt->bindParam(":glosa_opme", $capeante->glosa_opme);
             $stmt->bindParam(":pacote", $capeante->pacote);
-            $stmt->bindParam(":acomodacao_cap", $capeante->acomodacao_cap); // NOVO
+            $stmt->bindParam(":acomodacao_cap", $capeante->acomodacao_cap);
             $stmt->bindParam(":parcial_capeante", $capeante->parcial_capeante);
             $stmt->bindParam(":parcial_num", $capeante->parcial_num);
             $stmt->bindParam(":fk_int_capeante", $capeante->fk_int_capeante);
@@ -370,24 +368,55 @@ class capeanteDAO implements capeanteDAOInterface
             $stmt->bindParam(":data_create_cap", $capeante->data_create_cap);
             $stmt->bindParam(":id_capeante", $capeante->id_capeante, PDO::PARAM_INT);
             $stmt->bindParam(":impresso_cap", $capeante->impresso_cap);
-            $stmt->bindValue(":fk_id_aud_enf",  $capeante->fk_id_aud_enf === "" ? null : $capeante->fk_id_aud_enf,  $capeante->fk_id_aud_enf === "" ? PDO::PARAM_NULL : PDO::PARAM_INT);
-            $stmt->bindValue(":fk_id_aud_med",  $capeante->fk_id_aud_med, PDO::PARAM_INT);
-            $stmt->bindValue(":fk_id_aud_adm",  $capeante->fk_id_aud_adm === "" ? null : $capeante->fk_id_aud_adm,  $capeante->fk_id_aud_adm === "" ? PDO::PARAM_NULL : PDO::PARAM_INT);
+
+            $stmt->bindValue(
+                ":fk_id_aud_enf",
+                $capeante->fk_id_aud_enf === "" ? null : $capeante->fk_id_aud_enf,
+                $capeante->fk_id_aud_enf === "" ? PDO::PARAM_NULL : PDO::PARAM_INT
+            );
+            $stmt->bindValue(
+                ":fk_id_aud_med",
+                $capeante->fk_id_aud_med === "" ? null : $capeante->fk_id_aud_med,
+                $capeante->fk_id_aud_med === "" ? PDO::PARAM_NULL : PDO::PARAM_INT
+            );
+            $stmt->bindValue(
+                ":fk_id_aud_adm",
+                $capeante->fk_id_aud_adm === "" ? null : $capeante->fk_id_aud_adm,
+                $capeante->fk_id_aud_adm === "" ? PDO::PARAM_NULL : PDO::PARAM_INT
+            );
+
             $stmt->bindParam(":fk_id_aud_hosp", $capeante->fk_id_aud_hosp);
             $stmt->bindParam(":validacao_cap",  $capeante->validacao_cap);
 
-            // binds novos
             $stmt->bindParam(":valor_medicamentos", $capeante->valor_medicamentos);
             $stmt->bindParam(":valor_materiais",    $capeante->valor_materiais);
             $stmt->bindParam(":glosa_medicamentos", $capeante->glosa_medicamentos);
             $stmt->bindParam(":glosa_materiais",    $capeante->glosa_materiais);
 
-            $stmt->execute();
+            $ok = $stmt->execute();
+
+            // === DIAGNÓSTICO FORTE ===
+            $rc = $stmt->rowCount();
+            error_log('[DAO][UPDATE] id=' . $capeante->id_capeante . ' ok=' . ($ok ? '1' : '0') . ' rowCount=' . $rc);
+
+            if (!$ok) {
+                $ei = $stmt->errorInfo();
+                error_log('[DAO][UPDATE][ERROR] SQLSTATE=' . $ei[0] . ' DRIVER=' . $ei[1] . ' MSG=' . $ei[2]);
+            }
+
+            // Leitura imediata para confirmar
+            $chk = $this->conn->prepare("SELECT adm_check, enfer_check, med_check FROM tb_capeante WHERE id_capeante = ?");
+            $chk->execute([$capeante->id_capeante]);
+            $cur = $chk->fetch(PDO::FETCH_ASSOC);
+            error_log('[DAO][AFTER_SELECT] id=' . $capeante->id_capeante . ' vals=' . json_encode($cur, JSON_UNESCAPED_UNICODE));
+
             $this->message->setMessage("Capeante atualizado com sucesso!", "success", "list_internacao_cap_audit.php");
         } catch (PDOException $e) {
-            print_r($e->getMessage());
+            error_log('[DAO][UPDATE][EXCEPTION] ' . $e->getMessage());
+            throw $e; // deixe estourar para ver no log do Apache/PHP
         }
     }
+
 
     /** DELETE */
     public function destroy($id_capeante)
@@ -784,41 +813,27 @@ class capeanteDAO implements capeanteDAOInterface
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
     /**
      * Retorna um registro de Capeante com todos os JOINs necessários
      * para o PDF no layout RAH.
-     *
-     * JOIN: tb_capeante (c)
-     *    -> tb_internacao (i)
-     *    -> tb_paciente (p)
-     *    -> tb_hospital (h)
-     *    -> tb_prorrogacao (pr)  [última prorrogação, se houver]
-     *
-     * @param int $idCapeante
-     * @return array|null  (associativo) ou null se não encontrar
      */
     public function getCapeanteForRAH(int $idCapeante): ?array
     {
         $sql = "
         SELECT
-            -- =========================
             -- HOSPITAL
-            -- =========================
             h.id_hospital,
             h.nome_hosp                          AS hospital_nome,
             h.cnpj_hosp                          AS hospital_cnpj,
 
-            -- =========================
             -- PACIENTE
-            -- =========================
             p.id_paciente,
             p.nome_pac                           AS paciente_nome,
             p.data_nasc_pac                      AS paciente_nasc,
             p.cpf_pac                            AS paciente_cpf,
 
-            -- =========================
             -- INTERNAÇÃO
-            -- =========================
             i.id_internacao,
             i.senha_int                          AS senha_aut,
             i.num_atendimento_int                AS numero_atendimento,
@@ -835,9 +850,7 @@ class capeanteDAO implements capeanteDAOInterface
             i.fk_hospital_int,
             i.internado_int,
 
-            -- =========================
-            -- CAPEANTE (valores / glosas por grupos usados no RAH)
-            -- =========================
+            -- CAPEANTE
             c.id_capeante,
             c.fk_int_capeante,
             c.data_inicial_capeante,
@@ -876,40 +889,33 @@ class capeanteDAO implements capeanteDAOInterface
             c.enfer_check,
             c.conta_faturada_cap,
 
-            -- =========================
-            -- PRORROGAÇÃO (pega a última ativa/mais recente, se houver)
-            -- =========================
+            -- PRORROGAÇÃO (se houver)
             pr.prorrog1_ini_pror                 AS prorrogacao_ini,
             pr.prorrog1_fim_pror                 AS prorrogacao_fim,
 
-            -- =========================
-            -- CAMPOS DERIVADOS ÚTEIS AO PDF
-            -- =========================
-            -- período de cobrança
+            -- CAMPOS DERIVADOS
             COALESCE(c.data_inicial_capeante, i.data_intern_int)  AS periodo_cobranca_ini,
             COALESCE(c.data_final_capeante,   i.data_visita_int)  AS periodo_cobranca_fim,
 
-            -- Totais reorganizados p/ somatórios do quadro RAH
-            -- (Cobrado / Glosado / Após Auditoria por grandes grupos)
-            (COALESCE(c.valor_diarias,0))              AS cobrado_diarias,
-            (COALESCE(c.valor_taxa,0))                 AS cobrado_taxas,
-            (COALESCE(c.valor_matmed,0))               AS cobrado_matmed,      -- insumos em geral
-            (COALESCE(c.valor_sadt,0))                 AS cobrado_sadt,        -- exames/terapias
-            (COALESCE(c.valor_honorarios,0))           AS cobrado_honorarios,
-            (COALESCE(c.valor_oxig,0))                 AS cobrado_oxigenio,
-            (COALESCE(c.valor_opme,0))                 AS cobrado_opme,
-            (COALESCE(c.valor_materiais,0))            AS cobrado_materiais,   -- se separar de matmed
-            (COALESCE(c.valor_medicamentos,0))         AS cobrado_medicamentos,
+            (COALESCE(c.valor_diarias,0))      AS cobrado_diarias,
+            (COALESCE(c.valor_taxa,0))         AS cobrado_taxas,
+            (COALESCE(c.valor_matmed,0))       AS cobrado_matmed,
+            (COALESCE(c.valor_sadt,0))         AS cobrado_sadt,
+            (COALESCE(c.valor_honorarios,0))   AS cobrado_honorarios,
+            (COALESCE(c.valor_oxig,0))         AS cobrado_oxigenio,
+            (COALESCE(c.valor_opme,0))         AS cobrado_opme,
+            (COALESCE(c.valor_materiais,0))    AS cobrado_materiais,
+            (COALESCE(c.valor_medicamentos,0)) AS cobrado_medicamentos,
 
-            (COALESCE(c.glosa_diaria,0))               AS glosa_diarias,
-            (COALESCE(c.glosa_taxas,0))                AS glosa_taxas_tot,
-            (COALESCE(c.glosa_matmed,0))               AS glosa_matmed_tot,
-            (COALESCE(c.glosa_sadt,0))                 AS glosa_sadt_tot,
-            (COALESCE(c.glosa_honorarios,0))           AS glosa_honorarios_tot,
-            (COALESCE(c.glosa_oxig,0))                 AS glosa_oxigenio_tot,
-            (COALESCE(c.glosa_opme,0))                 AS glosa_opme_tot,
-            (COALESCE(c.glosa_materiais,0))            AS glosa_materiais_tot,
-            (COALESCE(c.glosa_medicamentos,0))         AS glosa_medicamentos_tot
+            (COALESCE(c.glosa_diaria,0))       AS glosa_diarias,
+            (COALESCE(c.glosa_taxas,0))        AS glosa_taxas_tot,
+            (COALESCE(c.glosa_matmed,0))       AS glosa_matmed_tot,
+            (COALESCE(c.glosa_sadt,0))         AS glosa_sadt_tot,
+            (COALESCE(c.glosa_honorarios,0))   AS glosa_honorarios_tot,
+            (COALESCE(c.glosa_oxig,0))         AS glosa_oxigenio_tot,
+            (COALESCE(c.glosa_opme,0))         AS glosa_opme_tot,
+            (COALESCE(c.glosa_materiais,0))    AS glosa_materiais_tot,
+            (COALESCE(c.glosa_medicamentos,0)) AS glosa_medicamentos_tot
 
         FROM tb_capeante c
         LEFT JOIN tb_internacao i
@@ -926,7 +932,6 @@ class capeanteDAO implements capeanteDAOInterface
         ) pr
                ON pr.fk_internacao_pror = i.id_internacao
         WHERE c.id_capeante = :id
-        -- garante pegar a prorrogação mais recente (subselect já ordena; aqui limita 1 linha total)
         LIMIT 1
     ";
 

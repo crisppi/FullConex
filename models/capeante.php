@@ -6,6 +6,7 @@ class capeante
   public $adm_check;
   public $aud_enf_capeante;
   public $aud_med_capeante;
+  public $aud_adm_capeante;
   public $data_fech_capeante;
   public $data_digit_capeante;
   public $data_final_capeante;

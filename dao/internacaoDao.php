@@ -3187,6 +3187,12 @@ WHERE
             ca.adm_check,
             ca.med_check,
             ca.enfer_check,
+            ca.aud_med_capeante,
+            ca.aud_enf_capeante,
+            ca.aud_adm_capeante,
+            ca.fk_id_aud_med,
+            ca.fk_id_aud_enf,
+            ca.fk_id_aud_adm,
 
             -- INTERNACAO (virá se fk_int_capeante estiver correto)
             ac.id_internacao,

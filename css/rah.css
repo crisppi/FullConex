@@ -1,0 +1,222 @@
+/* =========================================================================
+   RAH — estilos do formulário “Capeante RAH”
+   - Base visual
+   - Grid TUSS
+   - Cartões (Identificação, Período e Totais)
+   - Comportamento visual dos blocos colapsáveis
+   - Layout responsivo e ajustes de espaçamento (“compact”)
+   ========================================================================= */
+
+/* ===== Base ===== */
+body {
+  background-color: #f5f7fa;
+  font-family: "Nunito", "Helvetica Neue", Arial, sans-serif;
+  color: #212529;
+}
+form#form-capeante-rah {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 10px 10px 40px 10px;
+}
+.block {
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: .5rem;
+  padding: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.05);
+}
+.block + .block { margin-top: 18px; }
+.block h5 {
+  background: #f8f9fa;
+  border-left: 6px solid #0d6efd;
+  padding: 6px 10px;
+  margin: -12px -12px 14px -12px;
+  font-weight: 800;
+  font-size: 1.02rem;
+  color: #0d6efd;
+  border-top-right-radius: 4px;
+}
+label.form-label {
+  font-weight: 600;
+  font-size: .85rem;
+  color: #495057;
+}
+input.form-control,
+select.form-select {
+  border: 1px solid #ced4da;
+  font-size: .9rem;
+  height: 34px;
+  padding: 4px 8px;
+}
+input.form-control:focus,
+select.form-select:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 .1rem rgba(13,110,253,.25);
+}
+
+/* ===== Grid TUSS (Descrição | Qtd | Cobrado | Glosado | Cobrado Após | Obs) ===== */
+.tuss-grid {
+  display: grid;
+  grid-template-columns: minmax(240px, 1.2fr) 110px 160px 160px 160px 1fr;
+  gap: 8px 10px;
+  align-items: center;
+}
+.tuss-grid .tg-head {
+  font-weight: 700;
+  font-size: .85rem;
+  color: #495057;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  padding: 6px 8px;
+}
+.tuss-grid .tg-lab { font-weight: 600; color: #343a40; }
+.tuss-grid input.form-control { height: 34px; padding: 4px 8px; }
+.tuss-row { display: contents; }
+
+.tg-col-desc { grid-column: 1; }
+.tg-col-qtd  { grid-column: 2; }
+.tg-col-cob  { grid-column: 3; text-align: right; }
+.tg-col-glo  { grid-column: 4; text-align: right; }
+.tg-col-lib  { grid-column: 5; text-align: right; } /* coluna calculada */
+.tg-col-obs  { grid-column: 6; }
+
+/* Cores por setor */
+.block.apto h5 { border-left-color: #198754; color: #198754; }
+.block.uti  h5 { border-left-color: #fd7e14; color: #fd7e14; }
+.block.cc   h5 { border-left-color: #6f42c1; color: #6f42c1; }
+
+/* Ações */
+.actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* ===== Identificação (card estilo “Visitas”) ===== */
+.id-card {
+  background: #fff;
+  border: 1px solid #e6dff0;
+  border-radius: 18px;
+  box-shadow: 0 2px 10px rgba(94,35,99,.06);
+  margin: 14px 0;
+}
+.id-header {
+  display: flex; align-items: center; gap: 16px;
+  padding: 16px;
+  background: linear-gradient(180deg,#ffffff 0%,#faf7fc 100%);
+  border-radius: 18px;
+}
+.id-avatar {
+  width: 48px; height: 48px; border-radius: 16px;
+  background: linear-gradient(135deg,#5e2363,#7a3a86);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 900; font-size: 1.05rem;
+  box-shadow: 0 4px 10px rgba(94,35,99,.2);
+}
+.id-title { flex: 1; min-width: 0; }
+.id-name {
+  font-weight: 900; color: #5e2363; font-size: 1.1rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.id-sub { display: flex; flex-wrap: wrap; gap: 8px; color: #7a7684; margin-top: 2px; }
+.id-chip {
+  background: #f5eef7; border: 1px solid #e6dff0; color: #59445e;
+  border-radius: 999px; padding: 4px 10px; font-size: .85rem; font-weight: 700;
+}
+.id-sep { opacity: .6; }
+.id-right { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.id-pill  {
+  background: #fbfbfe; border: 1px solid #e6dff0; border-radius: 12px;
+  padding: 6px 10px; font-size: .9rem; font-weight: 800; color: #2c2a32;
+}
+@media (max-width:768px){ .id-right { width: 100%; justify-content: flex-start; } }
+
+/* ===== “Período e Totais” (card) ===== */
+.sec-card {
+  background: #fff; border: 1px solid #e6dff0; border-radius: 18px;
+  box-shadow: 0 2px 10px rgba(94,35,99,.06); margin: 14px 0;
+}
+.sec-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 16px 10px 16px;
+  background: linear-gradient(180deg,#ffffff 0%,#faf7fc 100%);
+  border-top-left-radius: 18px; border-top-right-radius: 18px;
+}
+.sec-title { font-weight: 900; color: #5e2363; font-size: 1.05rem; }
+.sec-right { display: flex; flex-wrap: wrap; gap: 8px; }
+.pill {
+  display: flex; align-items: center; gap: 8px;
+  background: #fbfbfe; border: 1px solid #e6dff0; border-radius: 12px;
+  padding: 6px 10px; font-size: .9rem; color: #2c2a32;
+}
+.pill span { opacity: .75; font-weight: 700; }
+.pill strong { font-weight: 900; }
+.sec-body { padding: 14px 16px 16px 16px; }
+
+/* ===== Layout “compact” (espaçamentos menores) ===== */
+.id-card { margin-bottom: 6px; }               /* antes 14px */
+.id-card + .sec-card { margin-top: 6px; }      /* antes 14px */
+.sec-header { padding-top: 10px; padding-bottom: 6px; } /* antes 16/10 */
+.id-header  { padding-bottom: 10px; }          /* antes 16 */
+
+form#form-capeante-rah { padding-top: 0; }
+.id-card { margin-top: 4px; margin-bottom: 6px; }
+.id-header { padding-top: 12px; padding-bottom: 10px; }
+
+.block { padding: 8px 10px; }                  /* antes 12 */
+.block + .block { margin-top: 10px; }          /* antes 18 */
+.block > h5 { margin: -8px -8px 6px -8px; padding: 6px 8px; }
+.block > h5[aria-expanded="false"] { margin-bottom: 2px; }
+
+/* ===== Forçar largura total só nesta página ===== */
+.container:has(#form-capeante-rah),
+.container-sm:has(#form-capeante-rah),
+.container-md:has(#form-capeante-rah),
+.container-lg:has(#form-capeante-rah),
+.container-xl:has(#form-capeante-rah),
+.container-xxl:has(#form-capeante-rah) {
+  max-width: 100% !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+form#form-capeante-rah {
+  max-width: none !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding-left: 8px;  /* borda lateral */
+  padding-right: 8px; /* pode usar 0 p/ colar na borda */
+}
+
+/* ===== Responsividade ===== */
+@media (max-width:768px){
+  .tuss-grid { grid-template-columns: minmax(150px,1fr) 80px 120px 120px 120px 1fr; }
+  .block h5 { font-size: .95rem; }
+  label.form-label { font-size: .8rem; }
+}
+@media (min-width:1200px){
+  .tuss-grid { grid-template-columns: minmax(280px,2fr) 120px 180px 180px 180px 1.2fr; }
+}
+/* grid de linha rápida (topo do formulário) */
+.form-line-grid {
+  display: grid;
+  grid-template-columns: 1fr; /* xs */
+  gap: 12px 14px;
+  width: 100%;
+}
+@media (min-width:576px){ .form-line-grid { grid-template-columns: repeat(2,1fr); } }
+@media (min-width:768px){ .form-line-grid { grid-template-columns: repeat(3,1fr); } }
+@media (min-width:992px){ .form-line-grid { grid-template-columns: repeat(4,1fr); } }
+@media (min-width:1200px){ .form-line-grid { grid-template-columns: repeat(6,1fr); } }
+.form-line-grid .form-label { margin-bottom: 4px; font-weight: 600; }
+.form-line-grid .form-control,
+.form-line-grid .form-select { height: 36px; }
+@media (min-width:1200px){ .form-line-grid .fg-parcial-num { grid-column: auto / span 2; } }
+
+/* ===== Titulo/caret dos blocos colapsáveis ===== */
+.block > h5 { position: relative; padding-left: 28px; }
+.block > h5:not([data-static="1"]) { cursor: pointer; }
+.block > h5:not([data-static="1"])::before {
+  content: "▸";
+  position: absolute; left: 8px; top: 50%; transform: translateY(-50%);
+  font-weight: 900; opacity: .7;
+}
+.block > h5[aria-expanded="true"]:not([data-static="1"])::before { content: "▾"; }
+
+/* usado por JS para girar ícones opcionais */
+.rotate-180 { transform: rotate(180deg); transition: transform .2s; }

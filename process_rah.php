@@ -1,9 +1,10 @@
 <?php
 
 /**
- * process_rah.php (revisado)
- * - Salva FKs/flags (médico, enfermeiro, adm) apenas em tb_capeante
- * - Nas tabelas acessórias, persiste somente valores (sem FKs de profissionais)
+ * process_rah.php (refeito)
+ * - Regras de negócio das flags calculadas no backend (fonte da verdade)
+ * - Persiste FKs/flags (médico, enfermeiro, adm) em tb_capeante via DAO
+ * - Tabelas acessórias recebem apenas valores (sem FKs de profissionais)
  */
 
 declare(strict_types=1);
@@ -22,7 +23,7 @@ $capeanteDao = new capeanteDAO($conn, $BASE_URL);
 
 $type = filter_input(INPUT_POST, "type") ?: 'update';
 
-/* Loga os dados recebidos do formulário para facilitar depuração */
+/* ---------- Log do POST para depuração ---------- */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $formPayload = $_POST;
     foreach ($formPayload as $key => $value) {
@@ -32,12 +33,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     $jsonFlags = 0;
     foreach (['JSON_UNESCAPED_UNICODE', 'JSON_UNESCAPED_SLASHES', 'JSON_PARTIAL_OUTPUT_ON_ERROR'] as $constName) {
-        if (defined($constName)) {
-            $jsonFlags |= constant($constName);
-        }
+        if (defined($constName)) $jsonFlags |= constant($constName);
     }
-    $jsonPayload = $jsonFlags ? json_encode($formPayload, $jsonFlags) : json_encode($formPayload);
-    error_log('[RAH][FORM_DATA] ' . ($jsonPayload ?: 'Falha ao converter os dados do formulário em JSON.'));
+    error_log('[RAH][FORM_DATA] ' . (json_encode($formPayload, $jsonFlags) ?: 'Falha ao converter payload.'));
 }
 
 /* ---------- Helpers ---------- */
@@ -75,58 +73,29 @@ function to_varchar20($num)
 {
     if ($num === null) $num = 0;
     $num = (float)$num;
-    return number_format($num, 2, '.', ''); // ex.: 1234.56
+    return number_format($num, 2, '.', '');
+}
+if (!function_exists('yn_norm')) {
+    function yn_norm($v): string
+    {
+        $t = is_string($v) ? mb_strtolower(trim($v), 'UTF-8') : $v;
+        return ($t === 's' || $t === '1' || $t === 1 || $t === true || $t === 'on' || $t === 'true') ? 's' : 'n';
+    }
 }
 
-/* ---------- Descoberta dinâmica de colunas ---------- */
-function table_columns(PDO $conn, string $table): array
+function flagPOST(string $name, string $default = 'n'): string
 {
-    static $cache = [];
-    $key = strtolower($table);
-    if (isset($cache[$key])) return $cache[$key];
-
-    $cols = [];
-    try {
-        $stmt = $conn->query("SHOW COLUMNS FROM `{$table}`");
-        if ($stmt) {
-            foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
-                $cols[] = strtolower((string)$r['Field']);
-            }
-        }
-    } catch (Throwable $e) {
-    }
-    return $cache[$key] = $cols;
+    return yn_norm($_POST[$name] ?? $default);
 }
 
-/**
- * Mantém apenas chaves que existem na tabela, com suporte a aliases.
- * $aliases = ['logico' => ['col1','col2',...]]
- */
-function filter_existing_cols(PDO $conn, string $table, array $candidates, array $aliases = []): array
+function frontOverrideFlag(string $name): ?string
 {
-    $existing = table_columns($conn, $table);
-    $result = [];
-
-    foreach ($candidates as $col => $val) {
-        if ($val === null) continue;
-        if (in_array(strtolower($col), $existing, true)) {
-            $result[$col] = $val;
-        }
-    }
-    foreach ($aliases as $logical => $options) {
-        $value = $candidates[$logical] ?? null;
-        if ($value === null) continue;
-        foreach ($options as $alias) {
-            if (in_array(strtolower($alias), $existing, true)) {
-                $result[$alias] = $value;
-                break;
-            }
-        }
-    }
-    return $result;
+    $raw = strPOST($name);
+    if ($raw === null) return null;
+    return yn_norm($raw) === 's' ? 's' : null;
 }
 
-/* ---------- Captura chaves/identificação ---------- */
+/* ---------- Identificação básica ---------- */
 $id_capeante    = intPOST("id_capeante");
 $fk_internacao  = intPOST("fk_int_capeante");
 
@@ -139,16 +108,56 @@ $data_final     = datePOST("data_final_capeante");
 $data_fech      = datePOST("data_fech_capeante");
 $data_digit     = datePOST("data_digit_capeante");
 
-/* ---------- Profissionais (inputs hidden) + flags opcionais ---------- */
-$aud_med_capeante = intPOST('fk_id_aud_med'); // médico auditor
-$aud_enf_capeante = intPOST('fk_id_aud_enf'); // enfermeiro auditor
-$adm_capeante     = intPOST('fk_id_aud_adm'); // administrativo/adm
+/* ---------- Profissionais (FKs) ---------- */
+$fk_med = intPOST('fk_id_aud_med') ?? 0;
+$fk_enf = intPOST('fk_id_aud_enf') ?? 0;
+$fk_adm = intPOST('fk_id_aud_adm') ?? 0;
 
-$med_check   = strtolower((string)(strPOST('med_check')   ?? 'n')) === 's' ? 's' : 'n';
-$enfer_check = strtolower((string)(strPOST('enfer_check') ?? 'n')) === 's' ? 's' : 'n';
-$adm_check   = strtolower((string)(strPOST('adm_check')   ?? 'n')) === 's' ? 's' : 'n';
+/* ---------- Cadastro Equipe (Ativar) ---------- */
+$cadastro_central_cap = yn_norm($_POST['cadastro_central_cap'] ?? 'n'); // 's' / 'n'
+$cad_ativo = ($cadastro_central_cap === 's');
 
-/* ---------- Consolidação por linha ---------- */
+/* ---------- Profissionais (FKs) ---------- */
+$fk_med = intPOST('fk_id_aud_med') ?? 0;
+$fk_enf = intPOST('fk_id_aud_enf') ?? 0;
+$fk_adm = intPOST('fk_id_aud_adm') ?? 0;
+
+/* ---------- Flags calculadas NO BACKEND ---------- */
+// Regra original (se quiser manter para médico/enfermeiro)
+$aud_med_capeante = ($cad_ativo && $fk_med > 0) ? 's' : 'n';
+$aud_enf_capeante = ($cad_ativo && $fk_enf > 0) ? 's' : 'n';
+$aud_adm_capeante = ($cad_ativo && $fk_adm > 0) ? 's' : 'n';
+
+// Checks vindos do front (se vierem 's', mantém; senão espelha as flags)
+$med_check_front   = strtolower((string)(strPOST('med_check')   ?? '')) === 's' ? 's' : null;
+$enfer_check_front = strtolower((string)(strPOST('enfer_check') ?? '')) === 's' ? 's' : null;
+$adm_check_front   = strtolower((string)(strPOST('adm_check')   ?? '')) === 's' ? 's' : null;
+
+$med_check   = $med_check_front   ?? $aud_med_capeante;
+$enfer_check = $enfer_check_front ?? $aud_enf_capeante;
+$adm_check = $adm_check_front ?? $aud_aud_capeante;
+
+// *** ADM CHECK TAMBÉM SEMPRE 's' ***
+$adm_check   = 's';
+
+
+/* ---------- Log das flags normalizadas ---------- */
+error_log('[RAH][FLAGS_NORMALIZED] ' . json_encode([
+    'cadastro_central_cap' => $cadastro_central_cap,
+    'fk_id_aud_med' => $fk_med,
+    'fk_id_aud_enf' => $fk_enf,
+    'fk_id_aud_adm' => $fk_adm,
+    'aud_med_capeante' => $aud_med_capeante,
+    'aud_enf_capeante' => $aud_enf_capeante,
+    'aud_adm_capeante' => $aud_adm_capeante,
+    'med_check' => $med_check,
+    'enfer_check' => $enfer_check,
+    'adm_check' => $adm_check,
+], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+
+/* ============================================================
+ * CAPTURA E CÁLCULOS DE DIÁRIAS/APTO/UTI/CC/OUTROS
+ * ============================================================ */
 function capturarLinha($prefix)
 {
     $qtd     = intPOST($prefix . "_qtd") ?? 0;
@@ -156,7 +165,6 @@ function capturarLinha($prefix)
     $glosado = moneyPOST($prefix . "_glosado");
     $obs     = strPOST($prefix . "_obs");
     $lib     = max(0.0, $cobrado - $glosado);
-
     return [
         'qtd'     => (int)$qtd,
         'cobrado' => (float)$cobrado,
@@ -172,29 +180,15 @@ function somaCampo($arr, $chave)
     return $t;
 }
 
-/* ============================================================
- * DIÁRIAS (linhas AC_*)
- * ============================================================ */
-$diarias_ids = [
-    'ac_quarto',
-    'ac_dayclinic',
-    'ac_uti',
-    'ac_utisemi',
-    'ac_enfermaria',
-    'ac_bercario',
-    'ac_acompanhante',
-    'ac_isolamento'
-];
+/* DIÁRIAS */
+$diarias_ids = ['ac_quarto', 'ac_dayclinic', 'ac_uti', 'ac_utisemi', 'ac_enfermaria', 'ac_bercario', 'ac_acompanhante', 'ac_isolamento'];
 $diarias_rows = [];
 foreach ($diarias_ids as $idp) $diarias_rows[$idp] = capturarLinha($idp);
-
 $diarias_cob = somaCampo($diarias_rows, 'cobrado');
 $diarias_glo = somaCampo($diarias_rows, 'glosado');
 $diarias_lib = somaCampo($diarias_rows, 'lib');
 
-/* ============================================================
- * APTO / ENFERMARIA
- * ============================================================ */
+/* APTO */
 $ap_form = [
     'terapias' => 'ap_terapias',
     'taxas' => 'ap_taxas',
@@ -209,9 +203,7 @@ $ap_form = [
 $ap_calc = [];
 foreach ($ap_form as $cat => $pfx) $ap_calc[$cat] = capturarLinha($pfx);
 
-/* ============================================================
- * UTI
- * ============================================================ */
+/* UTI */
 $uti_form = [
     'terapias' => 'uti_terapias',
     'taxas' => 'uti_taxas',
@@ -226,9 +218,7 @@ $uti_form = [
 $uti_calc = [];
 foreach ($uti_form as $cat => $pfx) $uti_calc[$cat] = capturarLinha($pfx);
 
-/* ============================================================
- * CENTRO CIRÚRGICO
- * ============================================================ */
+/* CC */
 $cc_form = [
     'terapias' => 'cc_terapias',
     'taxas' => 'cc_taxas',
@@ -243,14 +233,12 @@ $cc_form = [
 $cc_calc = [];
 foreach ($cc_form as $cat => $pfx) $cc_calc[$cat] = capturarLinha($pfx);
 
-/* ============================================================
- * OUTROS (Pacote / Remoção)
- * ============================================================ */
+/* OUTROS */
 $outros_form = ['pacote' => 'outros_pacote', 'remocao' => 'outros_remocao'];
 $outros_calc = [];
 foreach ($outros_form as $cat => $pfx) $outros_calc[$cat] = capturarLinha($pfx);
 
-/* ---------- Totais ---------- */
+/* Totais */
 function somarSetor($calc)
 {
     $tCob = $tGlo = $tLib = 0.0;
@@ -270,7 +258,7 @@ $total_cobrado  = (float)$diarias_cob + $ap_cob + $uti_cob + $cc_cob + $outros_c
 $total_glosado  = (float)$diarias_glo + $ap_glo + $uti_glo + $cc_glo + $outros_glo;
 $total_liberado = (float)$diarias_lib + $ap_lib + $uti_lib + $cc_lib + $outros_lib;
 
-/* ---------- Totais por categoria (AP/UTI/CC) ---------- */
+/* Totais por categoria (para capeante) */
 $cat_sum = function ($key) use ($ap_calc, $uti_calc, $cc_calc) {
     return (float)($ap_calc[$key]['lib'] + $uti_calc[$key]['lib'] + $cc_calc[$key]['lib']);
 };
@@ -298,162 +286,84 @@ $glosa_oxig         = $cat_glo('gases');
 
 $valor_apresentado  = (float)$total_cobrado;
 
-/* Desconto (%) opcional */
+/* Desconto (%) */
 $desconto_valor_cap = strPOST("desconto_valor_cap"); // "5" (%), ou null
 $desconto_pct       = $desconto_valor_cap !== null ? (float)str_replace(',', '.', $desconto_valor_cap) : 0.0;
 $valor_final        = $total_liberado * (1 - ($desconto_pct / 100));
 $valor_glosa_total  = max(0.0, $valor_apresentado - $valor_final);
 
 /* ============================================================
- * Atualiza/Cria CAPEANTE (identificação + períodos + totais)
+ * MONTAGEM DO OBJETO capeante E PERSISTÊNCIA VIA DAO
  * ============================================================ */
+$cap = new capeante();
+
 if ($type === 'create') {
-    $cap = new capeante();
-    $cap->fk_int_capeante             = $fk_internacao;
-    $cap->data_inicial_capeante       = $data_inicial;
-    $cap->data_final_capeante         = $data_final;
-    $cap->data_fech_capeante          = $data_fech;
-    $cap->data_digit_capeante         = $data_digit;
-    $cap->pacote                      = $pacote;
-    $cap->parcial_capeante            = $parcial;
-    $cap->parcial_num                 = $parcial_num;
-
-    $cap->valor_apresentado_capeante  = $valor_apresentado;
-    $cap->valor_final_capeante        = $valor_final;
-
-    // Totais por categoria (compatibilidade)
-    $cap->valor_diarias               = $valor_diarias;
-    $cap->valor_taxa                  = $valor_taxa;
-    $cap->valor_materiais             = $valor_materiais;
-    $cap->valor_medicamentos          = $valor_medicamentos;
-    $cap->valor_sadt                  = $valor_sadt;
-    $cap->valor_honorarios            = $valor_honorarios;
-    $cap->valor_opme                  = $valor_opme;
-    $cap->valor_oxig                  = $valor_oxig;
-
-    $cap->glosa_diaria                = $glosa_diaria;
-    $cap->glosa_taxas                 = $glosa_taxas;
-    $cap->glosa_matmed                = $glosa_matmed;
-    $cap->glosa_medicamentos          = $glosa_medicamentos;
-    $cap->glosa_sadt                  = $glosa_sadt;
-    $cap->glosa_honorarios            = $glosa_honorarios;
-    $cap->glosa_opme                  = $glosa_opme;
-    $cap->glosa_oxig                  = $glosa_oxig;
-    $cap->valor_glosa_total           = $valor_glosa_total;
-
-    $cap->desconto_valor_cap          = $desconto_valor_cap;
-    $cap->last_cap                    = 1;
-
-    $capeanteDao->create($cap);
-
-    // ID criado
-    $novoId = $cap->id_capeante ?? null;
-    if (!$novoId) $novoId = (int)$conn->lastInsertId();
-    $id_capeante = (int)$novoId;
-
-    // ===== Grava profissionais + flags APENAS no tb_capeante =====
-    if ($id_capeante) {
-        $candidates = [
-            'fk_medico'     => $aud_med_capeante,
-            'fk_enfermeiro' => $aud_enf_capeante,
-            'fk_adm'        => $adm_capeante,
-            'med_check'     => $med_check,
-            'enfer_check'   => $enfer_check,
-            'adm_check'     => $adm_check,
-        ];
-        $aliases = [
-            'fk_medico'     => ['fk_medico', 'id_medico', 'medico_id', 'fk_medico_auditor'],
-            'fk_enfermeiro' => ['fk_enfermeiro', 'id_enfermeiro', 'enfermeiro_id', 'fk_enf', 'fk_enf_auditor'],
-            'fk_adm'        => ['fk_adm', 'id_adm', 'adm_id', 'fk_admin', 'admin_id'],
-            'med_check'     => ['med_check', 'check_med', 'med_assinou'],
-            'enfer_check'   => ['enfer_check', 'check_enf', 'enf_assinou'],
-            'adm_check'     => ['adm_check', 'check_adm', 'adm_assinou'],
-        ];
-        $filtered = filter_existing_cols($conn, 'tb_capeante', $candidates, $aliases);
-        if (!empty($filtered)) {
-            $sets = [];
-            $vals = [];
-            foreach ($filtered as $col => $val) {
-                $sets[] = "`{$col}` = ?";
-                $vals[] = $val;
-            }
-            $vals[] = $id_capeante;
-            $sql = "UPDATE tb_capeante SET " . implode(', ', $sets) . " WHERE id_capeante = ?";
-            $conn->prepare($sql)->execute($vals);
-        }
-    }
+    $cap->fk_int_capeante       = $fk_internacao;
 } else {
-    $cap = new capeante();
-    $cap->id_capeante                 = $id_capeante;
-    $cap->fk_int_capeante             = $fk_internacao;
-    $cap->data_inicial_capeante       = $data_inicial;
-    $cap->data_final_capeante         = $data_final;
-    $cap->data_fech_capeante          = $data_fech;
-    $cap->data_digit_capeante         = $data_digit;
-    $cap->pacote                      = $pacote;
-    $cap->parcial_capeante            = $parcial;
-    $cap->parcial_num                 = $parcial_num;
-
-    $cap->valor_apresentado_capeante  = $valor_apresentado;
-    $cap->valor_final_capeante        = $valor_final;
-
-    // Totais por categoria (compatibilidade)
-    $cap->valor_diarias               = $valor_diarias;
-    $cap->valor_taxa                  = $valor_taxa;
-    $cap->valor_materiais             = $valor_materiais;
-    $cap->valor_medicamentos          = $valor_medicamentos;
-    $cap->valor_sadt                  = $valor_sadt;
-    $cap->valor_honorarios            = $valor_honorarios;
-    $cap->valor_opme                  = $valor_opme;
-    $cap->valor_oxig                  = $valor_oxig;
-
-    $cap->glosa_diaria                = $glosa_diaria;
-    $cap->glosa_taxas                 = $glosa_taxas;
-    $cap->glosa_matmed                = $glosa_matmed;
-    $cap->glosa_medicamentos          = $glosa_medicamentos;
-    $cap->glosa_sadt                  = $glosa_sadt;
-    $cap->glosa_honorarios            = $glosa_honorarios;
-    $cap->glosa_opme                  = $glosa_opme;
-    $cap->glosa_oxig                  = $glosa_oxig;
-    $cap->valor_glosa_total           = $valor_glosa_total;
-
-    $cap->desconto_valor_cap          = $desconto_valor_cap;
-
-    $capeanteDao->update($cap);
-
-    // ===== Atualiza profissionais + flags APENAS no tb_capeante =====
-    if ($id_capeante) {
-        $candidates = [
-            'fk_medico'     => $aud_med_capeante,
-            'fk_enfermeiro' => $aud_enf_capeante,
-            'fk_adm'        => $adm_capeante,
-            'med_check'     => $med_check,
-            'enfer_check'   => $enfer_check,
-            'adm_check'     => $adm_check,
-        ];
-        $aliases = [
-            'fk_medico'     => ['fk_medico', 'id_medico', 'medico_id', 'fk_medico_auditor'],
-            'fk_enfermeiro' => ['fk_enfermeiro', 'id_enfermeiro', 'enfermeiro_id', 'fk_enf', 'fk_enf_auditor'],
-            'fk_adm'        => ['fk_adm', 'id_adm', 'adm_id', 'fk_admin', 'admin_id'],
-            'med_check'     => ['med_check', 'check_med', 'med_assinou'],
-            'enfer_check'   => ['enfer_check', 'check_enf', 'enf_assinou'],
-            'adm_check'     => ['adm_check', 'check_adm', 'adm_assinou'],
-        ];
-        $filtered = filter_existing_cols($conn, 'tb_capeante', $candidates, $aliases);
-        if (!empty($filtered)) {
-            $sets = [];
-            $vals = [];
-            foreach ($filtered as $col => $val) {
-                $sets[] = "`{$col}` = ?";
-                $vals[] = $val;
-            }
-            $vals[] = $id_capeante;
-            $sql = "UPDATE tb_capeante SET " . implode(', ', $sets) . " WHERE id_capeante = ?";
-            $conn->prepare($sql)->execute($vals);
-        }
-    }
+    $cap->id_capeante           = $id_capeante;
+    $cap->fk_int_capeante       = $fk_internacao;
 }
 
+/* Período e datas */
+$cap->data_inicial_capeante     = $data_inicial;
+$cap->data_final_capeante       = $data_final;
+$cap->data_fech_capeante        = $data_fech;
+$cap->data_digit_capeante       = $data_digit;
+
+/* Parcelas/pacote */
+$cap->pacote                    = $pacote;
+$cap->parcial_capeante          = $parcial;
+$cap->parcial_num               = $parcial_num;
+
+/* Totais */
+$cap->valor_apresentado_capeante = $valor_apresentado;
+$cap->valor_final_capeante      = $valor_final;
+
+$cap->valor_diarias             = $valor_diarias;
+$cap->valor_taxa                = $valor_taxa;
+$cap->valor_materiais           = $valor_materiais;
+$cap->valor_medicamentos        = $valor_medicamentos;
+$cap->valor_sadt                = $valor_sadt;
+$cap->valor_honorarios          = $valor_honorarios;
+$cap->valor_opme                = $valor_opme;
+$cap->valor_oxig                = $valor_oxig;
+
+$cap->glosa_diaria              = $glosa_diaria;
+$cap->glosa_taxas               = $glosa_taxas;
+$cap->glosa_matmed              = $glosa_matmed;
+$cap->glosa_medicamentos        = $glosa_medicamentos;
+$cap->glosa_sadt                = $glosa_sadt;
+$cap->glosa_honorarios          = $glosa_honorarios;
+$cap->glosa_opme                = $glosa_opme;
+$cap->glosa_oxig                = $glosa_oxig;
+$cap->valor_glosa_total         = $valor_glosa_total;
+
+$cap->desconto_valor_cap        = $desconto_valor_cap;
+
+/* ======= PROFISSIONAIS (FKs) ======= */
+$cap->fk_id_aud_med             = $fk_med ?: null;
+$cap->fk_id_aud_enf             = $fk_enf ?: null;
+$cap->fk_id_aud_adm             = $fk_adm ?: null;
+
+/* ======= FLAGS (calculadas) ======= */
+$cap->aud_med_capeante          = $aud_med_capeante;  // 's'/'n'
+$cap->aud_enf_capeante          = $aud_enf_capeante;  // 's'/'n'
+$cap->aud_adm_capeante          = $aud_adm_capeante;  // 's'/'n'
+
+$cap->med_check                 = $med_check;         // 's'/'n'
+$cap->enfer_check               = $enfer_check;       // 's'/'n'
+$cap->adm_check                 = $adm_check;         // 's'/'n'
+
+/* Persistência principal */
+if ($type === 'create') {
+    $capeanteDao->create($cap);
+    $novoId = $cap->id_capeante ?? (int)$conn->lastInsertId();
+    $id_capeante = (int)$novoId;
+} else {
+    $capeanteDao->update($cap);
+}
+
+/* Log final de totais */
 error_log("[RAH] Capeante ID {$id_capeante} | Cobrado={$total_cobrado} | Glosado={$total_glosado} | Liberado={$total_liberado}");
 
 /* ============================================================
@@ -461,10 +371,6 @@ error_log("[RAH] Capeante ID {$id_capeante} | Cobrado={$total_cobrado} | Glosado
  * - Somente valores (sem FKs de profissionais)
  * ============================================================ */
 
-/**
- * Upsert genérico para tabela de grupo (AP/UTI/CC/DIAR/OUT).
- * $extraCols: use apenas o que for imprescindível (ex.: fk_int_capeante em OUTROS).
- */
 function rah_upsert_grupo(PDO $conn, string $tabela, int $fk_capeante, array $mapCatToLegacyCols, array $calcPorCat, array $extraCols = [])
 {
     // Verifica se já existe registro para fk_capeante
@@ -583,7 +489,7 @@ $map_diar = [
 $map_out = ['pacote' => 'outros_pacote', 'remocao' => 'outros_remocao'];
 
 /* Salva grupos (somente se temos id_capeante válido) */
-if ($id_capeante) {
+if (!empty($id_capeante)) {
 
     // Garante fk_internacao válido para OUTROS
     if (!$fk_internacao) {
@@ -598,7 +504,7 @@ if ($id_capeante) {
     rah_upsert_grupo($conn, 'tb_cap_valores_cc',   (int)$id_capeante, $map_cc,   $cc_calc);
     rah_upsert_grupo($conn, 'tb_cap_valores_diar', (int)$id_capeante, $map_diar, $diarias_rows);
 
-    // OUTROS: inclui apenas o fk_int_capeante por integridade
+    // OUTROS: inclui apenas o fk_internacao por integridade
     rah_upsert_grupo(
         $conn,
         'tb_cap_valores_out',
