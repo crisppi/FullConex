@@ -25,3 +25,6 @@
 [UNCAUGHT] PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'i.data_alta_int' in 'SELECT' in /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php:229
 #0 /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php(229): PDO->prepare('\nSELECT\n  c.*,\n...')
 #1 {main}
+[UNCAUGHT] PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'i.data_alta_int' in 'SELECT' in /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php:229
+#0 /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php(229): PDO->prepare('\nSELECT\n  c.*,\n...')
+#1 {main}
