@@ -51,6 +51,7 @@ SELECT...' at line 1 in /Applications/AMPPS/www/FullConex/export_capeante_rah_pd
 [UNCAUGHT] TypeError: preg_match(): Argument #2 ($subject) must be of type string, int given in /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php:257
 #0 /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php(257): preg_match('/_(cobrado|glos...', 0)
 #1 {main}
+<<<<<<< Updated upstream
 [PHP ERROR][2] require_once(D:\xampp\htdocs\FullConex\tcpdf_min/tcpdf_autoconfig.php): Failed to open stream: No such file or directory in D:\xampp\htdocs\FullConex\tcpdf_min\tcpdf.php:111
 [UNCAUGHT] ErrorException: require_once(D:\xampp\htdocs\FullConex\tcpdf_min/tcpdf_autoconfig.php): Failed to open stream: No such file or directory in D:\xampp\htdocs\FullConex\tcpdf_min\tcpdf.php:111
 #0 D:\xampp\htdocs\FullConex\tcpdf_min\tcpdf.php(111): {closure}(2, 'require_once(D:...', 'D:\\xampp\\htdocs...', 111)
@@ -73,3 +74,19 @@ SELECT...' at line 1 in /Applications/AMPPS/www/FullConex/export_capeante_rah_pd
 #2 D:\xampp\htdocs\FullConex\export_capeante_rah_pdf.php(119): require_once('D:\\xampp\\htdocs...')
 #3 D:\xampp\htdocs\FullConex\export_capeante_rah_pdf.php(399): require_tcpdf_or_throw()
 #4 {main}
+=======
+[UNCAUGHT] TypeError: renderGroupTable(): Argument #11 ($pad) must be of type string, int given, called in /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php on line 521 in /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php:453
+#0 /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php(521): renderGroupTable(Object(PDFCapeanteRAH), 'DI\xC3\x81RIAS', Array, false, 8, '0.7px', '0.7px', '#666', '#9e9e9e', '3px', 4)
+#1 {main}
+[PHP ERROR][2] Undefined variable $HEADLINE_W in /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php:396
+[UNCAUGHT] ErrorException: Undefined variable $HEADLINE_W in /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php:396
+#0 /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php(396): {closure}(2, 'Undefined varia...', '/Applications/A...', 396)
+#1 {main}
+[PHP ERROR][2] Undefined variable $HEADLINE_W in /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php:396
+[UNCAUGHT] ErrorException: Undefined variable $HEADLINE_W in /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php:396
+#0 /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php(396): {closure}(2, 'Undefined varia...', '/Applications/A...', 396)
+#1 {main}
+[UNCAUGHT] PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'c.auditor_medico' in 'SELECT' in /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php:222
+#0 /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php(222): PDO->prepare('\nSELECT\n  c.*,\n...')
+#1 {main}
+>>>>>>> Stashed changes
