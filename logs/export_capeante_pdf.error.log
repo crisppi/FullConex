@@ -51,3 +51,18 @@ SELECT...' at line 1 in /Applications/AMPPS/www/FullConex/export_capeante_rah_pd
 [UNCAUGHT] TypeError: preg_match(): Argument #2 ($subject) must be of type string, int given in /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php:257
 #0 /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php(257): preg_match('/_(cobrado|glos...', 0)
 #1 {main}
+[PHP ERROR][2] require_once(D:\xampp\htdocs\FullConex\tcpdf_min/tcpdf_autoconfig.php): Failed to open stream: No such file or directory in D:\xampp\htdocs\FullConex\tcpdf_min\tcpdf.php:111
+[UNCAUGHT] ErrorException: require_once(D:\xampp\htdocs\FullConex\tcpdf_min/tcpdf_autoconfig.php): Failed to open stream: No such file or directory in D:\xampp\htdocs\FullConex\tcpdf_min\tcpdf.php:111
+#0 D:\xampp\htdocs\FullConex\tcpdf_min\tcpdf.php(111): {closure}(2, 'require_once(D:...', 'D:\\xampp\\htdocs...', 111)
+#1 D:\xampp\htdocs\FullConex\tcpdf_min\tcpdf.php(111): require_once()
+#2 D:\xampp\htdocs\FullConex\export_capeante_rah_pdf.php(133): require_once('D:\\xampp\\htdocs...')
+#3 D:\xampp\htdocs\FullConex\export_capeante_rah_pdf.php(229): require_tcpdf_or_throw()
+#4 {main}
+[PHP ERROR][2] require_once(D:\xampp\htdocs\FullConex\tcpdf_min/tcpdf_autoconfig.php): Failed to open stream: No such file or directory in D:\xampp\htdocs\FullConex\tcpdf_min\tcpdf.php:111
+[PHP ERROR][2] require_once(D:\xampp\htdocs\FullConex\tcpdf_min/tcpdf_autoconfig.php): Failed to open stream: No such file or directory in D:\xampp\htdocs\FullConex\tcpdf_min\tcpdf.php:111
+[UNCAUGHT] ErrorException: require_once(D:\xampp\htdocs\FullConex\tcpdf_min/tcpdf_autoconfig.php): Failed to open stream: No such file or directory in D:\xampp\htdocs\FullConex\tcpdf_min\tcpdf.php:111
+#0 D:\xampp\htdocs\FullConex\tcpdf_min\tcpdf.php(111): {closure}(2, 'require_once(D:...', 'D:\\xampp\\htdocs...', 111)
+#1 D:\xampp\htdocs\FullConex\tcpdf_min\tcpdf.php(111): require_once()
+#2 D:\xampp\htdocs\FullConex\export_capeante_rah_pdf.php(133): require_once('D:\\xampp\\htdocs...')
+#3 D:\xampp\htdocs\FullConex\export_capeante_rah_pdf.php(463): require_tcpdf_or_throw()
+#4 {main}
