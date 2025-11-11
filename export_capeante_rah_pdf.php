@@ -14,13 +14,24 @@
  *  POST (qualquer) ou prefer_post=1   -> usa dados recém-enviados para os grupos
  */
 
+
 declare(strict_types=1);
 @date_default_timezone_set('America/Sao_Paulo');
+define('CUSTOM_TCPDF_PATH', 'D:/xampp/htdocs/FullConex/tcpdf_min/tcpdf.php');
 
 /* ---------- HARDEN ---------- */
 @ini_set('zlib.output_compression', '0');
 @ini_set('implicit_flush', '0');
 @ini_set('output_buffering', '0');
+
+
+if (!defined('K_PATH_MAIN'))  define('K_PATH_MAIN',  __DIR__ . '/tcpdf_min/');
+if (!defined('K_PATH_FONTS')) define('K_PATH_FONTS', __DIR__ . '/tcpdf_min/fonts/');
+if (!defined('K_PATH_CACHE')) {
+  $cacheDir = __DIR__ . '/cache';
+  if (!is_dir($cacheDir)) @mkdir($cacheDir, 0775, true);
+  define('K_PATH_CACHE', $cacheDir . DIRECTORY_SEPARATOR);
+}
 
 /* ---------- FLAGS ---------- */
 $DEBUG    = isset($_GET['debug'])    && $_GET['debug']    === '1';

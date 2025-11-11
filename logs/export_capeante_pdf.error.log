@@ -66,3 +66,10 @@ SELECT...' at line 1 in /Applications/AMPPS/www/FullConex/export_capeante_rah_pd
 #2 D:\xampp\htdocs\FullConex\export_capeante_rah_pdf.php(133): require_once('D:\\xampp\\htdocs...')
 #3 D:\xampp\htdocs\FullConex\export_capeante_rah_pdf.php(463): require_tcpdf_or_throw()
 #4 {main}
+[PHP ERROR][2] require_once(D:\xampp\htdocs\FullConex\tcpdf_min/tcpdf_autoconfig.php): Failed to open stream: No such file or directory in D:\xampp\htdocs\FullConex\tcpdf_min\tcpdf.php:111
+[UNCAUGHT] ErrorException: require_once(D:\xampp\htdocs\FullConex\tcpdf_min/tcpdf_autoconfig.php): Failed to open stream: No such file or directory in D:\xampp\htdocs\FullConex\tcpdf_min\tcpdf.php:111
+#0 D:\xampp\htdocs\FullConex\tcpdf_min\tcpdf.php(111): {closure}(2, 'require_once(D:...', 'D:\\xampp\\htdocs...', 111)
+#1 D:\xampp\htdocs\FullConex\tcpdf_min\tcpdf.php(111): require_once()
+#2 D:\xampp\htdocs\FullConex\export_capeante_rah_pdf.php(119): require_once('D:\\xampp\\htdocs...')
+#3 D:\xampp\htdocs\FullConex\export_capeante_rah_pdf.php(399): require_tcpdf_or_throw()
+#4 {main}
