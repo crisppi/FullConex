@@ -397,13 +397,14 @@ $pdf->SetCreator('FullCare');
 $pdf->SetAuthor('FullCare');
 $pdf->SetTitle('RAH - Capeante ' . $idCapeante);
 $pdf->SetMargins($MARGIN_LR, $MARGIN_TOP, $MARGIN_LR);
-$pdf->SetAutoPageBreak(true, $MARGIN_BOT);
+$pdf->SetAutoPageBreak(true, 28);
 $pdf->setPrintHeader(false);
 $pdf->setPrintFooter(false);
 $pdf->setFontSubsetting(true);
 $pdf->setCellHeightRatio($H_RATIO);
 $pdf->setCellPaddings(0.5, 0.6, 0.5, 0.6);
 $pdf->AddPage();
+$pdf->SetFooterMargin(15);
 $pdf->SetFont('helvetica', '', $BASE_FONT);
 
 /* ---------- CABEÇALHO ---------- */
@@ -599,64 +600,78 @@ $cid        = $dados['cid_cap'] ?? ($dados['cid_principal'] ?? '');
 $proced     = $dados['proced_principal'] ?? '';
 $auditor    = $dados['nome_auditor'] ?? ($dados['fk_id_aud_med'] ?? '');
 
-$pdf->Ln($ULTRA ? 0.5 : ($COMPACT ? 1.0 : 2.0));
-$pdf->writeHTML(
-  '<b>Comentário:</b><br/>' .
-    '<div style="border:' . $BORDER_CELL . ' solid ' . $BORDER_CLR2 . ';padding:' . ($ULTRA ? '3px' : ($COMPACT ? '4px' : '6px')) . ';min-height:' . ($ULTRA ? '14px' : ($COMPACT ? '22px' : '34px')) . ';">' .
-    safe($comentario ?: '—') . '</div>',
-  true,
-  false,
-  false,
-  false,
-  ''
-);
-$pdf->Ln($ULTRA ? 0.3 : ($COMPACT ? 0.8 : 1.0));
-// $pdf->writeHTML('<table cellpadding="' . ($ULTRA ? '1' : ($COMPACT ? '0.7' : '0.6')) . '" cellspacing="0" border="0" width="100%">
-//   <tr>
-//     <td width="50%"><b>CID:</b> ' . safe($cid) . '</td>
-//     <td width="50%"><b>Procedimento:</b> ' . safe($proced) . '</td>
-//   </tr>
-// </table>', true, false, false, false, '');
-// $pdf->Ln($ULTRA ? 1.0 : ($COMPACT ? 1.5 : 3.0));
-// $pdf->writeHTML('<table cellpadding="' . ($ULTRA ? '1' : ($COMPACT ? '2' : '3')) . '" cellspacing="0" border="0" width="100%">
-//   <tr>
-//     <td width="60%"><b>Auditor(a):</b> ' . safe($auditor) . ' &nbsp;&nbsp; <b>Data:</b> ' . date('d/m/Y') . '</td>
-//   </tr>
-// </table>', true, false, false, false, '');
+//* ======================= BLOCO FINAL – COLAR COMO SUBSTITUTO ======================= */
 
-/* ---------- RODAPÉ ---------- */
-$audMed = $dados['auditor_medico']   ?? $dados['nome_aud_med']   ?? $dados['prof_aud_med']   ?? '';
-$audEnf = $dados['auditor_enf']      ?? $dados['nome_aud_enf']   ?? $dados['prof_aud_enf']   ?? '';
-$adm    = $dados['administrativo']   ?? $dados['nome_admin']     ?? $dados['prof_admin']     ?? '';
+$pad      = $ULTRA ? 3 : ($COMPACT ? 4 : 6);
+$minH     = $ULTRA ? 14 : ($COMPACT ? 22 : 34);
+$cellPad  = $ULTRA ? 1  : 1.5;
+$lh       = 1.15;
+$gapTop   = $ULTRA ? 0.5 : ($COMPACT ? 1.0 : 2.0);
+$gapMid   = $ULTRA ? 0.3 : ($COMPACT ? 0.8 : 1.0);
 
-$pdf->Ln($ULTRA ? 0.5 : ($COMPACT ? 0.8 : 1.2));
-$pdf->writeHTML(
-  '
-  <table cellpadding="' . ($ULTRA ? '1' : '1.5') . '" cellspacing="0" border="0" width="100%" style="line-height:1.15;">
-    <tr>
-      <td width="34%"><b>Auditor Médico:</b> ' . safe($audMed) . '</td>
-      <td width="33%"><b>Auditor Enf(a):</b> ' . safe($audEnf) . '</td>
-      <td width="33%"><b>Administrativo(a):</b> ' . safe($adm) . '</td>
-    </tr>
-  </table>',
-  true,
-  false,
-  false,
-  false,
-  ''
-);
+$audMed = $dados['auditor_medico'] ?? $dados['nome_aud_med'] ?? $dados['prof_aud_med'] ?? '';
+$audEnf = $dados['auditor_enf']    ?? $dados['nome_aud_enf'] ?? $dados['prof_aud_enf'] ?? '';
+$adm    = $dados['administrativo'] ?? $dados['nome_admin']   ?? $dados['prof_admin']   ?? '';
 
-$pdf->writeHTML(
-  '<div style="margin-top:2px;">São Paulo, ' . date('d/m/Y') . '</div>',
-  true,
-  false,
-  false,
-  false,
-  ''
-);
-$pdf->SetY(- ($ULTRA ? 7 : ($COMPACT ? 3 : 4)));
+$htmlBlocoFinal = '
+<table nobr="true" cellpadding="0" cellspacing="0" width="100%" style="page-break-inside: avoid;">
+  <tr>
+    <td style="font-weight:bold;">Comentário:</td>
+  </tr>
+  <tr>
+    <td style="border:' . $BORDER_CELL . ' solid ' . $BORDER_CLR2 . ';padding:' . $pad . 'px;min-height:' . $minH . 'px;">'
+  . safe($comentario ?: '—') .
+  '</td>
+  </tr>
+</table>
+
+<table nobr="true" cellpadding="' . $cellPad . '" cellspacing="0" border="0" width="100%" style="line-height:' . $lh . '; page-break-inside: avoid; margin-top:6px;">
+  <tr>
+    <td width="34%"><b>Auditor Médico:</b> ' . safe($audMed) . '</td>
+    <td width="33%"><b>Auditor Enf(a):</b> ' . safe($audEnf) . '</td>
+    <td width="33%"><b>Administrativo(a):</b> ' . safe($adm) . '</td>
+  </tr>
+  <tr>
+    <td colspan="3" style="padding-top:6px;">São Paulo, ' . date('d/m/Y') . '</td>
+  </tr>
+</table>
+';
+
+// escreve o bloco como transação: se quebrar página, desfaz e reescreve após AddPage()
+$pdf->Ln($gapTop);
+$__startPage = $pdf->getPage();
+$pdf->startTransaction();
+$pdf->writeHTML($htmlBlocoFinal, true, false, true, false, '');
+$__endPage = $pdf->getPage();
+
+if ($__endPage !== $__startPage) {
+  $pdf->rollbackTransaction(true);
+  $pdf->AddPage();
+  $pdf->Ln($gapTop);
+  $pdf->writeHTML($htmlBlocoFinal, true, false, true, false, '');
+} else {
+  $pdf->commitTransaction();
+}
+
+// pequeno espaço antes do carimbo final
+$pdf->Ln($gapMid);
+
+// linha discreta e carimbo "Gerado por..."
+$__margins    = $pdf->getMargins();
+$__left       = $__margins['left'];
+$__right      = $__margins['right'];
+$__usableW    = $pdf->getPageWidth() - $__left - $__right;
+
+$__y = $pdf->GetY() + 3;
+$pdf->SetLineWidth(0.6);
+$pdf->SetDrawColor(30, 30, 30);
+$pdf->Line($__left, $__y, $__left + $__usableW, $__y);
+$pdf->Ln(2.5);
+
 $pdf->SetFont('helvetica', '', $BODY_SIZE_PT);
-$pdf->Cell(0, 8, 'Gerado por FullCareConex • ' . date('d/m/Y H:i'), 0, 0, 'R');
+$pdf->Cell(0, 6, 'Gerado por FullCareConex • ' . date('d/m/Y H:i'), 0, 1, 'R');
+
+/* ===================== FIM DO BLOCO FINAL – NADA MAIS ALTERADO ===================== */
 
 /* ---------- SAÍDA/ARQUIVO ---------- */
 $fname      = 'RAH_Capeante_' . (int)$idCapeante . '.pdf';
