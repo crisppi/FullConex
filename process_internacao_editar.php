@@ -34,7 +34,6 @@ if (!function_exists('decodeArray')) {
 function limpa(?string $t, int $lim = 5000): string
 {
     $t = htmlspecialchars($t ?? '', ENT_QUOTES, 'UTF-8');
-    $t = preg_replace('/[^\wÀ-ÖØ-öø-ÿ .,!?:()\-]/u', '', $t);
     return substr($t, 0, $lim);
 }
 

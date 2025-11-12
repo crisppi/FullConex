@@ -28,16 +28,6 @@ if ($type === "create") {
     // Escapa caracteres especiais para evitar XSS
     $rel_alto_custo_ges = htmlspecialchars($rel_alto_custo_ges, ENT_QUOTES, 'UTF-8');
 
-    // Remove explicitamente os símbolos * e #
-    $rel_alto_custo_ges = str_replace(['*', '#', 'drop', 'select', 'delete'], '--', $rel_alto_custo_ges);
-
-    // Remove caracteres especiais indesejados, incluindo * e #
-    $rel_alto_custo_ges = preg_replace("/[^a-zA-Z0-9À-ÖØ-öø-ÿ .,!?()\-]/u", "", $rel_alto_custo_ges);
-
-    // Remove explicitamente os símbolos * e #
-    $rel_alto_custo_ges = str_replace(['*', '#'], '', $rel_alto_custo_ges);
-
-    // Limita o tamanho do texto para 5000 caracteres
     $rel_alto_custo_ges = substr($rel_alto_custo_ges, 0, 5000);
 
     $evento_adverso_ges = filter_input(INPUT_POST, "evento_adverso_ges");

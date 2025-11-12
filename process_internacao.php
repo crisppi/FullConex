@@ -96,33 +96,21 @@ if ($type === "create") {
     $data_intern_int = filter_input(INPUT_POST, "data_intern_int") ?: null;
     $especialidade_int = filter_input(INPUT_POST, "especialidade_int");
     $titular_int = filter_input(INPUT_POST, "titular_int");
-    $titular_int = htmlspecialchars($titular_int, ENT_QUOTES, 'UTF-8');
-    $titular_int = preg_replace("/[^a-zA-Z0-9À-ÖØ-öø-ÿ .,!?()\-]/u", "", $titular_int);
 
     $crm_int = filter_input(INPUT_POST, "crm_int");
-    $crm_int = htmlspecialchars($crm_int, ENT_QUOTES, 'UTF-8');
-    $crm_int = preg_replace("/[^a-zA-Z0-9À-ÖØ-öø-ÿ .,!?()\-]/u", "", $crm_int);
 
     $acomodacao_int = filter_input(INPUT_POST, "acomodacao_int");
 
     $acoes_int = filter_input(INPUT_POST, "acoes_int");
-    $acoes_int = htmlspecialchars($acoes_int, ENT_QUOTES, 'UTF-8');
-    $acoes_int = preg_replace("/[^a-zA-Z0-9À-ÖØ-öø-ÿ .,!?()\-]/u", "", $acoes_int);
     $acoes_int = substr($acoes_int, 0, 5000);
 
     $rel_int = filter_input(INPUT_POST, "rel_int") ?: null;
-    $rel_int = htmlspecialchars($rel_int, ENT_QUOTES, 'UTF-8');
-    $rel_int = preg_replace("/[^a-zA-Z0-9À-ÖØ-öø-ÿ .,!?()\-]/u", "", $rel_int);
     $rel_int = substr($rel_int, 0, 5000);
 
     $programacao_int = filter_input(INPUT_POST, "programacao_int");
-    $programacao_int = htmlspecialchars($programacao_int, ENT_QUOTES, 'UTF-8');
-    $programacao_int = preg_replace("/[^a-zA-Z0-9À-ÖØ-öø-ÿ .,!?()\-]/u", "", $programacao_int);
     $programacao_int = substr($programacao_int, 0, 5000);
 
     $senha_int = filter_input(INPUT_POST, "senha_int");
-    $senha_int = htmlspecialchars($senha_int, ENT_QUOTES, 'UTF-8');
-    $senha_int = preg_replace("/[^a-zA-Z0-9À-ÖØ-öø-ÿ .,!?()\-]/u", "", $senha_int);
 
     $usuario_create_int = filter_input(INPUT_POST, "usuario_create_int");
     $data_create_int = filter_input(INPUT_POST, "data_create_int") ?: null;
@@ -158,12 +146,8 @@ if ($type === "create") {
     $oxigenio_hiperbarica_det = filter_input(INPUT_POST, "oxigenio_hiperbarica_det");
     $hemoderivados_det = filter_input(INPUT_POST, "hemoderivados_det");
     $dialise_det = filter_input(INPUT_POST, "dialise_det");
-    $exames_det = htmlspecialchars($exames_det, ENT_QUOTES, 'UTF-8');
-    $exames_det = preg_replace("/[^a-zA-Z0-9À-ÖØ-öø-ÿ .,!?()\-]/u", "", $exames_det);
     $exames_det = substr($exames_det, 0, 5000);
     $oportunidades_det = filter_input(INPUT_POST, "oportunidades_det");
-    $oportunidades_det = htmlspecialchars($oportunidades_det, ENT_QUOTES, 'UTF-8');
-    $oportunidades_det = preg_replace("/[^a-zA-Z0-9À-ÖØ-öø-ÿ .,!?()\-]/u", "", $oportunidades_det);
     $oportunidades_det = substr($oportunidades_det, 0, 5000);
     $tqt_det = filter_input(INPUT_POST, "tqt_det");
     $svd_det = filter_input(INPUT_POST, "svd_det");
@@ -183,9 +167,7 @@ if ($type === "create") {
     $fk_visita_ges = filter_input(INPUT_POST, "fk_visita_ges");
     $alto_custo_ges = filter_input(INPUT_POST, "alto_custo_ges");
     $rel_alto_custo_ges = filter_input(INPUT_POST, "rel_alto_custo_ges");
-    $rel_alto_custo_ges = htmlspecialchars($rel_alto_custo_ges, ENT_QUOTES, 'UTF-8');
     $rel_alto_custo_ges = str_replace(['*', '#', 'drop', 'select', 'delete'], '', $rel_alto_custo_ges);
-    $rel_alto_custo_ges = preg_replace("/[^a-zA-Z0-9À-ÖØ-öø-ÿ .,!?()\-]/u", "", $rel_alto_custo_ges);
     $rel_alto_custo_ges = str_replace(['*', '#'], '', $rel_alto_custo_ges);
     $rel_alto_custo_ges = substr($rel_alto_custo_ges, 0, 5000);
     $opme_ges = filter_input(INPUT_POST, "opme_ges");
@@ -593,18 +575,12 @@ if ($type == "update") {
     $crm_int = filter_input(INPUT_POST, "crm_int");
     $acomodacao_int = filter_input(INPUT_POST, "acomodacao_int");
     $acoes_int = filter_input(INPUT_POST, "acoes_int");
-    $acoes_int = htmlspecialchars($acoes_int, ENT_QUOTES, 'UTF-8');
-    $acoes_int = preg_replace("/[^a-zA-Z0-9À-ÖØ-öø-ÿ .,!?()\-]/u", "", $acoes_int);
     $acoes_int = substr($acoes_int, 0, 5000);
 
     $rel_int = filter_input(INPUT_POST, "rel_int");
-    $rel_int = htmlspecialchars($rel_int, ENT_QUOTES, 'UTF-8');
-    $rel_int = preg_replace("/[^a-zA-Z0-9À-ÖØ-öø-ÿ .,!?()\-]/u", "", $rel_int);
     $rel_int = substr($rel_int, 0, 5000);
 
     $programacao_int = filter_input(INPUT_POST, "programacao_int");
-    $programacao_int = htmlspecialchars($programacao_int, ENT_QUOTES, 'UTF-8');
-    $programacao_int = preg_replace("/[^a-zA-Z0-9À-ÖØ-öø-ÿ .,!?()\-]/u", "", $programacao_int);
     $programacao_int = substr($programacao_int, 0, 5000);
 
     $senha_int = filter_input(INPUT_POST, "senha_int");
