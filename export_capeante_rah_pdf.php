@@ -407,50 +407,140 @@ $pdf->AddPage();
 $pdf->SetFooterMargin(15);
 $pdf->SetFont('helvetica', '', $BASE_FONT);
 
-/* ---------- CABEÇALHO ---------- */
-$cell = function (string $label, $val, string $w) {
-  $txt = trim((string)$val);
-  $v   = $txt === '' ? '&nbsp;' : safe($txt);
-  return '<td width="' . $w . '" style="vertical-align:middle;"><b>' . $label . ':</b> <span style="font-weight:normal;">' . $v . '</span></td>';
-};
-$headHtml = '
-<style>
-  .hr-thick{border-top:' . $HEADLINE_W . ' solid ' . $BORDER_CLR1 . ';margin:' . ($ULTRA ? '2px 0 3px 0' : ($COMPACT ? '3px 0 4px 0' : '4px 0 6px 0')) . ';}
-  .hdr td{ padding:' . ($ULTRA ? '1px 2px' : ($COMPACT ? '2px 3px' : '3px 4px')) . '; }
-</style>
-<table class="hdr" cellpadding="0" cellspacing="0" border="0" width="100%" style="line-height:' . ($ULTRA ? '1.12' : ($COMPACT ? '1.18' : '1.3')) . ';">
-  <tr>
-    <td colspan="3" style="font-size:' . ($ULTRA ? '10px' : ($COMPACT ? '11px' : '12px')) . ';font-weight:bold;text-align:center;padding-bottom:' . ($ULTRA ? '3px' : ($COMPACT ? '4px' : '6px')) . ';">
-      RELATÓRIO DE AUDITORIA HOSPITALAR - RAH
-    </td>
-  </tr>
-  <tr>
-    ' . $cell('Referenciado', $hospitalNome, '50%') . '
-    ' . $cell('Senha',       $senhaAut,     '25%') . '
-    ' . $cell('Data de Internação', dt($dataInternacao), '25%') . '
-  </tr>
-  <tr>
-    ' . $cell('CNPJ',      $hospitalCNPJ, '33%') . '
-    ' . $cell('Matrícula', $matricula,    '33%') . '
-  </tr>
-  <tr>
-    ' . $cell('Paciente', $pacienteNome, '50%') . '
-    ' . $cell('Idade',    $idade,       '25%') . '
-  </tr>
-  <tr>
-    ' . $cell('Período de Cobrança', (dt($periodoIni) . ($periodoFim ? (' a ' . dt($periodoFim)) : '')), '50%') . '
-    ' . $cell('Data de Alta', dt($dataAlta), '25%') . '
-    ' . $cell('Conta Auditada?', $contaAuditada, '25%') . '
-  </tr>
-  <tr>
-    ' . $cell('Tipo de Conta', $tipoConta, '50%') . '
-    ' . $cell('Visão',         $visaoConta, '25%') . '
-    <td width="25%"></td>
-  </tr>' .
-  ($prorrogacaoTxt ? '<tr><td colspan="3"><b>Prorrogação vigente:</b> <span style="font-weight:normal;">' . $prorrogacaoTxt . '</span></td></tr>' : '') .
-  '</table>
-<div class="hr-thick"></div>';
-$pdf->writeHTML($headHtml, true, false, false, false, '');
+/* ========================= CABEÇALHO RAH (refatorado) ========================= */
+
+// — Título —
+$pdf->SetFont('helvetica', 'B', 12);
+$pdf->Cell(0, 8, 'RELATÓRIO DE AUDITORIA HOSPITALAR - RAH', 0, 1, 'C');
+$pdf->Ln(2.5); // respiro entre o título e os dados
+
+// — Fonte padrão dos dados —
+$pdf->SetFont('helvetica', '', 9.5);
+
+// helper de label/value
+$lbl = 'font-weight:bold;';
+$val = 'font-weight:normal;';
+
+// — Tabela em duas colunas, com mais padding e melhor espaçamento de linha —
+// Valores já formatados (evita label vazio ocupar espaço)
+$dtIntern = isset($dados['data_intern_int']) && $dados['data_intern_int']
+  ? date('d/m/Y', strtotime($dados['data_intern_int'])) : '';
+
+$dtAlta   = isset($dados['data_alta_int']) && $dados['data_alta_int']
+  ? date('d/m/Y', strtotime($dados['data_alta_int'])) : '';
+
+$dtCobIni = isset($dados['data_cob_ini']) && $dados['data_cob_ini']
+  ? date('d/m/Y', strtotime($dados['data_cob_ini'])) : '';
+
+$dtCobFim = isset($dados['data_cob_fim']) && $dados['data_cob_fim']
+  ? date('d/m/Y', strtotime($dados['data_cob_fim'])) : '';
+
+// Datas do CAPEANTE vindas do formulário (com fallbacks seguros)
+$capIniRaw = $dados['data_inicial_capeante'] ?? $dados['data_inicial_cap'] ?? $dados['data_inicial'] ?? null;
+$capFimRaw = $dados['data_final_capeante']   ?? $dados['data_final_cap']   ?? $dados['data_final']   ?? null;
+
+// se não houver inicial, usa data de internação; se não houver final, deixa vazio
+$capIni = ($capIniRaw && $capIniRaw !== '0000-00-00') ? date('d/m/Y', strtotime($capIniRaw))
+  : (isset($dados['data_intern_int']) && $dados['data_intern_int'] ? date('d/m/Y', strtotime($dados['data_intern_int'])) : '');
+
+$capFim = ($capFimRaw && $capFimRaw !== '0000-00-00') ? date('d/m/Y', strtotime($capFimRaw)) : '';
+
+$idade    = $dados['idade_pac'] ?? ($dados['idade'] ?? '');
+$visao    = $dados['visao_cap'] ?? '';
+$matric   = $dados['matricula'] ?? '';
+
+$audOK = (($dados['em_auditoria_cap'] ?? 'n') === 's' || ($dados['senha_finalizada'] ?? 'n') === 's') ? 'Sim' : 'Não';
+
+// Paleta/estilo
+
+// estilos
+$cardBG = '#FAFBFD';
+$lineCL = '#E5EAF2';
+$lbl    = 'font-weight:800;';          // antes era bold
+$val    = 'font-weight:normal;';
+
+$infoHTML = '
+<table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:2px;">
+  <tr><td>
+    <table width="100%" cellspacing="0" cellpadding="2" border="0"
+           style="background-color:' . $cardBG . '; border:1px solid ' . $lineCL . '; line-height:1.15; font-size:9pt;">
+
+      <!-- L1 -->
+      <tr>
+        <td width="58%" style="border-right:1px solid ' . $lineCL . ';">
+          <span style="' . $lbl . '">Referenciado:</span>
+          <span style="' . $val . '">' . safe($nome_hosp ?? ($dados['nome_hosp'] ?? '')) . '</span>
+        </td>
+        <td width="42%">
+          <span style="' . $lbl . '">Data de Internação:</span>
+          <span style="' . $val . '">' . safe($dtIntern) . '</span>'
+  . ($dtAlta ? ' &nbsp; <span style="' . $lbl . '">Alta:</span> <span style="' . $val . '">' . safe($dtAlta) . '</span>' : '') .
+  '</td>
+      </tr>
+
+      <!-- L2 -->
+      <tr>
+        <td width="58%" style="border-right:1px solid ' . $lineCL . ';">
+          <span style="' . $lbl . '">CNPJ:</span>
+          <span style="' . $val . '">' . safe($dados['cnpj_hosp'] ?? '') . '</span>'
+  . ($matric ? ' &nbsp; <span style="' . $lbl . '">Matrícula:</span> <span style="' . $val . '">' . safe($matric) . '</span>' : '') .
+  '</td>
+        <td width="42%">
+          <span style="' . $lbl . '">Senha:</span>
+          <span style="' . $val . '">' . safe($dados['senha_int'] ?? '') . '</span>
+          &nbsp; <span style="' . $lbl . '">Auditada?</span>
+          <span style="' . $val . '">' . $audOK . '</span>
+        </td>
+      </tr>
+
+      <!-- L3 -->
+      <tr>
+        <td width="58%" style="border-right:1px solid ' . $lineCL . ';">
+          <span style="' . $lbl . '">Paciente:</span>
+          <span style="' . $val . '">' . safe($dados['nome_pac'] ?? '') . '</span>
+        </td>
+        <td width="42%">'
+  . ($idade ? '<span style="' . $lbl . '">Idade:</span> <span style="' . $val . '">' . safe($idade) . '</span>' : '') .
+  '</td>
+      </tr>
+
+      <!-- L4 -->
+      <tr>
+        <td width="58%" style="border-right:1px solid ' . $lineCL . ';">
+          <span style="' . $lbl . '">Período de Cobrança:</span>
+          <span style="' . $val . '">' . safe($capIni) . (($capIni || $capFim) ? ' a ' : '') . safe($capFim) . '</span>
+        </td>
+        <td width="42%">
+          <span style="' . $lbl . '">Tipo:</span>
+          <span style="' . $val . '">' . safe($dados['tipo_conta'] ?? 'Conta Única') . '</span>'
+  . ($visao ? ' &nbsp; <span style="' . $lbl . '">Visão:</span> <span style="' . $val . '">' . safe($visao) . '</span>' : '') .
+  '</td>
+      </tr>
+
+    </table>
+  </td></tr>
+</table>
+';
+
+
+
+
+// escreve o bloco de informações
+$pdf->writeHTML($infoHTML, true, false, true, false, '');
+
+// — Linha divisória com margem superior/inf —
+$pdf->Ln(1.5);
+$m = $pdf->getMargins();
+$left = $m['left'];
+$right = $m['right'];
+$usable = $pdf->getPageWidth() - $left - $right;
+
+$pdf->SetDrawColor(120, 120, 120);
+$pdf->SetLineWidth(0.5);
+$y = $pdf->GetY();
+$pdf->Line($left, $y, $left + $usable, $y);
+$pdf->Ln(2.5); // respiro após a linha
+/* ======================= FIM CABEÇALHO RAH (refatorado) ======================= */
 
 /* ---------- TABELAS DE GRUPO ---------- */
 function renderGroupTable(
@@ -609,9 +699,23 @@ $lh       = 1.15;
 $gapTop   = $ULTRA ? 0.5 : ($COMPACT ? 1.0 : 2.0);
 $gapMid   = $ULTRA ? 0.3 : ($COMPACT ? 0.8 : 1.0);
 
-$audMed = $dados['auditor_medico'] ?? $dados['nome_aud_med'] ?? $dados['prof_aud_med'] ?? '';
-$audEnf = $dados['auditor_enf']    ?? $dados['nome_aud_enf'] ?? $dados['prof_aud_enf'] ?? '';
-$adm    = $dados['administrativo'] ?? $dados['nome_admin']   ?? $dados['prof_admin']   ?? '';
+
+// Garante que possamos olhar também o POST (quando vem direto do form)
+$dados = array_merge(
+  (is_array($_POST ?? null)  ? $_POST  : []),
+  (is_array($dados ?? null)  ? $dados  : [])
+);
+
+// --- Nomes vindos do formulário (sem DAO) ---
+$audMed = trim($_REQUEST['aud_med_nome'] ?? $dados['aud_med_nome'] ?? '');
+$audEnf = trim($_REQUEST['aud_enf_nome'] ?? $dados['aud_enf_nome'] ?? '');
+$adm    = trim($_REQUEST['aud_adm_nome'] ?? $dados['aud_adm_nome'] ?? '');
+
+// Normaliza texto seguro para HTML
+$audMedTxt = safe($audMed ?: '—');
+$audEnfTxt = safe($audEnf ?: '—');
+$admTxt    = safe($adm   ?: '—');
+
 
 $htmlBlocoFinal = '
 <table nobr="true" cellpadding="0" cellspacing="0" width="100%" style="page-break-inside: avoid;">
@@ -619,23 +723,52 @@ $htmlBlocoFinal = '
     <td style="font-weight:bold;">Comentário:</td>
   </tr>
   <tr>
-    <td style="border:' . $BORDER_CELL . ' solid ' . $BORDER_CLR2 . ';padding:' . $pad . 'px;min-height:' . $minH . 'px;">'
-  . safe($comentario ?: '—') .
-  '</td>
+    <td style="border:' . $BORDER_CELL . ' solid ' . $BORDER_CLR2 . ';
+               padding:' . $pad . 'px;
+               min-height:' . $minH . 'px;">' . safe($comentario ?: "—") . '</td>
   </tr>
 </table>
 
-<table nobr="true" cellpadding="' . $cellPad . '" cellspacing="0" border="0" width="100%" style="line-height:' . $lh . '; page-break-inside: avoid; margin-top:6px;">
+<table nobr="true" cellpadding="' . $cellPad . '" cellspacing="0" border="0" width="100%"
+       style="line-height:' . $lh . '; page-break-inside: avoid; margin-top:8px; font-size:9pt;">
   <tr>
-    <td width="34%"><b>Auditor Médico:</b> ' . safe($audMed) . '</td>
-    <td width="33%"><b>Auditor Enf(a):</b> ' . safe($audEnf) . '</td>
-    <td width="33%"><b>Administrativo(a):</b> ' . safe($adm) . '</td>
+    <!-- Auditor Médico -->
+    <td width="34%" style="vertical-align:bottom;">
+      <table cellpadding="0" cellspacing="0" border="0" width="95%">
+        <tr><td style="font-weight:600; padding-bottom:4px;">Auditor Médico:</td></tr>
+        <tr>
+          <td style="border-top:0.5px solid #999; text-align:center; padding-top:3px;">' . $audMedTxt . '</td>
+        </tr>
+      </table>
+    </td>
+
+    <!-- Auditor Enf(a) -->
+    <td width="33%" style="vertical-align:bottom;">
+      <table cellpadding="0" cellspacing="0" border="0" width="95%">
+        <tr><td style="font-weight:600; padding-bottom:4px;">Auditor Enf(a):</td></tr>
+        <tr>
+          <td style="border-top:0.5px solid #999; text-align:center; padding-top:3px;">' . $audEnfTxt . '</td>
+        </tr>
+      </table>
+    </td>
+
+    <!-- Administrativo(a) -->
+    <td width="33%" style="vertical-align:bottom;">
+      <table cellpadding="0" cellspacing="0" border="0" width="95%">
+        <tr><td style="font-weight:600; padding-bottom:4px;">Administrativo(a):</td></tr>
+        <tr>
+          <td style="border-top:0.5px solid #999; text-align:center; padding-top:3px;">' . $admTxt . '</td>
+        </tr>
+      </table>
+    </td>
   </tr>
+
   <tr>
-    <td colspan="3" style="padding-top:6px;">São Paulo, ' . date('d/m/Y') . '</td>
+    <td colspan="3" style="padding-top:8px;">São Paulo, ' . date('d/m/Y') . '</td>
   </tr>
 </table>
 ';
+
 
 // escreve o bloco como transação: se quebrar página, desfaz e reescreve após AddPage()
 $pdf->Ln($gapTop);

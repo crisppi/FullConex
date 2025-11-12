@@ -90,3 +90,11 @@ SELECT...' at line 1 in /Applications/AMPPS/www/FullConex/export_capeante_rah_pd
 #0 /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php(222): PDO->prepare('\nSELECT\n  c.*,\n...')
 #1 {main}
 >>>>>>> Stashed changes
+[UNCAUGHT] PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'u650318666_mydb_accert_ho.usuarios' doesn't exist in /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php:729
+#0 /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php(729): PDO->prepare('SELECT usuario_...')
+#1 /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php(756): resolveAuditorNome(Array, Array, Array, NULL, Object(PDO))
+#2 {main}
+[UNCAUGHT] PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'u650318666_mydb_accert_ho.usuarios' doesn't exist in /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php:729
+#0 /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php(729): PDO->prepare('SELECT usuario_...')
+#1 /Applications/AMPPS/www/FullConex/export_capeante_rah_pdf.php(756): resolveAuditorNome(Array, Array, Array, NULL, Object(PDO))
+#2 {main}

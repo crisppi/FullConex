@@ -13,13 +13,19 @@
         const pill = document.getElementById('cc-pill');
         const hasCentralControls = !!selAtivar;
 
-        const audMed = ensureField('aud_med_capeante');
-        const audEnf = ensureField('aud_enf_capeante');
-        const audAdm = ensureField('aud_adm_capeante');
+        // flags já existentes (s/n)
+        const audMed = ensureFlagField('aud_med_capeante');
+        const audEnf = ensureFlagField('aud_enf_capeante');
+        const audAdm = ensureFlagField('aud_adm_capeante');
 
-        const cbMed = ensureField('med_check');
-        const cbEnf = ensureField('enfer_check');
-        const cbAdm = ensureField('adm_check');
+        const cbMed = ensureFlagField('med_check');
+        const cbEnf = ensureFlagField('enfer_check');
+        const cbAdm = ensureFlagField('adm_check');
+
+        // >>> NOVO: campos ocultos com os NOMES <<<
+        const nameMed = ensureNameField('aud_med_nome');
+        const nameEnf = ensureNameField('aud_enf_nome');
+        const nameAdm = ensureNameField('aud_adm_nome');
 
         const hasValue = (el) => {
             if (!el) return false;
@@ -49,14 +55,33 @@
             writeFlag(flagEl, v);
         };
 
+        // >>> NOVO: pega o TEXTO das opções e grava nos ocultos
+        function setNames() {
+            const getText = (sel) => {
+                if (!sel) return '';
+                const txt = (sel.selectedOptions && sel.selectedOptions[0] ? sel.selectedOptions[0].textContent : '').trim();
+                if (!txt) return '';
+                const low = txt.toLowerCase();
+                if (low === 'selecione' || low === 'selecionar' || low === 'selecionar...' || low === 'selecionar …') {
+                    return '';
+                }
+                return txt;
+            };
+            nameMed.value = getText(selMed);
+            nameEnf.value = getText(selEnf);
+            nameAdm.value = getText(selAdm);
+        }
+
         function refreshFromSelects() {
             if (!hasCentralControls) {
                 updatePill();
+                setNames(); // mantém nomes atualizados mesmo sem o toggle
                 return;
             }
 
             if (!isAtivo()) {
                 [audMed, audEnf, audAdm, cbMed, cbEnf, cbAdm].forEach((el) => writeFlag(el, 'n'));
+                setNames(); // zera nomes se desativado
                 updatePill();
                 return;
             }
@@ -69,6 +94,7 @@
             setRoleFlag(selEnf, cbEnf);
             setRoleFlag(selAdm, cbAdm);
 
+            setNames();
             updatePill();
         }
 
@@ -94,27 +120,24 @@
             pill.className = '';
         }
 
+        // listeners
         if (hasCentralControls) {
             selAtivar && selAtivar.addEventListener('change', refreshFromSelects);
             selMed && selMed.addEventListener('change', refreshFromSelects);
             selEnf && selEnf.addEventListener('change', refreshFromSelects);
+            selAdm && selAdm.addEventListener('change', refreshFromSelects);
 
-            selAdm && selAdm.addEventListener('change', function () {
-                const v = (isAtivo() && hasValue(selAdm)) ? 's' : 'n';
-                writeFlag(audAdm, v);
-                writeFlag(cbAdm, v);
-                updatePill();
-            });
-
+            // garante no submit
             form.addEventListener('submit', function () {
                 const vAdm = (isAtivo() && hasValue(selAdm)) ? 's' : 'n';
-                writeFlag(cbAdm, vAdm);
-                writeFlag(audAdm, vAdm);
+                writeFlag(cbAdm, vAdm); writeFlag(audAdm, vAdm);
 
                 const vMed = (isAtivo() && hasValue(selMed)) ? 's' : 'n';
                 const vEnf = (isAtivo() && hasValue(selEnf)) ? 's' : 'n';
                 writeFlag(cbMed, vMed); writeFlag(audMed, vMed);
                 writeFlag(cbEnf, vEnf); writeFlag(audEnf, vEnf);
+
+                setNames(); // <<< nomes garantidos no POST
             });
         }
 
@@ -131,19 +154,34 @@
             updatePill();
         });
 
+        // inicializa
         refreshFromSelects();
+        setNames();
 
-        function ensureField(fieldName) {
+        // helpers
+        function ensureFlagField(fieldName) {
             let el = form.querySelector(`[name="${cssEscape(fieldName)}"]`);
             if (el) return el;
-
             el = document.getElementById(fieldName);
             if (el && el.name === fieldName) return el;
-
             const hidden = document.createElement('input');
             hidden.type = 'hidden';
             hidden.name = fieldName;
-            hidden.value = 'n';
+            hidden.value = 'n';           // flags -> 's' | 'n'
+            form.appendChild(hidden);
+            return hidden;
+        }
+
+        // >>> NOVO: campo oculto para NOME (string vazia por padrão)
+        function ensureNameField(fieldName) {
+            let el = form.querySelector(`[name="${cssEscape(fieldName)}"]`);
+            if (el) return el;
+            el = document.getElementById(fieldName);
+            if (el && el.name === fieldName) return el;
+            const hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = fieldName;
+            hidden.value = '';            // nomes -> string
             form.appendChild(hidden);
             return hidden;
         }
