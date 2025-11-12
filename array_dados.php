@@ -47,11 +47,11 @@ $criterios_UTI = [
 
 $modo_internacao = [
     "Clínica",
-    "Pediatria",
-    "Ortopédica",
     "Cirúrgica",
+    "Pediátrica",
+    "Ortopédica",
     "Psiquiátrica",
-    "Maternidade"
+    "Obstétrica"
 ];
 $origem = [
     "Domicílio",

@@ -411,11 +411,13 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
                 <label class="control-label" for="modo_internacao_int">Modo Admissão</label>
                 <select class="form-control-sm form-control" id="modo_internacao_int" name="modo_internacao_int">
                     <option value="">Selecione</option>
-                    <option value="Clínica">Clínica</option>
-                    <option value="Pediatria">Pediatria</option>
-                    <option value="Ortopedia">Ortopedia</option>
-                    <option value="Obstetrícia">Obstetrícia</option>
+                    <?php
+                    sort($modo_internacao, SORT_ASC);
+                    foreach ($modo_internacao as $modo):  ?>
+                        <option value="<?= htmlspecialchars($modo) ?>"><?= htmlspecialchars($modo) ?></option>
+                    <?php endforeach; ?>
                 </select>
+
             </div>
             <div class="form-group col-sm-2">
                 <label class="control-label" for="tipo_admissao_int">Tipo Internação</label>
