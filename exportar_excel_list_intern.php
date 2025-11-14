@@ -36,7 +36,7 @@ $where = implode(' AND ', $condicoes);
 
 // Instanciar a classe internacaoDAO
 $internacaoDao = new internacaoDAO($conn, $BASE_URL);
-
+$limite = 1000000; // número bem alto que nunca vai ser alcançado
 // Obter todos os dados de internação conforme os filtros (sem paginação, para pegar todos os registros)
 $query = $internacaoDao->selectAllInternacao($where, $ordenar, $limite);
 
