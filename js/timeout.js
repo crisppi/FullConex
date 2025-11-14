@@ -3,7 +3,7 @@ var idleTime = 0;
 
 function timerIncrement() {
     idleTime += 1;
-    if (idleTime >= 2) { // 2 minutos
+    if (idleTime >= 10) { // 10 minutos
         window.location.href = "index.php";
     }
 }
@@ -15,4 +15,4 @@ function resetTimer() {
     idleTime = 0;
 }
 
-setInterval(timerIncrement, 300000); // 3 minutos
+setInterval(timerIncrement, 60000); // ciclo a cada 1 minuto

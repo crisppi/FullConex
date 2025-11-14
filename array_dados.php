@@ -12,24 +12,61 @@ $dados_UTI = [
 $dados_saps = ["0-20", "21-40", "41-61", "61-80", ">81"];
 
 $dados_especialidade = [
-    "Clínica",
-    "Pediatria",
-    "Ginecologia",
-    "Cirurgia Geral",
-    "Cirurgia Vascular",
-    "Cirurgia Torácica",
-    "Dermatologia",
-    "Reumatologia",
-    "Cirurgia Pediátrica",
+    "Acupuntura",
+    "Alergia e Imunologia",
+    "Anestesiologia",
+    "Angiologia",
+    "Cancerologia / Oncologia",
     "Cardiologia",
-    "Nefrologia",
-    "Otorrino",
+    "Cirurgia Plástica",
+    "Cirurgia Cardiovascular",
+    "Cirurgia de Cabeça e Pescoço",
+    "Cirurgia da Mão",
+    "Cirurgia do Aparelho Digestivo",
+    "Cirurgia Geral",
+    "Cirurgia Pediátrica",
+    "Cirurgia Torácica",
+    "Cirurgia Vascular",
+    "Clínica Médica",
+    "Coloproctologia",
+    "Dermatologia",
+    "Endocrinologia e Metabologia",
+    "Endoscopia",
     "Gastroenterologia",
+    "Genética Médica",
+    "Geriatria",
+    "Ginecologia e Obstetrícia",
+    "Hematologia e Hemoterapia",
+    "Homeopatia",
+    "Infectologia",
+    "Mastologia",
+    "Medicina de Família e Comunidade",
+    "Medicina de Tráfego",
+    "Medicina do Trabalho",
+    "Medicina Física e Reabilitação",
+    "Medicina Intensiva",
+    "Medicina Legal e Perícia Médica",
+    "Medicina Nuclear",
+    "Medicina Preventiva e Social",
+    "Nefrologia",
+    "Neurocirurgia",
+    "Nutrologia",
+    "Oftalmologia",
+    "Ortopedia e Traumatologia",
+    "Otorrinolaringologia",
+    "Patologia",
+    "Patologia Clínica/Medicina Laboratorial",
+    "Pediatria",
     "Pneumologia",
-    "Obstetrícia",
-    "Ortopedia",
     "Psiquiatria",
-    "Urologia"
+    "Radiologia e Diagnóstico por imagem",
+    "Radioterapia",
+    "Reumatologia",
+    "Urologia",
+    "Buco-maxilo-facial",
+    "Bucomaxilo – CRO",
+    "Cirurgia Oncológica",
+    "Internações Clínicas"
 ];
 
 $criterios_UTI = [
@@ -47,11 +84,7 @@ $criterios_UTI = [
 
 $modo_internacao = [
     "Clínica",
-    "Cirúrgica",
-    "Pediátrica",
-    "Ortopédica",
-    "Psiquiátrica",
-    "Obstétrica"
+    "Cirúrgica"
 ];
 $origem = [
     "Domicílio",
@@ -93,12 +126,15 @@ $dados_tipo_evento = [
 ];
 
 $dados_alta = [
-    "Atenção Domiciliar",
-    "Instituição de longa permanência",
+    "Alta Curado",
+    "Alta Melhorado",
+    "Alta por evasão",
+    "Residência",
+    "Transferido",
     "Óbito",
-    "Melhorado",
-    "a Pedido",
-    "Transferência"
+    "A pedido",
+    "Home-Care",
+    "Alta Administrativa"
 ];
 
 $cargo_user = ["Med_auditor", "Enf_Auditor", "Administrativo", "Diretoria", "Gerência", "Secretária", "Hospital"];
