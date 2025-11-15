@@ -1,166 +1,253 @@
 <?php
+ob_start();
 
-// ini_set('display_errors', 1);
-// ini_set('display_startup_errors', 1);
-// error_reporting(E_ALL);
-
-// Incluir as dependências do PhpSpreadsheet
-require 'vendor/autoload.php';
+require_once("globals.php");
+require_once("db.php");
+require_once("models/internacao.php");
+require_once("dao/internacaoDao.php");
+require_once("vendor/autoload.php");
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 
-// Definir a conexão com o banco de dados (ajustar conforme necessário)
-include_once("globals.php");
-include_once("db.php");
-include_once("models/internacao.php");
-include_once("dao/internacaoDao.php");
+/**
+ * Pega parâmetro de GET com valor padrão
+ */
+function getParam(string $name, $default = '')
+{
+    $value = filter_input(INPUT_GET, $name, FILTER_UNSAFE_RAW);
+    return $value !== null ? $value : $default;
+}
 
-// Recuperar os dados filtrados
-$busca = filter_input(INPUT_GET, 'pesquisa_nome') ? filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS) : "";
-$busca_user = filter_input(INPUT_GET, 'pesquisa_user') ? filter_input(INPUT_GET, 'pesquisa_user', FILTER_SANITIZE_SPECIAL_CHARS) : "";
-$limite = filter_input(INPUT_GET, 'limite') ? filter_input(INPUT_GET, 'limite') : 10;
-$ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : 1;
+/**
+ * Pequena proteção de string (para montar o WHERE com LIKE)
+ */
+function escLike($str)
+{
+    return addslashes(trim((string)$str));
+}
 
-// Definir as condições de busca
-$condicoes = [
-    strlen($busca) ? '(nome_hosp LIKE "%' . $busca . '%" OR cnpj_hosp LIKE "%' . $busca . '%")' : null,
-    strlen($busca_user) ? '(usuario_user LIKE "%' . $busca_user . '%" OR email_user LIKE "%' . $busca_user . '%")' : null,
-    // 'ativo_user = "s"'
-];
+/**
+ * Converte data YYYY-MM-DD para DateTime (ou null)
+ */
+function parseDateOrNull(?string $date): ?DateTime
+{
+    if (!$date || $date === '0000-00-00') {
+        return null;
+    }
+    try {
+        return new DateTime($date);
+    } catch (Exception $e) {
+        return null;
+    }
+}
 
-// Filtrar e construir a query de busca
-$condicoes = array_filter($condicoes);
+// -------------------------
+// 1) Recuperar filtros
+// -------------------------
+
+$busca      = getParam('pesquisa_nome', '');
+$busca_user = getParam('pesquisa_user', '');
+$limite     = (int) getParam('limite', 10);
+$ordenar    = getParam('ordenar', 1); // aqui você pode tratar depois na DAO
+
+// Se tiver mais filtros na listagem, adicione aqui:
+// $data_ini   = getParam('data_ini', '');
+// $data_fim   = getParam('data_fim', '');
+// $hospital   = getParam('fk_hospital_int', '');
+// $acomodacao = getParam('acomodacao_int', '');
+
+// -------------------------
+// 2) Montar WHERE
+// -------------------------
+
+$condicoes = [];
+
+// Filtro por hospital / CNPJ (texto livre)
+if (strlen(trim($busca)) > 0) {
+    $buscaEsc = escLike($busca);
+    $condicoes[] = '(nome_hosp LIKE "%' . $buscaEsc . '%" OR cnpj_hosp LIKE "%' . $buscaEsc . '%")';
+}
+
+// Filtro por usuário / e-mail (se fizer sentido na sua JOIN)
+if (strlen(trim($busca_user)) > 0) {
+    $buscaUserEsc = escLike($busca_user);
+    $condicoes[] = '(usuario_user LIKE "%' . $buscaUserEsc . '%" OR email_user LIKE "%' . $buscaUserEsc . '%")';
+}
+
+// Exemplos de mais filtros:
+/*
+if (!empty($hospital)) {
+    $condicoes[] = 'fk_hospital_int = ' . (int) $hospital;
+}
+
+if (!empty($acomodacao)) {
+    $acomEsc = escLike($acomodacao);
+    $condicoes[] = 'acomodacao_int = "' . $acomEsc . '"';
+}
+
+if (!empty($data_ini) && !empty($data_fim)) {
+    $condicoes[] = "data_intern_int BETWEEN '" . escLike($data_ini) . "' AND '" . escLike($data_fim) . "'";
+}
+*/
+
 $where = implode(' AND ', $condicoes);
 
-// Instanciar a classe internacaoDAO
-$internacaoDao = new internacaoDAO($conn, $BASE_URL);
-$limite = 1000000; // número bem alto que nunca vai ser alcançado
-// Obter todos os dados de internação conforme os filtros (sem paginação, para pegar todos os registros)
-$query = $internacaoDao->selectAllInternacao($where, $ordenar, $limite);
+// -------------------------
+// 3) Buscar dados (sem paginação)
+// -------------------------
 
-// Criar um novo Spreadsheet
+$internacaoDao = new internacaoDao($conn, $BASE_URL);
+
+// para exportação, ignora limite da tela
+$limiteExport = 1000000;
+
+// se sua DAO aceitar (where, order, limit), use assim:
+$query = $internacaoDao->selectAllInternacao($where, $ordenar, $limiteExport);
+
+// -------------------------
+// 4) Montar Excel
+// -------------------------
+
 $spreadsheet = new Spreadsheet();
-$sheet = $spreadsheet->getActiveSheet();
+$sheet       = $spreadsheet->getActiveSheet();
 
-// Ocultar as linhas de grade
-$sheet->setShowGridlines(false); // Não exibir as linhas de grade
+// Ocultar gridlines
+$sheet->setShowGridlines(false);
 
-// Inserir o logo
-$logoPath = 'img/full-03.jpeg';  // Caminho do logo na pasta "img"
-$logo = new Drawing();
-$logo->setName('Logo');
-$logo->setDescription('Logo da Empresa');
-$logo->setPath($logoPath); // Caminho para o arquivo do logo
-$logo->setHeight(100); // Ajuste a altura do logo conforme necessário
-$logo->setCoordinates('A1'); // Coloca o logo na célula A1
-$logo->setWorksheet($sheet); // Adiciona o logo à planilha
+// Logo
+$logoPath = 'img/full-03.jpeg';
+if (file_exists($logoPath)) {
+    $logo = new Drawing();
+    $logo->setName('Logo');
+    $logo->setDescription('Logo da Empresa');
+    $logo->setPath($logoPath);
+    $logo->setHeight(80);
+    $logo->setCoordinates('A1');
+    $logo->setWorksheet($sheet);
+}
 
-// Pular 4 linhas após o logo
-$row = 6; // Começa na linha 6 após o logo
+// Linha inicial após logo
+$row = 6;
 
-// Adicionando título "Listagem Internação" e data de extração
-$sheet->setCellValue('A' . $row, 'Listagem Internação')
-    ->mergeCells('A' . $row . ':H' . $row); // Mescla as células de A6 até H6 para o título
-$sheet->getStyle('A' . $row)->getFont()->setBold(true)->setSize(14); // Definindo o estilo do título
-$sheet->setCellValue('A' . ($row + 1), 'Data de Extração: ' . date('d/m/Y')); // Adiciona a data da extração
-$sheet->mergeCells('A' . ($row + 1) . ':H' . ($row + 1)); // Mescla as células de A7 até H7 para a data
+// Título
+$sheet->setCellValue('A' . $row, 'Listagem Internação');
+$sheet->mergeCells('A' . $row . ':I' . $row);
+$sheet->getStyle('A' . $row)->getFont()->setBold(true)->setSize(14);
 
-// Pule uma linha
-$row = $row + 3; // A partir da linha 9, onde começará a tabela
+// Data de extração
+$sheet->setCellValue('A' . ($row + 1), 'Data de Extração: ' . date('d/m/Y'));
+$sheet->mergeCells('A' . ($row + 1) . ':I' . ($row + 1));
 
-// Cabeçalho das colunas no Excel
-$sheet->setCellValue('A' . $row, 'ID Internação')
-    ->setCellValue('B' . $row, 'Hospital')
-    ->setCellValue('C' . $row, 'Nome do Paciente')
-    ->setCellValue('D' . $row, 'Data de Internação')
-    ->setCellValue('E' . $row, 'Senha')
-    ->setCellValue('F' . $row, 'Acomodação')
-    ->setCellValue('G' . $row, 'UTI')
-    ->setCellValue('H' . $row, 'Modo de Internação')
-    ->setCellValue('I' . $row, 'Tipo de Admissão');
+$row = $row + 3; // linha do cabeçalho
 
-// Define a cor de fundo cinza para os cabeçalhos
+$headerRow = $row;
+
+// Cabeçalhos
+$sheet->setCellValue('A' . $headerRow, 'ID Internação')
+    ->setCellValue('B' . $headerRow, 'Hospital')
+    ->setCellValue('C' . $headerRow, 'Nome do Paciente')
+    ->setCellValue('D' . $headerRow, 'Data de Internação')
+    ->setCellValue('E' . $headerRow, 'Senha')
+    ->setCellValue('F' . $headerRow, 'Acomodação')
+    ->setCellValue('G' . $headerRow, 'UTI')
+    ->setCellValue('H' . $headerRow, 'Modo de Internação')
+    ->setCellValue('I' . $headerRow, 'Tipo de Admissão');
+
+// Estilo do cabeçalho
 $headerStyle = [
     'fill' => [
         'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
         'startColor' => [
-            'rgb' => 'D3D3D3'  // Cor cinza claro
-        ]
+            'rgb' => 'D3D3D3',
+        ],
     ],
     'font' => [
-        'bold' => true  // Deixar o texto em negrito
-    ]
+        'bold' => true,
+    ],
 ];
 
-// Aplica o estilo para as células de cabeçalho (A9 a I9)
 foreach (range('A', 'I') as $columnID) {
-    $sheet->getStyle($columnID . $row)->applyFromArray($headerStyle);
+    $sheet->getStyle($columnID . $headerRow)->applyFromArray($headerStyle);
 }
 
-$row++; // Incrementa a linha para começar o preenchimento dos dados
+$row = $headerRow + 1;
 
-// Preenche as células com os dados da internação (seguindo a nova ordem)
+// Dados
 foreach ($query as $internacao) {
-    // Convertendo a data para o formato PHP 'd/m/Y'
-    $dataInternacao = \PhpOffice\PhpSpreadsheet\Shared\Date::PHPToExcel(new DateTime($internacao['data_intern_int']));
+    // Data de internação
+    $dataInternacaoStr = $internacao['data_intern_int'] ?? null;
+    $dataExcel = null;
 
-    // Verifica o valor de internacao_uti_int e coloca "Sim" se for "s"
-    $uti = ($internacao['internacao_uti_int'] == 's') ? 'Sim' : '';
+    if (!empty($dataInternacaoStr) && $dataInternacaoStr !== '0000-00-00') {
+        $dt = parseDateOrNull($dataInternacaoStr);
+        if ($dt) {
+            $dataExcel = \PhpOffice\PhpSpreadsheet\Shared\Date::PHPToExcel($dt);
+        }
+    }
 
-    // Preenche as células conforme a nova ordem
-    $sheet->setCellValue('A' . $row, $internacao['id_internacao'])
-        ->setCellValue('B' . $row, $internacao['nome_hosp'])
-        ->setCellValue('C' . $row, $internacao['nome_pac'])
-        ->setCellValue('D' . $row, $dataInternacao)
-        ->setCellValue('E' . $row, $internacao['senha_int'])
-        ->setCellValue('F' . $row, $internacao['acomodacao_int'])
+    // UTI (Sim se 's')
+    $uti = (!empty($internacao['internacao_uti_int']) && strtolower($internacao['internacao_uti_int']) === 's')
+        ? 'Sim'
+        : '';
+
+    $sheet->setCellValue('A' . $row, $internacao['id_internacao'] ?? '')
+        ->setCellValue('B' . $row, $internacao['nome_hosp'] ?? '')
+        ->setCellValue('C' . $row, $internacao['nome_pac'] ?? '')
+        ->setCellValue('D' . $row, $dataExcel)
+        ->setCellValue('E' . $row, $internacao['senha_int'] ?? '')
+        ->setCellValue('F' . $row, $internacao['acomodacao_int'] ?? '')
         ->setCellValue('G' . $row, $uti)
-        ->setCellValue('H' . $row, $internacao['modo_internacao_int'])
-        ->setCellValue('I' . $row, $internacao['tipo_admissao_int']);
+        ->setCellValue('H' . $row, $internacao['modo_internacao_int'] ?? '')
+        ->setCellValue('I' . $row, $internacao['tipo_admissao_int'] ?? '');
 
-    // Aplicando a formatação de data na coluna D
-    $sheet->getStyle('D' . $row)->getNumberFormat()->setFormatCode('DD/MM/YYYY');
+    if ($dataExcel !== null) {
+        $sheet->getStyle('D' . $row)
+            ->getNumberFormat()
+            ->setFormatCode('dd/mm/yyyy');
+    }
+
     $row++;
 }
 
-// Ajuste automático da largura das colunas após o preenchimento dos dados
+// Auto largura
 foreach (range('A', 'I') as $columnID) {
     $sheet->getColumnDimension($columnID)->setAutoSize(true);
 }
 
-// Adicionando bordas em todas as células
-$allCells = 'A9:I' . $row; // Define o intervalo de todas as células preenchidas, começando após o título
+// Bordas da tabela inteira
+$lastDataRow = $row - 1;
+if ($lastDataRow >= $headerRow) {
+    $allCells = 'A' . $headerRow . ':I' . $lastDataRow;
 
-// Estilo para as bordas
-$borderStyle = [
-    'borders' => [
-        'allBorders' => [
-            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN, // Define o estilo da borda
-            'color' => ['rgb' => '000000'] // Cor preta para as bordas
-        ]
-    ]
-];
+    $borderStyle = [
+        'borders' => [
+            'allBorders' => [
+                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                'color'       => ['rgb' => '000000'],
+            ],
+        ],
+    ];
 
-// Aplica as bordas em todas as células
-$sheet->getStyle($allCells)->applyFromArray($borderStyle);
+    $sheet->getStyle($allCells)->applyFromArray($borderStyle);
+}
 
-// Criação do arquivo Excel
-$writer = new Xlsx($spreadsheet);
+// -------------------------
+// 5) Download
+// -------------------------
 
-// Definindo o nome do arquivo de saída
+$writer   = new Xlsx($spreadsheet);
 $filename = 'internacoes_' . date('YmdHis') . '.xlsx';
 
-// Enviando o cabeçalho para download do arquivo Excel
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 header('Content-Disposition: attachment;filename="' . $filename . '"');
 header('Cache-Control: max-age=0');
 
-// Evita o envio de qualquer outro conteúdo antes da exportação
-ob_clean(); // Limpa o buffer de saída
-flush(); // Garante que o conteúdo seja enviado
+// Limpa qualquer saída anterior (igual no PDF)
+if (function_exists('ob_get_length') && ob_get_length()) {
+    ob_end_clean();
+}
 
-// Envia o conteúdo para o navegador
 $writer->save('php://output');
 exit;

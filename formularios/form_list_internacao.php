@@ -59,7 +59,7 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 
 <!-- FORMULARIO DE PESQUISAS -->
-<div class="container-fluid" id='main-container' >
+<div class="container-fluid" id='main-container'>
     <!-- Main CSS-->
     <!-- <link href="./diversos/CoolAdmin-master/css/theme.css" rel="stylesheet"  media="all"> -->
     <script src="./js/ajaxNav.js"></script>
@@ -68,11 +68,26 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar
         <h4 class="page-title" style="color: #3A3A3A;">Listagem - Internação</h4>
 
         <!-- Botões lado a lado -->
+        <?php
+$busca       = $busca       ?? '';
+$busca_user  = $busca_user  ?? '';
+$ordenar     = $ordenar     ?? 1;
+$limite      = $limite      ?? 10;
+
+$exportUrl = $BASE_URL . "exportar_excel_list_intern.php"
+    . "?pesquisa_nome="  . urlencode($busca)
+    . "&pesquisa_user="  . urlencode($busca_user)
+    . "&ordenar="        . urlencode($ordenar)
+    . "&limite="         . urlencode($limite);
+?>
         <div class="d-flex">
             <!-- Botão de Exportar para Excel -->
-            <a href="<?= $BASE_URL ?>exportar_excel_list_intern.php" class="btn btn-success"
-                style="border-radius:10px; margin-right: 10px;">Exportar para
-                Excel</a>
+            <a href="<?= $BASE_URL ?>exportar_excel_list_intern.php?pesquisa_nome=<?= urlencode($busca) ?>&pesquisa_user=<?= urlencode($busca_user) ?>&ordenar=<?= urlencode($ordenar) ?>&limite=<?= urlencode($limite) ?>"
+                class="btn btn-success" style="border-radius:10px; margin-right: 10px;">
+                Exportar para Excel
+            </a>
+
+
 
             <!-- Botão de Nova Internação -->
             <a class="btn btn-success" href="<?= $BASE_URL ?>cad_internacao.php"
