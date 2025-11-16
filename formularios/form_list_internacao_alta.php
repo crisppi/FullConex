@@ -67,19 +67,6 @@ if (strlen(trim((string)$data_alta)) > 0) {
 $condicoes = array_filter($condicoes);
 $where     = implode(' AND ', $condicoes);
 
-/* ===================== PARAMS EXPORTAÇÃO (HIDDEN) ===================== */
-
-$exportParamsArray = [
-    'pesquisa_nome' => $pesquisa_nome,
-    'pesquisa_pac'  => $pesquisa_pac,
-    'pesqInternado' => $pesqInternado,
-    'limite'        => $limite,
-    'ordenar'       => $ordenar,
-    'data_alta'     => $data_alta,
-    'data_alta_max' => $data_alta_max,
-];
-$exportParams = http_build_query($exportParamsArray);
-
 /* ===================== CONTAGEM + PAGINAÇÃO ===================== */
 
 // contagem sem limite
@@ -124,7 +111,7 @@ if ($qtdIntItens > $limite) {
     <div class="d-flex justify-content-between align-items-center">
         <h4 class="page-title">Alta Hospitalar</h4>
 
-        <!-- Botão Excel usa JS + hidden exportParams -->
+        <!-- Botão Excel: JS monta a query com os filtros atuais -->
         <a href="#" id="btnExportExcelAlta" class="btn btn-outline-success btn-sm">
             <i class="fa-solid fa-file-excel me-1"></i> Exportar Excel
         </a>
@@ -163,13 +150,17 @@ if ($qtdIntItens > $limite) {
                                 name="ordenar">
                                 <option value="">Classificar por</option>
                                 <option value="id_internacao" <?= $ordenar == 'id_internacao'   ? 'selected' : null ?>>
-                                    Internação</option>
-                                <option value="nome_pac" <?= $ordenar == 'nome_pac'        ? 'selected' : null ?>>
-                                    Paciente</option>
-                                <option value="nome_hosp" <?= $ordenar == 'nome_hosp'       ? 'selected' : null ?>>
-                                    Hospital</option>
-                                <option value="data_alta_alt" <?= $ordenar == 'data_alta_alt'   ? 'selected' : null ?>>
-                                    Data Alta</option>
+                                    Internação
+                                </option>
+                                <option value="nome_pac" <?= $ordenar == 'nome_pac' ? 'selected' : null ?>>
+                                    Paciente
+                                </option>
+                                <option value="nome_hosp" <?= $ordenar == 'nome_hosp' ? 'selected' : null ?>>
+                                    Hospital
+                                </option>
+                                <option value="data_alta_alt" <?= $ordenar == 'data_alta_alt' ? 'selected' : null ?>>
+                                    Data Alta
+                                </option>
                             </select>
                         </div>
                         <div class="col-sm-1" style="padding:2px !important">
@@ -197,11 +188,7 @@ if ($qtdIntItens > $limite) {
         <div>
             <div id="table-content">
 
-                <!-- HIDDEN COM OS PARÂMETROS PARA O EXPORT EXCEL (ATUALIZA JUNTO COM O AJAX) -->
-                <input type="hidden" id="exportAltaParams"
-                    value="<?= htmlspecialchars($exportParams, ENT_QUOTES, 'UTF-8') ?>">
-
-                <table class="table table-sm table-striped  table-hover table-condensed">
+                <table class="table table-sm table-striped table-hover table-condensed">
                     <thead>
                         <tr>
                             <th scope="col" width="3%">Id-Int</th>
@@ -242,7 +229,7 @@ if ($qtdIntItens > $limite) {
 
                         <?php if ($qtdIntItens == 0): ?>
                         <tr>
-                            <td colspan="7" scope="row" class="col-id" style='font-size:15px'>
+                            <td colspan="7" scope="row" class="col-id" style="font-size:15px">
                                 Não foram encontrados registros
                             </td>
                         </tr>
@@ -314,7 +301,7 @@ if ($qtdIntItens > $limite) {
 
                     <div class="table-counter">
                         <p
-                            style="margin-bottom:25px;font-size:1em; font-weight:600; font-family:var(--bs-font-sans-serif); text-align:right">
+                            style="margin-bottom:25px;font-size:1em;font-weight:600;font-family:var(--bs-font-sans-serif);text-align:right">
                             <?= "Total: " . (int)$qtdIntItens ?>
                         </p>
                     </div>
@@ -363,25 +350,25 @@ if ($qtdIntItens > $limite) {
 
 <script>
 (function($) {
-    // Helpers de modal
     function showMsg(title, body) {
         $('#modalMsgTitle').text(title || 'Aviso');
         $('#modalMsgBody').html(body || '');
         new bootstrap.Modal(document.getElementById('modalMsg')).show();
     }
 
-    // Botão Exportar Excel (pega os params do hidden dentro do #table-content)
+    // Botão Exportar Excel – monta os parâmetros com os filtros atuais
     $(document).on('click', '#btnExportExcelAlta', function(e) {
         e.preventDefault();
-        e.stopPropagation(); // evita ajaxNav capturar
+        e.stopPropagation(); // evita ajaxNav ou outros handlers globais
 
-        var params = $('#table-content #exportAltaParams').val() || '';
+        // Pega todos os filtros atuais do formulário
+        var query = $('#select-internacao-form').serialize();
         var url = '<?= $BASE_URL ?>exportar_excel_list_alta.php';
-        if (params) {
-            url += '?' + params;
+        if (query) {
+            url += '?' + query;
         }
 
-        // Abre em nova aba / janela, igual fizemos na internação
+        // Abre em nova aba/janela
         window.open(url, '_blank');
     });
 
@@ -409,10 +396,8 @@ if ($qtdIntItens > $limite) {
             });
         });
 
-    // Estado dos IDs das altas selecionadas
     let idsSelecionados = [];
 
-    // Abrir modal de confirmação
     $(document)
         .off('click.alta', '#btnRemoveAltas')
         .on('click.alta', '#btnRemoveAltas', function(e) {
@@ -428,7 +413,6 @@ if ($qtdIntItens > $limite) {
             new bootstrap.Modal(document.getElementById('modalReverterAlta')).show();
         });
 
-    // Confirmar reversão
     $(document)
         .off('click.alta', '#btnConfirmReverter')
         .on('click.alta', '#btnConfirmReverter', function() {
@@ -446,7 +430,6 @@ if ($qtdIntItens > $limite) {
                     if (j && j.ok) {
                         bootstrap.Modal.getInstance(document.getElementById('modalReverterAlta'))
                             .hide();
-                        // Recarrega a página mantendo os filtros atuais
                         location.reload();
                     } else {
                         showMsg('Falha', (j && j.msg) ? j.msg : 'Falha ao reverter.');
