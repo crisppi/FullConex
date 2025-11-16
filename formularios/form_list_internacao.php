@@ -69,23 +69,29 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar
 
         <!-- Botões lado a lado -->
         <?php
-$busca       = $busca       ?? '';
-$busca_user  = $busca_user  ?? '';
-$ordenar     = $ordenar     ?? 1;
-$limite      = $limite      ?? 10;
+        $busca       = $busca       ?? '';
+        $busca_user  = $busca_user  ?? '';
+        $ordenar     = $ordenar     ?? 1;
+        $limite      = $limite      ?? 10;
+        $senha_int   = $senha_int         ?? '';
+        $data_intern_int   = $data_intern_int   ?? '';
+        $data_intern_int_max = $data_intern_int_max ?? '';
 
-$exportUrl = $BASE_URL . "exportar_excel_list_intern.php"
-    . "?pesquisa_nome="  . urlencode($busca)
-    . "&pesquisa_user="  . urlencode($busca_user)
-    . "&ordenar="        . urlencode($ordenar)
-    . "&limite="         . urlencode($limite);
-?>
+        $exportUrl = $BASE_URL . "exportar_excel_list_intern.php"
+        . "?pesquisa_nome="       . urlencode($busca)
+        . "&pesquisa_user="       . urlencode($busca_user)
+        . "&ordenar="             . urlencode($ordenar)
+        . "&limite="              . urlencode($limite)
+        . "&senha_int="           . urlencode($senha_int)
+        . "&data_intern_int="     . urlencode($data_intern_int)
+        . "&data_intern_int_max=" . urlencode($data_intern_int_max);
+        ?>
         <div class="d-flex">
             <!-- Botão de Exportar para Excel -->
-            <a href="<?= $BASE_URL ?>exportar_excel_list_intern.php?pesquisa_nome=<?= urlencode($busca) ?>&pesquisa_user=<?= urlencode($busca_user) ?>&ordenar=<?= urlencode($ordenar) ?>&limite=<?= urlencode($limite) ?>"
-                class="btn btn-success" style="border-radius:10px; margin-right: 10px;">
+            <a href="#" id="btn-exportar-excel" class="btn btn-success" style="border-radius:10px; margin-right: 10px;">
                 Exportar para Excel
             </a>
+
 
 
 
@@ -173,6 +179,8 @@ $exportUrl = $BASE_URL . "exportar_excel_list_intern.php"
                         <!-- </div> -->
                     </div>
                 </div>
+                <input type="hidden" name="pesqInternado" value="<?= htmlspecialchars($pesqInternado) ?>">
+
             </form>
         </div>
         <!-- BASE DAS PESQUISAS -->
@@ -708,25 +716,28 @@ function callProcessPdf(id_internacao) {
 </script>
 
 <script>
-// ajax para submit do formulario de pesquisa
+// ajax para submit do formulario de pesquisa + exportar Excel
 $(document).ready(function() {
+
+    // SUBMIT AJAX – atualiza a tabela sem recarregar a página
     $('#select-internacao-form').submit(function(e) {
         e.preventDefault(); // Impede o comportamento padrão de enviar o formulário
 
         var formData = $(this).serialize(); // Serializa os dados do formulário
 
         $.ajax({
-            url: $(this).attr('action'), // URL do formulário
+            url: $(this).attr('action'), // URL do formulário (vazia = mesma página)
             type: $(this).attr('method'), // Método do formulário (GET)
             data: formData, // Dados serializados do formulário
             success: function(response) {
-                // Atualiza o conteúdo da tabela com a resposta do servidor
-                // Crie um elemento temporário para armazenar a resposta HTML
+                // Cria um elemento temporário para armazenar a resposta HTML
                 var tempElement = document.createElement('div');
                 tempElement.innerHTML = response;
 
-                // Encontre o elemento com o ID "table-content" dentro do elemento temporário
+                // Encontra o elemento com o ID "table-content" dentro do temporário
                 var tableContent = tempElement.querySelector('#table-content');
+
+                // Substitui o conteúdo atual
                 $('#table-content').html(tableContent);
             },
             error: function() {
@@ -734,6 +745,21 @@ $(document).ready(function() {
             }
         });
     });
+
+    // CLIQUE NO BOTÃO DE EXCEL – usa os MESMOS filtros do formulário
+    $('#btn-exportar-excel').on('click', function(e) {
+        e.preventDefault();
+
+        // Pega todos os filtros atuais do formulário (#select-internacao-form)
+        var params = $('#select-internacao-form').serialize();
+
+        // Monta a URL do export, enviando tudo via GET
+        var urlExcel = '<?= $BASE_URL ?>exportar_excel_list_intern.php?' + params;
+
+        // Redireciona para o PHP de export (vai gerar/baixar o Excel)
+        window.location.href = urlExcel;
+    });
+
 });
 </script>
 <script src="./js/input-estilo.js"></script>
