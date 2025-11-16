@@ -31,8 +31,22 @@ function formatBool($value)
 }
 
 /**
- * Desenha o cabeçalho padrão: logo + linha + título
- * com pouco espaço acima/abaixo do “RELATÓRIO DE VISITA”
+ * Extensão da TCPDF para ter um rodapé padrão
+ */
+class RelatorioVisitaPDF extends \TCPDF
+{
+    public function Footer()
+    {
+        // Posição a 15 mm do final da página
+        $this->SetY(-15);
+        $this->SetFont('helvetica', 'I', 7);
+        $this->SetTextColor(100, 100, 100);
+        $this->Cell(0, 6, 'Gerado em: ' . date('d/m/Y H:i:s'), 0, 0, 'R');
+    }
+}
+
+/**
+ * Cabeçalho com logo + linha + título
  */
 function renderHeader($pdf, $logoPath)
 {
@@ -50,14 +64,14 @@ function renderHeader($pdf, $logoPath)
         $pdf->SetDrawColor(180, 180, 180);
         $pdf->Line(15, $linhaY, 195, $linhaY);
 
-        // Cursor um pouco acima, para reduzir espaço até o título
+        // Cursor logo abaixo da linha
         $pdf->SetY($linhaY + 1.5);
     } else {
         // Se não houver logo, posiciona relativamente alto
         $pdf->SetY(22);
     }
 
-    // Título centralizado com altura menor e pouco espaço abaixo
+    // Título
     $pdf->SetFont('helvetica', 'B', 8);
     $pdf->SetTextColor(0, 0, 0);
     $pdf->Cell(0, 5, 'RELATÓRIO DE VISITA', 0, 1, 'C');
@@ -98,26 +112,27 @@ $diasInternado = $dataInternacaoObj
     : '—';
 
 // --------- PDF ---------
-$pdf = new \TCPDF('P', 'mm', 'A4', true, 'UTF-8');
+$pdf = new RelatorioVisitaPDF('P', 'mm', 'A4', true, 'UTF-8');
 $pdf->SetCreator('FullCare');
 $pdf->SetAuthor('FullCare');
 $pdf->SetTitle("Relatório de Visita - Internação #{$id}");
 $pdf->SetMargins(15, 15, 15);
+$pdf->SetAutoPageBreak(true, 18); // margem de quebra em 18 mm
 
 $pdf->setPrintHeader(false);
-$pdf->setPrintFooter(false);
+$pdf->setPrintFooter(true); // rodapé automático
 
 $pdf->AddPage();
 
 $logoPath = 'img/LogoConexAud.png';
 renderHeader($pdf, $logoPath);
 
-// Cores
-$corRoxo   = [106,  46, 126];
-$corCinza  = [230, 230, 230];
+// Cores (azul + cinza padrão)
+$corAzulHeader = [0, 86, 143];     // barra de título (RESUMO)
+$corCinza      = [236, 239, 241];  // fundo das células
 
 // ===================== RESUMO =====================
-$pdf->SetFillColor(...$corRoxo);
+$pdf->SetFillColor(...$corAzulHeader);
 $pdf->SetTextColor(255, 255, 255);
 $pdf->SetFont('helvetica', 'B', 7);
 $pdf->Cell(0, 6, 'RESUMO DA INTERNAÇÃO', 0, 1, 'L', true);
@@ -156,10 +171,10 @@ $pdf->Cell(0, 6, $internacao['nome_pac'] ?? '', 1, 1, 'L', false);
 $pdf->Ln(1);
 
 // Campos em 3 colunas, com label em negrito
+// Removidos: "Hora da Internação" e "Patologia Principal"
 $dadosInternacao = [
     'ID da Internação'    => $internacao['id_internacao'] ?? '',
     'Data da Internação'  => formatDate($internacao['data_intern_int'] ?? ''),
-    'Hora da Internação'  => $internacao['hora_intern_int'] ? substr($internacao['hora_intern_int'], 0, 5) : '',
     'Hospital'            => $internacao['nome_hosp'] ?? '',
     'Especialidade'       => $internacao['especialidade_int'] ?? '',
     'Origem'              => $internacao['origem_int'] ?? '',
@@ -167,7 +182,6 @@ $dadosInternacao = [
     'Tipo de Admissão'    => $internacao['tipo_admissao_int'] ?? '',
     'Acomodação'          => $internacao['acomodacao_int'] ?? '',
     'Grupo de Patologia'  => $internacao['grupo_patologia_int'] ?? '',
-    'Patologia Principal' => $internacao['patologia_pat'] ?? '',
     'Patologia'           => $internacao['patologia2_pat'] ?? '',
     'UTI'                 => formatBool($internacao['internado_uti_int'] ?? ''),
     'Senha'               => $internacao['senha_int'] ?? '',
@@ -207,12 +221,12 @@ for ($row = 0; $row < $totalRows; $row++) {
             $x,
             $currentY,
             $html,
-            1,     // border
-            0,     // ln
-            1,     // fill
-            false, // reseth
+            1,
+            0,
+            1,
+            false,
             'L',
-            true   // autopadding
+            true
         );
     }
     $pdf->SetY($currentY + 6);
@@ -246,23 +260,14 @@ if (empty($visitas)) {
         $pdf->SetFont('helvetica', '', 7);
         $pdf->SetTextColor(0, 0, 0);
 
-        // Campos da visita em 3 colunas, label em negrito
+        // Campos da visita em 3 colunas
+        // Removidos: Visita Médica, Visita Enfermagem, Visita Noturna, Tipo Admissão, Modo Internação, ID Internação, ID Paciente
         $dadosVisita = [
-            'ID da Visita'           => $visita['id_visita'] ?? '',
-            'Data da Visita'         => formatDate($visita['data_visita_vis'] ?? ''),
-            'ID Paciente'            => $visita['id_paciente'] ?? '',
-            'Internação Relacionada' => $visita['fk_internacao_vis'] ?? '',
-            'Visita Médica'          => formatBool($visita['visita_med_vis'] ?? ''),
-            'Visita Enfermagem'      => formatBool($visita['visita_enf_vis'] ?? ''),
-            'Visita Noturna'         => formatBool($visita['visita_no_vis'] ?? ''),
-            'Auditor Médico'         => $visita['visita_auditor_prof_med'] ?? '',
-            'Auditor Enfermagem'     => $visita['visita_auditor_prof_enf'] ?? '',
-            'Hospital da Visita'     => $visita['nome_hosp'] ?? '',
-            'Grupo de Patologia'     => $visita['grupo_patologia_int'] ?? '',
-            'Titular'                => $visita['titular_int'] ?? '',
-            'Modo Internação'        => $visita['modo_internacao_int'] ?? '',
-            'Tipo de Admissão'       => $visita['tipo_admissao_int'] ?? '',
-            'Acomodação'             => $visita['acomodacao_int'] ?? '',
+            'Id Visita'      => $visita['id_visita'] ?? '',
+            'Data da Visita' => formatDate($visita['data_visita_vis'] ?? ''),
+            'Hospital'       => $visita['nome_hosp'] ?? '',
+            'Titular'        => $visita['titular_int'] ?? '',
+            'Acomodação'     => $visita['acomodacao_int'] ?? '',
         ];
 
         $itensVis = [];
@@ -312,25 +317,23 @@ if (empty($visitas)) {
         }
         $pdf->Ln(3);
 
-        // Relatório da Visita
+        // Relatório da Visita (título em negrito)
         $pdf->SetFillColor(...$corCinza);
+        $pdf->SetFont('helvetica', 'B', 7);
         $pdf->MultiCell(0, 6, 'Relatório da Visita:', 1, 'L', true);
+        $pdf->SetFont('helvetica', '', 7);
         $pdf->MultiCell(0, 6, $visita['rel_visita_vis'] ?? '', 1, 'L', false);
         $pdf->Ln(1);
 
-        // Ações da Visita
+        // Ações da Visita (título em negrito)
         $pdf->SetFillColor(...$corCinza);
+        $pdf->SetFont('helvetica', 'B', 7);
         $pdf->MultiCell(0, 6, 'Ações da Visita:', 1, 'L', true);
+        $pdf->SetFont('helvetica', '', 7);
         $pdf->MultiCell(0, 6, $visita['acoes_int_vis'] ?? '', 1, 'L', false);
         $pdf->Ln(3);
     }
 }
-
-// --- Rodapé ---
-$pdf->SetY(-15);
-$pdf->SetFont('helvetica', 'I', 7);
-$pdf->SetTextColor(100, 100, 100);
-$pdf->Cell(0, 6, 'Gerado em: ' . date('d/m/Y H:i:s'), 0, 0, 'R');
 
 ob_end_clean();
 $pdf->Output("relatorio_visita_{$id}.pdf", 'D');
