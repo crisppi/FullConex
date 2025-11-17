@@ -44,39 +44,55 @@ function parseDateOrNull(?string $date): ?DateTime
     }
 }
 
+/**
+ * Converte índice numérico (0,1,2...) em letra de coluna Excel (A,B,C...)
+ */
+function colLetterFromIndex(int $index): string
+{
+    $index += 1; // 1-based
+    $letter = '';
+    while ($index > 0) {
+        $mod = ($index - 1) % 26;
+        $letter = chr(65 + $mod) . $letter;
+        $index = (int)(($index - $mod) / 26);
+    }
+    return $letter;
+}
+
 // -----------------------------------------------------
-// 1) Recuperar filtros (os mesmos da listagem de ALTAS)
+// 1) Recuperar filtros (os mesmos da listagem/URL)
 // -----------------------------------------------------
 
-$pesquisa_nome   = getParam('pesquisa_nome', '');   // hospital (ho.nome_hosp)
-$pesquisa_pac    = getParam('pesquisa_pac',  '');   // paciente (pa.nome_pac)
-$pesqInternado   = getParam('pesqInternado', 's');  // só pra manter compatibilidade de URL
-$ordenar_param   = getParam('ordenar', 'data_alta_alt');
+$pesquisa_nome   = getParam('pesquisa_nome', '');
+$pesquisa_pac    = getParam('pesquisa_pac', '');
+$pesqInternado   = getParam('pesqInternado', 's'); // não usado no WHERE, mas mantido p/ compatibilidade
+$limite          = (int) getParam('limite', 10);
+$ordenar         = getParam('ordenar', 'id_internacao');
 $data_alta       = getParam('data_alta', '');
 $data_alta_max   = getParam('data_alta_max', '');
+$colsParam       = getParam('cols', ''); // campos vindos do modal (ex: "id_int,hosp,pac,tipo_alta,data_alta,uti")
 
-// Para exportação, usamos limite grande (se o altaDao tiver parâmetro limit)
-$limiteExport = 1000000;
-
-// Mesmo comportamento da tela: se vier data_alta e não vier max, max = hoje
+// Se veio data_alta sem data_alta_max, usar hoje
 if ($data_alta && !$data_alta_max) {
     $data_alta_max = date('Y-m-d');
 }
 
 // -----------------------------------------------------
-// 2) Montar WHERE (espelhando list_internacao_alta.php)
+// 2) Montar WHERE (MESMA LÓGICA DO form_list_internacao_alta.php)
 // -----------------------------------------------------
 
 $condicoes = [];
 
 // Hospital (ho.nome_hosp)
 if (strlen(trim($pesquisa_nome)) > 0) {
-    $condicoes[] = 'ho.nome_hosp LIKE "%' . escLike($pesquisa_nome) . '%"';
+    $buscaEsc = escLike($pesquisa_nome);
+    $condicoes[] = 'ho.nome_hosp LIKE "%' . $buscaEsc . '%"';
 }
 
 // Paciente (pa.nome_pac)
 if (strlen(trim($pesquisa_pac)) > 0) {
-    $condicoes[] = 'pa.nome_pac LIKE "%' . escLike($pesquisa_pac) . '%"';
+    $pacEsc = escLike($pesquisa_pac);
+    $condicoes[] = 'pa.nome_pac LIKE "%' . $pacEsc . '%"';
 }
 
 // Data de alta
@@ -86,46 +102,56 @@ if (strlen(trim($data_alta)) > 0) {
     $condicoes[] = 'alta.data_alta_alt BETWEEN "' . $ini . '" AND "' . $fim . '"';
 }
 
-$condicoes = array_filter($condicoes);
-$where     = implode(' AND ', $condicoes);
+$where = implode(' AND ', array_filter($condicoes));
 
 // -----------------------------------------------------
 // 3) Ordenação
-//    (a tela envia: id_internacao, nome_pac, nome_hosp, data_alta_alt)
 // -----------------------------------------------------
 
-switch ($ordenar_param) {
-    case 'nome_pac':
-        $order = 'nome_pac ASC';
-        break;
-    case 'nome_hosp':
-        $order = 'nome_hosp ASC';
-        break;
-    case 'id_internacao':
-        // na view de altas o campo é fk_id_int_alt, então ordenamos por ele
-        $order = 'fk_id_int_alt ASC';
-        break;
-    case 'data_alta_alt':
-        $order = 'data_alta_alt DESC';
-        break;
-    default:
-        // fallback: por data da alta, mais recente primeiro
-        $order = 'data_alta_alt DESC';
-        break;
+$order = $ordenar ?: 'data_alta_alt DESC';
+
+// -----------------------------------------------------
+// 4) Campos selecionados no modal
+// -----------------------------------------------------
+
+$colsCodes = [];
+if (!empty($colsParam)) {
+    $colsCodes = array_filter(array_map('trim', explode(',', $colsParam)));
 }
 
+// Se nada selecionado (ou veio vazio), usamos padrão com todos
+if (empty($colsCodes)) {
+    $colsCodes = ['id_int', 'hosp', 'pac', 'tipo_alta', 'data_alta', 'uti'];
+}
+
+// Mapeamento de código -> label
+$labelsMap = [
+    'id_int'        => 'ID Internação',
+    'hosp'          => 'Hospital',
+    'pac'           => 'Paciente',
+    'tipo_alta'     => 'Tipo Alta',
+    'data_alta'     => 'Data Alta',
+    'uti'           => 'UTI',
+    'senha'         => 'Senha',
+    'matricula'     => 'Matrícula',
+    'evolucao'      => 'Evolução',
+    'acoes'         => 'Ações',
+    'programacao'   => 'Programação',
+    'especialidade' => 'Especialidade',
+];
+
+
 // -----------------------------------------------------
-// 4) Buscar dados na DAO (SEM paginação)
+// 5) Buscar dados na DAO (SEM paginação)
 // -----------------------------------------------------
 
 $altaDao = new altaDAO($conn, $BASE_URL);
 
 try {
-    // Assinatura suposta: findAltaWhere($where, $order = null, $limit = null)
-    // Para export, não limitamos (null)
-    $registros = $altaDao->findAltaWhere($where, $order, null);
+    // assinatura: findAltaWhere($where, $order, $limit)
+    // para export, sem limite (pega todos os registros filtrados)
+    $registros = $altaDao->findAltaWhere($where, $order ?: null, null);
 } catch (Throwable $e) {
-    // Se der erro de SQL, mostra mensagem simples
     header('Content-Type: text/plain; charset=utf-8');
     echo "Erro ao buscar altas para exportação:\n\n";
     echo $e->getMessage();
@@ -133,7 +159,7 @@ try {
 }
 
 // -----------------------------------------------------
-// 5) Montar Excel (layout similar ao da Internação)
+// 6) Montar Excel
 // -----------------------------------------------------
 
 $spreadsheet = new Spreadsheet();
@@ -142,45 +168,44 @@ $sheet       = $spreadsheet->getActiveSheet();
 // Ocultar gridlines
 $sheet->setShowGridlines(false);
 
-// Logo
-$logoPath = 'img/full-03.jpeg';
+// Logo (metade da altura anterior: 40)
+$logoPath = 'img/LogoConexAud.png';
 if (file_exists($logoPath)) {
     $logo = new Drawing();
     $logo->setName('Logo');
     $logo->setDescription('Logo da Empresa');
     $logo->setPath($logoPath);
-    $logo->setHeight(80);
+    $logo->setHeight(40); // metade de 80
     $logo->setCoordinates('A1');
     $logo->setWorksheet($sheet);
 }
 
 // Linha inicial após logo
-$row = 6;
+$row = 4;
 
 // Título
-$sheet->setCellValue('A' . $row, 'Listagem Alta Hospitalar');
-$sheet->mergeCells('A' . $row . ':F' . $row);
+$sheet->setCellValue('A' . $row, 'Alta Hospitalar - Listagem');
+$sheet->mergeCells('A' . $row . ':' . colLetterFromIndex(count($colsCodes) - 1) . $row);
 $sheet->getStyle('A' . $row)->getFont()->setBold(true)->setSize(14);
 
 // Data de extração
 $sheet->setCellValue('A' . ($row + 1), 'Data de Extração: ' . date('d/m/Y'));
-$sheet->mergeCells('A' . ($row + 1) . ':F' . ($row + 1));
+$sheet->mergeCells('A' . ($row + 1) . ':' . colLetterFromIndex(count($colsCodes) - 1) . ($row + 1));
 
 $row = $row + 3; // linha do cabeçalho
 $headerRow = $row;
 
-// Cabeçalhos – espelhando a tabela da tela: Id-Int, UTI, Hospital, Paciente, Tipo Alta, Data Alta
-$sheet->setCellValue('A' . $headerRow, 'ID Internação')
-    ->setCellValue('B' . $headerRow, 'UTI')
-    ->setCellValue('C' . $headerRow, 'Hospital')
-    ->setCellValue('D' . $headerRow, 'Paciente')
-    ->setCellValue('E' . $headerRow, 'Tipo Alta')
-    ->setCellValue('F' . $headerRow, 'Data Alta');
+// Cabeçalhos conforme campos escolhidos
+foreach (array_values($colsCodes) as $index => $code) {
+    $colLetter = colLetterFromIndex($index);
+    $headerLabel = $labelsMap[$code] ?? strtoupper($code);
+    $sheet->setCellValue($colLetter . $headerRow, $headerLabel);
+}
 
-// Estilo do cabeçalho (fundo cinza + negrito)
+// Estilo do cabeçalho
 $headerStyle = [
     'fill' => [
-        'fillType'   => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+        'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
         'startColor' => ['rgb' => 'D3D3D3'],
     ],
     'font' => [
@@ -188,8 +213,9 @@ $headerStyle = [
     ],
 ];
 
-foreach (range('A', 'F') as $columnID) {
-    $sheet->getStyle($columnID . $headerRow)->applyFromArray($headerStyle);
+foreach (array_keys($colsCodes) as $index) {
+    $colLetter = colLetterFromIndex($index);
+    $sheet->getStyle($colLetter . $headerRow)->applyFromArray($headerStyle);
 }
 
 $row = $headerRow + 1;
@@ -197,48 +223,109 @@ $row = $headerRow + 1;
 // Dados
 foreach ($registros as $alta) {
 
-    // ID Internação (fk_id_int_alt)
-    $idInternacao = $alta['fk_id_int_alt'] ?? '';
+    foreach (array_values($colsCodes) as $index => $code) {
+        $colLetter = colLetterFromIndex($index);
+        $value     = '';
 
-    // UTI (Sim/Não, com base em id_uti vindo do join)
-    $uti = !empty($alta['id_uti']) ? 'Sim' : 'Não';
+        switch ($code) {
+            case 'id_int':
+                $value = $alta['fk_id_int_alt'] ?? '';
+                $sheet->setCellValue($colLetter . $row, $value);
+                break;
 
-    // Data de alta
-    $dataAltaStr = $alta['data_alta_alt'] ?? null;
-    $dataExcel   = null;
+            case 'hosp':
+                $value = $alta['nome_hosp'] ?? '';
+                $sheet->setCellValue($colLetter . $row, $value);
+                break;
 
-    if (!empty($dataAltaStr) && $dataAltaStr !== '0000-00-00') {
-        $dt = parseDateOrNull($dataAltaStr);
-        if ($dt) {
-            $dataExcel = \PhpOffice\PhpSpreadsheet\Shared\Date::PHPToExcel($dt);
+            case 'pac':
+                $value = $alta['nome_pac'] ?? '';
+                $sheet->setCellValue($colLetter . $row, $value);
+                break;
+
+            case 'tipo_alta':
+                $value = $alta['tipo_alta_alt'] ?? '';
+                $sheet->setCellValue($colLetter . $row, $value);
+                break;
+
+            case 'data_alta':
+                $dataAltaStr = $alta['data_alta_alt'] ?? null;
+                $dataExcel = null;
+                if (!empty($dataAltaStr) && $dataAltaStr !== '0000-00-00') {
+                    $dt = parseDateOrNull($dataAltaStr);
+                    if ($dt) {
+                        $dataExcel = \PhpOffice\PhpSpreadsheet\Shared\Date::PHPToExcel($dt);
+                    }
+                }
+                if ($dataExcel !== null) {
+                    $sheet->setCellValue($colLetter . $row, $dataExcel);
+                    $sheet->getStyle($colLetter . $row)
+                        ->getNumberFormat()
+                        ->setFormatCode('dd/mm/yyyy');
+                } else {
+                    $sheet->setCellValue($colLetter . $row, '');
+                }
+                break;
+
+            case 'uti':
+                $uti = (!empty($alta['id_uti'])) ? 'Sim' : 'Não';
+                $sheet->setCellValue($colLetter . $row, $uti);
+                break;
+
+            // NOVOS CAMPOS
+
+            case 'senha':
+                $value = $alta['senha_int'] ?? '';
+                $sheet->setCellValue($colLetter . $row, $value);
+                break;
+
+            case 'matricula':
+                $value = $alta['matricula_pac'] ?? '';
+                $sheet->setCellValue($colLetter . $row, $value);
+                break;
+
+            case 'evolucao':
+                $value = $alta['rel_int'] ?? '';
+                $sheet->setCellValue($colLetter . $row, $value);
+                break;
+
+            case 'acoes':
+                $value = $alta['acoes_int'] ?? '';
+                $sheet->setCellValue($colLetter . $row, $value);
+                break;
+
+            case 'programacao':
+                $value = $alta['programacao_int'] ?? '';
+                $sheet->setCellValue($colLetter . $row, $value);
+                break;
+
+            case 'especialidade':
+                $value = $alta['especialidade_int'] ?? '';
+                $sheet->setCellValue($colLetter . $row, $value);
+                break;
+
+            default:
+                $sheet->setCellValue($colLetter . $row, '');
+                break;
         }
-    }
-
-    $sheet->setCellValue('A' . $row, $idInternacao)
-        ->setCellValue('B' . $row, $uti)
-        ->setCellValue('C' . $row, $alta['nome_hosp']     ?? '')
-        ->setCellValue('D' . $row, $alta['nome_pac']      ?? '')
-        ->setCellValue('E' . $row, $alta['tipo_alta_alt'] ?? '')
-        ->setCellValue('F' . $row, $dataExcel);
-
-    if ($dataExcel !== null) {
-        $sheet->getStyle('F' . $row)
-            ->getNumberFormat()
-            ->setFormatCode('dd/mm/yyyy');
     }
 
     $row++;
 }
 
-// Auto largura
-foreach (range('A', 'F') as $columnID) {
-    $sheet->getColumnDimension($columnID)->setAutoSize(true);
+
+// Auto largura nas colunas utilizadas
+for ($i = 0; $i < count($colsCodes); $i++) {
+    $colLetter = colLetterFromIndex($i);
+    $sheet->getColumnDimension($colLetter)->setAutoSize(true);
 }
 
 // Bordas da tabela inteira
 $lastDataRow = $row - 1;
 if ($lastDataRow >= $headerRow) {
-    $allCells = 'A' . $headerRow . ':F' . $lastDataRow;
+    $firstColLetter = colLetterFromIndex(0);
+    $lastColLetter  = colLetterFromIndex(count($colsCodes) - 1);
+    $allCells       = $firstColLetter . $headerRow . ':' . $lastColLetter . $lastDataRow;
 
     $borderStyle = [
         'borders' => [
@@ -253,7 +340,7 @@ if ($lastDataRow >= $headerRow) {
 }
 
 // -----------------------------------------------------
-// 6) Download
+// 7) Download
 // -----------------------------------------------------
 
 $writer   = new Xlsx($spreadsheet);
