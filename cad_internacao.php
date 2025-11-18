@@ -103,12 +103,12 @@ if (isset($selectGestao) && $selectGestao === "Sim") {
     $gestaoIdMax = $gestao->findMax();
 }
 
-if (isset($selectUti) && $selectUti === "Sim") {
-    include_once("models/uti.php");
-    include_once("dao/utiDao.php");
-    $uti = new utiDAO($conn, $BASE_URL);
-    $utiIdMax = $uti->findMaxUTI();
-}
+
+include_once("models/uti.php");
+include_once("dao/utiDao.php");
+$uti = new utiDAO($conn, $BASE_URL);
+$utiIdMax = $uti->findMaxUTI();
+
 
 if (isset($selectNegociacao) && $selectNegociacao === "Sim") {
     include_once("models/negociacao.php");

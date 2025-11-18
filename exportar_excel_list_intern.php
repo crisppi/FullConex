@@ -21,6 +21,43 @@ function getParam(string $name, $default = '')
 }
 
 /**
+ * Pega campos selecionados (GET/POST) no formato:
+ *  - campos[]=pac&campos[]=data_intern
+ *  - ou campos=pac,data_intern
+ */
+function getCamposSelecionados(): array
+{
+    // 1) Tenta campos[] via GET
+    $arr = filter_input(INPUT_GET, 'campos', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY);
+
+    // 2) Se não for array, tenta campos[] via POST
+    if (!is_array($arr)) {
+        $arr = filter_input(INPUT_POST, 'campos', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY);
+    }
+
+    // 3) Se ainda não for array, tenta campos como string CSV (GET/POST)
+    if (!is_array($arr)) {
+        $raw = filter_input(INPUT_GET, 'campos', FILTER_UNSAFE_RAW);
+        if ($raw === null) {
+            $raw = filter_input(INPUT_POST, 'campos', FILTER_UNSAFE_RAW);
+        }
+
+        if ($raw !== null && trim($raw) !== '') {
+            $pieces = preg_split('/[;,]+/', $raw);
+            $arr = is_array($pieces) ? $pieces : [];
+        } else {
+            $arr = [];
+        }
+    }
+
+    // Limpa espaços e vazios
+    $arr = array_map('trim', $arr);
+    $arr = array_filter($arr, fn($v) => $v !== '');
+
+    return array_values($arr);
+}
+
+/**
  * Pequena proteção de string (para montar o WHERE com LIKE)
  */
 function escLike($str)
@@ -44,68 +81,73 @@ function parseDateOrNull(?string $date): ?DateTime
 }
 
 // -----------------------------------------------------
-// 1) Recuperar filtros (os mesmos da listagem/URL)
+// FLAG DE DEBUG (usar: ?debug=1 na URL)
+// -----------------------------------------------------
+$DEBUG = getParam('debug', '') === '1';
+
+// -----------------------------------------------------
+// 1) Filtros (MESMOS da listagem)
 // -----------------------------------------------------
 
-$pesquisa_nome       = getParam('pesquisa_nome', '');   // nome do paciente
-$pesqInternado       = getParam('pesqInternado', 's');  // 's' = só internados
-$limite_pag          = (int) getParam('limite_pag', 10);
-$pesquisa_pac        = getParam('pesquisa_pac', '');    // prontuário / doc
-$ordenar_param       = getParam('ordenar', '1');        // código de ordenação
-$senha_int         = $_GET['senha_int']         ?? '';
-$data_intern_int   = $_GET['data_intern_int']   ?? '';
-$data_intern_int_max = $_GET['data_intern_int_max'] ?? '';
+$pesquisa_nome        = getParam('pesquisa_nome', '');
+$pesqInternado        = getParam('pesqInternado', 's');
+$limite_pag           = (int) getParam('limite_pag', 10);
+$pesquisa_pac         = getParam('pesquisa_pac', '');
+$ordenar_param        = getParam('ordenar', '1');
+$senha_int            = getParam('senha_int', '');
+$data_intern_int      = getParam('data_intern_int', '');
+$data_intern_int_max  = getParam('data_intern_int_max', '');
 
+// Campos selecionados no modal
+$camposSelecionados   = getCamposSelecionados();
 
-// (se depois quiser datas, é só incluir na URL e aqui)
-// $data_intern_int     = getParam('data_intern_int', null);
-// $data_intern_int_max = getParam('data_intern_int_max', null);
-
-// Para exportação, usamos limite grande
+// Limite grande só para exportar
 $limiteExport = 1000000;
 
 // -----------------------------------------------------
-// 2) Montar WHERE (usando campos que vimos no var_dump)
+// 2) Montar WHERE (copiar mesma lógica da listagem)
 // -----------------------------------------------------
 
 $condicoes = [];
 
-// Filtro por nome do paciente (campo: nome_pac)
+// Nome do paciente (nome_pac)
 if (strlen(trim($pesquisa_nome)) > 0) {
     $buscaEsc = escLike($pesquisa_nome);
-    $condicoes[] = '(nome_hosp LIKE "%' . $buscaEsc . '%")';
+    $condicoes[] = '(nome_pac LIKE "%' . $buscaEsc . '%")';
 }
 
-// Filtro por nome do paciente (campo: nome_pac)
+// Senha de internação
 if (strlen(trim($senha_int)) > 0) {
     $senhaEsc = escLike($senha_int);
     $condicoes[] = '(senha_int LIKE "%' . $senhaEsc . '%")';
 }
-// Filtro por prontuário / identificador (se tiver esse campo na view)
+
+// Outro identificador (ajuste se usar prontuário/doc específicos)
 if (strlen(trim($pesquisa_pac)) > 0) {
     $pacEsc = escLike($pesquisa_pac);
     $condicoes[] = '(nome_pac LIKE "%' . $pacEsc . '%")';
 }
 
-// Filtro "só internados" usando internado_int = 's'
+// Só internados
 if ($pesqInternado === 's') {
     $condicoes[] = "internado_int = 's'";
 }
 
-// Se depois quiser usar datas:
-// if (!empty($data_intern_int)) {
-//     $dataIniEsc = escLike($data_intern_int);
-//     $condicoes[] = 'data_intern_int >= "' . $dataIniEsc . '"';
-// }
-// if (!empty($data_intern_int_max)) {
-//     $dataFimEsc = escLike($data_intern_int_max);
-//     $condicoes[] = 'data_intern_int <= "' . $dataFimEsc . '"';
-// }
+// Intervalo de datas de internação
+if (!empty($data_intern_int)) {
+    $dataIniEsc = escLike($data_intern_int);
+    $condicoes[] = 'data_intern_int >= "' . $dataIniEsc . '"';
+}
+
+if (!empty($data_intern_int_max)) {
+    $dataFimEsc = escLike($data_intern_int_max);
+    $condicoes[] = 'data_intern_int <= "' . $dataFimEsc . '"';
+}
 
 $where = implode(' AND ', $condicoes);
 
 // -----------------------------------------------------
-// 3) Ordenação (data_intern_int / nome_pac)
+// 3) Ordenação
 // -----------------------------------------------------
 
 switch ($ordenar_param) {
@@ -124,58 +166,178 @@ switch ($ordenar_param) {
 }
 
 // -----------------------------------------------------
-// 4) Buscar dados na DAO (SEM paginação)
+// 4) Buscar dados via DAO
 // -----------------------------------------------------
 
 $internacaoDao = new internacaoDao($conn, $BASE_URL);
 
 try {
-    // Assumindo assinatura: selectAllInternacao($where, $order, $limit)
     $registros = $internacaoDao->selectAllInternacao($where, $order, $limiteExport);
 } catch (Throwable $e) {
-    // Se der erro de SQL, mostra mensagem simples
+
+    if ($DEBUG) {
+        header('Content-Type: text/plain; charset=utf-8');
+        echo "Erro ao buscar internações para exportação:\n\n";
+        echo $e->getMessage();
+        exit;
+    }
+
     header('Content-Type: text/plain; charset=utf-8');
-    echo "Erro ao buscar internações para exportação:\n\n";
-    echo $e->getMessage();
+    echo "Erro ao buscar internações para exportação.";
     exit;
 }
-// var_dump($where); // Remover esta linha após testes
-// exit();
-// -----------------------------------------------------
-// 4.1) (OPCIONAL) DEBUG – se quiser testar de novo, descomente:
-//
-// $primeiro = is_array($registros) && count($registros) > 0 ? $registros[0] : null;
-// header('Content-Type: text/plain; charset=utf-8');
-// var_dump([
-//     'GET'              => $_GET,
-//     'where'            => $where,
-//     'order'            => $order,
-//     'limiteExport'     => $limiteExport,
-//     'qtd_registros'    => is_array($registros) ? count($registros) : 'N/A',
-//     'primeiro_registro'=> $primeiro,
-// ]);
-// exit;
-//
-// -----------------------------------------------------
 
 // -----------------------------------------------------
-// 5) Montar Excel
+// 4.1) DEBUG opcional
+// -----------------------------------------------------
+if ($DEBUG) {
+    $primeiro = is_array($registros) && count($registros) > 0 ? $registros[0] : null;
+
+    header('Content-Type: text/plain; charset=utf-8');
+    var_dump([
+        'GET'               => $_GET,
+        'camposSelecionados' => $camposSelecionados,
+        'where'             => $where,
+        'order'             => $order,
+        'limiteExport'      => $limiteExport,
+        'qtd_registros'     => is_array($registros) ? count($registros) : 'N/A',
+        'primeiro_registro' => $primeiro,
+    ]);
+    exit;
+}
+
+// -----------------------------------------------------
+// 5) MAPAS (labels, fields, types)
+// -----------------------------------------------------
+
+$labelsMap = [
+    'id_int'        => 'ID Internação',
+    'hosp'          => 'Hospital',
+    'pac'           => 'Paciente',
+    'data_intern'   => 'Data Internação',
+    'hora_intern'   => 'Hora Internação',
+    'senha'         => 'Senha',
+    'acomodacao'    => 'Acomodação',
+    'uti'           => 'UTI',
+    'modo'          => 'Modo Internação',
+    'tipo_adm'      => 'Tipo Admissão',
+    'internado'     => 'Internado',
+    'usuario'       => 'Usuário Cadastro',
+
+    // NOVOS CAMPOS
+    'especialidade'   => 'Especialidade',
+    'patologia'       => 'Patologia',
+    'relatorio'       => 'Relatório',
+    'acoes'           => 'Ações',
+    'programacao'     => 'Programação',
+    'medico_titular'  => 'Médico Titular',
+    'matricula'       => 'Matrícula',
+];
+
+
+$fieldMap = [
+    'id_int'        => 'id_internacao',
+    'hosp'          => 'nome_hosp',
+    'pac'           => 'nome_pac',
+    'data_intern'   => 'data_intern_int',
+    'hora_intern'   => 'hora_intern_int',
+    'senha'         => 'senha_int',
+    'acomodacao'    => 'acomodacao_int',
+    'uti'           => 'internacao_uti_int',
+    'modo'          => 'modo_internacao_int',
+    'tipo_adm'      => 'tipo_admissao_int',
+    'internado'     => 'internado_int',
+    'usuario'       => 'usuario_create_int',
+
+    // NOVOS CAMPOS (usando os nomes que você passou)
+    'especialidade'   => 'especialidade_int',
+    'patologia'       => 'patologia_pato',
+    'relatorio'       => 'rel_int',
+    'acoes'           => 'acoes_int',
+    'programacao'     => 'programacao_int',
+    'medico_titular'  => 'titular_int',
+    'matricula'       => 'matricula_pac',
+];
+
+
+$typeMap = [
+    'id_int'        => 'text',
+    'hosp'          => 'text',
+    'pac'           => 'text',
+    'data_intern'   => 'date',
+    'hora_intern'   => 'text',
+    'senha'         => 'text',
+    'acomodacao'    => 'text',
+    'uti'           => 'uti',
+    'modo'          => 'text',
+    'tipo_adm'      => 'text',
+    'internado'     => 'sn',
+    'usuario'       => 'text',
+
+    // NOVOS CAMPOS
+    'especialidade'   => 'text',
+    'patologia'       => 'text',
+    'relatorio'       => 'text',
+    'acoes'           => 'text',
+    'programacao'     => 'text',
+    'medico_titular'  => 'text',
+    'matricula'       => 'text',
+];
+
+
+// -----------------------------------------------------
+// 5.1) APLICAR FILTRO DOS CAMPOS DO MODAL
+// -----------------------------------------------------
+
+if (!empty($camposSelecionados)) {
+    $labelsAtivos = [];
+
+    foreach ($camposSelecionados as $sel) {
+
+        $selKey = null;
+
+        // 1) Se o valor já é uma chave lógica (ex: 'pac', 'data_intern')
+        if (isset($labelsMap[$sel])) {
+            $selKey = $sel;
+        } else {
+            // 2) Ou se veio como nome do campo do banco (ex: 'nome_pac')
+            $keyFound = array_search($sel, $fieldMap, true);
+            if ($keyFound !== false && isset($labelsMap[$keyFound])) {
+                $selKey = $keyFound;
+            }
+        }
+
+        if ($selKey !== null && isset($labelsMap[$selKey])) {
+            $labelsAtivos[$selKey] = $labelsMap[$selKey];
+        }
+    }
+
+    // Se nada bateu, exporta tudo pra não vir vazio
+    if (empty($labelsAtivos)) {
+        $labelsAtivos = $labelsMap;
+    }
+} else {
+    // Se o modal não mandou nada, exporta todas as colunas
+    $labelsAtivos = $labelsMap;
+}
+
+// -----------------------------------------------------
+// 6) Criar Spreadsheet
 // -----------------------------------------------------
 
 $spreadsheet = new Spreadsheet();
 $sheet       = $spreadsheet->getActiveSheet();
 
-// Ocultar gridlines
 $sheet->setShowGridlines(false);
 
 // Logo
-$logoPath = 'img/full-03.jpeg';
+$logoPath = 'img/LogoConexAud.png';
 if (file_exists($logoPath)) {
     $logo = new Drawing();
     $logo->setName('Logo');
     $logo->setDescription('Logo da Empresa');
     $logo->setPath($logoPath);
-    $logo->setHeight(80);
+    $logo->setHeight(40); // metade de 80
     $logo->setCoordinates('A1');
     $logo->setWorksheet($sheet);
 }
@@ -184,105 +346,117 @@ if (file_exists($logoPath)) {
 $row = 6;
 
 // Título
-$sheet->setCellValue('A' . $row, 'Listagem Internação');
-$sheet->mergeCells('A' . $row . ':I' . $row);
+$sheet->setCellValue('A' . $row, 'Listagem de Internações');
+$sheet->mergeCells('A' . $row . ':Z' . $row);
 $sheet->getStyle('A' . $row)->getFont()->setBold(true)->setSize(14);
 
-// Data de extração
-$sheet->setCellValue('A' . ($row + 1), 'Data de Extração: ' . date('d/m/Y'));
-$sheet->mergeCells('A' . ($row + 1) . ':I' . ($row + 1));
+// Data/hora extração
+$sheet->setCellValue('A' . ($row + 1), 'Data de Extração: ' . date('d/m/Y H:i'));
+$sheet->mergeCells('A' . ($row + 1) . ':Z' . ($row + 1));
 
-$row = $row + 3; // linha do cabeçalho
+$row = $row + 3;
 $headerRow = $row;
 
-// Cabeçalhos
-$sheet->setCellValue('A' . $headerRow, 'ID Internação')
-    ->setCellValue('B' . $headerRow, 'Hospital')
-    ->setCellValue('C' . $headerRow, 'Nome do Paciente')
-    ->setCellValue('D' . $headerRow, 'Data de Internação')
-    ->setCellValue('E' . $headerRow, 'Senha')
-    ->setCellValue('F' . $headerRow, 'Acomodação')
-    ->setCellValue('G' . $headerRow, 'UTI')
-    ->setCellValue('H' . $headerRow, 'Modo de Internação')
-    ->setCellValue('I' . $headerRow, 'Tipo de Admissão');
+// Letras das colunas
+$colLetters = [];
+$letter = 'A';
+foreach ($labelsAtivos as $key => $label) {
+    $colLetters[$key] = $letter;
+    $letter++;
+}
 
-// Estilo do cabeçalho (fundo cinza + negrito)
-// Se você mudou cor do texto, cuidado para não deixar a fonte
-// da coluna B igual ao fundo nas linhas de dados.
+// Cabeçalhos
+foreach ($labelsAtivos as $key => $label) {
+    $col = $colLetters[$key];
+    $sheet->setCellValue($col . $headerRow, $label);
+}
+
+// Estilo cabeçalho
 $headerStyle = [
     'fill' => [
-        'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-        'startColor' => [
-            'rgb' => 'D3D3D3',
-        ],
+        'fillType'   => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+        'startColor' => ['rgb' => 'D3D3D3'],
     ],
     'font' => [
         'bold' => true,
-        // 'color' => ['rgb' => '000000'], // fonte preta (se quiser garantir)
     ],
 ];
 
-foreach (range('A', 'I') as $columnID) {
-    $sheet->getStyle($columnID . $headerRow)->applyFromArray($headerStyle);
-}
+$firstCol = reset($colLetters);
+$lastCol  = end($colLetters);
+$sheet->getStyle($firstCol . $headerRow . ':' . $lastCol . $headerRow)
+    ->applyFromArray($headerStyle);
+
+// -----------------------------------------------------
+// 7) Dados
+// -----------------------------------------------------
 
 $row = $headerRow + 1;
 
-// Dados
 foreach ($registros as $internacao) {
 
-    // Campo do hospital: já vimos no var_dump que é nome_hosp
-    $hospital = $internacao['nome_hosp'] ?? '';
+    foreach ($labelsAtivos as $key => $label) {
 
-    // Data de internação
-    $dataInternacaoStr = $internacao['data_intern_int'] ?? null;
-    $dataExcel = null;
+        $col   = $colLetters[$key];
+        $field = $fieldMap[$key] ?? null;
+        $type  = $typeMap[$key]  ?? 'text';
 
-    if (!empty($dataInternacaoStr) && $dataInternacaoStr !== '0000-00-00') {
-        $dt = parseDateOrNull($dataInternacaoStr);
-        if ($dt) {
-            $dataExcel = \PhpOffice\PhpSpreadsheet\Shared\Date::PHPToExcel($dt);
+        $value = $field !== null && isset($internacao[$field])
+            ? $internacao[$field]
+            : '';
+
+        switch ($type) {
+            case 'date':
+                $dataExcel = null;
+                if (!empty($value) && $value !== '0000-00-00') {
+                    $dt = parseDateOrNull($value);
+                    if ($dt) {
+                        $dataExcel = \PhpOffice\PhpSpreadsheet\Shared\Date::PHPToExcel($dt);
+                    }
+                }
+                $sheet->setCellValue($col . $row, $dataExcel);
+                if ($dataExcel !== null) {
+                    $sheet->getStyle($col . $row)
+                        ->getNumberFormat()
+                        ->setFormatCode('dd/mm/yyyy');
+                }
+                break;
+
+            case 'uti':
+                $uti = (!empty($value) && strtolower(trim((string)$value)) === 's') ? 'Sim' : 'Não';
+                $sheet->setCellValue($col . $row, $uti);
+                break;
+
+            case 'sn':
+                $v = strtolower(trim((string)$value));
+                if ($v === 's') {
+                    $sheet->setCellValue($col . $row, 'Sim');
+                } elseif ($v === 'n') {
+                    $sheet->setCellValue($col . $row, 'Não');
+                } else {
+                    $sheet->setCellValue($col . $row, '');
+                }
+                break;
+
+            default:
+                $sheet->setCellValue($col . $row, $value);
+                break;
         }
     }
-
-    // UTI (Sim se 's')
-    $uti = (!empty($internacao['internacao_uti_int']) && strtolower($internacao['internacao_uti_int']) === 's')
-        ? 'Sim'
-        : '';
-
-    $sheet->setCellValue('A' . $row, $internacao['id_internacao']       ?? '')
-        ->setCellValue('B' . $row, $hospital)
-        ->setCellValue('C' . $row, $internacao['nome_pac']              ?? '')
-        ->setCellValue('D' . $row, $dataExcel)
-        ->setCellValue('E' . $row, $internacao['senha_int']             ?? '')
-        ->setCellValue('F' . $row, $internacao['acomodacao_int']        ?? '')
-        ->setCellValue('G' . $row, $uti)
-        ->setCellValue('H' . $row, $internacao['modo_internacao_int']   ?? '')
-        ->setCellValue('I' . $row, $internacao['tipo_admissao_int']     ?? '');
-
-    if ($dataExcel !== null) {
-        $sheet->getStyle('D' . $row)
-            ->getNumberFormat()
-            ->setFormatCode('dd/mm/yyyy');
-    }
-
-    // (Opcional: se você mexeu em cor de fonte antes, pode garantir aqui
-    // que a linha de dados vai ficar com cor padrão preta:)
-    // $sheet->getStyle('A' . $row . ':I' . $row)
-    //       ->getFont()->getColor()->setRGB('000000');
 
     $row++;
 }
 
 // Auto largura
-foreach (range('A', 'I') as $columnID) {
-    $sheet->getColumnDimension($columnID)->setAutoSize(true);
+foreach ($labelsAtivos as $key => $label) {
+    $col = $colLetters[$key];
+    $sheet->getColumnDimension($col)->setAutoSize(true);
 }
 
-// Bordas da tabela inteira
+// Bordas
 $lastDataRow = $row - 1;
 if ($lastDataRow >= $headerRow) {
-    $allCells = 'A' . $headerRow . ':I' . $lastDataRow;
+    $allCells = $firstCol . $headerRow . ':' . $lastCol . $lastDataRow;
 
     $borderStyle = [
         'borders' => [
@@ -297,7 +471,7 @@ if ($lastDataRow >= $headerRow) {
 }
 
 // -----------------------------------------------------
-// 6) Download
+// 8) Download
 // -----------------------------------------------------
 
 $writer   = new Xlsx($spreadsheet);
@@ -307,7 +481,6 @@ header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetm
 header('Content-Disposition: attachment;filename="' . $filename . '"');
 header('Cache-Control: max-age=0');
 
-// Limpa qualquer saída anterior
 if (function_exists('ob_get_length') && ob_get_length()) {
     @ob_end_clean();
 }

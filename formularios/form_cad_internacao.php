@@ -255,6 +255,9 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
                     name="fk_paciente_int" required>
                     <option value="">Selecione</option>
                     <?php
+                    if (!is_array($pacientes)) {
+                        $pacientes = [];
+                    };
                     usort($pacientes, fn($a, $b) => strcmp($a["nome_pac"], $b["nome_pac"]));
                     foreach ($pacientes as $paciente): ?>
                         <option value="<?= (int) $paciente["id_paciente"] ?>"><?= htmlspecialchars($paciente["nome_pac"]) ?>
@@ -309,7 +312,11 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
                 <label class="control-label" for="tipo_alta_alt"> Motivo Alta</label>
                 <select class="form-control" id="tipo_alta_alt" name="tipo_alta_alt">
                     <option value="">Selecione o motivo da alta</option>
-                    <?php sort($dados_alta, SORT_ASC);
+                    <?php
+                    if (!is_array($dados_alta)) {
+                        $dados_alta = [];
+                    };
+                    sort($dados_alta, SORT_ASC);
                     foreach ($dados_alta as $alta): ?>
                         <option value="<?= htmlspecialchars($alta); ?>"><?= htmlspecialchars($alta); ?></option>
                     <?php endforeach; ?>
@@ -382,7 +389,11 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
                 <label class="control-label" for="acomodacao_int">Acomodação</label>
                 <select class="form-control-sm form-control" id="acomodacao_int" name="acomodacao_int">
                     <option value="">Selecione</option>
-                    <?php sort($dados_acomodacao, SORT_ASC);
+                    <?php
+                    if (!is_array($dados_acomodacao)) {
+                        $dados_acomodacao = [];
+                    };
+                    sort($dados_acomodacao, SORT_ASC);
                     foreach ($dados_acomodacao as $acomd): ?>
                         <option value="<?= htmlspecialchars($acomd) ?>"><?= htmlspecialchars($acomd) ?></option>
                     <?php endforeach; ?>
@@ -392,7 +403,11 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
                 <label class="control-label" for="especialidade_int">Especialidade</label>
                 <select class="form-control-sm form-control" id="especialidade_int" name="especialidade_int">
                     <option value="">Selecione</option>
-                    <?php sort($dados_especialidade, SORT_ASC);
+                    <?php
+                    if (!is_array($dados_especialidade)) {
+                        $dados_especialidade = [];
+                    };
+                    sort($dados_especialidade, SORT_ASC);
                     foreach ($dados_especialidade as $especial): ?>
                         <option value="<?= htmlspecialchars($especial) ?>"><?= htmlspecialchars($especial) ?></option>
                     <?php endforeach; ?>
@@ -412,6 +427,9 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
                 <select class="form-control-sm form-control" id="modo_internacao_int" name="modo_internacao_int">
                     <option value="">Selecione</option>
                     <?php
+                    if (!is_array($modo_internacao)) {
+                        $modo_internacao = [];
+                    };
                     sort($modo_internacao, SORT_ASC);
                     foreach ($modo_internacao as $modo):  ?>
                         <option value="<?= htmlspecialchars($modo) ?>"><?= htmlspecialchars($modo) ?></option>
@@ -453,6 +471,9 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
                     data-live-search="true" id="fk_patologia_int" name="fk_patologia_int">
                     <option value="">Selecione</option>
                     <?php
+                    if (!is_array($patologias)) {
+                        $patologias = [];
+                    };
                     usort($patologias, fn($a, $b) => strcmp($a["patologia_pat"], $b["patologia_pat"]));
                     foreach ($patologias as $patologia): ?>
                         <option value="<?= (int) $patologia["id_patologia"] ?>">
@@ -497,6 +518,9 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
                 <select class="form-control-sm form-control selectpicker show-tick" data-size="5"
                     data-live-search="true" id="fk_patologia2" name="fk_patologia2[]" multiple title="Selecione">
                     <?php
+                    if (!is_array($antecedentes)) {
+                        $antecedentes = [];
+                    };
                     usort($antecedentes, fn($a, $b) => strcmp($a["antecedente_ant"], $b["antecedente_ant"]));
                     foreach ($antecedentes as $antecedente): ?>
                         <option value="<?= (int) $antecedente["id_antecedente"] ?>">
