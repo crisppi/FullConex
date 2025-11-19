@@ -75,6 +75,7 @@ if ($type === "create") {
     $fk_hospital_int = filter_input(INPUT_POST, "fk_hospital_int");
     $fk_paciente_int = filter_input(INPUT_POST, "fk_paciente_int");
     $fk_patologia_int = filter_input(INPUT_POST, "fk_patologia_int") ?: 1;
+    $fk_cid_int = filter_input(INPUT_POST, "fk_cid_int") ?: 1;
     $fk_patologia2 = filter_input(INPUT_POST, "fk_patologia2") ?: 1;
 
     $jsonAntec = filter_input(INPUT_POST, 'json-antec', FILTER_DEFAULT);
@@ -254,6 +255,7 @@ if ($type === "create") {
     $internacao->fk_hospital_int = $fk_hospital_int;
     $internacao->fk_paciente_int = $fk_paciente_int;
     $internacao->fk_patologia_int = $fk_patologia_int;
+    $internacao->fk_cid_int = $fk_cid_int;
     $internacao->fk_patologia2 = $fk_patologia2;
     $internacao->internado_int = $internado_int;
     $internacao->modo_internacao_int = $modo_internacao_int;
@@ -564,6 +566,7 @@ if ($type == "update") {
     $fk_hospital_int = filter_input(INPUT_POST, "fk_hospital_int");
     $fk_paciente_int = filter_input(INPUT_POST, "fk_paciente_int");
     $fk_patologia_int = filter_input(INPUT_POST, "fk_patologia_int") ?: 1;
+    $fk_cid_int = filter_input(INPUT_POST, "fk_cid_int") ?: 1;
     $fk_patologia2 = filter_input(INPUT_POST, "fk_patologia2") ?: 1;
     $internado_int = filter_input(INPUT_POST, "internado_int");
     $modo_internacao_int = filter_input(INPUT_POST, "modo_internacao_int");
@@ -647,6 +650,7 @@ if ($type == "update") {
     $internacao->fk_hospital_int = $fk_hospital_int;
     $internacao->fk_paciente_int = $fk_paciente_int;
     $internacao->fk_patologia_int = $fk_patologia_int;
+    $internacao->fk_cid_int = $fk_cid_int;
     $internacao->fk_patologia2 = $fk_patologia2;
     $internacao->internado_int = $internado_int;
     $internacao->modo_internacao_int = $modo_internacao_int;

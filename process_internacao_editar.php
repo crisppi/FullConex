@@ -62,8 +62,9 @@ try {
     $int->id_internacao         = $idInt;
     $int->fk_hospital_int       = filter_input(INPUT_POST, 'fk_hospital_int', FILTER_VALIDATE_INT);
     $int->fk_paciente_int       = filter_input(INPUT_POST, 'fk_paciente_int', FILTER_VALIDATE_INT);
-    $int->fk_patologia_int      = filter_input(INPUT_POST, 'fk_patologia_int', FILTER_VALIDATE_INT) ?: 1;
     $int->fk_patologia2         = filter_input(INPUT_POST, 'fk_patologia2',  FILTER_VALIDATE_INT) ?: 1;
+    $int->fk_patologia_int      = filter_input(INPUT_POST, 'fk_patologia_int', FILTER_VALIDATE_INT) ?: 1;
+    $int->fk_cid_int      = filter_input(INPUT_POST, 'fk_cid_int', FILTER_VALIDATE_INT) ?: 1;
     $int->internado_int         = filter_input(INPUT_POST, 'internado_int');
     $int->modo_internacao_int   = filter_input(INPUT_POST, 'modo_internacao_int');
     $int->tipo_admissao_int     = filter_input(INPUT_POST, 'tipo_admissao_int');

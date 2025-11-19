@@ -27,6 +27,7 @@ class internacaoDAO implements internacaoDAOInterface
         $internacao->fk_paciente_int = $data["fk_paciente_int"];
         $internacao->acoes_int = $data["acoes_int"];
         $internacao->fk_patologia_int = $data["fk_patologia_int"];
+        $internacao->fk_cid_int = $data["fk_cid_int"];
         $internacao->fk_patologia2 = $data["fk_patologia2"];
         $internacao->acomodacao_int = $data["acomodacao_int"];
         $internacao->modo_internacao_int = $data["modo_internacao_int"];
@@ -133,7 +134,8 @@ class internacaoDAO implements internacaoDAOInterface
             fk_hospital_int, 
             fk_paciente_int, 
             rel_int, 
-            fk_patologia_int, 
+            fk_patologia_int,
+            fk_cid_int,
             fk_patologia2, 
             data_intern_int, 
             acoes_int,
@@ -170,6 +172,7 @@ class internacaoDAO implements internacaoDAOInterface
            :fk_paciente_int,
            :rel_int, 
            :fk_patologia_int, 
+           :fk_cid_int,
            :fk_patologia2, 
            :data_intern_int, 
            :acoes_int, 
@@ -206,6 +209,7 @@ class internacaoDAO implements internacaoDAOInterface
         $stmt->bindParam(":fk_paciente_int", $internacao->fk_paciente_int);
         $stmt->bindParam(":rel_int", $internacao->rel_int, PDO::PARAM_STR);
         $stmt->bindParam(":fk_patologia_int", $internacao->fk_patologia_int);
+        $stmt->bindParam(":fk_cid_int", $internacao->fk_cid_int);
         $stmt->bindParam(":fk_patologia2", $internacao->fk_patologia2);
         $stmt->bindParam(":data_intern_int", $internacao->data_intern_int);
         $stmt->bindParam(":internado_int", $internacao->internado_int);
@@ -253,6 +257,7 @@ class internacaoDAO implements internacaoDAOInterface
         fk_paciente_int = :fk_paciente_int,
         rel_int = :rel_int,
         fk_patologia_int = :fk_patologia_int,
+        fk_cid_int = :fk_cid_int,
         fk_patologia2 = :fk_patologia2,
         data_intern_int = :data_intern_int,
         acoes_int = :acoes_int,
@@ -291,6 +296,7 @@ class internacaoDAO implements internacaoDAOInterface
         $stmt->bindParam(":fk_paciente_int", $internacao->fk_paciente_int);
         $stmt->bindParam(":rel_int", $internacao->rel_int, PDO::PARAM_STR);
         $stmt->bindParam(":fk_patologia_int", $internacao->fk_patologia_int);
+        $stmt->bindParam(":fk_cid_int", $internacao->fk_cid_int);
         $stmt->bindParam(":fk_patologia2", $internacao->fk_patologia2);
         $stmt->bindParam(":data_intern_int", $internacao->data_intern_int);
         $stmt->bindParam(":acoes_int", $internacao->acoes_int, PDO::PARAM_STR);
@@ -337,6 +343,7 @@ class internacaoDAO implements internacaoDAOInterface
        fk_hospital_int= :fk_hospital_int, 
         fk_paciente_int= :fk_paciente_int,
         fk_patologia_int = :fk_patologia_int,
+        fk_cid_int = :fk_cid_int,
         fk_patologia2 = :fk_patologia2,
         internado_int = :internado_int,
         acoes_int = :acoes_int,
@@ -371,6 +378,7 @@ class internacaoDAO implements internacaoDAOInterface
         $stmt->bindParam(":fk_hospital_int", $internacao->fk_hospital_int);
         $stmt->bindParam(":fk_paciente_int", $internacao->fk_paciente_int);
         $stmt->bindParam(":fk_patologia_int", $internacao->fk_patologia_int);
+        $stmt->bindParam(":fk_cid_int", $internacao->fk_cid_int);
         $stmt->bindParam(":fk_patologia2", $internacao->fk_patologia2);
         $stmt->bindParam(":internado_int", $internacao->internado_int);
         $stmt->bindParam(":acoes_int", $internacao->acoes_int, PDO::PARAM_STR);
@@ -454,6 +462,7 @@ class internacaoDAO implements internacaoDAOInterface
         ac.acoes_int,  
         ac.internado_int, 
         ac.fk_patologia_int, 
+        ac.fk_cid_int, 
         ac.data_intern_int, 
         ac.hora_intern_int,
         ac.rel_int, 
@@ -471,7 +480,6 @@ class internacaoDAO implements internacaoDAOInterface
         ac.data_visita_int, 
         ac.grupo_patologia_int, 
         ac.acomodacao_int, 
-        ac.fk_patologia_int, 
         ad.fk_hospital, 
         ad.valor_aco, 
         ad.acomodacao_aco
@@ -527,6 +535,7 @@ class internacaoDAO implements internacaoDAOInterface
             ac.acomodacao_int, 
             ac.origem_int, 
             ac.fk_patologia_int, 
+            ac.fk_patologia_int, 
             ac.fk_patologia2, 
             ac.internado_int,
             ac.visita_no_int,
@@ -572,6 +581,9 @@ class internacaoDAO implements internacaoDAOInterface
    
            left JOIN tb_patologia as pat On  
            ac.fk_patologia_int = pat.id_patologia
+           
+           left JOIN tb_cid as cid On  
+           ac.fk_cid_int = cid.id_cid
    
            left JOIN tb_antecedente as an On  
            ac.fk_patologia2 = an.id_antecedente
@@ -614,6 +626,7 @@ class internacaoDAO implements internacaoDAOInterface
         ac.primeira_vis_int, 
         ac.visita_no_int, 
         ac.fk_patologia_int, 
+        ac.fk_cid_int, 
         ac.fk_patologia2, 
         ac.internado_int,
         pa.id_paciente,
@@ -701,6 +714,7 @@ class internacaoDAO implements internacaoDAOInterface
         ac.grupo_patologia_int, 
         ac.acomodacao_int, 
         ac.fk_patologia_int, 
+        ac.fk_cid_int, 
         ac.fk_patologia2, 
         ac.internado_int,
         ac.visita_no_int,
@@ -747,6 +761,7 @@ class internacaoDAO implements internacaoDAOInterface
         ac.grupo_patologia_int, 
         ac.acomodacao_int, 
         ac.fk_patologia_int, 
+        ac.fk_cid_int, 
         ac.fk_patologia2, 
         ac.internado_int,
         ac.visita_no_int,
@@ -783,6 +798,7 @@ class internacaoDAO implements internacaoDAOInterface
         ac.acoes_int,  
         ac.internado_int, 
         ac.fk_patologia_int, 
+        ac.fk_cid_int, 
         ac.data_intern_int,
         ac.hora_intern_int, 
         ac.rel_int, 
@@ -801,8 +817,8 @@ class internacaoDAO implements internacaoDAOInterface
         ac.titular_int, 
         ac.data_visita_int, 
         ac.grupo_patologia_int, 
-        ac.acomodacao_int, 
-        ac.fk_patologia_int
+        ac.acomodacao_int
+         
         FROM tb_internacao ac 
 
         iNNER JOIN tb_hospital as ho On  
@@ -857,6 +873,7 @@ class internacaoDAO implements internacaoDAOInterface
         ac.grupo_patologia_int, 
         ac.acomodacao_int, 
         ac.fk_patologia_int, 
+        ac.fk_cid_int, 
         ac.fk_patologia2, 
         ac.internado_int,
         ac.internado_uti_int,
@@ -905,6 +922,9 @@ class internacaoDAO implements internacaoDAOInterface
 
         left JOIN tb_patologia as pat On  
         ac.fk_patologia_int = pat.id_patologia
+        
+        left JOIN tb_cid as cid On  
+        ac.fk_cid_int = cid.id_cid
 
         left JOIN tb_antecedente as an On  
         ac.fk_patologia2 = an.id_antecedente
@@ -953,6 +973,7 @@ class internacaoDAO implements internacaoDAOInterface
             ac.grupo_patologia_int, 
             ac.acomodacao_int, 
             ac.fk_patologia_int, 
+            ac.fk_cid_int, 
             ac.fk_patologia2, 
             ac.internado_int,
             ac.visita_no_int,
@@ -1055,6 +1076,8 @@ class internacaoDAO implements internacaoDAOInterface
         ac.grupo_patologia_int, 
         ac.acomodacao_int, 
         ac.fk_patologia_int, 
+        ac.fk_cid_int, 
+        ac.fk_cid_int, 
         ac.fk_patologia2, 
         ac.internado_int,
         ac.visita_no_int,
@@ -1121,6 +1144,7 @@ class internacaoDAO implements internacaoDAOInterface
         ac.grupo_patologia_int, 
         ac.acomodacao_int, 
         ac.fk_patologia_int, 
+        ac.fk_cid_int, 
         ac.fk_patologia2, 
         ac.internado_int,
         ac.visita_no_int,
@@ -1212,6 +1236,7 @@ class internacaoDAO implements internacaoDAOInterface
         ac.fk_paciente_int, 
         ac.fk_hospital_int, 
         ac.fk_patologia_int, 
+        ac.fk_cid_int, 
         ac.fk_patologia2, 
         ac.internado_int,
         ac.censo_int,
@@ -1328,6 +1353,7 @@ class internacaoDAO implements internacaoDAOInterface
     ac.grupo_patologia_int, 
     ac.acomodacao_int, 
     ac.fk_patologia_int, 
+    ac.fk_cid_int, 
     ac.fk_patologia2, 
     ac.internado_int,
     ac.visita_no_int,
@@ -1443,6 +1469,7 @@ class internacaoDAO implements internacaoDAOInterface
     ac.grupo_patologia_int, 
     ac.acomodacao_int, 
     ac.fk_patologia_int, 
+    ac.fk_cid_int, 
     ac.fk_patologia2, 
     ac.internado_int,
     ac.visita_no_int,
@@ -1557,6 +1584,7 @@ class internacaoDAO implements internacaoDAOInterface
         ac.origem_int, 
         ac.acomodacao_int, 
         ac.fk_patologia_int, 
+        ac.fk_cid_int, 
         ac.fk_patologia2, 
         ac.internado_int,
         ac.visita_no_int,
@@ -1671,6 +1699,7 @@ class internacaoDAO implements internacaoDAOInterface
         ac.grupo_patologia_int, 
         ac.acomodacao_int, 
         ac.fk_patologia_int, 
+        ac.fk_cid_int, 
         ac.fk_patologia2, 
         ac.internado_int,
         ac.visita_no_int,
@@ -1760,6 +1789,7 @@ class internacaoDAO implements internacaoDAOInterface
         ac.grupo_patologia_int, 
         ac.acomodacao_int, 
         ac.fk_patologia_int, 
+        ac.fk_cid_int, 
         ac.fk_patologia2, 
         ac.internado_int,
         ac.visita_no_int,
@@ -1885,6 +1915,7 @@ class internacaoDAO implements internacaoDAOInterface
     ac.grupo_patologia_int, 
     ac.acomodacao_int, 
     ac.fk_patologia_int, 
+    ac.fk_cid_int, 
     ac.fk_patologia2, 
     ac.internado_int,
     ac.visita_no_int,
@@ -2182,6 +2213,7 @@ class internacaoDAO implements internacaoDAOInterface
         ac.grupo_patologia_int, 
         ac.acomodacao_int, 
         ac.fk_patologia_int, 
+        ac.fk_cid_int, 
         ac.fk_patologia2, 
         ac.internado_int,
         ac.visita_no_int,
@@ -2322,11 +2354,11 @@ class internacaoDAO implements internacaoDAOInterface
     ac.grupo_patologia_int, 
     ac.acomodacao_int, 
     ac.fk_patologia_int, 
+    ac.fk_cid_int, 
     ac.fk_patologia2, 
     ac.internado_int,
     ac.censo_int,
     ac.visita_no_int,
-    ac.fk_patologia_int,
     ac.primeira_vis_int,
     pa.id_paciente,
     pa.nome_pac,
@@ -2407,11 +2439,11 @@ class internacaoDAO implements internacaoDAOInterface
     ac.grupo_patologia_int, 
     ac.acomodacao_int, 
     ac.fk_patologia_int, 
+    ac.fk_cid_int,
     ac.fk_patologia2, 
     ac.internado_int,
     ac.visita_no_int,
     ac.censo_int,
-    ac.fk_patologia_int,
     ac.primeira_vis_int,
     pa.id_paciente,
     pa.nome_pac,
@@ -2494,7 +2526,7 @@ class internacaoDAO implements internacaoDAOInterface
         ac.fk_patologia2, 
         ac.internado_int,
         ac.visita_no_int,
-        ac.fk_patologia_int,
+        ac.fk_cid_int,
         ac.primeira_vis_int,
         pa.id_paciente,
         pa.nome_pac,
@@ -2598,6 +2630,7 @@ class internacaoDAO implements internacaoDAOInterface
         ac.grupo_patologia_int, 
         ac.acomodacao_int, 
         ac.fk_patologia_int, 
+        ac.fk_cid_int, 
         ac.fk_patologia2, 
         ac.internado_int,
         ac.visita_no_int,

@@ -17,6 +17,7 @@ class Internacao
   public $especialidade_int;
   public $fk_antecedente_int;
   public $fk_patologia_int;
+  public $fk_cid_int;
   public $fk_patologia2;
   public $fk_user_int;
   public $grupo_patologia_int;
