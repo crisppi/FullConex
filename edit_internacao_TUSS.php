@@ -62,7 +62,7 @@ $int_tuss = $tuss_list->findByIdIntern($id_internacao);
 
     <!-- FORMULARIO INTERNACAO -->
     <?php
-    include_once('formularios/form_edit_internacao_TUSS.php'); ?>
+    include_once('formularios/form_edit_internacao_TUSS2.php'); ?>
 
 </div>
 </div>
