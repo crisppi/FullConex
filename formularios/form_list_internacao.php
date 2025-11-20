@@ -533,7 +533,7 @@ $internacao     = new internacaoDAO($conn, $BASE_URL);
                                                 style="font-size: 1rem;">
                                                 <i class="fas fa-eye"
                                                     style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
-                                                Ver
+                                                Visualização
                                             </button>
                                         </li>
                                         <?php } ?>
@@ -555,7 +555,7 @@ $internacao     = new internacaoDAO($conn, $BASE_URL);
                                                 style="font-size: .9rem; display: inline-flex; align-items: center;"
                                                 onclick="window.location.href='<?= $BASE_URL ?>cad_visita.php?id_internacao=<?= $intern['id_internacao'] ?>'">
                                                 <i class="bi bi-file-text"
-                                                    style="font-size: 1rem; margin-right:5px; color: rgb(27,156,55);"></i>
+                                                    style="font-size: 1rem; margin-right:5px; color: rgba(128, 27, 156, 1);"></i>
                                                 Visita
                                             </button>
                                         </li>
@@ -566,30 +566,30 @@ $internacao     = new internacaoDAO($conn, $BASE_URL);
                                                 onclick="edit('<?= $BASE_URL ?>edit_alta.php?type=alta&id_internacao=<?= $intern['id_internacao'] ?>')"
                                                 style="font-size: .9rem;">
                                                 <i class="bi bi-door-open"
-                                                    style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
+                                                    style="font-size: 1rem;margin-right:5px; color: rgba(27, 64, 156, 1);"></i>
                                                 Alta
                                             </button>
                                         </li>
                                         <?php } ?>
 
                                         <li>
-                                            <button class="btn btn-default"
+                                            <!-- <button class="btn btn-default"
                                                 onclick="edit('<?= $BASE_URL ?>edit_internacao_EA.php?id_internacao=<?= $intern['id_internacao'] ?>')"
                                                 style="font-size: .9rem;">
                                                 <i class="bi bi-pencil-square"
-                                                    style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
+                                                    style="font-size: 1rem;margin-right:5px; color: rgba(27, 27, 156, 1);"></i>
                                                 Ev Adverso
-                                            </button>
+                                            </button> -->
                                         </li>
 
                                         <li>
-                                            <button class="btn btn-default"
+                                            <!-- <button class="btn btn-default"
                                                 onclick="edit('<?= $BASE_URL ?>edit_internacao_TUSS.php?id_internacao=<?= $intern['id_internacao'] ?>')"
                                                 style="font-size: .9rem;">
                                                 <i class="bi bi-pencil-square"
-                                                    style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
+                                                    style="font-size: 1rem;margin-right:5px; color: rgba(156, 27, 85, 1);"></i>
                                                 TUSS
-                                            </button>
+                                            </button> -->
                                         </li>
 
                                         <li>
@@ -597,7 +597,7 @@ $internacao     = new internacaoDAO($conn, $BASE_URL);
                                                 style="font-size: .9rem; display: inline-flex; align-items: center;"
                                                 onclick="window.location.href='<?= $BASE_URL ?>edit_internacao.php?id_internacao=<?= $intern['id_internacao'] ?>'">
                                                 <i class="bi bi-pencil-square"
-                                                    style="font-size: 1rem; margin-right: 5px; color: rgb(27,156,55);"></i>
+                                                    style="font-size: 1rem; margin-right: 5px; color: rgba(113, 27, 156, 1);"></i>
                                                 Editar
                                             </button>
                                         </li>
@@ -607,7 +607,7 @@ $internacao     = new internacaoDAO($conn, $BASE_URL);
                                                 onclick="callProcessPdf(<?= $intern['id_internacao'] ?>)"
                                                 style="font-size: .9rem;">
                                                 <i class="bi-file-earmark-pdf"
-                                                    style="font-size: 1rem; margin-right:5px; color: rgb(27,156,55);"></i>
+                                                    style="font-size: 1rem; margin-right:5px; color: rgba(101, 227, 249, 1);"></i>
                                                 PDF
                                             </button>
                                         </li>

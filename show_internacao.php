@@ -49,14 +49,19 @@ if (file_exists(__DIR__ . "/models/negociacao.php")) include_once("models/negoci
 if (file_exists(__DIR__ . "/dao/negociacaoDao.php")) include_once("dao/negociacaoDao.php");
 
 // === Helpers ===
-function e($v) { return htmlspecialchars((string)$v ?? '', ENT_QUOTES, 'UTF-8'); }
-function fmtDate($s) {
+function e($v)
+{
+    return htmlspecialchars((string)$v ?? '', ENT_QUOTES, 'UTF-8');
+}
+function fmtDate($s)
+{
     if (empty($s) || $s === '0000-00-00') return '-';
     $ts = strtotime(substr($s, 0, 10));
     return $ts ? date("d/m/Y", $ts) : '-';
 }
 if (!function_exists('ymd')) {
-    function ymd($s) {
+    function ymd($s)
+    {
         if (!$s) return null;
         $s = trim((string)$s);
         $s = substr($s, 0, 10);
@@ -64,7 +69,8 @@ if (!function_exists('ymd')) {
         return $ts ? date('Y-m-d', $ts) : null;
     }
 }
-function after_dash($s){
+function after_dash($s)
+{
     $s = trim((string)$s);
     if ($s === '') return '';
     $pos = mb_strpos($s, '-');
@@ -73,12 +79,14 @@ function after_dash($s){
     return trim($out);
 }
 if (!function_exists('fmtDateAny')) {
-    function fmtDateAny($s) {
+    function fmtDateAny($s)
+    {
         $y = ymd($s);
         return $y ? date('d/m/Y', strtotime($y)) : '-';
     }
 }
-function initials_from_name($name){
+function initials_from_name($name)
+{
     $name = trim((string)$name);
     if ($name === '') return 'PA';
     $parts = preg_split('/\s+/', $name);
@@ -138,8 +146,9 @@ try {
 }
 
 // 2) Helpers para extrair campos da visita
-function pick_visit_date($row){
-    foreach (['data_visita','data_visita_vis','data','data_visita_int','created_at'] as $k){
+function pick_visit_date($row)
+{
+    foreach (['data_visita', 'data_visita_vis', 'data', 'data_visita_int', 'created_at'] as $k) {
         if (!empty($row[$k])) {
             $ts = strtotime(substr($row[$k], 0, 19));
             if ($ts) return date('Y-m-d', $ts);
@@ -147,8 +156,9 @@ function pick_visit_date($row){
     }
     return null;
 }
-function pick_visit_time($row){
-    foreach (['data_visita','data_visita_vis','data','data_visita_int','created_at'] as $k){
+function pick_visit_time($row)
+{
+    foreach (['data_visita', 'data_visita_vis', 'data', 'data_visita_int', 'created_at'] as $k) {
         if (!empty($row[$k])) {
             $ts = strtotime(substr($row[$k], 0, 19));
             if ($ts) return date('H:i', $ts);
@@ -156,14 +166,16 @@ function pick_visit_time($row){
     }
     return null;
 }
-function pick_visit_text($row){
-    foreach (['rel_visita','rel_visita_vis','rel_vis','relatorio','observacao','obs','descricao'] as $k){
+function pick_visit_text($row)
+{
+    foreach (['rel_visita', 'rel_visita_vis', 'rel_vis', 'relatorio', 'observacao', 'obs', 'descricao'] as $k) {
         if (!empty($row[$k])) return $row[$k];
     }
     return '';
 }
-function pick_visit_id($row){
-    foreach (['id_visita','id','id_vst'] as $k){
+function pick_visit_id($row)
+{
+    foreach (['id_visita', 'id', 'id_vst'] as $k) {
         if (!empty($row[$k])) return (int)$row[$k];
     }
     return crc32(json_encode($row)); // fallback
@@ -181,24 +193,27 @@ foreach (($visitas ?? []) as $v) {
         '_raw'  => $v,
     ];
 }
-usort($visitas_norm, fn($a,$b) => strcmp($a['_date'],$b['_date']));
+usort($visitas_norm, fn($a, $b) => strcmp($a['_date'], $b['_date']));
 
 // 4) Intervalo
 $minD = $visitas_norm ? $visitas_norm[0]['_date'] : null;
-$maxD = $visitas_norm ? $visitas_norm[count($visitas_norm)-1]['_date'] : null;
-$spanDays = ($minD && $maxD) ? max(1,(new DateTime($minD))->diff(new DateTime($maxD))->days) : 1;
+$maxD = $visitas_norm ? $visitas_norm[count($visitas_norm) - 1]['_date'] : null;
+$spanDays = ($minD && $maxD) ? max(1, (new DateTime($minD))->diff(new DateTime($maxD))->days) : 1;
 
 // 5) Visita ativa (?vid= || ?id_visita=) ou última
-$vid_req = filter_input(INPUT_GET,'vid',FILTER_SANITIZE_NUMBER_INT);
-if (!$vid_req) $vid_req = filter_input(INPUT_GET,'id_visita',FILTER_SANITIZE_NUMBER_INT);
+$vid_req = filter_input(INPUT_GET, 'vid', FILTER_SANITIZE_NUMBER_INT);
+if (!$vid_req) $vid_req = filter_input(INPUT_GET, 'id_visita', FILTER_SANITIZE_NUMBER_INT);
 
 $activeVisit = null;
 if ($vid_req) {
     foreach ($visitas_norm as $vn) {
-        if ($vn['_id'] === (int)$vid_req) { $activeVisit = $vn; break; }
+        if ($vn['_id'] === (int)$vid_req) {
+            $activeVisit = $vn;
+            break;
+        }
     }
 }
-if (!$activeVisit && $visitas_norm) $activeVisit = $visitas_norm[count($visitas_norm)-1];
+if (!$activeVisit && $visitas_norm) $activeVisit = $visitas_norm[count($visitas_norm) - 1];
 
 // ===== Valores iniciais do relatório (data/hora/texto/ID) =====
 $initDateLabel = '—';
@@ -223,14 +238,14 @@ if (class_exists('prorrogacaoDAO')) {
         $prorrogacoes = $prDAO->selectInternacaoProrrog((int)$id_internacao) ?: [];
     }
 }
-$pr_ini_raw = filter_input(INPUT_GET,'pr_ini',FILTER_DEFAULT) ?: '';
-$pr_fim_raw = filter_input(INPUT_GET,'pr_fim',FILTER_DEFAULT) ?: '';
+$pr_ini_raw = filter_input(INPUT_GET, 'pr_ini', FILTER_DEFAULT) ?: '';
+$pr_fim_raw = filter_input(INPUT_GET, 'pr_fim', FILTER_DEFAULT) ?: '';
 $pr_ini = ymd($pr_ini_raw);
 $pr_fim = ymd($pr_fim_raw);
 
 $pr_filtered = $prorrogacoes;
 if ($pr_ini || $pr_fim) {
-    $pr_filtered = array_filter($prorrogacoes, function($p) use ($pr_ini,$pr_fim){
+    $pr_filtered = array_filter($prorrogacoes, function ($p) use ($pr_ini, $pr_fim) {
         $ini = ymd($p['ini'] ?? null);
         $fim = ymd($p['fim'] ?? ($p['ini'] ?? null));
         if (!$ini && !$fim) return false;
@@ -240,12 +255,12 @@ if ($pr_ini || $pr_fim) {
         return true;
     });
 }
-usort($pr_filtered,function($a,$b){
+usort($pr_filtered, function ($a, $b) {
     $da = strtotime($a['fim'] ?: ($a['ini'] ?? ''));
     $db = strtotime($b['fim'] ?: ($b['ini'] ?? ''));
     return $db <=> $da; // DESC
 });
-$pr_total_diarias = array_reduce($pr_filtered, fn($s,$p)=>$s+(int)($p['diarias']??0), 0);
+$pr_total_diarias = array_reduce($pr_filtered, fn($s, $p) => $s + (int)($p['diarias'] ?? 0), 0);
 
 /* =========================================================
    TUSS
@@ -257,14 +272,14 @@ if (class_exists('tussDAO')) {
         $tussItens = $tussDAO->selectAllTUSSByIntern((int)$id_internacao) ?: [];
     }
 }
-$tuss_ini_raw = filter_input(INPUT_GET,'tuss_ini',FILTER_DEFAULT) ?: '';
-$tuss_fim_raw = filter_input(INPUT_GET,'tuss_fim',FILTER_DEFAULT) ?: '';
+$tuss_ini_raw = filter_input(INPUT_GET, 'tuss_ini', FILTER_DEFAULT) ?: '';
+$tuss_fim_raw = filter_input(INPUT_GET, 'tuss_fim', FILTER_DEFAULT) ?: '';
 $tuss_ini = ymd($tuss_ini_raw);
 $tuss_fim = ymd($tuss_fim_raw);
 
 $tuss_filtered = $tussItens;
 if ($tuss_ini || $tuss_fim) {
-    $tuss_filtered = array_filter($tussItens,function($t) use($tuss_ini,$tuss_fim){
+    $tuss_filtered = array_filter($tussItens, function ($t) use ($tuss_ini, $tuss_fim) {
         $dt = ymd($t['data_realizacao_tuss'] ?? null);
         if (!$dt) return false;
         if ($tuss_ini && $tuss_fim) return ($dt >= $tuss_ini) && ($dt <= $tuss_fim);
@@ -273,13 +288,13 @@ if ($tuss_ini || $tuss_fim) {
         return true;
     });
 }
-usort($tuss_filtered,function($a,$b){
+usort($tuss_filtered, function ($a, $b) {
     $da = strtotime($a['data_realizacao_tuss'] ?? '');
     $db = strtotime($b['data_realizacao_tuss'] ?? '');
     return $db <=> $da;
 });
-$tuss_tot_solic = array_reduce($tuss_filtered, fn($s,$r)=>$s+(int)($r['qtd_tuss_solicitado']??0), 0);
-$tuss_tot_lib   = array_reduce($tuss_filtered, fn($s,$r)=>$s+(int)($r['qtd_tuss_liberado']??0), 0);
+$tuss_tot_solic = array_reduce($tuss_filtered, fn($s, $r) => $s + (int)($r['qtd_tuss_solicitado'] ?? 0), 0);
+$tuss_tot_lib   = array_reduce($tuss_filtered, fn($s, $r) => $s + (int)($r['qtd_tuss_liberado'] ?? 0), 0);
 
 /* =========================================================
    NEGOCIAÇÕES
@@ -291,14 +306,14 @@ if (class_exists('negociacaoDAO')) {
         $negociacoes = $negDAO->findByInternacao((int)$id_internacao) ?: [];
     }
 }
-$neg_ini_raw = filter_input(INPUT_GET,'neg_ini',FILTER_DEFAULT) ?: '';
-$neg_fim_raw = filter_input(INPUT_GET,'neg_fim',FILTER_DEFAULT) ?: '';
+$neg_ini_raw = filter_input(INPUT_GET, 'neg_ini', FILTER_DEFAULT) ?: '';
+$neg_fim_raw = filter_input(INPUT_GET, 'neg_fim', FILTER_DEFAULT) ?: '';
 $neg_ini = ymd($neg_ini_raw);
 $neg_fim = ymd($neg_fim_raw);
 
 $neg_filtered = $negociacoes;
 if ($neg_ini || $neg_fim) {
-    $neg_filtered = array_filter($negociacoes,function($n) use($neg_ini,$neg_fim){
+    $neg_filtered = array_filter($negociacoes, function ($n) use ($neg_ini, $neg_fim) {
         $ini = ymd($n['data_inicio_neg'] ?? null);
         $fim = ymd($n['data_fim_neg'] ?? null) ?: $ini;
         if (!$ini && !$fim) return false;
@@ -308,7 +323,7 @@ if ($neg_ini || $neg_fim) {
         return true;
     });
 }
-usort($neg_filtered,function($a,$b){
+usort($neg_filtered, function ($a, $b) {
     $da = strtotime($a['data_fim_neg'] ?? ($a['data_inicio_neg'] ?? ''));
     $db = strtotime($b['data_fim_neg'] ?? ($b['data_inicio_neg'] ?? ''));
     return $db <=> $da;
@@ -452,22 +467,23 @@ usort($neg_filtered,function($a,$b){
                                 </div>
 
                                 <!-- Timeline (crescente + com respiro nas bordas) -->
-                                <?php $countVis = count($visitas_norm); $trackWidthPx = max(800, $countVis * 160); ?>
+                                <?php $countVis = count($visitas_norm);
+                                    $trackWidthPx = max(800, $countVis * 160); ?>
                                 <div class="ht-container">
                                     <div class="ht-track" style="width: <?= (int)$trackWidthPx ?>px">
                                         <div class="ht-bar"></div>
                                         <?php foreach ($visitas_norm as $i => $v):
-                                            $daysFromMin = max(0,(new DateTime($minD ?: $v['_date']))->diff(new DateTime($v['_date']))->days);
-                                            $pct = $spanDays ? round(($daysFromMin / $spanDays) * 100, 2) : 0;
-                                            $pct = max(2, min(98, $pct));
-                                            $edgeLeft  = ($pct <= 3.5);
-                                            $edgeRight = ($pct >= 96.5);
-                                            $edgeCls   = ($edgeLeft ? ' edge-left' : '') . ($edgeRight ? ' edge-right' : '');
-                                            $isActive  = ($activeVisit && $activeVisit['_id'] === $v['_id']);
-                                            $dataLabel = date('d/m/Y', strtotime($v['_date']));
-                                            $hora      = $v['_time'] ?: '';
-                                            $texto     = trim($v['_text']) !== '' ? $v['_text'] : '—';
-                                        ?>
+                                                $daysFromMin = max(0, (new DateTime($minD ?: $v['_date']))->diff(new DateTime($v['_date']))->days);
+                                                $pct = $spanDays ? round(($daysFromMin / $spanDays) * 100, 2) : 0;
+                                                $pct = max(2, min(98, $pct));
+                                                $edgeLeft  = ($pct <= 3.5);
+                                                $edgeRight = ($pct >= 96.5);
+                                                $edgeCls   = ($edgeLeft ? ' edge-left' : '') . ($edgeRight ? ' edge-right' : '');
+                                                $isActive  = ($activeVisit && $activeVisit['_id'] === $v['_id']);
+                                                $dataLabel = date('d/m/Y', strtotime($v['_date']));
+                                                $hora      = $v['_time'] ?: '';
+                                                $texto     = trim($v['_text']) !== '' ? $v['_text'] : '—';
+                                            ?>
                                         <a class="ht-marker<?= $edgeCls ?><?= $isActive ? ' active' : '' ?>" href="#"
                                             style="left: <?= $pct ?>%;" data-id="<?= (int)$v['_id'] ?>"
                                             data-date="<?= e($dataLabel) ?>" data-time="<?= e($hora) ?>"
@@ -519,7 +535,7 @@ usort($neg_filtered,function($a,$b){
 
                                     <?php if ($minD && $maxD): ?>
                                     <div class="d-flex justify-content-between align-items-center mt-2">
-                                        <div class="small text-secondary"><?= e(date('d/m/Y', strtotime($minD))) ?> —
+                                        <div class="small text-secondary"><?= e(date('d/m/Y', strtotime($minD))) ?> —--
                                             <?= e(date('d/m/Y', strtotime($maxD))) ?></div>
                                         <div class="small"><span class="legend-dot"></span> Clique nas datas para ver o
                                             relatório</div>
@@ -570,14 +586,14 @@ usort($neg_filtered,function($a,$b){
                                                 <td class="text-center">Isolamento</td>
                                             </tr>
                                             <?php foreach ($pr_filtered as $p):
-                                                $acom = e(after_dash($p['acomod'] ?? '-'));
-                                                $ini  = fmtDate($p['ini'] ?? '');
-                                                $fim  = fmtDate($p['fim'] ?? '');
-                                                $periodo = ($ini !== '-' || $fim !== '-') ? ($ini . ' — ' . $fim) : '-';
-                                                $dias = (int)($p['diarias'] ?? 0);
-                                                $isoRaw = strtolower((string)($p['isolamento'] ?? $p['isol_1_pror'] ?? ''));
-                                                $iso = ($isoRaw === 's' || $isoRaw === 'sim' || $isoRaw === '1') ? 'Sim' : 'Não';
-                                            ?>
+                                                    $acom = e(after_dash($p['acomod'] ?? '-'));
+                                                    $ini  = fmtDate($p['ini'] ?? '');
+                                                    $fim  = fmtDate($p['fim'] ?? '');
+                                                    $periodo = ($ini !== '-' || $fim !== '-') ? ($ini . ' — ' . $fim) : '-';
+                                                    $dias = (int)($p['diarias'] ?? 0);
+                                                    $isoRaw = strtolower((string)($p['isolamento'] ?? $p['isol_1_pror'] ?? ''));
+                                                    $iso = ($isoRaw === 's' || $isoRaw === 'sim' || $isoRaw === '1') ? 'Sim' : 'Não';
+                                                ?>
                                             <tr>
                                                 <td><?= $acom ?></td>
                                                 <td><?= $periodo ?></td>
@@ -641,15 +657,15 @@ usort($neg_filtered,function($a,$b){
                                                 <td class="text-center" style="min-width:110px;">Status</td>
                                             </tr>
                                             <?php foreach ($tuss_filtered as $t):
-                                                $cod = e($t['tuss_solicitado'] ?? '-');
-                                                $term = e($t['terminologia_tuss'] ?? '-');
-                                                $dt = fmtDateAny($t['data_realizacao_tuss'] ?? '');
-                                                $qsol = (int)($t['qtd_tuss_solicitado'] ?? 0);
-                                                $qlib = (int)($t['qtd_tuss_liberado'] ?? 0);
-                                                $libRaw = strtolower((string)($t['tuss_liberado_sn'] ?? ''));
-                                                $status = ($libRaw === 's' || $libRaw === 'sim' || $libRaw === '1') ? 'Liberado' : 'Pendente';
-                                                $badge = ($status === 'Liberado') ? 'text-bg-success' : 'text-bg-secondary';
-                                            ?>
+                                                    $cod = e($t['tuss_solicitado'] ?? '-');
+                                                    $term = e($t['terminologia_tuss'] ?? '-');
+                                                    $dt = fmtDateAny($t['data_realizacao_tuss'] ?? '');
+                                                    $qsol = (int)($t['qtd_tuss_solicitado'] ?? 0);
+                                                    $qlib = (int)($t['qtd_tuss_liberado'] ?? 0);
+                                                    $libRaw = strtolower((string)($t['tuss_liberado_sn'] ?? ''));
+                                                    $status = ($libRaw === 's' || $libRaw === 'sim' || $libRaw === '1') ? 'Liberado' : 'Pendente';
+                                                    $badge = ($status === 'Liberado') ? 'text-bg-success' : 'text-bg-secondary';
+                                                ?>
                                             <tr>
                                                 <td class="fw-semibold"><?= $cod ?></td>
                                                 <td><?= $term ?></td>
@@ -722,17 +738,17 @@ usort($neg_filtered,function($a,$b){
                                                 <td style="min-width:150px;">Atualizado</td>
                                             </tr>
                                             <?php foreach ($neg_filtered as $n):
-                                                $tipo = e($n['tipo_negociacao'] ?? '-');
-            $de   = e(after_dash($n['troca_de'] ?? '-'));
-            $para = e(after_dash($n['troca_para'] ?? '-'));
-            $qtd = e($n['qtd'] ?? '-');
-            $saving = e($n['saving'] ?? '-');
-            $ini = fmtDateAny($n['data_inicio_neg'] ?? '');
-            $fim = fmtDateAny($n['data_fim_neg'] ?? '');
-            $periodo = ($ini !== '-' || $fim !== '-') ? ($ini . ' — ' . $fim) : '-';
-            $upd = e($n['updated_at'] ?? '');
-            $updFmt = ($upd) ? date('d/m/Y H:i', strtotime($upd)) : '-';
-                                            ?>
+                                                    $tipo = e($n['tipo_negociacao'] ?? '-');
+                                                    $de   = e(after_dash($n['troca_de'] ?? '-'));
+                                                    $para = e(after_dash($n['troca_para'] ?? '-'));
+                                                    $qtd = e($n['qtd'] ?? '-');
+                                                    $saving = e($n['saving'] ?? '-');
+                                                    $ini = fmtDateAny($n['data_inicio_neg'] ?? '');
+                                                    $fim = fmtDateAny($n['data_fim_neg'] ?? '');
+                                                    $periodo = ($ini !== '-' || $fim !== '-') ? ($ini . ' — ' . $fim) : '-';
+                                                    $upd = e($n['updated_at'] ?? '');
+                                                    $updFmt = ($upd) ? date('d/m/Y H:i', strtotime($upd)) : '-';
+                                                ?>
                                             <tr>
                                                 <td class="fw-semibold"><?= $tipo ?></td>
                                                 <td><?= $de ?> <i
@@ -760,10 +776,20 @@ usort($neg_filtered,function($a,$b){
 
                 <div class="d-flex justify-content-between align-items-center mt-3">
                     <div class="small text-muted">Atualizado: <?= e(date('d/m/Y H:i')) ?></div>
-                    <a href="<?= !empty($_SERVER['HTTP_REFERER']) ? 'javascript:history.back()' : $BASE_URL . 'internacoes.php' ?>"
-                        class="btn btn-ghost-brand btn-sm rounded-pill shadow-sm">
-                        <i class="fa-solid fa-arrow-left me-2"></i>Voltar
-                    </a>
+
+                    <div class="d-flex gap-2">
+                        <button type="button"
+                            class="btn btn-sm rounded-pill text-white shadow-sm d-inline-flex align-items-center"
+                            style="background-color: #5e2363; border-color: #5e2363;"
+                            onclick="window.location.href='<?= $BASE_URL ?>cad_visita.php?id_internacao=<?= $id_internacao ?>'">
+                            <i class="fa-solid fa-plus me-2"></i>Nova Visita
+                        </button>
+
+                        <a href="<?= !empty($_SERVER['HTTP_REFERER']) ? 'javascript:history.back()' : $BASE_URL . 'list_intenacao.php' ?>"
+                            class="btn btn-ghost-brand btn-sm rounded-pill shadow-sm d-inline-flex align-items-center">
+                            <i class="fa-solid fa-arrow-left me-2"></i>Voltar
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
