@@ -358,11 +358,14 @@ class visitaDAO
             vi.fk_internacao_vis, vi.rel_visita_vis, vi.acoes_int_vis, vi.usuario_create,
             vi.visita_auditor_prof_med, vi.visita_auditor_prof_enf, vi.visita_med_vis, vi.visita_enf_vis,
             vi.visita_no_vis, vi.fk_usuario_vis, vi.data_visita_vis, vi.id_visita,
-            ho.id_hospital, ho.nome_hosp
+            ho.id_hospital, ho.nome_hosp,
+            u.usuario_user AS auditor_nome,
+            u.reg_profissional_user AS auditor_registro
         FROM tb_internacao ac
         LEFT JOIN tb_hospital ho ON ac.fk_hospital_int = ho.id_hospital
         INNER JOIN " . self::TABLE . " vi ON ac.id_internacao = vi.fk_internacao_vis
         LEFT JOIN tb_paciente pa ON ac.fk_paciente_int = pa.id_paciente
+        LEFT JOIN tb_user u ON vi.fk_usuario_vis = u.id_usuario
         WHERE vi.id_visita = :id_visita
         ORDER BY ac.id_internacao ASC";
 

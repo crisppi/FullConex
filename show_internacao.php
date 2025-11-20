@@ -238,10 +238,14 @@ $initAuditor = '';
 if ($activeVisit) {
     $initDateLabel = date('d/m/Y', strtotime($activeVisit['_date']));
     $initTime      = $activeVisit['_time'] ?: '';
-    $initText      = trim($activeVisit['_text']) !== '' ? $activeVisit['_text'] : '—';
-    $initId        = (int)$activeVisit['_id'];
-    $initAuditor   = $activeVisit['_auditor'];
+$initText      = trim($activeVisit['_text']) !== '' ? $activeVisit['_text'] : '—';
+$initId        = (int)$activeVisit['_id'];
+$initAuditor   = $activeVisit['_auditor'];
 }
+
+$visitaBtnClass = $initId ? 'btn-success' : 'btn-outline-secondary';
+$visitaPdfBase = $BASE_URL . 'process_visita_pdf.php?id_internacao=' . urlencode((string)$id_internacao) . '&id_visita=';
+$visitaPdfHref = $initId ? $visitaPdfBase . urlencode((string)$initId) : '#';
 
 /* =========================================================
    PRORROGAÇÕES
@@ -561,6 +565,23 @@ usort($neg_filtered, function ($a, $b) {
                                               
                                               if(audEl) audEl.textContent = aud;
                                               if(audWrap) audWrap.style.display = aud ? 'block' : 'none';
+                                              var pdfBtn=document.getElementById('btn-visita-pdf');
+                                              if(pdfBtn){
+                                                var base=pdfBtn.getAttribute('data-pdf-base')||'';
+                                                if(i && base){
+                                                  pdfBtn.href=base + encodeURIComponent(i);
+                                                  pdfBtn.classList.remove('disabled');
+                                                  pdfBtn.classList.remove('btn-outline-secondary');
+                                                  pdfBtn.classList.add('btn-success');
+                                                  pdfBtn.setAttribute('aria-disabled','false');
+                                                }else{
+                                                  pdfBtn.href='#';
+                                                  pdfBtn.classList.add('disabled');
+                                                  pdfBtn.classList.remove('btn-success');
+                                                  pdfBtn.classList.add('btn-outline-secondary');
+                                                  pdfBtn.setAttribute('aria-disabled','true');
+                                                }
+                                              }
 
                                               var cont=document.querySelector('#visitas .ht-container');
                                               if(cont){ cont.scrollLeft = Math.max(0, m.offsetLeft - cont.clientWidth/2); }
@@ -573,7 +594,7 @@ usort($neg_filtered, function ($a, $b) {
                                 </div>
 
                                 <div class="mt-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
                                         <h6 class="mb-0">
                                             Relatório da visita: <span id="v-rel-date"><?= e($initDateLabel) ?></span>
                                             <span id="v-rel-time-wrap" class="text-muted"
@@ -585,6 +606,14 @@ usort($neg_filtered, function ($a, $b) {
                                                 ID <span id="v-rel-id"><?= e($initId ?: '') ?></span>
                                             </span>
                                         </h6>
+                                        <a id="btn-visita-pdf"
+                                            class="btn btn-sm <?= e($visitaBtnClass) ?><?= $initId ? '' : ' disabled' ?>"
+                                            data-pdf-base="<?= e($visitaPdfBase) ?>"
+                                            href="<?= e($visitaPdfHref) ?>"
+                                            target="_blank" rel="noopener"
+                                            aria-disabled="<?= $initId ? 'false' : 'true' ?>">
+                                            <i class="fa-solid fa-file-pdf me-1"></i> Baixar PDF
+                                        </a>
                                     </div>
                                     <div class="p-3 rounded border" style="border-color:#eee">
                                         <div class="v2-relatorio" id="v-rel-text" style="white-space:pre-wrap">
