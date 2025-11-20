@@ -7,16 +7,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Internação - Detalhes</title>
 
-    <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Font Awesome 6.5.2 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-    <!-- Timeout -->
     <script src="js/timeout.js"></script>
 </head>
 
@@ -136,9 +132,8 @@ $visitaDAO = new visitaDAO($conn, $BASE_URL);
 
 // 1) Carrega a LISTA de visitas da internação (para a timeline)
 try {
-    if (method_exists($visitaDAO, 'findGeralByIntern')) {
-        $visitas = $visitaDAO->findGeralByIntern((int)$id_internacao) ?: [];
-    } elseif (method_exists($visitaDAO, 'joinVisitaInternacao')) {
+    // Força o uso do método que faz o JOIN com usuário para trazer o nome e registro
+    if (method_exists($visitaDAO, 'joinVisitaInternacao')) {
         $visitas = $visitaDAO->joinVisitaInternacao((int)$id_internacao) ?: [];
     }
 } catch (Throwable $e) {
@@ -180,17 +175,46 @@ function pick_visit_id($row)
     }
     return crc32(json_encode($row)); // fallback
 }
+// Novo helper para o auditor
+function pick_visit_auditor($row)
+{
+    // Tenta encontrar o nome em colunas comuns ou joins
+    foreach (['auditor_nome', 'usuario_user', 'nome_usuario', 'usuario_cadastro', 'nome'] as $k) {
+        if (!empty($row[$k])) return $row[$k];
+    }
+    // Fallback se o ID for nulo: tenta limpar o email de criação
+    if (!empty($row['usuario_create'])) {
+        $parts = explode('@', $row['usuario_create']);
+        return ucfirst($parts[0]);
+    }
+    return '';
+}
 
 // 3) Normaliza + ordena ASC (crescente)
 $visitas_norm = [];
 foreach (($visitas ?? []) as $v) {
     $d = pick_visit_date($v);
+
+    // Pega o nome
+    $nomeAuditor = pick_visit_auditor($v);
+
+    // Pega o registro profissional (tenta pelo alias do DAO ou nome da coluna direta)
+    $registro = $v['auditor_registro'] ?? $v['reg_profissional_user'] ?? '';
+
+    // Formata para exibição: "Nome - Registro"
+    if (!empty($registro) && !empty($nomeAuditor)) {
+        $nomeExibicao = $nomeAuditor . ' - ' . $registro; // <--- NOME PRIMEIRO
+    } else {
+        $nomeExibicao = $nomeAuditor;
+    }
+
     $visitas_norm[] = [
-        '_id'   => pick_visit_id($v),
-        '_date' => $d ?: date('Y-m-d'),
-        '_time' => pick_visit_time($v),
-        '_text' => pick_visit_text($v),
-        '_raw'  => $v,
+        '_id'      => pick_visit_id($v),
+        '_date'    => $d ?: date('Y-m-d'),
+        '_time'    => pick_visit_time($v),
+        '_text'    => pick_visit_text($v),
+        '_auditor' => $nomeExibicao, // Variavel formatada
+        '_raw'     => $v,
     ];
 }
 usort($visitas_norm, fn($a, $b) => strcmp($a['_date'], $b['_date']));
@@ -215,17 +239,19 @@ if ($vid_req) {
 }
 if (!$activeVisit && $visitas_norm) $activeVisit = $visitas_norm[count($visitas_norm) - 1];
 
-// ===== Valores iniciais do relatório (data/hora/texto/ID) =====
+// ===== Valores iniciais do relatório (data/hora/texto/ID/Auditor) =====
 $initDateLabel = '—';
 $initTime = '';
 $initText = '—';
 $initId   = null;
+$initAuditor = '';
 
 if ($activeVisit) {
     $initDateLabel = date('d/m/Y', strtotime($activeVisit['_date']));
     $initTime      = $activeVisit['_time'] ?: '';
     $initText      = trim($activeVisit['_text']) !== '' ? $activeVisit['_text'] : '—';
     $initId        = (int)$activeVisit['_id'];
+    $initAuditor   = $activeVisit['_auditor'];
 }
 
 /* =========================================================
@@ -333,7 +359,6 @@ usort($neg_filtered, function ($a, $b) {
 <div id="main-container" class="container-fluid py-3">
     <div class="v2-max mx-auto">
 
-        <!-- Header Card -->
         <div class="card shadow-sm mb-3 header-card">
             <div class="card-body d-flex flex-wrap gap-3 align-items-center justify-content-between">
                 <div class="d-flex gap-3 align-items-center">
@@ -354,7 +379,6 @@ usort($neg_filtered, function ($a, $b) {
             </div>
         </div>
 
-        <!-- Abas -->
         <div class="card shadow-sm">
             <div class="card-body">
                 <ul class="nav nav-pills mb-3" id="internTabs" role="tablist"
@@ -392,10 +416,8 @@ usort($neg_filtered, function ($a, $b) {
                 </ul>
 
                 <div class="tab-content" id="internTabsContent">
-                    <!-- Resumo -->
                     <div class="tab-pane fade show active" id="resumo" role="tabpanel" aria-labelledby="resumo-tab">
                         <div class="row g-3">
-                            <!-- Card Internação -->
                             <div class="col-12 col-lg-6">
                                 <div class="card ov-card ov-int"
                                     style="border-radius:14px;background:#fff;box-shadow:0 8px 24px rgba(0,0,0,.06);background-image:linear-gradient(to right, var(--ov, #5e2363) 6px, #fff 6px);">
@@ -416,7 +438,6 @@ usort($neg_filtered, function ($a, $b) {
                                 </div>
                             </div>
 
-                            <!-- Card Detalhes -->
                             <div class="col-12 col-lg-6">
                                 <div class="card ov-card ov-vis"
                                     style="border-radius:14px;background:#fff;box-shadow:0 8px 24px rgba(0,0,0,.06);background-image:linear-gradient(to right, var(--ov, #0f766e) 6px, #fff 6px);">
@@ -438,7 +459,6 @@ usort($neg_filtered, function ($a, $b) {
                             </div>
                         </div>
 
-                        <!-- Relatório Internação -->
                         <div class="row g-3 mt-1">
                             <div class="col-12">
                                 <div class="card ov-card ov-int"
@@ -454,7 +474,6 @@ usort($neg_filtered, function ($a, $b) {
                         </div>
                     </div>
 
-                    <!-- VISITAS -->
                     <div class="tab-pane fade" id="visitas" role="tabpanel" aria-labelledby="visitas-tab">
                         <?php if (!$visitas_norm): ?>
                         <p class="text-muted mb-0">Nenhuma visita registrada para esta internação.</p>
@@ -466,7 +485,6 @@ usort($neg_filtered, function ($a, $b) {
                                     <h6 class="ov-title mb-0">Linha do tempo de Visitas</h6>
                                 </div>
 
-                                <!-- Timeline (crescente + com respiro nas bordas) -->
                                 <?php $countVis = count($visitas_norm);
                                     $trackWidthPx = max(800, $countVis * 160); ?>
                                 <div class="ht-container">
@@ -483,26 +501,35 @@ usort($neg_filtered, function ($a, $b) {
                                                 $dataLabel = date('d/m/Y', strtotime($v['_date']));
                                                 $hora      = $v['_time'] ?: '';
                                                 $texto     = trim($v['_text']) !== '' ? $v['_text'] : '—';
+                                                $auditorNome = $v['_auditor'] ?? ''; // Nome Formatado (Auditor - Registro)
                                             ?>
                                         <a class="ht-marker<?= $edgeCls ?><?= $isActive ? ' active' : '' ?>" href="#"
                                             style="left: <?= $pct ?>%;" data-id="<?= (int)$v['_id'] ?>"
                                             data-date="<?= e($dataLabel) ?>" data-time="<?= e($hora) ?>"
-                                            data-text="<?= e($texto) ?>" onclick="(function(m){
+                                            data-text="<?= e($texto) ?>" data-auditor="<?= e($auditorNome) ?>" onclick="(function(m){
                                               document.querySelectorAll('#visitas .ht-marker.active').forEach(function(x){x.classList.remove('active');});
                                               m.classList.add('active');
-                                              var d=m.dataset.date||'—', t=m.dataset.time||'', x=m.dataset.text||'—', i=m.dataset.id||'';
+                                              var d=m.dataset.date||'—', t=m.dataset.time||'', x=m.dataset.text||'—', i=m.dataset.id||'', aud=m.dataset.auditor||'';
                                               var dEl=document.getElementById('v-rel-date');
                                               var tWrap=document.getElementById('v-rel-time-wrap');
                                               var tEl=document.getElementById('v-rel-time');
                                               var xEl=document.getElementById('v-rel-text');
                                               var iWrap=document.getElementById('v-rel-id-wrap');
                                               var iEl=document.getElementById('v-rel-id');
+                                              var audEl=document.getElementById('v-rel-auditor');
+                                              var audWrap=document.getElementById('v-rel-auditor-wrap');
+
                                               if(dEl) dEl.textContent=d;
                                               if(tWrap) tWrap.style.display = t ? '' : 'none';
                                               if(tEl) tEl.textContent = t || '';
                                               if(xEl) xEl.textContent = x;
                                               if(iEl) iEl.textContent = i || '';
                                               if(iWrap){ if(i){ iWrap.classList.remove('d-none'); } else { iWrap.classList.add('d-none'); } }
+                                              
+                                              // Atualiza Auditor
+                                              if(audEl) audEl.textContent = aud;
+                                              if(audWrap) audWrap.style.display = aud ? 'block' : 'none';
+
                                               var cont=document.querySelector('#visitas .ht-container');
                                               if(cont){ cont.scrollLeft = Math.max(0, m.offsetLeft - cont.clientWidth/2); }
                                           })(this); return false;">
@@ -513,7 +540,6 @@ usort($neg_filtered, function ($a, $b) {
                                     </div>
                                 </div>
 
-                                <!-- Relatório (apenas abaixo) -->
                                 <div class="mt-3">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <h6 class="mb-0">
@@ -533,6 +559,13 @@ usort($neg_filtered, function ($a, $b) {
                                             <?= e($initText) ?></div>
                                     </div>
 
+                                    <div id="v-rel-auditor-wrap"
+                                        style="font-size: 0.85rem; color: #5e2363; font-weight: 600; margin-top: 10px; display: <?= !empty($initAuditor) ? 'block' : 'none' ?>;">
+                                        <i class="fa-solid fa-user-doctor" style="margin-right: 5px;"></i> Visita
+                                        realizada pelo(a) Auditor(a):
+                                        <span id="v-rel-auditor"><?= e($initAuditor) ?></span>
+                                    </div>
+
                                     <?php if ($minD && $maxD): ?>
                                     <div class="d-flex justify-content-between align-items-center mt-2">
                                         <div class="small text-secondary"><?= e(date('d/m/Y', strtotime($minD))) ?> —--
@@ -547,7 +580,6 @@ usort($neg_filtered, function ($a, $b) {
                         <?php endif; ?>
                     </div>
 
-                    <!-- PRORROGAÇÕES -->
                     <div class="tab-pane fade" id="prorrog" role="tabpanel" aria-labelledby="prorrog-tab">
                         <div class="card ov-card ov-int"
                             style="border-radius:14px;background:#fff;box-shadow:0 8px 24px rgba(0,0,0,.06);background-image:linear-gradient(to right, var(--ov, #5e2363) 6px, #fff 6px);">
@@ -616,7 +648,6 @@ usort($neg_filtered, function ($a, $b) {
                         </div>
                     </div>
 
-                    <!-- TUSS -->
                     <div class="tab-pane fade" id="tuss" role="tabpanel" aria-labelledby="tuss-tab">
                         <div class="card ov-card ov-int"
                             style="border-radius:14px;background:#fff;box-shadow:0 8px 24px rgba(0,0,0,.06);background-image:linear-gradient(to right, var(--ov, #5e2363) 6px, #fff 6px);">
@@ -697,7 +728,6 @@ usort($neg_filtered, function ($a, $b) {
                         </div>
                     </div>
 
-                    <!-- NEGOCIAÇÕES -->
                     <div class="tab-pane fade" id="neg" role="tabpanel" aria-labelledby="neg-tab">
                         <div class="card ov-card ov-int"
                             style="border-radius:14px;background:#fff;box-shadow:0 8px 24px rgba(0,0,0,.06);background-image:linear-gradient(to right, var(--ov, #5e2363) 6px, #fff 6px);">
@@ -796,9 +826,6 @@ usort($neg_filtered, function ($a, $b) {
 
     </div>
 </div>
-
-<!-- Bootstrap JS (se não for carregado pelo layout pai, descomente) -->
-<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> -->
 
 <script>
 // Tabs: manter hash na URL + rolar timeline para a direita ao abrir Visitas
