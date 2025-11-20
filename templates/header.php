@@ -612,6 +612,7 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
 <script src="./diversos/CoolAdmin-master/vendor/select2/select2.min.js"></script>
 <script src="./scripts/cadastro/general.js"></script>
 <script src="js/stepper.js"></script>
+<script src="js/show_internacao_visitas.js"></script>
 </script>
 <script>
 // Base para links absolutos
