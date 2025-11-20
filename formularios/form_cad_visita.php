@@ -9,6 +9,47 @@ function fmtDmy(?string $s): string
     return !empty($s) ? date('d/m/Y', strtotime($s)) : '';
 }
 
+$idSessao = (int)($_SESSION['id_usuario'] ?? 0);
+$cargoSessao = $_SESSION['cargo'] ?? ($_SESSION['cargo_user'] ?? '');
+
+include_once("dao/usuarioDao.php");
+$usuarioDao = new UserDAO($conn, $BASE_URL);
+
+$normCargoSessao = mb_strtolower(str_replace([' ', '-'], '_', (string)$cargoSessao), 'UTF-8');
+$isMedSessao = strpos($normCargoSessao, 'med') === 0;
+$isEnfSessao = strpos($normCargoSessao, 'enf') === 0;
+$mostrarCadastroCentral = !($isMedSessao || $isEnfSessao);
+
+$medicosAud = [];
+$enfsAud = [];
+try {
+    $todos = $usuarioDao->findMedicosEnfermeiros();
+    if (!is_array($todos)) $todos = [];
+    foreach ($todos as $u) {
+        $id = (int)($u['id_usuario'] ?? 0);
+        if (!$id) continue;
+        $cargo = (string)($u['cargo_user'] ?? '');
+        $row = [
+            'id_usuario'   => $id,
+            'usuario_user' => (string)($u['usuario_user'] ?? ('#' . $id)),
+            'cargo_user'   => $cargo,
+        ];
+        $cargoUpper = mb_strtoupper($cargo, 'UTF-8');
+        if (strpos($cargoUpper, 'MED') === 0) {
+            $medicosAud[] = $row;
+        } elseif (strpos($cargoUpper, 'ENF') === 0) {
+            $enfsAud[] = $row;
+        }
+    }
+} catch (Throwable $e) {
+    $medicosAud = $enfsAud = [];
+}
+
+$defaultVisitaMed = $isMedSessao ? 's' : 'n';
+$defaultVisitaEnf = $isEnfSessao ? 's' : 'n';
+$defaultAuditorMed = $isMedSessao ? $idSessao : '';
+$defaultAuditorEnf = $isEnfSessao ? $idSessao : '';
+
 $hoje = date('Y-m-d');
 
 // protege contra null
@@ -161,8 +202,16 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
             <input type="hidden" value="" id="json-antec" name="json-antec">
             <input type="hidden" class="form-control" id="usuario_create" value="<?= $_SESSION['email_user'] ?>"
                 name="usuario_create">
-            <input type="hidden" class="form-control" class="form-control" id="fk_usuario_vis"
-                value="<?= $_SESSION['id_usuario'] ?>" name="fk_usuario_vis">
+            <input type="hidden" class="form-control" id="fk_usuario_vis" value="<?= $idSessao ?>"
+                name="fk_usuario_vis">
+            <input type="hidden" class="form-control" id="visita_med_vis" name="visita_med_vis"
+                value="<?= $defaultVisitaMed ?>">
+            <input type="hidden" class="form-control" id="visita_enf_vis" name="visita_enf_vis"
+                value="<?= $defaultVisitaEnf ?>">
+            <input type="hidden" class="form-control" id="visita_auditor_prof_med" name="visita_auditor_prof_med"
+                value="<?= $defaultAuditorMed ?>">
+            <input type="hidden" class="form-control" id="visita_auditor_prof_enf" name="visita_auditor_prof_enf"
+                value="<?= $defaultAuditorEnf ?>">
             <input type="hidden" class="form-control" value="<?= $id_internacao ?>" id="fk_internacao_vis"
                 name="fk_internacao_vis" placeholder="">
             <input type="hidden" id="id_hospital" name="id_hospital" value="<?= $internacaoList['0']['id_hospital'] ?>">
@@ -177,6 +226,48 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
                 value="<?= date("d/m/Y", strtotime($internacaoList['0']['data_intern_int'])); ?>">
             <input type="hidden" class="form-control" id="data_intern_int" name="data_intern_int"
                 value="<?= date("d/m/Y", strtotime($internacaoList['0']['data_intern_int'])); ?>">
+            <?php if ($mostrarCadastroCentral): ?>
+            <div class="w-100 my-3 p-3 border rounded" id="cadastro-central-visita"
+                style="border-color:#8a2be2 !important;">
+                <div class="fw-semibold text-primary mb-2" style="color:#5e2363 !important;">
+                    Cadastro Central ativo
+                    <small class="text-muted ms-2">(selecione o profissional responsável pela visita)</small>
+                </div>
+                <div class="row g-2 align-items-end">
+                    <div class="col-sm-3">
+                        <label class="form-label" for="visita_resp_tipo">Tipo de responsável</label>
+                        <select id="visita_resp_tipo" class="form-select form-select-sm">
+                            <option value="">(sem seleção)</option>
+                            <option value="med">Médico auditor</option>
+                            <option value="enf">Enfermeiro auditor</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-4 d-none" id="box_visita_resp_med">
+                        <label class="form-label" for="visita_resp_med_id">Selecionar médico</label>
+                        <select id="visita_resp_med_id" class="form-select form-select-sm">
+                            <option value="">Selecione</option>
+                            <?php foreach ($medicosAud as $med): ?>
+                            <option value="<?= (int)$med['id_usuario'] ?>">
+                                <?= htmlspecialchars($med['usuario_user'] ?? ('#' . $med['id_usuario'])) ?>
+                            </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-sm-4 d-none" id="box_visita_resp_enf">
+                        <label class="form-label" for="visita_resp_enf_id">Selecionar enfermeiro</label>
+                        <select id="visita_resp_enf_id" class="form-select form-select-sm">
+                            <option value="">Selecione</option>
+                            <?php foreach ($enfsAud as $enf): ?>
+                            <option value="<?= (int)$enf['id_usuario'] ?>">
+                                <?= htmlspecialchars($enf['usuario_user'] ?? ('#' . $enf['id_usuario'])) ?>
+                            </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
+
             <div>
                 <label for="rel_visita_vis">Relatório de Auditoria</label>
                 <textarea type="textarea" style="resize:none" rows="2" onclick="aumentarTextAudit()"
@@ -434,62 +525,6 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
                 <input type="hidden" class="form-control" value="s" id="internacao_ativa_int"
                     name="internacao_ativa_int">
             </div>
-            <div class="form-group col-sm-1">
-                <input type="hidden" class="form-control" value="<?= ($_SESSION['id_usuario']) ?>" id="fk_usuario_vis"
-                    name="fk_usuario_vis">
-            </div>
-            <div class="form-group col-sm-1">
-
-                <input type="hidden" class="form-control" value="<?= ($_SESSION['cargo']) ?>" id="fk_usuario_vis"
-                    name="fk_usuario_vis">
-            </div>
-            <!-- <div class="form-group col-sm-2">
-                    <?php $agora = date('d-m-Y');
-                    ?>
-                    <input type="tyext" value=' <?= $agora; ?>' class="form-control" id="data_visita_vis"
-                        name="data_visita_vis">
-                </div> -->
-            <div class="form-group col-sm-1">
-                <input type="hidden" class="form-control" id="visita_enf_vis" name="visita_enf_vis"
-                    placeholder="<?php if (($_SESSION['cargo']) === 'Enf_Auditor') {
-                                                                                                                        echo 's';
-                                                                                                                    } else {
-                                                                                                                        echo 'n';
-                                                                                                                    }; ?>" value="<?php if (($_SESSION['cargo']) === 'Enf_Auditor') {
-                                echo 's';
-                            } else {
-                                echo 'n';
-                            }; ?>">
-            </div>
-            <div class="form-group col-sm-1">
-                <input type="hidden" class="form-control" id="visita_med_vis" name="visita_med_vis"
-                    placeholder="<?php if (($_SESSION['cargo']) === 'Med_auditor') {
-                                                                                                                        echo 's';
-                                                                                                                    } else {
-                                                                                                                        echo 'n';
-                                                                                                                    }; ?>" value="<?php if (($_SESSION['cargo']) == 'Med_auditor') {
-                                echo 's';
-                            } else {
-                                echo 'n';
-                            }; ?>">
-            </div>
-            <div class="form-group col-sm-1">
-                <input type="hidden" class="form-control" id="visita_auditor_prof_enf" name="visita_auditor_prof_enf"
-                    placeholder="<?php if (($_SESSION['cargo']) === 'Enf_Auditor') {
-                                        echo ($_SESSION['login_user']);
-                                    }; ?>" value="<?php if (($_SESSION['cargo']) === 'Enf_Auditor') {
-                                                        echo ('Enf_Auditor');
-                                                    }; ?>">
-            </div>
-
-            <div class="form-group col-sm-1">
-                <input type="hidden" class="form-control" id="visita_auditor_prof_med" name="visita_auditor_prof_med"
-                    placeholder="<?php if (($_SESSION['cargo']) == 'Med_auditor') {
-                                        echo ($_SESSION['login_user']);
-                                    }; ?>" value="<?php if (($_SESSION['cargo']) === 'Med_auditor') {
-                                                        echo ('Med_auditor');
-                                                    }; ?>">
-            </div>
             <h4 class="text-center w-100"
                 style="margin: -15px 10px 0px 0px;background-color: #5e2363;color: #fff;padding: 13px 0;border-radius: 0.25rem;">
                 Tabelas Adicionais</h4>
@@ -640,6 +675,99 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
 </div>
 <script src="js/select_visita.js"></script>
 <script src="js/text_cad_visita.js"></script>
+<script>
+(function() {
+    const fkInput = document.getElementById('fk_usuario_vis');
+    if (!fkInput) return;
+
+    const respTipo = document.getElementById('visita_resp_tipo');
+    const boxMed = document.getElementById('box_visita_resp_med');
+    const boxEnf = document.getElementById('box_visita_resp_enf');
+    const selectMed = document.getElementById('visita_resp_med_id');
+    const selectEnf = document.getElementById('visita_resp_enf_id');
+    const flagMed = document.getElementById('visita_med_vis');
+    const flagEnf = document.getElementById('visita_enf_vis');
+    const auditorMed = document.getElementById('visita_auditor_prof_med');
+    const auditorEnf = document.getElementById('visita_auditor_prof_enf');
+
+    const sessionId = "<?= $idSessao ?>";
+    const isMedSessao = <?= $isMedSessao ? 'true' : 'false' ?>;
+    const isEnfSessao = <?= $isEnfSessao ? 'true' : 'false' ?>;
+
+    function applySelection(userId, tipo) {
+        if (fkInput) fkInput.value = userId || '';
+        if (flagMed) flagMed.value = (tipo === 'med') ? 's' : (isMedSessao && !tipo ? 's' : 'n');
+        if (flagEnf) flagEnf.value = (tipo === 'enf') ? 's' : (isEnfSessao && !tipo ? 's' : 'n');
+        if (auditorMed) auditorMed.value = (tipo === 'med') ? userId : (isMedSessao && !tipo ? sessionId : '');
+        if (auditorEnf) auditorEnf.value = (tipo === 'enf') ? userId : (isEnfSessao && !tipo ? sessionId : '');
+    }
+
+    function resetToSession() {
+        if (isMedSessao) {
+            applySelection(sessionId, 'med');
+        } else if (isEnfSessao) {
+            applySelection(sessionId, 'enf');
+        } else {
+            applySelection(sessionId, '');
+        }
+    }
+
+    function hide(el) {
+        if (!el) return;
+        el.classList.add('d-none');
+        el.hidden = true;
+    }
+
+    function show(el) {
+        if (!el) return;
+        el.classList.remove('d-none');
+        el.hidden = false;
+    }
+
+    resetToSession();
+
+    if (!respTipo) return;
+
+    hide(boxMed);
+    hide(boxEnf);
+
+    respTipo.addEventListener('change', function() {
+        const value = this.value;
+        if (selectMed) selectMed.value = '';
+        if (selectEnf) selectEnf.value = '';
+
+        hide(boxMed);
+        hide(boxEnf);
+        resetToSession();
+
+        if (value === 'med') {
+            show(boxMed);
+        } else if (value === 'enf') {
+            show(boxEnf);
+        } else {
+            resetToSession();
+        }
+    });
+
+    selectMed?.addEventListener('change', function() {
+        const opt = this.selectedOptions[0];
+        if (!opt?.value) {
+            resetToSession();
+            return;
+        }
+        applySelection(opt.value, 'med');
+    });
+
+    selectEnf?.addEventListener('change', function() {
+        const opt = this.selectedOptions[0];
+        if (!opt?.value) {
+            resetToSession();
+            return;
+        }
+        applySelection(opt.value, 'enf');
+    });
+})();
+</script>
 <script>
 // Função para popular os selects "troca_de" e "troca_para" com as acomodações recebidas
 function populateSelects(acomodacoes) {

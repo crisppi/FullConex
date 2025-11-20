@@ -331,6 +331,19 @@ if (empty($visitas)) {
         $pdf->MultiCell(0, 6, 'Ações da Visita:', 1, 'L', true);
         $pdf->SetFont('helvetica', '', 7);
         $pdf->MultiCell(0, 6, $visita['acoes_int_vis'] ?? '', 1, 'L', false);
+        $pdf->Ln(1);
+
+        // Profissional responsável
+        $profissionalNome     = trim((string) ($visita['auditor_nome'] ?? ''));
+        $profissionalRegistro = trim((string) ($visita['auditor_registro'] ?? ''));
+        $profissionalLabel    = 'Profissional:';
+        $profissionalValor    = trim($profissionalNome . ($profissionalRegistro ? ' - ' . $profissionalRegistro : ''));
+
+        $pdf->SetFillColor(...$corCinza);
+        $pdf->SetFont('helvetica', 'B', 7);
+        $pdf->MultiCell(0, 6, $profissionalLabel, 1, 'L', true);
+        $pdf->SetFont('helvetica', '', 7);
+        $pdf->MultiCell(0, 6, $profissionalValor, 1, 'L', false);
         $pdf->Ln(3);
     }
 }

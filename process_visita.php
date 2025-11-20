@@ -107,6 +107,7 @@ if ($type === "create") {
     $visita_med_vis              = strOrNull($_POST['visita_med_vis'] ?? null);
     $visita_auditor_prof_enf     = strOrNull($_POST['visita_auditor_prof_enf'] ?? null);
     $visita_auditor_prof_med     = strOrNull($_POST['visita_auditor_prof_med'] ?? null);
+    $fk_usuario_vis              = toIntOrNull($_POST['fk_usuario_vis'] ?? null);
 
     // bloco enfermagem (visita)
     $exames_enf                  = strOrNull($_POST['exames_enf'] ?? null);
@@ -172,6 +173,7 @@ if ($type === "create") {
     $visita->visita_med_vis           = $visita_med_vis;
     $visita->visita_auditor_prof_enf  = $visita_auditor_prof_enf;
     $visita->visita_auditor_prof_med  = $visita_auditor_prof_med;
+    $visita->fk_usuario_vis           = $fk_usuario_vis;
 
     // enfermagem (texto)
     $visita->exames_enf               = $exames_enf;
@@ -420,8 +422,8 @@ if ($type === "update") {
             exit;
         }
 
-        $visita = $visitaDao->findById($id_visita);
-        if (!$visita) {
+        $visitaEncontrada = $visitaDao->findById($id_visita);
+        if (!$visitaEncontrada) {
             if ($__DEBUG) {
                 dbg("UPDATE: visita não encontrada");
                 exit;
@@ -431,6 +433,9 @@ if ($type === "update") {
         }
 
         // Mantém o seu padrão de update via array
+        $visita = is_array($visitaEncontrada)
+            ? $visitaEncontrada
+            : get_object_vars($visitaEncontrada);
         $visita['id_visita']    = $id_visita;
         $visita['fk_hospital']  = $fk_hospital;
         $visita['valor_diaria'] = $valor_diaria;
