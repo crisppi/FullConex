@@ -751,6 +751,6 @@ canvas {
 <!-- Main JS-->
 <script src="diversos/CoolAdmin-master/js/main.js"></script>
 <script src="scripts/cadastro/general.js"></script>
-<script src="js/ajaxNav.js"></script>
+<!-- <script src="js/ajaxNav.js"></script> -->
 
 <?php require_once("templates/footer.php"); ?>

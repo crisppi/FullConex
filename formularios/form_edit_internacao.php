@@ -998,11 +998,14 @@ function reduzirText(textareaId, originalRows) {
     </script>
     <script>
 $(document).ready(function() {
-    $('.selectpicker').selectpicker();
-    $('.selectpicker').selectpicker('refresh');
-    $('.selectpicker').on('loaded.bs.select', function() {
-        $('.bs-searchbox input').attr('placeholder', 'Digite para pesquisar...');
-    });
+    // Verifica se a função existe antes de chamar
+    if (typeof $.fn.selectpicker === 'function') {
+        $('.selectpicker').selectpicker();
+        // Listener para quando carregar
+        $('.selectpicker').on('loaded.bs.select', function() {
+            $('.bs-searchbox input').attr('placeholder', 'Digite para pesquisar...');
+        });
+    }
 });
     </script>
 

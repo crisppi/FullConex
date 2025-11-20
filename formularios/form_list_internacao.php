@@ -121,10 +121,26 @@ $internacao     = new internacaoDAO($conn, $BASE_URL);
     background: #35bae1;
 }
 </style>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- SHIM do selectpicker: impede o erro mesmo se alguém chamar .selectpicker() -->
+<script>
+if (typeof jQuery !== 'undefined') {
+    (function($) {
+        if (!$.fn.selectpicker) {
+            $.fn.selectpicker = function() {
+                // não faz nada, só evita erro
+                return this;
+            };
+        }
+    })(jQuery);
+}
+</script>
+
+<!-- <script src="js/ajaxNav.js"></script> -->
 
 <!-- FORMULARIO DE PESQUISAS -->
 <div class="container-fluid" id='main-container'>
-    <script src="./js/ajaxNav.js"></script>
 
     <div class="d-flex justify-content-between align-items-center" style="margin-bottom: 10px;">
         <h4 class="page-title" style="color: #3A3A3A;">Listagem - Internação</h4>
@@ -1059,6 +1075,7 @@ $(document).ready(function() {
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"></script>
+<script src="./js/ajaxNav.js"></script>
 
 <?php
 require_once("templates/footer.php");

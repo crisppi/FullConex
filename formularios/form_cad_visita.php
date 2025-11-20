@@ -84,16 +84,16 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
         Cadastrar visita
 
         <?php if ($contarVis > 0): ?>
-            <button type="button" class="btn btn-sm" style="
+        <button type="button" class="btn btn-sm" style="
               position: absolute;
               right: 10px;
               top: 50%;
               transform: translateY(-50%);
               background-color: #5bd9f3;
             " data-bs-toggle="modal" data-bs-target="#myModal1">
-                <i class="fas fa-eye me-2"></i>
-                Visitas Anteriores
-            </button>
+            <i class="fas fa-eye me-2"></i>
+            Visitas Anteriores
+        </button>
         <?php endif; ?>
     </h4>
 
@@ -130,42 +130,29 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
                 <hr>
             </div>
             <div class="form-group col-sm-2">
-                <?php $agora = date('d-m-Y');
+                <?php
+                // Alterado de 'd-m-Y' para 'Y-m-d' para funcionar no input type="date"
+                $agora = date('Y-m-d');
                 ?>
                 <label for="data_visita_vis">Data da Visita</label>
-                <input type="date" value=' <?= $agora; ?>' class="form-control" id="data_visita_vis"
+
+                <input type="date" value="<?= $agora; ?>" class="form-control" id="data_visita_vis"
                     name="data_visita_vis">
+
                 <p id="data-visita-error" style="color: red; display: none;">Data Inválida</p>
-
             </div>
-            <div class="form-group col-sm-2">
-                <label class="control-label" for="fk_patologia2">Antecedente</label>
-                <select class="form-control-sm form-control selectpicker show-tick" data-size="5"
-                    data-live-search="true" id="fk_patologia2" name="fk_patologia2[]" multiple title="Selecione">
-                    <!-- Adicione o atributo title -->
 
-                    <?php
-                    // Ordena o array de pacientes em ordem ascendente pelo nome
-                    usort($antecedentes, function ($a, $b) {
-                        return strcmp($a["antecedente_ant"], $b["antecedente_ant"]);
-                    });
-                    foreach ($antecedentes as $antecedente): ?>
-                        <option value="<?= $antecedente["id_antecedente"] ?>"><?= $antecedente["antecedente_ant"] ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
             <div class="form-group col-sm-3">
                 <label for="retificou">Retificar Visita</label>
                 <select class="form-control" id="retificou" name="retificou">
                     <option value="">Selecione a visita</option>
                     <?php foreach ((array) $visitasAntigas as $visita): ?>
-                        <?php if (is_array($visita) && isset($visita['visita_no_vis'])): ?>
-                            <option value="<?= $visita['visita_no_vis'] ?>">
-                                Visita ID <?= $visita['visita_no_vis'] ?> -
-                                <?= isset($visita['data_visita_vis']) ? DateTime::createFromFormat('Y-m-d', $visita['data_visita_vis'])->format('d/m/Y') : 'Data não informada' ?>
-                            </option>
-                        <?php endif; ?>
+                    <?php if (is_array($visita) && isset($visita['visita_no_vis'])): ?>
+                    <option value="<?= $visita['visita_no_vis'] ?>">
+                        Visita ID <?= $visita['visita_no_vis'] ?> -
+                        <?= isset($visita['data_visita_vis']) ? DateTime::createFromFormat('Y-m-d', $visita['data_visita_vis'])->format('d/m/Y') : 'Data não informada' ?>
+                    </option>
+                    <?php endif; ?>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -465,26 +452,26 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
             <div class="form-group col-sm-1">
                 <input type="hidden" class="form-control" id="visita_enf_vis" name="visita_enf_vis"
                     placeholder="<?php if (($_SESSION['cargo']) === 'Enf_Auditor') {
-                                        echo 's';
-                                    } else {
-                                        echo 'n';
-                                    }; ?>" value="<?php if (($_SESSION['cargo']) === 'Enf_Auditor') {
-                                                                                                                                        echo 's';
-                                                                                                                                    } else {
-                                                                                                                                        echo 'n';
-                                                                                                                                    }; ?>">
+                                                                                                                        echo 's';
+                                                                                                                    } else {
+                                                                                                                        echo 'n';
+                                                                                                                    }; ?>" value="<?php if (($_SESSION['cargo']) === 'Enf_Auditor') {
+                                echo 's';
+                            } else {
+                                echo 'n';
+                            }; ?>">
             </div>
             <div class="form-group col-sm-1">
                 <input type="hidden" class="form-control" id="visita_med_vis" name="visita_med_vis"
                     placeholder="<?php if (($_SESSION['cargo']) === 'Med_auditor') {
-                                        echo 's';
-                                    } else {
-                                        echo 'n';
-                                    }; ?>" value="<?php if (($_SESSION['cargo']) == 'Med_auditor') {
-                                                                                                                                        echo 's';
-                                                                                                                                    } else {
-                                                                                                                                        echo 'n';
-                                                                                                                                    }; ?>">
+                                                                                                                        echo 's';
+                                                                                                                    } else {
+                                                                                                                        echo 'n';
+                                                                                                                    }; ?>" value="<?php if (($_SESSION['cargo']) == 'Med_auditor') {
+                                echo 's';
+                            } else {
+                                echo 'n';
+                            }; ?>">
             </div>
             <div class="form-group col-sm-1">
                 <input type="hidden" class="form-control" id="visita_auditor_prof_enf" name="visita_auditor_prof_enf"
@@ -510,22 +497,22 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
             <div class="form-group row d-flex justify-content-center align-items-end">
                 <?php if ($_SESSION['cargo'] === 'Med_auditor' || ($_SESSION['cargo'] === 'Diretoria')) { ?>
 
-                    <div class="form-group col-sm-2">
-                        <label class="control-label" for="select_tuss">Tuss</label>
-                        <select class="form-control select-purple" id="select_tuss" name="select_tuss">
-                            <option value="">Selecione</option>
-                            <option value="s">Sim</option>
-                            <option value="n">Não</option>
-                        </select>
-                    </div>
-                    <div class="form-group col-sm-2">
-                        <label class="control-label" for="select_prorrog">Prorrogação</label>
-                        <select class="form-control select-purple" id="select_prorrog" name="select_prorrog">
-                            <option value="">Selecione</option>
-                            <option value="s">Sim</option>
-                            <option value="n">Não</option>
-                        </select>
-                    </div>
+                <div class="form-group col-sm-2">
+                    <label class="control-label" for="select_tuss">Tuss</label>
+                    <select class="form-control select-purple" id="select_tuss" name="select_tuss">
+                        <option value="">Selecione</option>
+                        <option value="s">Sim</option>
+                        <option value="n">Não</option>
+                    </select>
+                </div>
+                <div class="form-group col-sm-2">
+                    <label class="control-label" for="select_prorrog">Prorrogação</label>
+                    <select class="form-control select-purple" id="select_prorrog" name="select_prorrog">
+                        <option value="">Selecione</option>
+                        <option value="s">Sim</option>
+                        <option value="n">Não</option>
+                    </select>
+                </div>
                 <?php }; ?>
                 <div class="form-group col-sm-2">
                     <label class="control-label" for="select_gestao">Gestão</label>
@@ -546,14 +533,14 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
                 </div>
                 <?php if ($_SESSION['cargo'] === 'Med_auditor' || ($_SESSION['cargo'] === 'Diretoria')) { ?>
 
-                    <div class="form-group col-sm-2">
-                        <label class="control-label" for="select_negoc">Negociações</label>
-                        <select class="form-control select-purple" id="select_negoc" name="select_negoc">
-                            <option value="">Selecione</option>
-                            <option value="s">Sim</option>
-                            <option value="n">Não</option>
-                        </select>
-                    </div>
+                <div class="form-group col-sm-2">
+                    <label class="control-label" for="select_negoc">Negociações</label>
+                    <select class="form-control select-purple" id="select_negoc" name="select_negoc">
+                        <option value="">Selecione</option>
+                        <option value="s">Sim</option>
+                        <option value="n">Não</option>
+                    </select>
+                </div>
                 <?php }; ?>
 
                 <br>
@@ -600,51 +587,51 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
                     echo ("<p style='margin-left:100px'> <b>-- Esta internação ainda não possui visita -- </b></p>");
                     echo ("<br>");
                 } else { ?>
-                    <h6 class="page-title">Relatórios anteriores</h6>
-                    <table class="table table-sm table-striped  table-hover table-condensed">
-                        <thead>
-                            <tr>
-                                <th scope="col" style="width:2%">Visita</th>
-                                <th scope="col" style="width:2%">Data visita</th>
-                                <th scope="col" style="width:2%">Med</th>
-                                <th scope="col" style="width:2%">Enf</th>
-                                <th scope="col" style="width:15%">Relatório</th>
-                                <th scope="col" style="width:2%">Visualizar</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
+                <h6 class="page-title">Relatórios anteriores</h6>
+                <table class="table table-sm table-striped  table-hover table-condensed">
+                    <thead>
+                        <tr>
+                            <th scope="col" style="width:2%">Visita</th>
+                            <th scope="col" style="width:2%">Data visita</th>
+                            <th scope="col" style="width:2%">Med</th>
+                            <th scope="col" style="width:2%">Enf</th>
+                            <th scope="col" style="width:15%">Relatório</th>
+                            <th scope="col" style="width:2%">Visualizar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
                             $hoje = date('Y-m-d');
                             $atual = new DateTime($hoje);
                             foreach ($visitas as $intern):
                             ?>
-                                <tr>
-                                    <td scope="row"><?= $intern["id_visita"] ?></td>
-                                    <td scope="row"><?= !empty($intern['data_visita_vis'])
+                        <tr>
+                            <td scope="row"><?= $intern["id_visita"] ?></td>
+                            <td scope="row"><?= !empty($intern['data_visita_vis'])
                                                         ? date("d/m/Y", strtotime($intern['data_visita_vis']))
                                                         : date("d/m/Y", strtotime($intern['data_visita_int']));; ?>
-                                    </td>
-                                    <td scope="row" class="nome-coluna-table">
-                                        <?php if ($intern["visita_med_vis"] == "s") { ?><span id="boot-icon" class="bi bi-check"
-                                                style="font-size: 1.2rem; font-weight:800; color: rgb(0, 128, 55);"></span>
-                                        <?php }; ?>
-                                    </td>
-                                    <td scope="row" class="nome-coluna-table">
-                                        <?php if ($intern["visita_enf_vis"] == "s") { ?><span id="boot-icon" class="bi bi-check"
-                                                style="font-size: 1.2rem; font-weight:800; color: rgb(0, 128, 55);"></span>
-                                        <?php }; ?>
-                                    </td>
-                                    <td scope="row"><?= $intern['rel_visita_vis'] = !empty($intern['rel_visita_vis']) ? $intern['rel_visita_vis'] : $intern['rel_int'];
+                            </td>
+                            <td scope="row" class="nome-coluna-table">
+                                <?php if ($intern["visita_med_vis"] == "s") { ?><span id="boot-icon" class="bi bi-check"
+                                    style="font-size: 1.2rem; font-weight:800; color: rgb(0, 128, 55);"></span>
+                                <?php }; ?>
+                            </td>
+                            <td scope="row" class="nome-coluna-table">
+                                <?php if ($intern["visita_enf_vis"] == "s") { ?><span id="boot-icon" class="bi bi-check"
+                                    style="font-size: 1.2rem; font-weight:800; color: rgb(0, 128, 55);"></span>
+                                <?php }; ?>
+                            </td>
+                            <td scope="row"><?= $intern['rel_visita_vis'] = !empty($intern['rel_visita_vis']) ? $intern['rel_visita_vis'] : $intern['rel_int'];
                                                     ?></td>
-                                    <td><a href="<?= $BASE_URL ?>show_visita.php?id_visita=<?= $intern["id_visita"] ?>"><i
-                                                style="color:green; margin-right:10px"
-                                                class="aparecer-acoes fas fa-eye check-icon"></i></a>
-                                    </td>
+                            <td><a href="<?= $BASE_URL ?>show_visita.php?id_visita=<?= $intern["id_visita"] ?>"><i
+                                        style="color:green; margin-right:10px"
+                                        class="aparecer-acoes fas fa-eye check-icon"></i></a>
+                            </td>
 
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
                 <?php }; ?>
             </div>
 
@@ -654,199 +641,199 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
 <script src="js/select_visita.js"></script>
 <script src="js/text_cad_visita.js"></script>
 <script>
-    // Função para popular os selects "troca_de" e "troca_para" com as acomodações recebidas
-    function populateSelects(acomodacoes) {
-        let options = '<option value="">Selecione a Acomodação</option>';
-        acomodacoes.forEach(ac => {
-            options +=
-                `<option value="${ac.id_acomodacao}" data-valor="${ac.valor_aco}">${ac.acomodacao_aco}</option>`;
-        });
-
-        // Atualiza os selects com as novas opções
-        $('select[name="troca_de"]').html(options);
-        $('select[name="troca_para"]').html(options);
-
-        // Limpa os campos relacionados
-        $('input[name="saving"]').val('');
-        $('input[name="qtd"]').val('');
-        $('input[name="saving_show"]').val('').css('color', '');
-    }
-
-    const acomodacoes = <?php echo $jsonAcomodacoes; ?>;
-
-    populateSelects(acomodacoes)
-
-    //criar o json de antecedentes
-    document.getElementById('fk_patologia2').addEventListener('change', function() {
-        const selectedOptions = Array.from(this.selectedOptions).map(option => parseInt(option.value,
-            10)); // Converte os valores para inteiros
-        const fkPaciente = parseInt(document.getElementById('fk_paciente_int').value,
-            10); // Garante que fkPaciente é inteiro
-        const fkInternacao = parseInt(document.getElementById('fk_internacao_vis').value,
-            10); // Garante que fkInternacao é inteiro
-
-        const jsonAntecedentes = selectedOptions.map(idAntecedente => ({
-            fk_id_paciente: fkPaciente,
-            fk_internacao_ant_int: fkInternacao + 1, // Soma 1 ao valor de fkInternacao
-            intern_antec_ant_int: idAntecedente // Certifica que idAntecedente é um número inteiro
-        }));
-
-        // Atualiza o campo hidden com o JSON gerado
-        document.getElementById('json-antec').value = JSON.stringify(jsonAntecedentes);
+// Função para popular os selects "troca_de" e "troca_para" com as acomodações recebidas
+function populateSelects(acomodacoes) {
+    let options = '<option value="">Selecione a Acomodação</option>';
+    acomodacoes.forEach(ac => {
+        options +=
+            `<option value="${ac.id_acomodacao}" data-valor="${ac.valor_aco}">${ac.acomodacao_aco}</option>`;
     });
 
-    // Função para calcular as diárias e validar as datas
-    function calculateDiarias(container) {
-        const dataAtual = new Date().toISOString().split("T")[0];
-        const dataInicial = container.querySelector('[name="prorrog1_ini_pror"]').value;
-        const dataInternacao = document.getElementById('data_internacao').value
-        const dataFinal = container.querySelector('[name="prorrog1_fim_pror"]').value;
-        const diariasField = container.querySelector('[name="diarias_1"]');
-        const errorMessage = container.querySelector(".error-message");
+    // Atualiza os selects com as novas opções
+    $('select[name="troca_de"]').html(options);
+    $('select[name="troca_para"]').html(options);
 
-        errorMessage.textContent = ""; // Limpa mensagens de erro
+    // Limpa os campos relacionados
+    $('input[name="saving"]').val('');
+    $('input[name="qtd"]').val('');
+    $('input[name="saving_show"]').val('').css('color', '');
+}
 
-        if (dataInicial && dataFinal) {
-            const inicio = new Date(dataInicial);
-            const fim = new Date(dataFinal);
-            const internacao = new Date(dataInternacao);
+const acomodacoes = <?php echo $jsonAcomodacoes; ?>;
 
-            if (inicio < internacao) {
-                errorMessage.textContent = "A data inicial não pode ser menor que a data de internação.";
-                errorMessage.style.display = "block";
-                diariasField.value = "";
-                return;
-            }
+populateSelects(acomodacoes)
 
-            if (fim < inicio) {
-                errorMessage.textContent = "A data final não pode ser menor que a data inicial.";
-                errorMessage.style.display = "block";
-                diariasField.value = "";
-                return;
-            }
+//criar o json de antecedentes
+document.getElementById('fk_patologia2').addEventListener('change', function() {
+    const selectedOptions = Array.from(this.selectedOptions).map(option => parseInt(option.value,
+        10)); // Converte os valores para inteiros
+    const fkPaciente = parseInt(document.getElementById('fk_paciente_int').value,
+        10); // Garante que fkPaciente é inteiro
+    const fkInternacao = parseInt(document.getElementById('fk_internacao_vis').value,
+        10); // Garante que fkInternacao é inteiro
 
-            if (fim > new Date(dataAtual)) {
-                errorMessage.textContent = "A data final não pode ser maior que a data atual.";
-                errorMessage.style.display = "block";
-                diariasField.value = "";
-                return;
-            }
+    const jsonAntecedentes = selectedOptions.map(idAntecedente => ({
+        fk_id_paciente: fkPaciente,
+        fk_internacao_ant_int: fkInternacao + 1, // Soma 1 ao valor de fkInternacao
+        intern_antec_ant_int: idAntecedente // Certifica que idAntecedente é um número inteiro
+    }));
 
-            const diffTime = Math.abs(fim - inicio);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            diariasField.value = diffDays;
-            errorMessage.style.display = "none";
+    // Atualiza o campo hidden com o JSON gerado
+    document.getElementById('json-antec').value = JSON.stringify(jsonAntecedentes);
+});
+
+// Função para calcular as diárias e validar as datas
+function calculateDiarias(container) {
+    const dataAtual = new Date().toISOString().split("T")[0];
+    const dataInicial = container.querySelector('[name="prorrog1_ini_pror"]').value;
+    const dataInternacao = document.getElementById('data_internacao').value
+    const dataFinal = container.querySelector('[name="prorrog1_fim_pror"]').value;
+    const diariasField = container.querySelector('[name="diarias_1"]');
+    const errorMessage = container.querySelector(".error-message");
+
+    errorMessage.textContent = ""; // Limpa mensagens de erro
+
+    if (dataInicial && dataFinal) {
+        const inicio = new Date(dataInicial);
+        const fim = new Date(dataFinal);
+        const internacao = new Date(dataInternacao);
+
+        if (inicio < internacao) {
+            errorMessage.textContent = "A data inicial não pode ser menor que a data de internação.";
+            errorMessage.style.display = "block";
+            diariasField.value = "";
+            return;
         }
+
+        if (fim < inicio) {
+            errorMessage.textContent = "A data final não pode ser menor que a data inicial.";
+            errorMessage.style.display = "block";
+            diariasField.value = "";
+            return;
+        }
+
+        if (fim > new Date(dataAtual)) {
+            errorMessage.textContent = "A data final não pode ser maior que a data atual.";
+            errorMessage.style.display = "block";
+            diariasField.value = "";
+            return;
+        }
+
+        const diffTime = Math.abs(fim - inicio);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        diariasField.value = diffDays;
+        errorMessage.style.display = "none";
     }
+}
 
-    // Adiciona listeners para validação automática ao alterar as datas
-    document.getElementById("fieldsContainer").addEventListener("input", (event) => {
-        const fieldContainer = event.target.closest(".field-container");
-        if (fieldContainer) {
-            calculateDiarias(fieldContainer);
-        }
-    });
+// Adiciona listeners para validação automática ao alterar as datas
+document.getElementById("fieldsContainer").addEventListener("input", (event) => {
+    const fieldContainer = event.target.closest(".field-container");
+    if (fieldContainer) {
+        calculateDiarias(fieldContainer);
+    }
+});
 </script>
 
 
 <script>
-    var text_exames = document.querySelector("#exames_enf");
+var text_exames = document.querySelector("#exames_enf");
 
-    function aumentarTextExames() {
-        if (text_exames.rows == "2") {
-            text_exames.rows = "30"
-        } else {
-            text_exames.rows = "2"
-        }
+function aumentarTextExames() {
+    if (text_exames.rows == "2") {
+        text_exames.rows = "30"
+    } else {
+        text_exames.rows = "2"
     }
+}
 
-    // mudar linhas da oportunidades 
-    var text_oport = document.querySelector("#oportunidades_enf");
+// mudar linhas da oportunidades 
+var text_oport = document.querySelector("#oportunidades_enf");
 
-    function aumentarTextOport() {
-        if (text_oport.rows == "2") {
-            text_oport.rows = "30"
-        } else {
-            text_oport.rows = "2"
-        }
+function aumentarTextOport() {
+    if (text_oport.rows == "2") {
+        text_oport.rows = "30"
+    } else {
+        text_oport.rows = "2"
     }
+}
 
-    // mudar linhas da programacao 
-    var text_programacao = document.querySelector("#programacao_enf");
+// mudar linhas da programacao 
+var text_programacao = document.querySelector("#programacao_enf");
 
-    function aumentarTextProgramacao() {
-        if (text_programacao.rows == "2") {
-            text_programacao.rows = "30"
-        } else {
-            text_programacao.rows = "2"
-        }
+function aumentarTextProgramacao() {
+    if (text_programacao.rows == "2") {
+        text_programacao.rows = "30"
+    } else {
+        text_programacao.rows = "2"
     }
+}
 </script>
 <style>
-    .modal-backdrop {
-        display: none;
+.modal-backdrop {
+    display: none;
 
-    }
+}
 
-    .modal {
-        background: rgba(0, 0, 0, 0.5);
+.modal {
+    background: rgba(0, 0, 0, 0.5);
 
-    }
+}
 
-    .modal-header {
-        color: white;
-        background: #35bae1;
+.modal-header {
+    color: white;
+    background: #35bae1;
 
 
-    }
+}
 </style>
 <script>
-    const dataVisitaInput = document.getElementById('data_visita_vis');
-    const dataVisitaError = document.getElementById('data-visita-error');
-    const dataInternacaoVis = new Date(
-        '<?= date('Y-m-d', strtotime($ultimaVis['data_intern_int'])); ?>'); // Data da internação
-    const hoje = new Date(); // Data atual
+const dataVisitaInput = document.getElementById('data_visita_vis');
+const dataVisitaError = document.getElementById('data-visita-error');
+const dataInternacaoVis = new Date(
+    '<?= date('Y-m-d', strtotime($ultimaVis['data_intern_int'])); ?>'); // Data da internação
+const hoje = new Date(); // Data atual
 
-    dataVisitaInput.addEventListener('change', () => {
-        const dataVisita = new Date(dataVisitaInput.value);
+dataVisitaInput.addEventListener('change', () => {
+    const dataVisita = new Date(dataVisitaInput.value);
 
-        if (dataVisita < dataInternacaoVis || dataVisita > hoje) {
-            dataVisitaError.style.display = 'block'; // Exibe o alerta
-        } else {
-            dataVisitaError.style.display = 'none'; // Oculta o alerta
-        }
-    });
+    if (dataVisita < dataInternacaoVis || dataVisita > hoje) {
+        dataVisitaError.style.display = 'block'; // Exibe o alerta
+    } else {
+        dataVisitaError.style.display = 'none'; // Oculta o alerta
+    }
+});
 
-    // Oculta o alerta ao clicar no campo
-    dataVisitaInput.addEventListener('click', () => {
-        dataVisitaError.style.display = 'none';
-    });
+// Oculta o alerta ao clicar no campo
+dataVisitaInput.addEventListener('click', () => {
+    dataVisitaError.style.display = 'none';
+});
 </script>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const select = document.getElementById("retificou");
+document.addEventListener("DOMContentLoaded", function() {
+    const select = document.getElementById("retificou");
 
-        if (!select.value) {
-            // Data no formato 'dd/mm/yyyy' para exibir
-            const hoje = new Date();
-            const dia = String(hoje.getDate()).padStart(2, '0');
-            const mes = String(hoje.getMonth() + 1).padStart(2, '0');
-            const ano = hoje.getFullYear();
-            const dataExibicao = `${dia}/${mes}/${ano}`;
-            // Correct format: yyyy-MM-dd
-            const dataValor = `${ano}-${mes}-${dia}`;
-            console.log(dataValor); // Verifica o formato da data
-            // Cria a nova opção
-            const novaOption = document.createElement("option");
-            novaOption.value = dataValor; // agora está no formato correto!
-            novaOption.text = `Data Atual - ${dataExibicao}`;
+    if (!select.value) {
+        // Data no formato 'dd/mm/yyyy' para exibir
+        const hoje = new Date();
+        const dia = String(hoje.getDate()).padStart(2, '0');
+        const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+        const ano = hoje.getFullYear();
+        const dataExibicao = `${dia}/${mes}/${ano}`;
+        // Correct format: yyyy-MM-dd
+        const dataValor = `${ano}-${mes}-${dia}`;
+        console.log(dataValor); // Verifica o formato da data
+        // Cria a nova opção
+        const novaOption = document.createElement("option");
+        novaOption.value = dataValor; // agora está no formato correto!
+        novaOption.text = `Data Atual - ${dataExibicao}`;
 
-            // Adiciona e seleciona
-            select.add(novaOption);
-            select.value = dataValor;
-        }
-    });
+        // Adiciona e seleciona
+        select.add(novaOption);
+        select.value = dataValor;
+    }
+});
 </script>
 
 

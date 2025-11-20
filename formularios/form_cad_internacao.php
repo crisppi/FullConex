@@ -1169,17 +1169,17 @@ document.getElementById("tipo_admissao_int").addEventListener("change", function
 });
 
 // JSON de antecedentes
-document.getElementById('fk_patologia2').addEventListener('change', function() {
-    const selectedOptions = Array.from(this.selectedOptions).map(o => parseInt(o.value, 10));
-    const fkPaciente = parseInt(document.getElementById('fk_paciente_int').value || '0', 10);
-    const fkInternacao = parseInt(document.getElementById('id_internacao').value || '0', 10);
-    const jsonAntecedentes = selectedOptions.map(idAntecedente => ({
-        fk_id_paciente: fkPaciente,
-        fk_internacao_ant_int: fkInternacao + 1,
-        intern_antec_ant_int: idAntecedente
-    }));
-    document.getElementById('json-antec').value = JSON.stringify(jsonAntecedentes);
-});
+// document.getElementById('fk_patologia2').addEventListener('change', function() {
+//     const selectedOptions = Array.from(this.selectedOptions).map(o => parseInt(o.value, 10));
+//     const fkPaciente = parseInt(document.getElementById('fk_paciente_int').value || '0', 10);
+//     const fkInternacao = parseInt(document.getElementById('id_internacao').value || '0', 10);
+//     const jsonAntecedentes = selectedOptions.map(idAntecedente => ({
+//         fk_id_paciente: fkPaciente,
+//         fk_internacao_ant_int: fkInternacao + 1,
+//         intern_antec_ant_int: idAntecedente
+//     }));
+//     document.getElementById('json-antec').value = JSON.stringify(jsonAntecedentes);
+// });
 
 // Mostrar/ocultar campos de alta conforme "Internado"
 document.addEventListener("DOMContentLoaded", function() {

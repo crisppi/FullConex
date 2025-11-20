@@ -10,12 +10,10 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
     <script src="js/timeout.js"></script>
 </head>
-
 
 <?php
 include_once("check_logado.php");
@@ -125,14 +123,12 @@ $iniciais = initials_from_name($data['nome_pac'] ?? '');
 $data_intern_format = fmtDate($data['data_intern_int'] ?? '');
 
 /* =========================================================
-   VISITAS — lista por internação + detalhe via id_visita
+   VISITAS
    ========================================================= */
 $visitas = [];
 $visitaDAO = new visitaDAO($conn, $BASE_URL);
 
-// 1) Carrega a LISTA de visitas da internação (para a timeline)
 try {
-    // Força o uso do método que faz o JOIN com usuário para trazer o nome e registro
     if (method_exists($visitaDAO, 'joinVisitaInternacao')) {
         $visitas = $visitaDAO->joinVisitaInternacao((int)$id_internacao) ?: [];
     }
@@ -140,7 +136,6 @@ try {
     $visitas = [];
 }
 
-// 2) Helpers para extrair campos da visita
 function pick_visit_date($row)
 {
     foreach (['data_visita', 'data_visita_vis', 'data', 'data_visita_int', 'created_at'] as $k) {
@@ -173,16 +168,13 @@ function pick_visit_id($row)
     foreach (['id_visita', 'id', 'id_vst'] as $k) {
         if (!empty($row[$k])) return (int)$row[$k];
     }
-    return crc32(json_encode($row)); // fallback
+    return crc32(json_encode($row));
 }
-// Novo helper para o auditor
 function pick_visit_auditor($row)
 {
-    // Tenta encontrar o nome em colunas comuns ou joins
     foreach (['auditor_nome', 'usuario_user', 'nome_usuario', 'usuario_cadastro', 'nome'] as $k) {
         if (!empty($row[$k])) return $row[$k];
     }
-    // Fallback se o ID for nulo: tenta limpar o email de criação
     if (!empty($row['usuario_create'])) {
         $parts = explode('@', $row['usuario_create']);
         return ucfirst($parts[0]);
@@ -190,20 +182,15 @@ function pick_visit_auditor($row)
     return '';
 }
 
-// 3) Normaliza + ordena ASC (crescente)
 $visitas_norm = [];
 foreach (($visitas ?? []) as $v) {
     $d = pick_visit_date($v);
 
-    // Pega o nome
     $nomeAuditor = pick_visit_auditor($v);
-
-    // Pega o registro profissional (tenta pelo alias do DAO ou nome da coluna direta)
     $registro = $v['auditor_registro'] ?? $v['reg_profissional_user'] ?? '';
 
-    // Formata para exibição: "Nome - Registro"
     if (!empty($registro) && !empty($nomeAuditor)) {
-        $nomeExibicao = $nomeAuditor . ' - ' . $registro; // <--- NOME PRIMEIRO
+        $nomeExibicao = $nomeAuditor . ' - ' . $registro;
     } else {
         $nomeExibicao = $nomeAuditor;
     }
@@ -213,18 +200,21 @@ foreach (($visitas ?? []) as $v) {
         '_date'    => $d ?: date('Y-m-d'),
         '_time'    => pick_visit_time($v),
         '_text'    => pick_visit_text($v),
-        '_auditor' => $nomeExibicao, // Variavel formatada
+        '_auditor' => $nomeExibicao,
         '_raw'     => $v,
     ];
 }
 usort($visitas_norm, fn($a, $b) => strcmp($a['_date'], $b['_date']));
 
-// 4) Intervalo
 $minD = $visitas_norm ? $visitas_norm[0]['_date'] : null;
 $maxD = $visitas_norm ? $visitas_norm[count($visitas_norm) - 1]['_date'] : null;
 $spanDays = ($minD && $maxD) ? max(1, (new DateTime($minD))->diff(new DateTime($maxD))->days) : 1;
+$minLabel = $minD ? date('d/m/Y', strtotime($minD)) : '';
+$maxLabel = $maxD ? date('d/m/Y', strtotime($maxD)) : '';
 
-// 5) Visita ativa (?vid= || ?id_visita=) ou última
+$countVis = count($visitas_norm);
+
+// Visita ativa
 $vid_req = filter_input(INPUT_GET, 'vid', FILTER_SANITIZE_NUMBER_INT);
 if (!$vid_req) $vid_req = filter_input(INPUT_GET, 'id_visita', FILTER_SANITIZE_NUMBER_INT);
 
@@ -239,7 +229,6 @@ if ($vid_req) {
 }
 if (!$activeVisit && $visitas_norm) $activeVisit = $visitas_norm[count($visitas_norm) - 1];
 
-// ===== Valores iniciais do relatório (data/hora/texto/ID/Auditor) =====
 $initDateLabel = '—';
 $initTime = '';
 $initText = '—';
@@ -284,7 +273,7 @@ if ($pr_ini || $pr_fim) {
 usort($pr_filtered, function ($a, $b) {
     $da = strtotime($a['fim'] ?: ($a['ini'] ?? ''));
     $db = strtotime($b['fim'] ?: ($b['ini'] ?? ''));
-    return $db <=> $da; // DESC
+    return $db <=> $da;
 });
 $pr_total_diarias = array_reduce($pr_filtered, fn($s, $p) => $s + (int)($p['diarias'] ?? 0), 0);
 
@@ -485,8 +474,7 @@ usort($neg_filtered, function ($a, $b) {
                                     <h6 class="ov-title mb-0">Linha do tempo de Visitas</h6>
                                 </div>
 
-                                <?php $countVis = count($visitas_norm);
-                                    $trackWidthPx = max(800, $countVis * 160); ?>
+                                <?php $trackWidthPx = max(800, $countVis * 160); ?>
                                 <div class="ht-container">
                                     <div class="ht-track" style="width: <?= (int)$trackWidthPx ?>px">
                                         <div class="ht-bar"></div>
@@ -501,12 +489,13 @@ usort($neg_filtered, function ($a, $b) {
                                                 $dataLabel = date('d/m/Y', strtotime($v['_date']));
                                                 $hora      = $v['_time'] ?: '';
                                                 $texto     = trim($v['_text']) !== '' ? $v['_text'] : '—';
-                                                $auditorNome = $v['_auditor'] ?? ''; // Nome Formatado (Auditor - Registro)
+                                                $auditorNome = $v['_auditor'] ?? '';
                                             ?>
                                         <a class="ht-marker<?= $edgeCls ?><?= $isActive ? ' active' : '' ?>" href="#"
-                                            style="left: <?= $pct ?>%;" data-id="<?= (int)$v['_id'] ?>"
-                                            data-date="<?= e($dataLabel) ?>" data-time="<?= e($hora) ?>"
-                                            data-text="<?= e($texto) ?>" data-auditor="<?= e($auditorNome) ?>" onclick="(function(m){
+                                            style="left: <?= $pct ?>%;" data-dateraw="<?= e($v['_date']) ?>"
+                                            data-id="<?= (int)$v['_id'] ?>" data-date="<?= e($dataLabel) ?>"
+                                            data-time="<?= e($hora) ?>" data-text="<?= e($texto) ?>"
+                                            data-auditor="<?= e($auditorNome) ?>" onclick="(function(m){
                                               document.querySelectorAll('#visitas .ht-marker.active').forEach(function(x){x.classList.remove('active');});
                                               m.classList.add('active');
                                               var d=m.dataset.date||'—', t=m.dataset.time||'', x=m.dataset.text||'—', i=m.dataset.id||'', aud=m.dataset.auditor||'';
@@ -526,7 +515,6 @@ usort($neg_filtered, function ($a, $b) {
                                               if(iEl) iEl.textContent = i || '';
                                               if(iWrap){ if(i){ iWrap.classList.remove('d-none'); } else { iWrap.classList.add('d-none'); } }
                                               
-                                              // Atualiza Auditor
                                               if(audEl) audEl.textContent = aud;
                                               if(audWrap) audWrap.style.display = aud ? 'block' : 'none';
 
@@ -539,6 +527,39 @@ usort($neg_filtered, function ($a, $b) {
                                         <?php endforeach; ?>
                                     </div>
                                 </div>
+
+                                <?php if ($minD && $maxD && $countVis > 0): ?>
+                                <div class="mt-3">
+                                    <h6 class="mb-1">Filtrar por período</h6>
+                                    <form id="formFiltroVisitas" class="row g-2 align-items-end">
+                                        <div class="col-sm-4 col-md-3">
+                                            <label class="form-label small text-muted">Data inicial</label>
+                                            <input type="date" id="vis_ini" class="form-control form-control-sm"
+                                                value="<?= e($minD) ?>" data-default="<?= e($minD) ?>">
+                                        </div>
+                                        <div class="col-sm-4 col-md-3">
+                                            <label class="form-label small text-muted">Data final</label>
+                                            <input type="date" id="vis_fim" class="form-control form-control-sm"
+                                                value="<?= e($maxD) ?>" data-default="<?= e($maxD) ?>">
+                                        </div>
+                                        <div class="col-auto">
+                                            <button type="button" id="btnAplicarVisitas" class="btn btn-sm btn-primary"
+                                                style="background:#5e2363;border-color:#5e2363;">
+                                                Aplicar
+                                            </button>
+                                        </div>
+                                        <div class="col-auto">
+                                            <button type="button" id="btnLimparVisitas"
+                                                class="btn btn-sm btn-outline-secondary">
+                                                Limpar
+                                            </button>
+                                        </div>
+                                    </form>
+                                    <div class="small text-muted mt-1">
+                                        As visitas fora do intervalo selecionado são escondidas na linha do tempo.
+                                    </div>
+                                </div>
+                                <?php endif; ?>
 
                                 <div class="mt-3">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -568,8 +589,8 @@ usort($neg_filtered, function ($a, $b) {
 
                                     <?php if ($minD && $maxD): ?>
                                     <div class="d-flex justify-content-between align-items-center mt-2">
-                                        <div class="small text-secondary"><?= e(date('d/m/Y', strtotime($minD))) ?> —--
-                                            <?= e(date('d/m/Y', strtotime($maxD))) ?></div>
+                                        <div class="small text-secondary"><?= e($minLabel) ?> —--
+                                            <?= e($maxLabel) ?></div>
                                         <div class="small"><span class="legend-dot"></span> Clique nas datas para ver o
                                             relatório</div>
                                     </div>
@@ -825,16 +846,18 @@ usort($neg_filtered, function ($a, $b) {
         </div>
 
     </div>
-</div>
 
-<script>
-// Tabs: manter hash na URL + rolar timeline para a direita ao abrir Visitas
+    <script>
+// Controle das tabs (hash na URL + scroll para direita ao abrir Visitas)
 (function() {
     var hash = window.location.hash;
     if (hash) {
         var triggerEl = document.querySelector('#internTabs button[data-bs-target="' + hash + '"]');
-        if (triggerEl && window.bootstrap && bootstrap.Tab) new bootstrap.Tab(triggerEl).show();
+        if (triggerEl && window.bootstrap && window.bootstrap.Tab) {
+            new window.bootstrap.Tab(triggerEl).show();
+        }
     }
+
     document.querySelectorAll('#internTabs button[data-bs-toggle="pill"]').forEach(function(btn) {
         btn.addEventListener('shown.bs.tab', function(ev) {
             var target = ev.target.getAttribute('data-bs-target');
@@ -848,9 +871,137 @@ usort($neg_filtered, function ($a, $b) {
         });
     });
 })();
-</script>
+    </script>
 
-<style>
+    <script>
+    // Filtro de visitas por período (funciona mesmo quando a página vem via AJAX)
+    (function($) {
+
+        function norm(d) {
+            if (!d) return '';
+            return String(d).substring(0, 10); // YYYY-MM-DD
+        }
+
+        function getContext() {
+            var $visitasTab = $('#visitas');
+            if (!$visitasTab.length) return null;
+
+            var $ini = $('#vis_ini');
+            var $fim = $('#vis_fim');
+            var $markers = $visitasTab.find('.ht-marker');
+
+            if (!$ini.length || !$fim.length || !$markers.length) return null;
+
+            return {
+                $visitasTab: $visitasTab,
+                $ini: $ini,
+                $fim: $fim,
+                $markers: $markers
+            };
+        }
+
+        function aplicarFiltro() {
+            var ctx = getContext();
+            if (!ctx) return;
+
+            var $visitasTab = ctx.$visitasTab;
+            var $ini = ctx.$ini;
+            var $fim = ctx.$fim;
+            var $markers = ctx.$markers;
+
+            var ini = norm($ini.val());
+            var fim = norm($fim.val());
+
+            var ultimoVisivel = null;
+
+            $markers.each(function() {
+                var $m = $(this);
+                var d = norm($m.data('dateraw'));
+
+                var visivel = true;
+                if (ini && d < ini) visivel = false;
+                if (fim && d > fim) visivel = false;
+
+                $m.toggle(visivel);
+                if (visivel) ultimoVisivel = this;
+            });
+
+            if (!ultimoVisivel) {
+                return;
+            }
+
+            var ativoVisivel = null;
+            $markers.each(function() {
+                if (this.classList.contains('active') && $(this).is(':visible')) {
+                    ativoVisivel = this;
+                    return false;
+                }
+            });
+
+            if (!ativoVisivel) {
+                ativoVisivel = ultimoVisivel;
+                ativoVisivel.click();
+            }
+
+            var cont = $visitasTab.find('.ht-container')[0];
+            if (cont && ativoVisivel) {
+                cont.scrollLeft = Math.max(0, ativoVisivel.offsetLeft - cont.clientWidth / 2);
+            }
+        }
+
+        function limparFiltro() {
+            var ctx = getContext();
+            if (!ctx) return;
+
+            var $visitasTab = ctx.$visitasTab;
+            var $ini = ctx.$ini;
+            var $fim = ctx.$fim;
+            var $markers = ctx.$markers;
+
+            var defIni = $ini.data('default') || '';
+            var defFim = $fim.data('default') || '';
+
+            $ini.val(defIni);
+            $fim.val(defFim);
+
+            $markers.show();
+
+            var ativo = null;
+            $markers.each(function() {
+                if (this.classList.contains('active')) {
+                    ativo = this;
+                    return false;
+                }
+            });
+
+            if (!ativo && $markers.length) {
+                ativo = $markers[$markers.length - 1];
+            }
+
+            if (ativo) {
+                ativo.click();
+                var cont = $visitasTab.find('.ht-container')[0];
+                if (cont) {
+                    cont.scrollLeft = Math.max(0, ativo.offsetLeft - cont.clientWidth / 2);
+                }
+            }
+        }
+
+        // Delegação (funciona mesmo se a tela vier via AJAX)
+        $(document).on('click', '#btnAplicarVisitas', function(e) {
+            e.preventDefault();
+            aplicarFiltro();
+        });
+
+        $(document).on('click', '#btnLimparVisitas', function(e) {
+            e.preventDefault();
+            limparFiltro();
+        });
+
+    })(jQuery);
+    </script>
+
+    <style>
 :root {
     --brand: #5e2363;
     --brand-700: #4b1c50;
@@ -860,7 +1011,6 @@ usort($neg_filtered, function ($a, $b) {
     --teal: #0f766e;
     --teal-100: #d1fae5;
     --padX: 56px;
-    /* respiro nas bordas da timeline */
 }
 
 .v2-avatar {
@@ -1017,6 +1167,7 @@ usort($neg_filtered, function ($a, $b) {
     margin-right: 6px
 }
 </style>
+</div>
 
 <?php require_once("templates/footer.php"); ?>
 

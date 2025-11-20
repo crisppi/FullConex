@@ -51,7 +51,8 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
     <link href="<?= $BASE_URL ?>diversos/CoolAdmin-master/vendor/perfect-scrollbar/perfect-scrollbar.css"
         rel="stylesheet" media="all">
     <link href="<?= $BASE_URL ?>diversos/CoolAdmin-master/css/theme.css" rel="stylesheet" media="all">
-
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta2/css/bootstrap-select.min.css">
     <link href="<?= $BASE_URL ?>css/style.css" rel="stylesheet">
     <link href="<?= $BASE_URL ?>css/legendas.css" rel="stylesheet">
     <link href="<?= $BASE_URL ?>css/styleMenu.css" rel="stylesheet">

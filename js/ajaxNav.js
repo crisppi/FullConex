@@ -1,47 +1,58 @@
+// js/ajaxNav.js
+
 function edit(url) {
-
     $.ajax({
-        url: url, // URL do formulário
-        type: "GET", // Método do formulário (POST)
+        url: url,
+        type: "GET",
+        dataType: "html",
         success: function (response) {
-
-            // Crie um elemento temporário para armazenar a resposta HTML
             var tempElement = document.createElement('div');
             tempElement.innerHTML = response;
 
-            // Encontre o elemento com o ID "table-content" dentro do elemento temporário
-            var tableContent = tempElement.querySelector('#main-container');
-            $('#main-container').html(tableContent);
-            $('.selectpicker').selectpicker();
-            $('.selectpicker').selectpicker('refresh');
-            $('.selectpicker').on('loaded.bs.select', function () {
-                $('.bs-searchbox input').attr('placeholder', 'Digite para pesquisar...');
-            });
+            var innerMain = tempElement.querySelector('#main-container');
 
+            if (innerMain) {
+                $('#main-container').html(innerMain.innerHTML);
+            } else {
+                $('#main-container').html(response);
+            }
+
+            // --- CORREÇÃO DO ERRO ---
+            // Verifica se o plugin existe antes de tentar usar
+            if ($.fn.selectpicker) {
+                // Tenta inicializar nos novos selects
+                $('.selectpicker').selectpicker();
+                // Tenta atualizar caso já existam
+                $('.selectpicker').selectpicker('refresh');
+            }
         },
-
-
         error: function () {
-            $('#responseMessage').html('Ocorreu um erro ao enviar o formulário.');
+            $('#responseMessage').html('Ocorreu um erro ao carregar a página.');
         }
     });
 }
 
-
-// ajax para navegacao 
 function loadContent(url) {
     $.ajax({
         url: url,
         type: 'GET',
         dataType: 'html',
         success: function (data) {
-            // Crie um elemento temporário para armazenar a resposta HTML
             var tempElement = document.createElement('div');
             tempElement.innerHTML = data;
 
-            // Encontre o elemento com o ID "table-content" dentro do elemento temporário
             var tableContent = tempElement.querySelector('#table-content');
-            $('#table-content').html(tableContent);
+
+            if (tableContent) {
+                $('#table-content').html(tableContent.innerHTML);
+            } else {
+                $('#table-content').html(data);
+            }
+
+            // --- CORREÇÃO DO ERRO ---
+            if ($.fn.selectpicker) {
+                $('.selectpicker').selectpicker('refresh');
+            }
         },
         error: function () {
             console.log('Error loading content');
