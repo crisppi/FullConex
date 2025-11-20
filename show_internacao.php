@@ -470,9 +470,53 @@ usort($neg_filtered, function ($a, $b) {
                         <div class="card ov-card ov-int"
                             style="border-radius:14px;background:#fff;box-shadow:0 8px 24px rgba(0,0,0,.06);background-image:linear-gradient(to right, var(--ov, #5e2363) 6px, #fff 6px);">
                             <div class="card-body">
-                                <div class="ov-head">
-                                    <h6 class="ov-title mb-0">Linha do tempo de Visitas</h6>
+                                <div
+                                    class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center ov-head gap-2">
+                                    <div>
+                                        <h6 class="ov-title mb-0">Período das visitas</h6>
+                                        <?php if ($minLabel && $maxLabel): ?>
+                                        <div class="small text-muted" id="vis-periodo-resumo"><?= e($minLabel) ?> —
+                                            <?= e($maxLabel) ?></div>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="small text-secondary text-nowrap" id="vis-periodo-selecionado"
+                                        style="display:none;">
+                                        <strong>Período selecionado:</strong>
+                                        <span id="vis-periodo-range"></span>
+                                    </div>
                                 </div>
+
+                                <?php if ($minD && $maxD && $countVis > 0): ?>
+                                <div class="mb-3">
+                                    <form id="formFiltroVisitas" class="row g-2 align-items-end">
+                                        <div class="col-sm-4 col-md-3">
+                                            <label class="form-label small text-muted">Data inicial</label>
+                                            <input type="date" id="vis_ini" class="form-control form-control-sm"
+                                                value="<?= e($minD) ?>" data-default="<?= e($minD) ?>">
+                                        </div>
+                                        <div class="col-sm-4 col-md-3">
+                                            <label class="form-label small text-muted">Data final</label>
+                                            <input type="date" id="vis_fim" class="form-control form-control-sm"
+                                                value="<?= e($maxD) ?>" data-default="<?= e($maxD) ?>">
+                                        </div>
+                                        <div class="col-auto">
+                                            <button type="button" id="btnAplicarVisitas" class="btn btn-sm btn-primary"
+                                                style="background:#5e2363;border-color:#5e2363;">
+                                                Aplicar
+                                            </button>
+                                        </div>
+                                        <div class="col-auto">
+                                            <button type="button" id="btnLimparVisitas"
+                                                class="btn btn-sm btn-outline-secondary">
+                                                Limpar
+                                            </button>
+                                        </div>
+                                    </form>
+                                    <div class="small text-muted mt-2">
+                                        As visitas fora do intervalo selecionado são escondidas na linha do tempo.
+                                    </div>
+                                </div>
+                                <?php endif; ?>
 
                                 <?php $trackWidthPx = max(800, $countVis * 160); ?>
                                 <div class="ht-container">
@@ -528,39 +572,6 @@ usort($neg_filtered, function ($a, $b) {
                                     </div>
                                 </div>
 
-                                <?php if ($minD && $maxD && $countVis > 0): ?>
-                                <div class="mt-3">
-                                    <h6 class="mb-1">Filtrar por período</h6>
-                                    <form id="formFiltroVisitas" class="row g-2 align-items-end">
-                                        <div class="col-sm-4 col-md-3">
-                                            <label class="form-label small text-muted">Data inicial</label>
-                                            <input type="date" id="vis_ini" class="form-control form-control-sm"
-                                                value="<?= e($minD) ?>" data-default="<?= e($minD) ?>">
-                                        </div>
-                                        <div class="col-sm-4 col-md-3">
-                                            <label class="form-label small text-muted">Data final</label>
-                                            <input type="date" id="vis_fim" class="form-control form-control-sm"
-                                                value="<?= e($maxD) ?>" data-default="<?= e($maxD) ?>">
-                                        </div>
-                                        <div class="col-auto">
-                                            <button type="button" id="btnAplicarVisitas" class="btn btn-sm btn-primary"
-                                                style="background:#5e2363;border-color:#5e2363;">
-                                                Aplicar
-                                            </button>
-                                        </div>
-                                        <div class="col-auto">
-                                            <button type="button" id="btnLimparVisitas"
-                                                class="btn btn-sm btn-outline-secondary">
-                                                Limpar
-                                            </button>
-                                        </div>
-                                    </form>
-                                    <div class="small text-muted mt-1">
-                                        As visitas fora do intervalo selecionado são escondidas na linha do tempo.
-                                    </div>
-                                </div>
-                                <?php endif; ?>
-
                                 <div class="mt-3">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <h6 class="mb-0">
@@ -587,14 +598,14 @@ usort($neg_filtered, function ($a, $b) {
                                         <span id="v-rel-auditor"><?= e($initAuditor) ?></span>
                                     </div>
 
-                                    <?php if ($minD && $maxD): ?>
                                     <div class="d-flex justify-content-between align-items-center mt-2">
-                                        <div class="small text-secondary"><?= e($minLabel) ?> —--
-                                            <?= e($maxLabel) ?></div>
-                                        <div class="small"><span class="legend-dot"></span> Clique nas datas para ver o
+                                        <!-- <div class="small text-secondary" id="vis-periodo-footer">
+
+                                        </div> -->
+                                        <div class="small"><span class="legend-dot"></span> Clique nas datas para
+                                            visualizar o
                                             relatório</div>
                                     </div>
-                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
@@ -853,171 +864,171 @@ usort($neg_filtered, function ($a, $b) {
     </script>
 
     <style>
-:root {
-    --brand: #5e2363;
-    --brand-700: #4b1c50;
-    --brand-800: #431945;
-    --brand-100: #f2e8f7;
-    --brand-050: #f9f3fc;
-    --teal: #0f766e;
-    --teal-100: #d1fae5;
-    --padX: 56px;
-}
+    :root {
+        --brand: #5e2363;
+        --brand-700: #4b1c50;
+        --brand-800: #431945;
+        --brand-100: #f2e8f7;
+        --brand-050: #f9f3fc;
+        --teal: #0f766e;
+        --teal-100: #d1fae5;
+        --padX: 56px;
+    }
 
-.v2-avatar {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background: #ecd5f9;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    color: #5e2363
-}
+    .v2-avatar {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: #ecd5f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: #5e2363
+    }
 
-.ov-card .ov-head {
-    display: flex;
-    align-items: center;
-    gap: .5rem;
-    margin-bottom: .5rem
-}
+    .ov-card .ov-head {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        margin-bottom: .5rem
+    }
 
-.ov-card .ov-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--ov-accent-100, var(--brand-100));
-    color: var(--ov-accent, var(--brand))
-}
+    .ov-card .ov-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--ov-accent-100, var(--brand-100));
+        color: var(--ov-accent, var(--brand))
+    }
 
-.ov-card.ov-int {
-    --ov-accent: var(--brand);
-    --ov-accent-100: var(--brand-100)
-}
+    .ov-card.ov-int {
+        --ov-accent: var(--brand);
+        --ov-accent-100: var(--brand-100)
+    }
 
-.ov-card.ov-vis {
-    --ov-accent: var(--teal);
-    --ov-accent-100: var(--teal-100)
-}
+    .ov-card.ov-vis {
+        --ov-accent: var(--teal);
+        --ov-accent-100: var(--teal-100)
+    }
 
-.btn-ghost-brand {
-    color: var(--brand);
-    background: var(--brand-050);
-    border: 1px solid #eadcf3
-}
+    .btn-ghost-brand {
+        color: var(--brand);
+        background: var(--brand-050);
+        border: 1px solid #eadcf3
+    }
 
-.btn-ghost-brand:hover {
-    background: var(--brand-100);
-    color: var(--brand-800)
-}
+    .btn-ghost-brand:hover {
+        background: var(--brand-100);
+        color: var(--brand-800)
+    }
 
-/* === TIMELINE === */
-.ht-container {
-    position: relative;
-    overflow-x: auto;
-    padding: 24px var(--padX) 8px;
-    display: flex;
-    justify-content: center;
-    scroll-snap-type: x mandatory
-}
+    /* === TIMELINE === */
+    .ht-container {
+        position: relative;
+        overflow-x: auto;
+        padding: 24px var(--padX) 8px;
+        display: flex;
+        justify-content: center;
+        scroll-snap-type: x mandatory
+    }
 
-.ht-track {
-    position: relative;
-    height: 110px;
-    margin: 0 auto;
-    max-width: 100%
-}
+    .ht-track {
+        position: relative;
+        height: 110px;
+        margin: 0 auto;
+        max-width: 100%
+    }
 
-.ht-bar {
-    position: absolute;
-    left: var(--padX);
-    right: var(--padX);
-    top: 56px;
-    height: 6px;
-    background: #eadcf3;
-    border-radius: 999px;
-    box-shadow: inset 0 0 0 1px #e5d8ef
-}
+    .ht-bar {
+        position: absolute;
+        left: var(--padX);
+        right: var(--padX);
+        top: 56px;
+        height: 6px;
+        background: #eadcf3;
+        border-radius: 999px;
+        box-shadow: inset 0 0 0 1px #e5d8ef
+    }
 
-.ht-marker {
-    position: absolute;
-    top: 0;
-    transform: translateX(-50%);
-    text-align: center;
-    cursor: pointer;
-    color: inherit;
-    text-decoration: none;
-    scroll-snap-align: center;
-    max-width: 45%
-}
+    .ht-marker {
+        position: absolute;
+        top: 0;
+        transform: translateX(-50%);
+        text-align: center;
+        cursor: pointer;
+        color: inherit;
+        text-decoration: none;
+        scroll-snap-align: center;
+        max-width: 45%
+    }
 
-.ht-marker.edge-left {
-    transform: none
-}
+    .ht-marker.edge-left {
+        transform: none
+    }
 
-.ht-marker.edge-right {
-    transform: translateX(-100%)
-}
+    .ht-marker.edge-right {
+        transform: translateX(-100%)
+    }
 
-.ht-label {
-    display: inline-block;
-    font-size: 12px;
-    color: var(--brand);
-    margin-bottom: 6px;
-    white-space: nowrap;
-    transition: all .2s ease;
-    padding: 4px 8px;
-    border-radius: 8px;
-    max-width: 220px;
-    overflow: hidden;
-    text-overflow: ellipsis
-}
+    .ht-label {
+        display: inline-block;
+        font-size: 12px;
+        color: var(--brand);
+        margin-bottom: 6px;
+        white-space: nowrap;
+        transition: all .2s ease;
+        padding: 4px 8px;
+        border-radius: 8px;
+        max-width: 220px;
+        overflow: hidden;
+        text-overflow: ellipsis
+    }
 
-.ht-marker:hover .ht-label {
-    background: var(--brand-100);
-    color: var(--brand-800)
-}
+    .ht-marker:hover .ht-label {
+        background: var(--brand-100);
+        color: var(--brand-800)
+    }
 
-.ht-marker.active .ht-label {
-    background: var(--brand);
-    color: #fff;
-    font-weight: 700;
-    transform: scale(1.02)
-}
+    .ht-marker.active .ht-label {
+        background: var(--brand);
+        color: #fff;
+        font-weight: 700;
+        transform: scale(1.02)
+    }
 
-.ht-dot {
-    display: inline-block;
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: var(--brand);
-    border: 2px solid #fff;
-    box-shadow: 0 0 0 3px var(--brand-100), 0 4px 10px rgba(0, 0, 0, .08);
-    transition: all .2s ease
-}
+    .ht-dot {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: var(--brand);
+        border: 2px solid #fff;
+        box-shadow: 0 0 0 3px var(--brand-100), 0 4px 10px rgba(0, 0, 0, .08);
+        transition: all .2s ease
+    }
 
-.ht-marker:hover .ht-dot {
-    transform: scale(1.1)
-}
+    .ht-marker:hover .ht-dot {
+        transform: scale(1.1)
+    }
 
-.ht-marker.active .ht-dot {
-    background: var(--brand-800);
-    box-shadow: 0 0 0 4px var(--brand-100), 0 6px 14px rgba(0, 0, 0, .12)
-}
+    .ht-marker.active .ht-dot {
+        background: var(--brand-800);
+        box-shadow: 0 0 0 4px var(--brand-100), 0 6px 14px rgba(0, 0, 0, .12)
+    }
 
-.legend-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--brand);
-    display: inline-block;
-    margin-right: 6px
-}
-</style>
+    .legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--brand);
+        display: inline-block;
+        margin-right: 6px
+    }
+    </style>
 </div>
 
 <?php require_once("templates/footer.php"); ?>

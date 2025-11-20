@@ -74,9 +74,37 @@
         };
     }
 
+    function updateSelectedRange(ini, fim, hasFilter) {
+        var resumo = document.getElementById('vis-periodo-resumo');
+        var footer = document.getElementById('vis-periodo-footer');
+        var selecWrap = document.getElementById('vis-periodo-selecionado');
+        var rangeEl = document.getElementById('vis-periodo-range');
+
+        var defaultText = resumo ? resumo.textContent : '';
+
+        if (footer) {
+            footer.textContent = defaultText;
+        }
+
+        if (!selecWrap || !rangeEl) return;
+
+        if (hasFilter && (ini || fim)) {
+            var iniFmt = ini ? ini.split('-').reverse().join('/') : '—';
+            var fimFmt = fim ? fim.split('-').reverse().join('/') : '—';
+            rangeEl.textContent = iniFmt + ' — ' + fimFmt;
+            selecWrap.style.display = '';
+        } else {
+            selecWrap.style.display = 'none';
+            rangeEl.textContent = '';
+        }
+    }
+
     function aplicarFiltro() {
         var ctx = getVisitasContext();
-        if (!ctx) return;
+        if (!ctx) {
+            updateSelectedRange('', '', false);
+            return;
+        }
 
         var $visitasTab = ctx.$visitasTab;
         var $ini = ctx.$ini;
@@ -87,6 +115,7 @@
         var fim = normDate($fim.val());
 
         var ultimoVisivel = null;
+        var hasFilter = Boolean(ini || fim);
 
         $markers.each(function() {
             var $m = $(this);
@@ -121,11 +150,16 @@
         if (cont && ativoVisivel) {
             cont.scrollLeft = Math.max(0, ativoVisivel.offsetLeft - cont.clientWidth / 2);
         }
+
+        updateSelectedRange(ini, fim, hasFilter);
     }
 
     function limparFiltro() {
         var ctx = getVisitasContext();
-        if (!ctx) return;
+        if (!ctx) {
+            updateSelectedRange('', '', false);
+            return;
+        }
 
         var $visitasTab = ctx.$visitasTab;
         var $ini = ctx.$ini;
@@ -159,6 +193,8 @@
                 cont.scrollLeft = Math.max(0, ativo.offsetLeft - cont.clientWidth / 2);
             }
         }
+
+        updateSelectedRange('', '', false);
     }
 
     function bindVisitasEvents() {
@@ -180,6 +216,14 @@
     function setupVisitasFilter() {
         bindVisitasEvents();
         ensureTimelineFocus();
+        var ctx = getVisitasContext();
+        if (!ctx) {
+            updateSelectedRange('', '', false);
+            return;
+        }
+        var $ini = ctx.$ini;
+        var $fim = ctx.$fim;
+        updateSelectedRange(normDate($ini.val()), normDate($fim.val()), false);
     }
 
     window.setupInternacaoTabs = setupTabs;
