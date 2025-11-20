@@ -236,14 +236,14 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                             class=" bi bi-clipboard-heart"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(145, 156, 55);"></i>
                                         Acomodação</a></li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_patologia.php"><span
+                                <!-- <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_patologia.php"><span
                                             class=" bi bi-virus"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(178, 155, 155);"></span>
                                         Patologia</a></li>
                                 <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_antecedente.php"><i
                                             class="bi bi-people"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(178, 156, 55);"></i>
-                                        Antecedente</a></li>
+                                        Antecedente</a></li> -->
                             </ul>
                         </li>
                         <?php }; ?>
