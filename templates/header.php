@@ -380,6 +380,10 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                             id="boot-icon1" class="bi bi-check2-circle"
                                             style="font-size: 1rem; margin-right:5px; color: rgb(27, 156, 55);">
                                         </span> Rah - Contas Finalizadas</a></li>
+                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>senhas_finalizadas_rah.php"><span
+                                            id="boot-icon1" class="bi bi-key"
+                                            style="font-size: 1rem; margin-right:5px; color: rgb(128, 94, 222);">
+                                        </span> Rah - Senhas Finalizadas</a></li>
                                 <li>
                                 <li>
                                     <hr class="dropdown-divider">
@@ -468,7 +472,7 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                 </div>
             </div>
 
-            <div class="d-flex align-items-center gap-3 ms-auto header-actions pe-3">
+            <div class="d-flex align-items-center gap-2 ms-auto header-actions pe-3">
                 <form class="d-flex position-relative" id="global-patient-search" autocomplete="off">
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
@@ -491,7 +495,7 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                 </a>
 
                 <div class="account-wrap">
-                <div class="account-item clearfix js-item-menu" style="margin-right:30px">
+                <div class="account-item clearfix js-item-menu" style="margin-right:0">
                     <div class="image" style="margin-top:15px">
                         <?php
                         // imagem padrão

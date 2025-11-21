@@ -69,6 +69,9 @@ $capeante_geral   = new capeanteDAO($conn, $BASE_URL);
     }
 
     $senha_fin           = filter_input(INPUT_GET, 'senha_fin') ?: NULL;
+    if (($senha_fin === null || $senha_fin === '') && isset($FORCE_SENHA_FIN_RAH)) {
+        $senha_fin = $FORCE_SENHA_FIN_RAH;
+    }
     $idcapeante          = filter_input(INPUT_GET, 'idcapeante') ?: NULL;
     $med_check           = filter_input(INPUT_GET, 'med_check') ?: NULL;
     $enf_check           = filter_input(INPUT_GET, 'enf_check') ?: NULL;
