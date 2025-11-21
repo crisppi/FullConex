@@ -402,7 +402,7 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
 
                             </ul>
                         </li>
-                        <?php if ($_SESSION['nivel'] >= 2) { ?>
+                        <!-- <?php if ($_SESSION['nivel'] >= 2) { ?>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
                                 data-bs-toggle="dropdown" aria-expanded="false">
@@ -420,8 +420,8 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                 <li>
                             </ul>
                         </li>
-                        <?php }; ?>
-                        <?php if ($_SESSION['nivel'] > 3) { ?>
+                        <?php }; ?> -->
+                        <!-- <?php if ($_SESSION['nivel'] > 3) { ?>
 
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
@@ -451,29 +451,31 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                         </li>
 
                         <?php }; ?>
-                    </ul>
-                    <form class="d-flex position-relative me-3" id="global-patient-search" autocomplete="off">
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-search"></i></span>
-                            <input type="text" class="form-control" id="inp-search-paciente"
-                                placeholder="Pesquisar paciente" aria-label="Buscar paciente" />
-                        </div>
+                    </ul> -->
+                        <div class="d-flex align-items-center ms-auto gap-3">
+                            <form class="d-flex position-relative" id="global-patient-search" autocomplete="off">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                    <input type="text" class="form-control" id="inp-search-paciente"
+                                        placeholder="Pesquisar paciente" aria-label="Buscar paciente" />
+                                </div>
 
-                        <!-- Dropdown de resultados -->
-                        <div id="search-results-dropdown" class="dropdown-menu show"
-                            style="display:none; max-height: 350px; overflow:auto; width: 420px; position:absolute; top:100%; left:0; z-index: 2000;">
-                            <!-- itens por JS -->
-                        </div>
-                    </form>
+                                <!-- Dropdown de resultados -->
+                                <div id="search-results-dropdown" class="dropdown-menu show"
+                                    style="display:none; max-height: 350px; overflow:auto; width: 420px; position:absolute; top:100%; left:0; z-index: 2000;">
+                                    <!-- itens por JS -->
+                                </div>
+                            </form>
 
-                    <a href="show_chat.php" class="bi bi-chat-dots"
-                        style="font-size: 1.5rem; color: #5e2363; position: relative;">
-                        <?php if ($mensagensNaoLidasCount > 0): ?>
-                        <span class="badge badge-danger" style="position: absolute; top: -5px; right: -10px;">
-                            <?= $mensagensNaoLidasCount ?>
-                        </span>
-                        <?php endif; ?>
-                    </a>
+                            <a href="show_chat.php" class="bi bi-chat-dots"
+                                style="font-size: 1.5rem; color: #5e2363; position: relative;">
+                                <?php if ($mensagensNaoLidasCount > 0): ?>
+                                <span class="badge badge-danger" style="position: absolute; top: -5px; right: -10px;">
+                                    <?= $mensagensNaoLidasCount ?>
+                                </span>
+                                <?php endif; ?>
+                            </a>
+                        </div>
                 </div>
 
 

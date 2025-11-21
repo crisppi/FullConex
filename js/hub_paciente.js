@@ -417,7 +417,10 @@
         <td class="text-end">R$ ${Number(r.valor_final || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
         <td>${esc(r.status || '—')}</td>
         <td>${esc(r.parcial || '—')}</td>
-        <td><a class="btn btn-sm btn-outline-primary" href="cad_capeante_audit.php?id_capeante=${encodeURIComponent(r.id_capeante)}">Editar</a></td>`;
+        <td class="d-flex gap-1 flex-wrap">
+          <a class="btn btn-sm btn-outline-primary" href="edit_capeante_rah.php?id_capeante=${encodeURIComponent(r.id_capeante)}${r.id_internacao ? `&id_internacao=${encodeURIComponent(r.id_internacao)}` : ''}">Editar</a>
+          <a class="btn btn-sm btn-outline-success" href="cad_capeante_rah.php?id_capeante=${encodeURIComponent(r.id_capeante)}${r.id_internacao ? `&id_internacao=${encodeURIComponent(r.id_internacao)}` : ''}" title="Abrir RAH da conta">RAH</a>
+        </td>`;
       tbody.appendChild(tr);
     });
   }
