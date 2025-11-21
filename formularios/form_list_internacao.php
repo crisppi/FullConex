@@ -1,6 +1,5 @@
 <?php
 $start = microtime(true); // Marca o início da execução da página
-
 ob_start(); // Output Buffering Start
 
 require_once("templates/header.php");
@@ -302,15 +301,7 @@ if (typeof jQuery !== 'undefined') {
         $obPagination = new pagination($qtdIntItens, $_GET['pag'] ?? 1, $limite ?? 10);
         $obLimite     = $obPagination->getLimit();
 
-        $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
-
-        $condicoesPreditivo = [
-            strlen($pesquisa_nome) ? 'ac.fk_patologia_int LIKE "%' . $pesquisa_nome . '%"' : null,
-            strlen($pesquisa_pac)  ? 'nome_pac LIKE "%' . $pesquisa_pac . '%"'           : null,
-        ];
-        $condicoesPreditivo = array_filter($condicoesPreditivo);
-        $wherePreditivo     = implode(' AND ', $condicoesPreditivo);
-        $preditivoPatologia = $internacao->PreditivoIntPatologAntec($wherePreditivo);
+$query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
 
         $verificarVisitas = $visitaDao->selectUltimaVisitaComInternacao($where);
 
@@ -352,13 +343,6 @@ if (typeof jQuery !== 'undefined') {
                             <th scope="col" style="min-width: 80px;">Nº Visita</th>
                             <th scope="col" style="min-width: 80px;">Gestão</th>
                             <th scope="col" style="min-width: 80px;">UTI</th>
-                            <th scope="col" style="width:5%; white-space: nowrap;">
-                                Preditivo
-                                <i data-bs-toggle="tooltip" data-bs-placement="top"
-                                    title="Este campo mostra o valor preditivo da internação, baseado na patologia, antecedentes e faixa etária de internações do banco de dados, gerando uma média de internação de paciente com mesmas características."
-                                    class="bi bi-eye"
-                                    style="font-size: 1.2em; margin-left: 5px; vertical-align: middle;"></i>
-                            </th>
                             <th scope="col" style="min-width: 80px;">Ações</th>
                         </tr>
                     </thead>
@@ -515,22 +499,6 @@ if (typeof jQuery !== 'undefined') {
                                     } else {
                                         echo "--";
                                     }
-                                    ?>
-                            </td>
-
-                            <td scope="row">
-                                <?php
-                                    $condicoesPreditivo = [
-                                        strlen($intern["fk_patologia_int"])      ? 'ac.fk_patologia_int = '      . $intern["fk_patologia_int"]      : null,
-                                        strlen($intern["intern_antec_ant_int"]) ? 'an.intern_antec_ant_int = ' . $intern["intern_antec_ant_int"] : null,
-                                    ];
-                                    $condicoesPreditivo = array_filter($condicoesPreditivo);
-                                    $wherePreditivo     = implode(' AND ', $condicoesPreditivo);
-
-                                    $preditivoPatologia = $internacao->PreditivoIntPatologAntec($wherePreditivo);
-                                    $valorInteiro       = intval($preditivoPatologia['tempo_medio_internacao'] ?? 0);
-
-                                    echo "<span style='font-size:1.2em; color:blue; font-weight:500;'>{$valorInteiro}</span>";
                                     ?>
                             </td>
 
@@ -761,10 +729,8 @@ if (typeof jQuery !== 'undefined') {
             <div class="modal-body">
 
                 <form id="formCamposExcelIntern">
-
                     <!-- Pills – use a mesma classe de pill do modal Alta se já existir -->
                     <div class="d-flex flex-wrap gap-2">
-
                         <!-- ID Internação -->
                         <input class="btn-check" type="checkbox" name="colsIntern[]" value="id_int" id="campo_id_int"
                             autocomplete="off" checked>
@@ -849,13 +815,6 @@ if (typeof jQuery !== 'undefined') {
                             Internado
                         </label>
 
-                        <!-- Usuário Cadastro -->
-                        <input class="btn-check" type="checkbox" name="colsIntern[]" value="usuario" id="campo_usuario"
-                            autocomplete="off">
-                        <label class="btn btn-sm rounded-pill export-pill" for="campo_usuario">
-                            Usuário cadastro
-                        </label>
-
                         <!-- Especialidade -->
                         <input class="btn-check" type="checkbox" name="colsIntern[]" value="especialidade"
                             id="campo_especialidade" autocomplete="off">
@@ -896,6 +855,27 @@ if (typeof jQuery !== 'undefined') {
                             id="campo_medico_titular" autocomplete="off">
                         <label class="btn btn-sm rounded-pill export-pill" for="campo_medico_titular">
                             Médico titular
+                        </label>
+
+                        <!-- Nome do profissional -->
+                        <input class="btn-check" type="checkbox" name="colsIntern[]" value="profissional"
+                            id="campo_profissional" autocomplete="off">
+                        <label class="btn btn-sm rounded-pill export-pill" for="campo_profissional">
+                            Nome do profissional
+                        </label>
+
+                        <!-- Cargo do profissional -->
+                        <input class="btn-check" type="checkbox" name="colsIntern[]" value="profissional_cargo"
+                            id="campo_profissional_cargo" autocomplete="off">
+                        <label class="btn btn-sm rounded-pill export-pill" for="campo_profissional_cargo">
+                            Cargo do profissional
+                        </label>
+
+                        <!-- Registro do profissional -->
+                        <input class="btn-check" type="checkbox" name="colsIntern[]" value="profissional_registro"
+                            id="campo_profissional_registro" autocomplete="off">
+                        <label class="btn btn-sm rounded-pill export-pill" for="campo_profissional_registro">
+                            Registro profissional
                         </label>
 
                     </div>
@@ -1038,16 +1018,18 @@ $(document).ready(function() {
         }
 
         // 2) Filtros da listagem
-        var query = $('#select-internacao-form').serialize();
+        var queryParts = [];
+        var baseQuery = $('#select-internacao-form').serialize();
+        if (baseQuery) {
+            queryParts.push(baseQuery);
+        }
 
         // 3) Param "campos" em CSV
-        var camposParam = 'campos=' + encodeURIComponent(campos.join(','));
+        queryParts.push('campos=' + encodeURIComponent(campos.join(',')));
 
-        if (query) {
-            query += '&' + camposParam;
-        } else {
-            query = camposParam;
-        }
+        // 4) Filtro adicional de profissional
+
+        var query = queryParts.join('&');
 
         // 4) URL final
         var urlExcel = '<?= $BASE_URL ?>exportar_excel_list_intern.php';

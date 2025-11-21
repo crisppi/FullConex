@@ -522,24 +522,32 @@ usort($neg_filtered, function ($a, $b) {
                                 </div>
                                 <?php endif; ?>
 
-                                <?php $trackWidthPx = max(800, $countVis * 160); ?>
+                                <?php
+                                $spanForWidth = max(1, $spanDays);
+                                $timelineMarginPct = 3;
+                                $trackWidthPx = max(800, $countVis * 160, $spanForWidth * 40);
+                                ?>
                                 <div class="ht-container">
                                     <div class="ht-track" style="width: <?= (int)$trackWidthPx ?>px">
                                         <div class="ht-bar"></div>
                                         <?php foreach ($visitas_norm as $i => $v):
                                                 $daysFromMin = max(0, (new DateTime($minD ?: $v['_date']))->diff(new DateTime($v['_date']))->days);
-                                                $pct = $spanDays ? round(($daysFromMin / $spanDays) * 100, 2) : 0;
-                                                $pct = max(2, min(98, $pct));
-                                                $edgeLeft  = ($pct <= 3.5);
-                                                $edgeRight = ($pct >= 96.5);
-                                                $edgeCls   = ($edgeLeft ? ' edge-left' : '') . ($edgeRight ? ' edge-right' : '');
+                                                $usablePctRange = 100 - ($timelineMarginPct * 2);
+                                                if ($spanDays > 0) {
+                                                    $pct = $timelineMarginPct + (($daysFromMin / $spanDays) * $usablePctRange);
+                                                } elseif ($countVis > 1) {
+                                                    $pct = $timelineMarginPct + (($i / max(1, $countVis - 1)) * $usablePctRange);
+                                                } else {
+                                                    $pct = 50;
+                                                }
+                                                $pct = round(max($timelineMarginPct, min(100 - $timelineMarginPct, $pct)), 2);
                                                 $isActive  = ($activeVisit && $activeVisit['_id'] === $v['_id']);
                                                 $dataLabel = date('d/m/Y', strtotime($v['_date']));
                                                 $hora      = $v['_time'] ?: '';
                                                 $texto     = trim($v['_text']) !== '' ? $v['_text'] : '—';
                                                 $auditorNome = $v['_auditor'] ?? '';
                                             ?>
-                                        <a class="ht-marker<?= $edgeCls ?><?= $isActive ? ' active' : '' ?>" href="#"
+                                        <a class="ht-marker<?= $isActive ? ' active' : '' ?>" href="#"
                                             style="left: <?= $pct ?>%;" data-dateraw="<?= e($v['_date']) ?>"
                                             data-id="<?= (int)$v['_id'] ?>" data-date="<?= e($dataLabel) ?>"
                                             data-time="<?= e($hora) ?>" data-text="<?= e($texto) ?>"
@@ -581,6 +589,16 @@ usort($neg_filtered, function ($a, $b) {
                                                   pdfBtn.classList.add('btn-outline-secondary');
                                                   pdfBtn.setAttribute('aria-disabled','true');
                                                 }
+                                                var pdfDate=document.getElementById('btn-visita-date');
+                                                if(pdfDate){
+                                                  if(i && d){
+                                                    pdfDate.textContent='Data: ' + d;
+                                                    pdfDate.classList.remove('text-muted');
+                                                  }else{
+                                                    pdfDate.textContent='Selecione uma visita';
+                                                    if(!pdfDate.classList.contains('text-muted')) pdfDate.classList.add('text-muted');
+                                                  }
+                                                }
                                               }
 
                                               var cont=document.querySelector('#visitas .ht-container');
@@ -613,6 +631,10 @@ usort($neg_filtered, function ($a, $b) {
                                             target="_blank" rel="noopener"
                                             aria-disabled="<?= $initId ? 'false' : 'true' ?>">
                                             <i class="fa-solid fa-file-pdf me-1"></i> Baixar PDF
+                                            <span id="btn-visita-date"
+                                                class="d-block small mt-1 text-start<?= $initId ? '' : ' text-muted' ?>">
+                                                <?= e($initId ? 'Data: ' . $initDateLabel : 'Selecione uma visita') ?>
+                                            </span>
                                         </a>
                                     </div>
                                     <div class="p-3 rounded border" style="border-color:#eee">
@@ -969,7 +991,7 @@ usort($neg_filtered, function ($a, $b) {
         position: relative;
         height: 110px;
         margin: 0 auto;
-        max-width: 100%
+        min-width: 100%;
     }
 
     .ht-bar {
@@ -993,14 +1015,6 @@ usort($neg_filtered, function ($a, $b) {
         text-decoration: none;
         scroll-snap-align: center;
         max-width: 45%
-    }
-
-    .ht-marker.edge-left {
-        transform: none
-    }
-
-    .ht-marker.edge-right {
-        transform: translateX(-100%)
     }
 
     .ht-label {

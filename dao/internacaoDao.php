@@ -463,6 +463,8 @@ class internacaoDAO implements internacaoDAOInterface
         ac.internado_int, 
         ac.fk_patologia_int, 
         ac.fk_cid_int, 
+        cid.cat AS cid_cat,
+        cid.descricao AS cid_descricao,
         ac.data_intern_int, 
         ac.hora_intern_int,
         ac.rel_int, 
@@ -471,6 +473,7 @@ class internacaoDAO implements internacaoDAOInterface
         pa.id_paciente, 
         pa.nome_pac, 
         ac.usuario_create_int, 
+        ac.fk_usuario_int,
         ac.fk_hospital_int, 
         ac.modo_internacao_int, 
         ac.tipo_admissao_int, 
@@ -907,7 +910,10 @@ class internacaoDAO implements internacaoDAOInterface
         ut.internacao_uti,
         ut.internado_uti,
         ut.id_uti,
-        ho.nome_hosp 
+        ho.nome_hosp,
+        u.usuario_user AS auditor_nome,
+        u.cargo_user AS auditor_cargo,
+        u.reg_profissional_user AS auditor_registro
 
     FROM tb_internacao ac 
 
@@ -933,7 +939,10 @@ class internacaoDAO implements internacaoDAOInterface
         ac.id_internacao = al.fk_id_int_alt
 
         left join tb_paciente as pa on
-        ac.fk_paciente_int = pa.id_paciente '
+        ac.fk_paciente_int = pa.id_paciente
+
+        left join tb_user as u on
+        ac.fk_usuario_int = u.id_usuario '
 
             . $where . ' ' . $group . ' ' . $order . ' ' . $limit);
 

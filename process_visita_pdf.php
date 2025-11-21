@@ -7,6 +7,19 @@ require_once("dao/visitaDao.php");
 require_once("dao/internacaoDao.php");
 require_once('vendor/autoload.php');
 
+$signatureFont = 'times';
+$signatureFontPath = __DIR__ . '/fonts/Allura-Regular.ttf';
+if (file_exists($signatureFontPath)) {
+    try {
+        $loadedFont = \TCPDF_FONTS::addTTFfont($signatureFontPath, 'TrueTypeUnicode', '', 96);
+        if ($loadedFont) {
+            $signatureFont = $loadedFont;
+        }
+    } catch (Throwable $e) {
+        error_log('Erro ao carregar fonte de assinatura: ' . $e->getMessage());
+    }
+}
+
 /**
  * Formata datas do banco (YYYY-MM-DD) para DD/MM/YYYY.
  */
@@ -124,6 +137,10 @@ $pdf->Cell(50, 6, 'Nome do Paciente:', 1, 0, 'L', true);
 $pdf->Cell(0, 6, $internacao['nome_pac'] ?? '', 1, 1, 'L');
 $pdf->Ln(1);
 
+$cidCode = trim((string)($internacao['cid_cat'] ?? ''));
+$cidDesc = trim((string)($internacao['cid_descricao'] ?? ''));
+$cidValue = trim($cidCode . ($cidDesc ? ' - ' . $cidDesc : ''));
+
 $dadosInternacao = [
     'ID da Internação'    => $internacao['id_internacao'] ?? '',
     'Data da Internação'  => formatDate($internacao['data_intern_int'] ?? ''),
@@ -134,7 +151,7 @@ $dadosInternacao = [
     'Tipo de Admissão'    => $internacao['tipo_admissao_int'] ?? '',
     'Acomodação'          => $internacao['acomodacao_int'] ?? '',
     'Grupo de Patologia'  => $internacao['grupo_patologia_int'] ?? '',
-    'Patologia'           => $internacao['patologia2_pat'] ?? '',
+    'Patologia / CID'     => trim(($internacao['patologia2_pat'] ?? '') . ($cidValue ? ' (CID: ' . $cidValue . ')' : '')),
     'UTI'                 => formatBool($internacao['internado_uti_int'] ?? ''),
     'Senha'               => $internacao['senha_int'] ?? '',
 ];
@@ -271,6 +288,19 @@ $pdf->SetFont('helvetica', 'B', 7);
 $pdf->MultiCell(0, 6, 'Profissional:', 1, 'L', true);
 $pdf->SetFont('helvetica', '', 7);
 $pdf->MultiCell(0, 6, $profissionalValor, 1, 'L');
+
+if ($profissionalNome !== '') {
+    $pdf->Ln(0.8);
+    $pdf->SetFont($signatureFont, '', 14);
+    $pdf->Cell(0, 5, $profissionalNome, 0, 1, 'C');
+    $pdf->SetY($pdf->GetY() - 2.5);
+    $pdf->SetFont('helvetica', '', 7);
+    $pdf->Cell(0, 3.5, str_repeat('_', 55), 0, 1, 'C');
+    if ($profissionalRegistro !== '') {
+        $pdf->SetFont('helvetica', '', 8);
+        $pdf->Cell(0, 5, $profissionalRegistro, 0, 1, 'C');
+    }
+}
 $pdf->Ln(3);
 
 ob_end_clean();

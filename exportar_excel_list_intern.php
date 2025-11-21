@@ -97,7 +97,6 @@ $ordenar_param        = getParam('ordenar', '1');
 $senha_int            = getParam('senha_int', '');
 $data_intern_int      = getParam('data_intern_int', '');
 $data_intern_int_max  = getParam('data_intern_int_max', '');
-
 // Campos selecionados no modal
 $camposSelecionados   = getCamposSelecionados();
 
@@ -222,7 +221,6 @@ $labelsMap = [
     'modo'          => 'Modo Internação',
     'tipo_adm'      => 'Tipo Admissão',
     'internado'     => 'Internado',
-    'usuario'       => 'Usuário Cadastro',
 
     // NOVOS CAMPOS
     'especialidade'   => 'Especialidade',
@@ -232,6 +230,9 @@ $labelsMap = [
     'programacao'     => 'Programação',
     'medico_titular'  => 'Médico Titular',
     'matricula'       => 'Matrícula',
+    'profissional'    => 'Nome do Profissional',
+    'profissional_cargo' => 'Cargo do Profissional',
+    'profissional_registro' => 'Registro Profissional',
 ];
 
 
@@ -247,7 +248,6 @@ $fieldMap = [
     'modo'          => 'modo_internacao_int',
     'tipo_adm'      => 'tipo_admissao_int',
     'internado'     => 'internado_int',
-    'usuario'       => 'usuario_create_int',
 
     // NOVOS CAMPOS (usando os nomes que você passou)
     'especialidade'   => 'especialidade_int',
@@ -257,6 +257,9 @@ $fieldMap = [
     'programacao'     => 'programacao_int',
     'medico_titular'  => 'titular_int',
     'matricula'       => 'matricula_pac',
+    'profissional'    => 'auditor_nome',
+    'profissional_cargo' => 'auditor_cargo',
+    'profissional_registro' => 'auditor_registro',
 ];
 
 
@@ -272,16 +275,15 @@ $typeMap = [
     'modo'          => 'text',
     'tipo_adm'      => 'text',
     'internado'     => 'sn',
-    'usuario'       => 'text',
-
-    // NOVOS CAMPOS
-    'especialidade'   => 'text',
     'patologia'       => 'text',
     'relatorio'       => 'text',
     'acoes'           => 'text',
     'programacao'     => 'text',
     'medico_titular'  => 'text',
     'matricula'       => 'text',
+    'profissional'    => 'text',
+    'profissional_cargo' => 'text',
+    'profissional_registro' => 'text',
 ];
 
 
