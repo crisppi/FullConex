@@ -114,6 +114,20 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
         vertical-align: middle;
         opacity: .98;
     }
+
+    .header-actions {
+        margin-left: auto !important;
+        margin-right: 0 !important;
+        gap: 0.75rem !important;
+    }
+
+    .header-actions #global-patient-search {
+        min-width: 220px;
+    }
+
+    .header-actions .action-chat {
+        margin-right: 0 !important;
+    }
     </style>
 </head>
 
@@ -358,15 +372,14 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                             </a>
 
                             <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_cap.php"><span
-                                            id="boot-icon1" class="bi bi-currency-dollar"
-                                            style="font-size: 1rem; margin-right:5px; color: rgb(77, 155, 67);">
-                                        </span> Contas para Auditar</a></li>
-                                <li>
                                 <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_cap_rah.php"><span
                                             id="boot-icon1" class="bi bi-currency-dollar"
                                             style="font-size: 1rem; margin-right:5px; color: rgb(77, 155, 67);">
                                         </span> Rah - Contas para Auditar</a></li>
+                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>contas_finalizadas_rah.php"><span
+                                            id="boot-icon1" class="bi bi-check2-circle"
+                                            style="font-size: 1rem; margin-right:5px; color: rgb(27, 156, 55);">
+                                        </span> Rah - Contas Finalizadas</a></li>
                                 <li>
                                 <li>
                                     <hr class="dropdown-divider">
@@ -452,38 +465,32 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
 
                         <?php }; ?>
                     </ul> -->
-                        <div class="d-flex align-items-center ms-auto gap-3">
-                            <form class="d-flex position-relative" id="global-patient-search" autocomplete="off">
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                    <input type="text" class="form-control" id="inp-search-paciente"
-                                        placeholder="Pesquisar paciente" aria-label="Buscar paciente" />
-                                </div>
-
-                                <!-- Dropdown de resultados -->
-                                <div id="search-results-dropdown" class="dropdown-menu show"
-                                    style="display:none; max-height: 350px; overflow:auto; width: 420px; position:absolute; top:100%; left:0; z-index: 2000;">
-                                    <!-- itens por JS -->
-                                </div>
-                            </form>
-
-                            <a href="show_chat.php" class="bi bi-chat-dots"
-                                style="font-size: 1.5rem; color: #5e2363; position: relative;">
-                                <?php if ($mensagensNaoLidasCount > 0): ?>
-                                <span class="badge badge-danger" style="position: absolute; top: -5px; right: -10px;">
-                                    <?= $mensagensNaoLidasCount ?>
-                                </span>
-                                <?php endif; ?>
-                            </a>
-                        </div>
                 </div>
-
-
             </div>
 
+            <div class="d-flex align-items-center gap-3 ms-auto header-actions pe-3">
+                <form class="d-flex position-relative" id="global-patient-search" autocomplete="off">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" id="inp-search-paciente"
+                            placeholder="Pesquisar paciente" aria-label="Buscar paciente" />
+                    </div>
 
+                    <div id="search-results-dropdown" class="dropdown-menu show"
+                        style="display:none; max-height: 350px; overflow:auto; width: 420px; position:absolute; top:100%; left:0; z-index: 2000;">
+                    </div>
+                </form>
 
-            <div class="account-wrap">
+                <a href="show_chat.php" class="bi bi-chat-dots action-chat"
+                    style="font-size: 1.5rem; color: #5e2363; position: relative;">
+                    <?php if ($mensagensNaoLidasCount > 0): ?>
+                    <span class="badge badge-danger" style="position: absolute; top: -5px; right: -10px;">
+                        <?= $mensagensNaoLidasCount ?>
+                    </span>
+                    <?php endif; ?>
+                </a>
+
+                <div class="account-wrap">
                 <div class="account-item clearfix js-item-menu" style="margin-right:30px">
                     <div class="image" style="margin-top:15px">
                         <?php

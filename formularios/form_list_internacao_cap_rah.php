@@ -64,6 +64,9 @@ $capeante_geral   = new capeanteDAO($conn, $BASE_URL);
     $pesquisa_nome       = filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS);
     $pesquisa_pac        = filter_input(INPUT_GET, 'pesquisa_pac',  FILTER_SANITIZE_SPECIAL_CHARS);
     $encerrado_cap = filter_input(INPUT_GET, 'encerrado_cap'); // '' | 's' | 'n'
+    if (($encerrado_cap === null || $encerrado_cap === '') && isset($FORCE_ENCERRADO_CAP_RAH)) {
+        $encerrado_cap = $FORCE_ENCERRADO_CAP_RAH;
+    }
 
     $senha_fin           = filter_input(INPUT_GET, 'senha_fin') ?: NULL;
     $idcapeante          = filter_input(INPUT_GET, 'idcapeante') ?: NULL;
@@ -474,7 +477,7 @@ $capeante_geral   = new capeanteDAO($conn, $BASE_URL);
                                         onclick="edit('<?= $BASE_URL ?>cad_capeante_rah.php?id_capeante=<?= $intern['id_capeante'] ?>')">
                                         <i class="bi bi-file-text"
                                             style="color:rgb(25,78,255);font-size:1.1em;font-weight:bold;margin:0 5px"></i>
-                                        <span>Rah</span>
+                                        <span>Rah -</span>
                                     </a>
                                     <?php endif; ?>
                                     <?php else: ?>
@@ -604,9 +607,12 @@ $(document).ready(function() {
 
     <script>
 $(document).ready(function() {
-    // Se existir o campo em algum template
-    if ($('#encerrado_cap').length) {
-        $('#encerrado_cap').val('n');
+    const $enc = $('#encerrado_cap');
+    if ($enc.length) {
+        const current = ($enc.val() || '').trim();
+        if (current === '') {
+            $enc.val('n');
+        }
     }
 });
     </script>

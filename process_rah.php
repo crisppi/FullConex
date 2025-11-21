@@ -365,6 +365,9 @@ $cap->med_check                 = $med_check;         // 's'/'n'
 $cap->enfer_check               = $enfer_check;       // 's'/'n'
 $cap->adm_check                 = $adm_check;         // 's'/'n'
 
+// Ao concluir o RAH a conta correspondente é dada como encerrada
+$cap->encerrado_cap             = 's';
+
 /* Persistência principal */
 if ($type === 'create') {
     $capeanteDao->create($cap);
