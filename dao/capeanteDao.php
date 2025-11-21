@@ -520,6 +520,33 @@ class capeanteDAO implements capeanteDAOInterface
         return $query->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function selectAllCapeanteRah($where = null, $order = null, $limite = null)
+    {
+        $whereSql  = strlen($where)  ? 'WHERE ' . $where  : '';
+        $orderSql  = strlen($order)  ? 'ORDER BY ' . $order : '';
+        $limiteSql = strlen($limite) ? 'LIMIT ' . $limite : '';
+
+        $sql = "
+        SELECT 
+            cv.id_valor,
+            cv.fk_capeante,
+            cv.criado_em AS cap_val_criado_em,
+            cv.atualizado_em AS cap_val_atualizado_em,
+            ca.*, ac.*, pa.nome_pac, ho.nome_hosp
+        FROM tb_cap_valores cv
+        LEFT JOIN tb_capeante  ca ON ca.id_capeante   = cv.fk_capeante
+        LEFT JOIN tb_internacao ac ON ac.id_internacao = ca.fk_int_capeante
+        LEFT JOIN tb_paciente  pa ON ac.fk_paciente_int = pa.id_paciente
+        LEFT JOIN tb_hospital  ho ON ac.fk_hospital_int = ho.id_hospital
+        $whereSql
+        $orderSql
+        $limiteSql";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     /** SELECT usado na lista (inclui novos campos) */
     public function selectInternacaoCap($where = null, $order = null, $limit = null)
     {
@@ -584,11 +611,13 @@ class capeanteDAO implements capeanteDAOInterface
             ca.valor_medicamentos,
             ca.valor_materiais,
             ca.glosa_medicamentos,
-            ca.glosa_materiais
+            ca.glosa_materiais,
+            cv.id_valor
         FROM tb_internacao ac
         LEFT JOIN tb_hospital  ho ON ac.fk_hospital_int = ho.id_hospital
         LEFT JOIN tb_paciente  pa ON ac.fk_paciente_int = pa.id_paciente
         LEFT JOIN tb_capeante  ca ON ac.id_internacao = ca.fk_int_capeante
+        LEFT JOIN tb_cap_valores cv ON cv.fk_capeante = ca.id_capeante
         $where
         $order
         $limit";

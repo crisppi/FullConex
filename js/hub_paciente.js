@@ -407,6 +407,16 @@
     if (!rows || !rows.length) { const tr = document.createElement('tr'); tr.innerHTML = `<td colspan="10" class="text-center text-muted py-3">Nenhuma conta encontrada.</td>`; tbody.appendChild(tr); return; }
     rows.forEach(r => {
       const tr = document.createElement('tr');
+      const valorId = r.id_valor ? String(r.id_valor) : '';
+      const capeanteId = r.id_capeante ? String(r.id_capeante) : '';
+      const intId = r.id_internacao ? String(r.id_internacao) : '';
+
+      const baseRahUrl = `cad_capeante_rah.php?id_capeante=${encodeURIComponent(capeanteId)}${intId ? `&id_internacao=${encodeURIComponent(intId)}` : ''}`;
+      const rahViewUrl = baseRahUrl;
+      const rahEditUrl = valorId
+        ? `edit_capeante_rah.php?id_valor=${encodeURIComponent(valorId)}`
+        : `edit_capeante_rah.php?id_capeante=${encodeURIComponent(capeanteId)}${intId ? `&id_internacao=${encodeURIComponent(intId)}` : ''}`;
+
       tr.innerHTML = `
         <td>${esc(r.id_internacao)}</td>
         <td>#${esc(r.id_capeante)}</td>
@@ -418,8 +428,8 @@
         <td>${esc(r.status || '—')}</td>
         <td>${esc(r.parcial || '—')}</td>
         <td class="d-flex gap-1 flex-wrap">
-          <a class="btn btn-sm btn-outline-primary" href="edit_capeante_rah.php?id_capeante=${encodeURIComponent(r.id_capeante)}${r.id_internacao ? `&id_internacao=${encodeURIComponent(r.id_internacao)}` : ''}">Editar</a>
-          <a class="btn btn-sm btn-outline-success" href="cad_capeante_rah.php?id_capeante=${encodeURIComponent(r.id_capeante)}${r.id_internacao ? `&id_internacao=${encodeURIComponent(r.id_internacao)}` : ''}" title="Abrir RAH da conta">RAH</a>
+          <a class="btn btn-sm btn-outline-primary" href="${rahEditUrl}" title="Editar RAH da conta">Editar RAH</a>
+          <a class="btn btn-sm btn-outline-success" href="${rahViewUrl}" title="Criar/visualizar RAH">RAH</a>
         </td>`;
       tbody.appendChild(tr);
     });

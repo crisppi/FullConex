@@ -102,7 +102,8 @@ try {
             'valor_final'       => (float)($r['valor_final_capeante'] ?? 0),
             'glosa_total'       => (float)($r['valor_glosa_total'] ?? 0),
             'parcial'         => (isset($r['parcial_capeante']) && (int)$r['parcial_capeante'] === 1) ? ('Parcial #' . (int)($r['parcial_num'] ?? 0)) : '—',
-            'status'          => $status
+            'status'          => $status,
+            'id_valor'        => isset($r['id_valor']) ? (int)$r['id_valor'] : null,
         ];
     }, $rows);
 

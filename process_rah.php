@@ -14,12 +14,14 @@ require_once "db.php";
 
 require_once "models/capeante.php";
 require_once "dao/capeanteDao.php";
+require_once "dao/CapValoresDao.php";
 
 require_once "models/message.php";
 require_once "dao/usuarioDao.php";
 
 $message     = new Message($BASE_URL);
 $capeanteDao = new capeanteDAO($conn, $BASE_URL);
+$capValoresDao = new CapValoresDAO($conn);
 
 $type = filter_input(INPUT_POST, "type") ?: 'update';
 
@@ -98,6 +100,7 @@ function frontOverrideFlag(string $name): ?string
 /* ---------- Identificação básica ---------- */
 $id_capeante    = intPOST("id_capeante");
 $fk_internacao  = intPOST("fk_int_capeante");
+$id_valor       = intPOST("id_valor");
 
 $pacote         = strPOST("pacote") ?: 'n';
 $parcial        = strPOST("parcial_capeante") ?: 'n';
@@ -107,6 +110,14 @@ $data_inicial   = datePOST("data_inicial_capeante");
 $data_final     = datePOST("data_final_capeante");
 $data_fech      = datePOST("data_fech_capeante");
 $data_digit     = datePOST("data_digit_capeante");
+
+if ($id_capeante) {
+    if ($id_valor) {
+        $capValoresDao->touch($id_valor, (int)$id_capeante);
+    } else {
+        $id_valor = $capValoresDao->ensureByCapeante((int)$id_capeante);
+    }
+}
 
 /* ---------- Profissionais (FKs) ---------- */
 $fk_med = intPOST('fk_id_aud_med') ?? 0;

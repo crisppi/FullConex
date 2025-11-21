@@ -47,8 +47,8 @@
     // =====================================================================
     // DAOs
     // =====================================================================
-    $internacao       = new internacaoDAO($conn, $BASE_URL);
-    $capeante_geral   = new capeanteDAO($conn, $BASE_URL);
+$internacao       = new internacaoDAO($conn, $BASE_URL);
+$capeante_geral   = new capeanteDAO($conn, $BASE_URL);
     $pacienteDao      = new pacienteDAO($conn, $BASE_URL);
     $usuarioDao       = new userDAO($conn, $BASE_URL);
     $hospital_geral   = new HospitalDAO($conn, $BASE_URL);
@@ -151,7 +151,7 @@
     // Consulta TOTAL (bruto) + TOTAL DEDUP por id_capeante
     // =====================================================================
     $QtdTotalIntDao = new internacaoDAO($conn, $BASE_URL);
-    $qtdArray       = $QtdTotalIntDao->selectAllInternacaoCapList($where, $order, $obLimite);
+    $qtdArray       = $capeante_geral->selectAllCapeanteRah($where, $order);
 
     // TOTAL deduplicado por id_capeante
     $__ids_total = [];
