@@ -191,7 +191,7 @@ function deletar() {
 function cancelar() {
     let idAcoes = (document.getElementById('id-confirmacao'));
     idAcoes.style.display = 'none';
-    window.location = "<?= $BASE_URL ?>list_paciente.php?>";
+    window.location = "<?= $BASE_URL ?>pacientes?>";
 
 };
 src = "https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js";

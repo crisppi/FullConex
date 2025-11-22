@@ -386,7 +386,7 @@ class PacienteDAO implements PacienteDAOInterface
 
         $stmt->execute(); // Esta era a linha 366 do erro original
 
-        $this->message->setMessage("Paciente adicionado com sucesso!", "success", "list_paciente.php");
+        $this->message->setMessage("Paciente adicionado com sucesso!", "success", "pacientes");
     }
 
     public function update(Paciente $paciente)
@@ -488,7 +488,7 @@ class PacienteDAO implements PacienteDAOInterface
 
         $stmt->execute();
 
-        $this->message->setMessage("Paciente atualizado com sucesso!", "success", "list_paciente.php");
+        $this->message->setMessage("Paciente atualizado com sucesso!", "success", "pacientes");
     }
 
 
@@ -507,7 +507,7 @@ class PacienteDAO implements PacienteDAOInterface
 
 
         // Mensagem de sucesso por remover filme
-        $this->message->setMessage("Paciente removido com sucesso!", "success", "list_paciente.php");
+        $this->message->setMessage("Paciente removido com sucesso!", "success", "pacientes");
     }
 
 
@@ -583,7 +583,7 @@ class PacienteDAO implements PacienteDAOInterface
         $stmt->execute();
 
         // Mensagem de sucesso por editar hospital
-        $this->message->setMessage("Paciente deletado com sucesso!", "success", "list_paciente.php");
+        $this->message->setMessage("Paciente deletado com sucesso!", "success", "pacientes");
     }
 
 

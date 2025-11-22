@@ -154,7 +154,7 @@ if ($type === "create") {
         $paciente->numero_rn_pac = $numero_rn_pac;
 
         $pacienteDao->create($paciente);
-        header("location:list_paciente.php");
+        header("Location: " . $BASE_URL . "pacientes");
     } else {
 
         $message->setMessage("Você precisa adicionar pelo menos: nome_pac do paciente!", "error", "back");
@@ -289,7 +289,7 @@ if ($type === "create") {
 
     $pacienteDao->update($pacienteData);
 
-    header("location:list_paciente.php");
+    header("Location: " . $BASE_URL . "pacientes");
 }
 
 if ($type === "delete") {
@@ -303,7 +303,7 @@ if ($type === "delete") {
 
         $pacienteDao->destroy($id_paciente);
 
-        header("location:list_paciente.php");
+        header("Location: " . $BASE_URL . "pacientes");
     } else {
 
         $message->setMessage("Informações inválidas!", "error", "index.php");
@@ -324,5 +324,5 @@ if ($type === "delUpdate") {
 
     $pacienteDao->deletarUpdate($pacienteData);
 
-    header("location:list_paciente.php");
+    header("Location: " . $BASE_URL . "pacientes");
 }

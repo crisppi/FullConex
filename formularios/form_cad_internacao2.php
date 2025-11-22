@@ -191,7 +191,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </select>
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <a style="font-size:.6em;margin-left:7px;color:blue;"
-                        href="<?= $BASE_URL ?>list_paciente.php?id_paciente=<?= $id_paciente ?? 0 ?>">
+                        href="<?= $BASE_URL ?>pacientes?id_paciente=<?= $id_paciente ?? 0 ?>">
                         <i style="color:blue;margin-bottom:7px;" class="far fa-edit edit-icon"></i> Novo Paciente
                     </a>
                     <div id="alert_intern" style="font-size:1em;margin-left:7px;color:red;display:none">Paciente já

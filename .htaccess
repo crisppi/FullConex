@@ -1,0 +1,4 @@
+RewriteEngine On
+
+# Rota amigável para a listagem de pacientes
+RewriteRule ^pacientes/?$ list_paciente.php [L,QSA]

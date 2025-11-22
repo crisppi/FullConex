@@ -198,7 +198,7 @@ require_once("templates/header.php");
             <hr>
 
             <li>
-                <a href="list_paciente.php" <?php if ($_SESSION['nivel'] < 2) { ?> style="pointer-events: none"
+                <a href="pacientes" <?php if ($_SESSION['nivel'] < 2) { ?> style="pointer-events: none"
                     ?<?php } ?>><span class="bi bi-person"
                         style="font-size: 1rem;margin-right:5px; color: rgb(155, 155, 76);"></span> Pacientes</a>
             </li>

@@ -80,7 +80,7 @@ header("Content-type: text/html; charset=utf-8");
                         </li>
                         <?php if ($_SESSION['nivel'] > 3) { ?>
                         <li id="drop1" class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="<?php $BASE_URL ?>list_paciente.php"
+                            <a class="nav-link dropdown-toggle" href="<?= $BASE_URL ?>pacientes"
                                 id="navbarScrollingDropdown" role="button" data-bs-toggle="dropdown"
                                 aria-expanded="false">
                                 Usuários
@@ -105,7 +105,7 @@ header("Content-type: text/html; charset=utf-8");
                             </ul>
                         </li>
                         <!-- <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle " href="<?php $BASE_URL ?>list_paciente.php" id="navbarScrollingDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <a class="nav-link dropdown-toggle " href="<?= $BASE_URL ?>pacientes" id="navbarScrollingDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                   Cadastro
                 </a>
                 <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
@@ -130,7 +130,7 @@ header("Content-type: text/html; charset=utf-8");
                                 Cadastros
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_paciente.php"><i
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>pacientes"><i
                                             class="bi bi-person"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
                                         Pacientes</a></li>

@@ -349,7 +349,7 @@ class seguradoraDAO implements seguradoraDAOInterface
         $stmt->execute();
 
         // Mensagem de sucesso por editar hospital
-        $this->message->setMessage("Paciente deletado com sucesso!", "success", "list_paciente.php");
+        $this->message->setMessage("Paciente deletado com sucesso!", "success", "pacientes");
     }
     public function findGeral()
     {
