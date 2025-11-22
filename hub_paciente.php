@@ -294,6 +294,30 @@ if ($nome_str) {
   </div>
 </div>
 
+<!-- Modal de visualização do RAH -->
+<div class="modal fade" id="rahPreviewModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Visualizar RAH</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <div class="modal-body" style="min-height:70vh;">
+        <div class="ratio ratio-16x9 border rounded bg-light">
+          <iframe id="rahPreviewFrame" title="Pré-visualização do RAH" style="border:0;" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('rahPreviewModal')?.addEventListener('hidden.bs.modal', function() {
+    const frame = document.getElementById('rahPreviewFrame');
+    if (frame) frame.src = '';
+  });
+</script>
+
 </div>
 
 <style>

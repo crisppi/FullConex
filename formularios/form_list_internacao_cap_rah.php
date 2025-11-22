@@ -492,7 +492,7 @@ $capeante_geral   = new capeanteDAO($conn, $BASE_URL);
                                     <?php endif; ?>
 
                                     <a class="legenda-parcial"
-                                        href="<?= $BASE_URL ?>cad_capeante_rah.php?id_internacao=<?= $intern["id_internacao"] ?>&type=create">
+                                        href="<?= $BASE_URL ?>cad_capeante_rah.php?id_internacao=<?= $intern["id_internacao"] ?>&type=create&nova_parcial=1">
                                         <i class="legenda-parcial bi bi-file-text"
                                             style="color:green;text-decoration:none;font-size:10px;font-weight:bold;margin:0 5px">
                                             Parcial</i>

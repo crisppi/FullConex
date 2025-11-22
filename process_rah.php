@@ -101,17 +101,19 @@ function frontOverrideFlag(string $name): ?string
 $id_capeante    = intPOST("id_capeante");
 $fk_internacao  = intPOST("fk_int_capeante");
 $id_valor       = intPOST("id_valor");
+$isCreate       = ($type === 'create');
 
 $pacote         = strPOST("pacote") ?: 'n';
 $parcial        = strPOST("parcial_capeante") ?: 'n';
 $parcial_num    = intPOST("parcial_num");
+$senha_finalizada = flagPOST('senha_finalizada', 'n');
 
 $data_inicial   = datePOST("data_inicial_capeante");
 $data_final     = datePOST("data_final_capeante");
 $data_fech      = datePOST("data_fech_capeante");
 $data_digit     = datePOST("data_digit_capeante");
 
-if ($id_capeante) {
+if ($id_capeante && !$isCreate) {
     if ($id_valor) {
         $capValoresDao->touch($id_valor, (int)$id_capeante);
     } else {
@@ -325,6 +327,7 @@ $cap->data_digit_capeante       = $data_digit;
 $cap->pacote                    = $pacote;
 $cap->parcial_capeante          = $parcial;
 $cap->parcial_num               = $parcial_num;
+$cap->senha_finalizada          = $senha_finalizada;
 
 /* Totais */
 $cap->valor_apresentado_capeante = $valor_apresentado;
@@ -373,6 +376,7 @@ if ($type === 'create') {
     $capeanteDao->create($cap);
     $novoId = $cap->id_capeante ?? (int)$conn->lastInsertId();
     $id_capeante = (int)$novoId;
+    $id_valor = $capValoresDao->ensureByCapeante((int)$id_capeante);
 } else {
     $capeanteDao->update($cap);
 }

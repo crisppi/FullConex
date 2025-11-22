@@ -59,12 +59,14 @@ class CapValoresDAO
             return (int)$existing['id_valor'];
         }
 
-        $sql = "INSERT INTO {$this->table} (fk_capeante, criado_em, atualizado_em)
-                VALUES (:fk, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
+        $nextId = (int)$this->conn->query("SELECT COALESCE(MAX(id_valor), 0) + 1 FROM {$this->table}")->fetchColumn();
+        $sql = "INSERT INTO {$this->table} (id_valor, fk_capeante, criado_em, atualizado_em)
+                VALUES (:id, :fk, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
         $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':id', $nextId, PDO::PARAM_INT);
         $stmt->bindValue(':fk', $fk_capeante, PDO::PARAM_INT);
         $stmt->execute();
-        return (int)$this->conn->lastInsertId();
+        return $nextId;
     }
 
     public function touch(int $id_valor, ?int $fk_capeante = null): void

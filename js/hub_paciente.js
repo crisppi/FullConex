@@ -416,6 +416,7 @@
       const rahEditUrl = valorId
         ? `edit_capeante_rah.php?id_valor=${encodeURIComponent(valorId)}`
         : `edit_capeante_rah.php?id_capeante=${encodeURIComponent(capeanteId)}${intId ? `&id_internacao=${encodeURIComponent(intId)}` : ''}`;
+      const rahPreviewUrl = `export_capeante_rah_pdf.php?id_capeante=${encodeURIComponent(capeanteId)}&download=0`;
 
       tr.innerHTML = `
         <td>${esc(r.id_internacao)}</td>
@@ -430,6 +431,7 @@
         <td class="d-flex gap-1 flex-wrap">
           <a class="btn btn-sm btn-outline-primary" href="${rahEditUrl}" title="Editar RAH da conta">Editar RAH</a>
           <a class="btn btn-sm btn-outline-success" href="${rahViewUrl}" title="Criar/visualizar RAH">RAH</a>
+          <button class="btn btn-sm btn-outline-secondary" type="button" data-action="preview-rah" data-url="${rahPreviewUrl}" title="Visualizar RAH em tela">Ver RAH</button>
         </td>`;
       tbody.appendChild(tr);
     });
@@ -449,6 +451,36 @@
     const pager = document.getElementById('cont-pager'); if (!pager) return;
     pager.addEventListener('click', (e) => { const a = e.target.closest('a.page-link'); if (!a) return; e.preventDefault(); const p = parseInt(a.dataset.page, 10); if (Number.isFinite(p) && p !== stateContas.page) { stateContas.page = p; loadContas(); } });
   }
+  const rahModalEl = document.getElementById('rahPreviewModal');
+  const rahFrameEl = document.getElementById('rahPreviewFrame');
+  let rahModalInstance = null;
+  function ensureRahModal() {
+    if (!rahModalEl || !window.bootstrap || !bootstrap.Modal) return null;
+    if (!rahModalInstance) {
+      rahModalInstance = new bootstrap.Modal(rahModalEl, {});
+      rahModalEl.addEventListener('hidden.bs.modal', () => {
+        if (rahFrameEl) rahFrameEl.src = '';
+      });
+    }
+    return rahModalInstance;
+  }
+  function openRahPreview(url) {
+    if (!url) return;
+    const modal = ensureRahModal();
+    if (!modal || !rahFrameEl) {
+      window.open(url, '_blank');
+      return;
+    }
+    rahFrameEl.src = url + (url.includes('?') ? '&' : '?') + 'inline=1#toolbar=0';
+    modal.show();
+  }
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action="preview-rah"]');
+    if (!btn) return;
+    e.preventDefault();
+    const url = btn.getAttribute('data-url');
+    openRahPreview(url);
+  });
   async function loadContas() {
     const pacId = getPacienteId(); if (!pacId) return; ensureContasTable();
 

@@ -97,6 +97,18 @@ if ($where) {
         $row = array_merge($defaults, $lista[0]);
     }
 }
+$novaParcial = filter_input(INPUT_GET, 'nova_parcial') ? true : false;
+if ($type === 'create' && $novaParcial && $id_internacao) {
+    $row['parcial_capeante'] = 's';
+    if (empty($row['parcial_num'])) {
+        try {
+            $count = $capeanteDAO->getCapeantesCountByInternacao((int)$id_internacao);
+            $row['parcial_num'] = $count + 1;
+        } catch (Throwable $e) {
+            $row['parcial_num'] = null;
+        }
+    }
+}
 $fv = function (string $k) use ($row) {
     return $row[$k] ?? null;
 };
@@ -142,7 +154,7 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
 <!-- ========================= FORM ========================= -->
 <form id="form-capeante-rah" action="<?= $h($BASE_URL) ?>process_rah.php" method="POST" enctype="multipart/form-data">
     <input type="hidden" name="type" value="<?= $h($type) ?>">
-    <input type="hidden" name="id_capeante" value="<?= $hi($fv('id_capeante')) ?>">
+    <input type="hidden" name="id_capeante" value="<?= $type === 'create' ? '' : $hi($fv('id_capeante')) ?>">
     <input type="hidden" name="fk_int_capeante" value="<?= $hi($fv('id_internacao') ?: $fv('fk_int_capeante')) ?>">
     <input type="hidden" id="fk_id_aud_med" name="fk_id_aud_med" value="<?= (int)($fv('fk_id_aud_med') ?? 0) ?>">
     <input type="hidden" id="fk_id_aud_enf" name="fk_id_aud_enf" value="<?= (int)($fv('fk_id_aud_enf') ?? 0) ?>">
@@ -262,6 +274,15 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
                     <select name="encerrado_cap" class="form-select" id="encerrado_cap">
                         <option value="s" <?= $encerradoVal === 's' ? 'selected' : ''; ?>>Sim</option>
                         <option value="n" <?= $encerradoVal === 'n' ? 'selected' : ''; ?>>Não</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Senha finalizada</label>
+                    <?php $senhaFinalVal = ($fv('senha_finalizada') ?? 'n'); ?>
+                    <select name="senha_finalizada" class="form-select" id="senha_finalizada">
+                        <option value="n" <?= $senhaFinalVal === 'n' ? 'selected' : ''; ?>>Não</option>
+                        <option value="s" <?= $senhaFinalVal === 's' ? 'selected' : ''; ?>>Sim</option>
                     </select>
                 </div>
             </div>

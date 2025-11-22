@@ -93,6 +93,14 @@ try {
         elseif (isset($r['em_auditoria_cap']) && (int)$r['em_auditoria_cap']===1) $status = 'Em Auditoria';
         elseif (isset($r['aberto_cap']) && (int)$r['aberto_cap'] === 1)         $status = 'Aberto';
 
+        $rawFlag = $r['parcial_capeante'] ?? null;
+        $isParcial = false;
+        if ($rawFlag !== null) {
+            $str = strtolower(trim((string)$rawFlag));
+            $isParcial = in_array($str, ['s', '1', 'sim', 'true'], true);
+        }
+        $parcialNum = (int)($r['parcial_num'] ?? 0);
+        if (!$isParcial && $parcialNum > 0) $isParcial = true;
         return [
             'id_internacao'   => (int)($r['id_internacao'] ?? 0),
             'id_capeante'     => (int)($r['id_capeante'] ?? 0),
@@ -101,7 +109,7 @@ try {
             'valor_apresentado' => (float)($r['valor_apresentado_capeante'] ?? 0),
             'valor_final'       => (float)($r['valor_final_capeante'] ?? 0),
             'glosa_total'       => (float)($r['valor_glosa_total'] ?? 0),
-            'parcial'         => (isset($r['parcial_capeante']) && (int)$r['parcial_capeante'] === 1) ? ('Parcial #' . (int)($r['parcial_num'] ?? 0)) : '—',
+            'parcial'         => $isParcial ? ('Parcial #' . ($parcialNum ?: 1)) : '—',
             'status'          => $status,
             'id_valor'        => isset($r['id_valor']) ? (int)$r['id_valor'] : null,
         ];

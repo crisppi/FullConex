@@ -430,7 +430,7 @@ class capeanteDAO implements capeanteDAOInterface
         $where  = strlen($where)  ? 'WHERE ' . $where  : '';
         $order  = strlen($order)  ? 'ORDER BY ' . $order : '';
         $limite = strlen($limite) ? 'LIMIT ' . $limite : '';
-        $group  = " GROUP BY ac.id_internacao ";
+        $group  = " GROUP BY ca.id_capeante ";
 
         $sql = "
         SELECT 
