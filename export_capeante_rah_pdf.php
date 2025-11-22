@@ -98,8 +98,17 @@ function brl_to_float($s): float
   $s = (string)$s;
   if ($s === '') return 0.0;
   $s = preg_replace('/[^\d.,\-]/', '', $s);
-  $s = str_replace('.', '', $s);
-  $s = str_replace(',', '.', $s);
+  $hasComma = strpos($s, ',') !== false;
+  $hasDot   = strpos($s, '.') !== false;
+  if ($hasComma) {
+    // formato brasileiro (milhar . e decimal ,)
+    $s = str_replace('.', '', $s);
+    $s = str_replace(',', '.', $s);
+  } else {
+    // sem vírgula: ponto é decimal ou simplesmente inteiro
+    // apenas normaliza eventual vírgula isolada
+    $s = str_replace(',', '.', $s);
+  }
   $v = (float)$s;
   return is_finite($v) ? $v : 0.0;
 }
@@ -110,6 +119,53 @@ function base_url_guess(): string
   $host   = $_SERVER['HTTP_HOST'] ?? 'localhost';
   $dir    = rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? ''), '/\\');
   return $scheme . '://' . $host . ($dir ? $dir : '');
+}
+
+function group_from_db(?PDO $conn, int $fkCapeante, string $table, array $map): array
+{
+  if (!$conn || !$fkCapeante || !$table || !$map) return [];
+  $stmt = $conn->prepare("SELECT * FROM {$table} WHERE fk_capeante = :fk LIMIT 1");
+  $stmt->execute([':fk' => $fkCapeante]);
+  $row = $stmt->fetch(PDO::FETCH_ASSOC);
+  if (!$row) return [];
+  $lines = [];
+  foreach ($map as $label => $prefix) {
+    $qtd = (int)($row[$prefix . '_qtd'] ?? 0);
+    $cob = brl_to_float($row[$prefix . '_cobrado'] ?? $row[$prefix . '_cob'] ?? 0);
+    $glo = brl_to_float($row[$prefix . '_glosado'] ?? $row[$prefix . '_glo'] ?? 0);
+    $lib = brl_to_float($row[$prefix . '_liberado'] ?? $row[$prefix . '_lib'] ?? null);
+    if (!isset($row[$prefix . '_liberado']) && !isset($row[$prefix . '_lib'])) $lib = max(0, $cob - $glo);
+    $obs = (string)($row[$prefix . '_obs'] ?? '');
+    if (!$qtd && !$cob && !$glo && trim($obs) === '' && trim($label) === '') continue;
+    $lines[] = [
+      'desc' => $label,
+      'qtd' => $qtd,
+      'cob_antes' => $cob,
+      'glosa' => $glo,
+      'apos' => $lib,
+      'obs' => $obs
+    ];
+  }
+  return $lines;
+}
+
+function group_from_row($row, array $map): array
+{
+  if (!$row) return [];
+  if (is_object($row)) $row = get_object_vars($row);
+  if (!is_array($row)) return [];
+  $lines = [];
+  foreach ($map as $label => $prefix) {
+    $qtd = (int)($row[$prefix . '_qtd'] ?? 0);
+    $cob = brl_to_float($row[$prefix . '_cobrado'] ?? $row[$prefix . '_cob'] ?? 0);
+    $glo = brl_to_float($row[$prefix . '_glosado'] ?? $row[$prefix . '_glo'] ?? 0);
+    $lib = brl_to_float($row[$prefix . '_liberado'] ?? $row[$prefix . '_lib'] ?? null);
+    if (!isset($row[$prefix . '_liberado']) && !isset($row[$prefix . '_lib'])) $lib = max(0, $cob - $glo);
+    $obs = (string)($row[$prefix . '_obs'] ?? '');
+    if (!$qtd && !$cob && !$glo && trim($obs) === '' && trim($label) === '') continue;
+    $lines[] = ['desc' => $label, 'qtd' => $qtd, 'cob_antes' => $cob, 'glosa' => $glo, 'apos' => $lib, 'obs' => $obs];
+  }
+  return $lines;
 }
 
 /* ---------- TCPDF ---------- */
@@ -176,6 +232,18 @@ if ($SELFTEST) {
 
 /* ---------- DB (cabeçalho) ---------- */
 if (!isset($conn) || !($conn instanceof PDO)) foreach ([__DIR__ . '/globals.php', __DIR__ . '/db.php', __DIR__ . '/config.php'] as $cfg) if (is_file($cfg)) require_once $cfg;
+
+require_once __DIR__ . '/dao/CapValoresAPDao.php';
+require_once __DIR__ . '/dao/CapValoresUTIDao.php';
+require_once __DIR__ . '/dao/CapValoresCCDao.php';
+require_once __DIR__ . '/dao/CapValoresOutDao.php';
+require_once __DIR__ . '/dao/CapValoresDiarDao.php';
+
+$capValoresApDao   = new CapValoresAPDAO($conn);
+$capValoresUtiDao  = new CapValoresUTIDAO($conn);
+$capValoresCcDao   = new CapValoresCCDAO($conn);
+$capValoresOutDao  = new CapValoresOutDAO($conn);
+$capValoresDiarDao = new CapValoresDiarDAO($conn);
 if (!isset($conn) || !($conn instanceof PDO)) {
   $dsn = "mysql:host=" . (getenv('DB_HOST') ?: 'localhost') . ";dbname=" . (getenv('DB_NAME') ?: 'fullconex') . ";charset=utf8mb4";
   $user = getenv('DB_USER') ?: 'root';
@@ -307,6 +375,126 @@ $ensure_group = function (array &$grp) {
 };
 
 if (empty($diarias)) {
+  $diarRow = $capValoresDiarDao->findByCapeante($idCapeante);
+  if ($diarRow) $diarias = group_from_row($diarRow, [
+    'Quarto / Apto'    => 'ac_quarto',
+    'Day Clinic'       => 'ac_dayclinic',
+    'UTI'              => 'ac_uti',
+    'UTI / Semi'       => 'ac_utisemi',
+    'Enfermaria'       => 'ac_enfermaria',
+    'Berçário'         => 'ac_bercario',
+    'Acompanhante'     => 'ac_acompanhante',
+    'Isolamento'       => 'ac_isolamento',
+  ]);
+}
+if (empty($diarias)) {
+  $diarias = group_from_db($conn, $idCapeante, 'tb_cap_valores_diar', [
+    'Quarto / Apto'    => 'ac_quarto',
+    'Day Clinic'       => 'ac_dayclinic',
+    'UTI'              => 'ac_uti',
+    'UTI / Semi'       => 'ac_utisemi',
+    'Enfermaria'       => 'ac_enfermaria',
+    'Berçário'         => 'ac_bercario',
+    'Acompanhante'     => 'ac_acompanhante',
+    'Isolamento'       => 'ac_isolamento',
+  ]);
+}
+if (empty($apto)) {
+  $apRow = $capValoresApDao->findByCapeante($idCapeante);
+  if ($apRow) $apto = group_from_row($apRow, [
+    'Terapias (AP)'       => 'ap_terapias',
+    'Taxas (AP)'          => 'ap_taxas',
+    'Mat. Consumo (AP)'   => 'ap_mat_consumo',
+    'Medicamentos (AP)'   => 'ap_medicametos',
+    'Gases (AP)'          => 'ap_gases',
+    'OPME (AP)'           => 'ap_mat_espec',
+    'Exames (AP)'         => 'ap_exames',
+    'Hemoderivados (AP)'  => 'ap_hemoderivados',
+    'Honorários (AP)'     => 'ap_honorarios',
+  ]);
+}
+if (empty($apto)) {
+  $apto = group_from_db($conn, $idCapeante, 'tb_cap_valores_ap', [
+    'Terapias (AP)'       => 'ap_terapias',
+    'Taxas (AP)'          => 'ap_taxas',
+    'Mat. Consumo (AP)'   => 'ap_mat_consumo',
+    'Medicamentos (AP)'   => 'ap_medicametos',
+    'Gases (AP)'          => 'ap_gases',
+    'OPME (AP)'           => 'ap_mat_espec',
+    'Exames (AP)'         => 'ap_exames',
+    'Hemoderivados (AP)'  => 'ap_hemoderivados',
+    'Honorários (AP)'     => 'ap_honorarios',
+  ]);
+}
+if (empty($uti)) {
+  $utiRow = $capValoresUtiDao->findByCapeante($idCapeante);
+  if ($utiRow) $uti = group_from_row($utiRow, [
+    'Terapias (UTI)'       => 'uti_terapias',
+    'Taxas (UTI)'          => 'uti_taxas',
+    'Mat. Consumo (UTI)'   => 'uti_mat_consumo',
+    'Medicamentos (UTI)'   => 'uti_medicametos',
+    'Gases (UTI)'          => 'uti_gases',
+    'OPME (UTI)'           => 'uti_mat_espec',
+    'Exames (UTI)'         => 'uti_exames',
+    'Hemoderivados (UTI)'  => 'uti_hemoderivados',
+    'Honorários (UTI)'     => 'uti_honorarios',
+  ]);
+}
+if (empty($uti)) {
+  $uti = group_from_db($conn, $idCapeante, 'tb_cap_valores_uti', [
+    'Terapias (UTI)'       => 'uti_terapias',
+    'Taxas (UTI)'          => 'uti_taxas',
+    'Mat. Consumo (UTI)'   => 'uti_mat_consumo',
+    'Medicamentos (UTI)'   => 'uti_medicametos',
+    'Gases (UTI)'          => 'uti_gases',
+    'OPME (UTI)'           => 'uti_mat_espec',
+    'Exames (UTI)'         => 'uti_exames',
+    'Hemoderivados (UTI)'  => 'uti_hemoderivados',
+    'Honorários (UTI)'     => 'uti_honorarios',
+  ]);
+}
+if (empty($cc)) {
+  $ccRow = $capValoresCcDao->findByCapeante($idCapeante);
+  if ($ccRow) $cc = group_from_row($ccRow, [
+    'Terapias (CC)'       => 'cc_terapias',
+    'Taxas (CC)'          => 'cc_taxas',
+    'Mat. Consumo (CC)'   => 'cc_mat_consumo',
+    'Medicamentos (CC)'   => 'cc_medicametos',
+    'Gases (CC)'          => 'cc_gases',
+    'OPME (CC)'           => 'cc_mat_espec',
+    'Exames (CC)'         => 'cc_exames',
+    'Hemoderivados (CC)'  => 'cc_hemoderivados',
+    'Honorários (CC)'     => 'cc_honorarios',
+  ]);
+}
+if (empty($cc)) {
+  $cc = group_from_db($conn, $idCapeante, 'tb_cap_valores_cc', [
+    'Terapias (CC)'       => 'cc_terapias',
+    'Taxas (CC)'          => 'cc_taxas',
+    'Mat. Consumo (CC)'   => 'cc_mat_consumo',
+    'Medicamentos (CC)'   => 'cc_medicametos',
+    'Gases (CC)'          => 'cc_gases',
+    'OPME (CC)'           => 'cc_mat_espec',
+    'Exames (CC)'         => 'cc_exames',
+    'Hemoderivados (CC)'  => 'cc_hemoderivados',
+    'Honorários (CC)'     => 'cc_honorarios',
+  ]);
+}
+if (empty($outros)) {
+  $outRow = $capValoresOutDao->findByCapeante($idCapeante);
+  if ($outRow) $outros = group_from_row($outRow, [
+    'Pacote'  => 'outros_pacote',
+    'Remoção' => 'outros_remocao',
+  ]);
+}
+if (empty($outros)) {
+  $outros = group_from_db($conn, $idCapeante, 'tb_cap_valores_out', [
+    'Pacote'  => 'outros_pacote',
+    'Remoção' => 'outros_remocao',
+  ]);
+}
+
+if (empty($diarias)) {
   $ensure_group($diarias);
   $map = [
     'ac_quarto'       => 'Quarto',
@@ -329,7 +517,9 @@ if (empty($apto)) {
     'ap_medicametos'   => 'Medicamentos (AP)',
     'ap_gases'         => 'Gases (AP)',
     'ap_mat_espec'     => 'OPME (AP)',
+    'ap_exames'        => 'Exames (AP)',
     'ap_hemoderivados' => 'Hemoderivados (AP)',
+    'ap_honorarios'    => 'Honorários (AP)',
   ];
   foreach ($map as $pfx => $label) if ($ln = $legacy_line($pfx, $label)) $apto[] = $ln;
 }
