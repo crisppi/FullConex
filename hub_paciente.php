@@ -266,12 +266,12 @@ if ($nome_str) {
 
         <!-- Contas -->
         <div class="tab-pane fade" id="tab-contas" role="tabpanel">
-          <div class="row g-3">
+          <div class="row g-3 contas-summary">
             <div class="col-12 col-lg-6">
-              <div class="card border-0">
-                <div class="card-body">
-                  <h6 class="mb-2">Resumo — Valores</h6>
-                  <div id="contasResumoValores" class="text-secondary small">
+              <div class="card shadow-sm summary-card">
+                <div class="card-body py-3 px-3">
+                  <h6 class="mb-1 text-uppercase text-muted small">Resumo — Valores</h6>
+                  <div id="contasResumoValores" class="text-secondary small fw-semibold" style="line-height:1.4;">
                     <div><strong>Valor apresentado:</strong> —</div>
                     <div><strong>Glosa total:</strong> —</div>
                     <div><strong>Valor final:</strong> —</div>
@@ -280,14 +280,14 @@ if ($nome_str) {
               </div>
             </div>
             <div class="col-12 col-lg-6">
-              <div class="card border-0">
-                <div class="card-body">
-                  <h6 class="mb-2">Resumo — Indicadores</h6>
-                  <div id="contasResumoIndicadores" class="text-secondary small">
+              <div class="card shadow-sm summary-card">
+                <div class="card-body py-3 px-3">
+                  <h6 class="mb-1 text-uppercase text-muted small">Resumo — Indicadores</h6>
+                  <div id="contasResumoIndicadores" class="text-secondary small fw-semibold" style="line-height:1.4;">
                     <div><strong>Total de contas:</strong> —</div>
                     <div><strong>Total de internações:</strong> —</div>
                     <div><strong>Custo médio / conta:</strong> —</div>
-                    <div><strong>Média de permanência:</strong> —</div>
+                    <div><strong>Custo médio / internação:</strong> —</div>
                   </div>
                 </div>
               </div>
@@ -332,6 +332,68 @@ if ($nome_str) {
     --brand-800: #431945;
     --brand-100: #f2e8f7;
     --brand-050: #f9f3fc;
+  }
+
+  #tab-contas {
+    padding-top: .15rem;
+  }
+
+  .contas-summary {
+    margin-top: .15rem;
+    margin-bottom: .25rem;
+    row-gap: .75rem !important;
+  }
+
+  .contas-summary .summary-card {
+    border: 1px solid #ede1f4;
+    border-radius: 16px;
+    background: linear-gradient(180deg, #ffffff 0%, #fbf7ff 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .contas-summary .summary-card::before {
+    content: "";
+    position: absolute;
+    top: 12px;
+    bottom: 12px;
+    left: 8px;
+    width: 4px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, var(--brand), #c997d2);
+    opacity: .85;
+  }
+
+  .contas-summary .summary-card .card-body {
+    padding: 1.15rem 1.25rem 1.1rem 1.6rem !important;
+  }
+
+  .contas-summary h6 {
+    letter-spacing: .04em;
+    margin-bottom: .2rem !important;
+  }
+
+  #tab-contas .contas-summary + #contasWrap {
+    margin-top: .25rem !important;
+  }
+
+  .contas-table-wrapper h6 {
+    margin-bottom: .25rem;
+  }
+
+  .btn-rah-view {
+    border: none;
+    color: var(--brand);
+    background: rgba(94, 35, 99, .12);
+    font-weight: 600;
+    transition: all .2s ease;
+  }
+
+  .btn-rah-view:hover,
+  .btn-rah-view:focus {
+    color: #fff;
+    background: var(--brand);
+    box-shadow: 0 0 0 .2rem rgba(94, 35, 99, .18);
   }
 
   /* Botões principais */

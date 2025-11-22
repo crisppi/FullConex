@@ -91,6 +91,10 @@ try {
         $summary['media_permanencia'] = isset($summary['media_dias']) && $summary['media_dias'] !== null
             ? round((float)$summary['media_dias'], 1) . ' dias'
             : null;
+        $totalInternacoes = (int)($summary['total_internacoes'] ?? 0);
+        $summary['custo_medio_internacao'] = $totalInternacoes > 0
+            ? (float)($summary['soma_final'] ?? 0) / $totalInternacoes
+            : 0;
     }
 
     // --------- LISTA (paginada) ----------
@@ -154,6 +158,7 @@ try {
             'total_contas'        => (int)($summary['total_contas'] ?? $total),
             'total_internacoes'   => (int)($summary['total_internacoes'] ?? 0),
             'custo_medio_conta'   => (float)($summary['custo_medio_conta'] ?? 0),
+            'custo_medio_internacao' => (float)($summary['custo_medio_internacao'] ?? 0),
             'media_permanencia'   => $summary['media_permanencia'] ?? null,
         ],
         'rows'    => $payload

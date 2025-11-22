@@ -372,11 +372,11 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                             </a>
 
                             <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_cap_rah.php"><span
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>list_internacao_cap_rah.php"><span
                                             id="boot-icon1" class="bi bi-currency-dollar"
                                             style="font-size: 1rem; margin-right:5px; color: rgb(77, 155, 67);">
                                         </span> Rah - Contas para Auditar</a></li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>contas_finalizadas_rah.php"><span
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>contas_finalizadas_rah.php"><span
                                             id="boot-icon1" class="bi bi-check2-circle"
                                             style="font-size: 1rem; margin-right:5px; color: rgb(27, 156, 55);">
                                         </span> Rah - Contas Finalizadas</a></li>

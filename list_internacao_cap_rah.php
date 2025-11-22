@@ -2,6 +2,12 @@
 include_once("check_logado.php");
 
 include_once("models/pagination.php");
+
+$RAH_LIST_CONTEXT = 'auditar';
+$RAH_FORM_ACTION  = 'list_internacao_cap_rah.php';
+if (!isset($_GET['encerrado_cap']) || $_GET['encerrado_cap'] === '') {
+    $_GET['encerrado_cap'] = 'n';
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">

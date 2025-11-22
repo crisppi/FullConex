@@ -126,7 +126,6 @@ $type = 'update';
 
 ?>
 <div id="main-container" style="background:#f5f6f8; margin:1px">
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
 
     <!-- FORMULÁRIO DE EDIÇÃO -->
     <?php include_once('formularios/form_edit_capeante_rah.php'); ?>

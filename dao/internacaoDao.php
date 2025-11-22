@@ -1735,7 +1735,9 @@ class internacaoDAO implements internacaoDAOInterface
         ca.senha_finalizada,
         ca.conta_parada_cap,
         ca.parada_motivo_cap,
-        ca.lote_cap
+        ca.lote_cap,
+        ca.data_fech_capeante,
+        ca.data_digit_capeante
 
         FROM tb_internacao ac 
 

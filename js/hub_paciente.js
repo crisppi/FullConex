@@ -370,14 +370,14 @@
         <div><strong>Total de contas:</strong> ${summary?.total_contas ?? 0}</div>
         <div><strong>Total de internações:</strong> ${summary?.total_internacoes ?? 0}</div>
         <div><strong>Custo médio / conta:</strong> R$ ${Number(summary?.custo_medio_conta || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        <div><strong>Média de permanência:</strong> ${summary?.media_permanencia ?? '—'}</div>`;
+        <div><strong>Custo médio / internação:</strong> R$ ${Number(summary?.custo_medio_internacao || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>`;
     }
   }
 
   function ensureContasTable() {
     const pane = document.getElementById('tab-contas'); if (!pane) return null;
     let wrap = pane.querySelector('#contasWrap'); if (!wrap) {
-      wrap = document.createElement('div'); wrap.id = 'contasWrap'; wrap.className = 'mt-2';
+      wrap = document.createElement('div'); wrap.id = 'contasWrap'; wrap.className = 'mt-2 contas-table-wrapper';
       wrap.innerHTML = `
         <div class="d-flex justify-content-between align-items-center mb-2"><h6 class="mb-0">Contas do paciente</h6></div>
         <div class="table-responsive">
@@ -434,7 +434,7 @@
         <td class="d-flex gap-1 flex-wrap">
           <a class="btn btn-sm btn-outline-primary" href="${rahEditUrl}" title="Editar RAH da conta">Editar RAH</a>
           <a class="btn btn-sm btn-outline-success" href="${rahViewUrl}" title="Criar/visualizar RAH">RAH</a>
-          <button class="btn btn-sm btn-outline-secondary" type="button" data-action="preview-rah" data-url="${rahPreviewUrl}" title="Visualizar RAH em tela">Ver RAH</button>
+          <button class="btn btn-sm btn-rah-view" type="button" data-action="preview-rah" data-url="${rahPreviewUrl}" title="Visualizar RAH em tela">Ver RAH</button>
         </td>`;
       tbody.appendChild(tr);
     });
