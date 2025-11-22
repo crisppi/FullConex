@@ -463,6 +463,8 @@ class capeanteDAO implements capeanteDAOInterface
             ca.valor_final_capeante,
             ca.data_inicial_capeante,
             ca.data_final_capeante,
+            ca.data_fech_capeante,
+            ca.data_digit_capeante,
             ca.lote_cap,
             ca.adm_check,
             ca.med_check,

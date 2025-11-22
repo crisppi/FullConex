@@ -112,6 +112,8 @@ try {
             'parcial'         => $isParcial ? ('Parcial #' . ($parcialNum ?: 1)) : '—',
             'status'          => $status,
             'id_valor'        => isset($r['id_valor']) ? (int)$r['id_valor'] : null,
+            'data_fechamento' => $fmtDate($r['data_fech_capeante'] ?? null),
+            'data_lancamento' => $fmtDate($r['data_digit_capeante'] ?? null),
         ];
     }, $rows);
 

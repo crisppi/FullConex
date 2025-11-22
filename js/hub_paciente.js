@@ -385,6 +385,7 @@
             <thead>
               <tr>
                 <th>Internação</th><th>Conta</th><th>Hospital</th><th>Período</th>
+                <th>Fechamento</th><th>Lançamento</th>
                 <th class="text-end">Apresentado</th><th class="text-end">Glosa</th><th class="text-end">Final</th>
                 <th>Status</th><th>Parcial</th><th>Ações</th>
               </tr>
@@ -404,7 +405,7 @@
     ensureContasTable();
     const tbody = document.querySelector('#tblContas tbody'); if (!tbody) return;
     tbody.innerHTML = '';
-    if (!rows || !rows.length) { const tr = document.createElement('tr'); tr.innerHTML = `<td colspan="10" class="text-center text-muted py-3">Nenhuma conta encontrada.</td>`; tbody.appendChild(tr); return; }
+    if (!rows || !rows.length) { const tr = document.createElement('tr'); tr.innerHTML = `<td colspan="12" class="text-center text-muted py-3">Nenhuma conta encontrada.</td>`; tbody.appendChild(tr); return; }
     rows.forEach(r => {
       const tr = document.createElement('tr');
       const valorId = r.id_valor ? String(r.id_valor) : '';
@@ -423,6 +424,8 @@
         <td>#${esc(r.id_capeante)}</td>
         <td>${esc(r.hospital || '—')}</td>
         <td>${esc(r.periodo || '—')}</td>
+        <td>${esc(r.data_fechamento || '—')}</td>
+        <td>${esc(r.data_lancamento || '—')}</td>
         <td class="text-end">R$ ${Number(r.valor_apresentado || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
         <td class="text-end">R$ ${Number(r.glosa_total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
         <td class="text-end">R$ ${Number(r.valor_final || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
