@@ -62,14 +62,36 @@ try {
             COALESCE(SUM(ca.glosa_opme),0)                 AS soma_glosa_opme,
             SUM(CASE WHEN ca.em_auditoria_cap = 1 THEN 1 ELSE 0 END) AS em_auditoria,
             SUM(CASE WHEN ca.aberto_cap = 1       THEN 1 ELSE 0 END) AS abertos,
-            SUM(CASE WHEN ca.encerrado_cap = 1    THEN 1 ELSE 0 END) AS encerrados
+            SUM(CASE WHEN ca.encerrado_cap = 1    THEN 1 ELSE 0 END) AS encerrados,
+            COUNT(*) AS total_contas,
+            COUNT(DISTINCT ca.fk_int_capeante) AS total_internacoes,
+            AVG(DATEDIFF(
+                COALESCE(ca.data_final_capeante, ca.data_fech_capeante, ca.data_digit_capeante, al.data_alta_alt, ac.data_intern_int),
+                COALESCE(ca.data_inicial_capeante, ac.data_intern_int)
+            )) AS media_dias,
+            COALESCE(SUM(ca.valor_final_capeante),0) / NULLIF(COUNT(*),0) AS custo_medio_conta
         FROM tb_capeante ca
         JOIN tb_internacao ac ON ca.fk_int_capeante = ac.id_internacao
+        LEFT JOIN (
+            SELECT a.*
+            FROM tb_alta a
+            WHERE a.id_alta = (
+                SELECT a2.id_alta FROM tb_alta a2
+                WHERE a2.fk_id_int_alt = a.fk_id_int_alt
+                ORDER BY COALESCE(a2.data_alta_alt, '0000-00-00') DESC, a2.id_alta DESC
+                LIMIT 1
+            )
+        ) AS al ON al.fk_id_int_alt = ac.id_internacao
         WHERE ac.fk_paciente_int = :pac
     ");
     $stmtSum->bindValue(':pac', $pacId, PDO::PARAM_INT);
     $stmtSum->execute();
     $summary = $stmtSum->fetch(PDO::FETCH_ASSOC) ?: [];
+    if ($summary) {
+        $summary['media_permanencia'] = isset($summary['media_dias']) && $summary['media_dias'] !== null
+            ? round((float)$summary['media_dias'], 1) . ' dias'
+            : null;
+    }
 
     // --------- LISTA (paginada) ----------
     // usando seu selectAllcapeante(where, order, limit) — ATENÇÃO: ele concatena strings, então garanta ints
@@ -129,6 +151,10 @@ try {
             'em_auditoria'        => (int)($summary['em_auditoria'] ?? 0),
             'abertos'             => (int)($summary['abertos'] ?? 0),
             'encerrados'          => (int)($summary['encerrados'] ?? 0),
+            'total_contas'        => (int)($summary['total_contas'] ?? $total),
+            'total_internacoes'   => (int)($summary['total_internacoes'] ?? 0),
+            'custo_medio_conta'   => (float)($summary['custo_medio_conta'] ?? 0),
+            'media_permanencia'   => $summary['media_permanencia'] ?? null,
         ],
         'rows'    => $payload
     ]);

@@ -270,18 +270,24 @@ if ($nome_str) {
             <div class="col-12 col-lg-6">
               <div class="card border-0">
                 <div class="card-body">
-                  <h6 class="mb-2">Resumo</h6>
-                  <div class="alert alert-light border text-secondary">Preencher com totalização de
-                    contas quando
-                    disponível.</div>
+                  <h6 class="mb-2">Resumo — Valores</h6>
+                  <div id="contasResumoValores" class="text-secondary small">
+                    <div><strong>Valor apresentado:</strong> —</div>
+                    <div><strong>Glosa total:</strong> —</div>
+                    <div><strong>Valor final:</strong> —</div>
+                  </div>
                 </div>
               </div>
             </div>
             <div class="col-12 col-lg-6">
               <div class="card border-0">
                 <div class="card-body">
-                  <h6 class="mb-2">Alertas</h6>
-                  <div class="alert alert-light border text-secondary">Sem divergências no momento
+                  <h6 class="mb-2">Resumo — Indicadores</h6>
+                  <div id="contasResumoIndicadores" class="text-secondary small">
+                    <div><strong>Total de contas:</strong> —</div>
+                    <div><strong>Total de internações:</strong> —</div>
+                    <div><strong>Custo médio / conta:</strong> —</div>
+                    <div><strong>Média de permanência:</strong> —</div>
                   </div>
                 </div>
               </div>

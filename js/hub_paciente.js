@@ -357,27 +357,27 @@
   // ================== CONTAS ==================
   function renderContasResumo(summary) {
     const resumo = document.querySelector('#tab-contas .card:nth-of-type(1) .card-body');
-    if (resumo) {
-      resumo.innerHTML = `<h6 class="mb-2">Resumo</h6>
-      <div class="row g-2 small">
-        <div class="col-12"><strong>Valor apresentado:</strong> R$ ${Number(summary?.soma_apresentado || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        <div class="col-12"><strong>Glosa total:</strong> R$ ${Number(summary?.soma_glosa_total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        <div class="col-12"><strong>Valor final:</strong> R$ ${Number(summary?.soma_final || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-      </div>`;
+    const resumoValores = document.getElementById('contasResumoValores');
+    if (resumoValores) {
+      resumoValores.innerHTML = `
+        <div><strong>Valor apresentado:</strong> R$ ${Number(summary?.soma_apresentado || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+        <div><strong>Glosa total:</strong> R$ ${Number(summary?.soma_glosa_total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+        <div><strong>Valor final:</strong> R$ ${Number(summary?.soma_final || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>`;
     }
-    const alertas = document.querySelector('#tab-contas .card:nth-of-type(2) .card-body');
-    if (alertas) {
-      alertas.innerHTML = `<h6 class="mb-2">Status</h6>
-      <div class="small">Abertos: <strong>${summary?.abertos ?? 0}</strong></div>
-      <div class="small">Em auditoria: <strong>${summary?.em_auditoria ?? 0}</strong></div>
-      <div class="small">Encerrados: <strong>${summary?.encerrados ?? 0}</strong></div>`;
+    const resumoIndicadores = document.getElementById('contasResumoIndicadores');
+    if (resumoIndicadores) {
+      resumoIndicadores.innerHTML = `
+        <div><strong>Total de contas:</strong> ${summary?.total_contas ?? 0}</div>
+        <div><strong>Total de internações:</strong> ${summary?.total_internacoes ?? 0}</div>
+        <div><strong>Custo médio / conta:</strong> R$ ${Number(summary?.custo_medio_conta || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+        <div><strong>Média de permanência:</strong> ${summary?.media_permanencia ?? '—'}</div>`;
     }
   }
 
   function ensureContasTable() {
     const pane = document.getElementById('tab-contas'); if (!pane) return null;
     let wrap = pane.querySelector('#contasWrap'); if (!wrap) {
-      wrap = document.createElement('div'); wrap.id = 'contasWrap'; wrap.className = 'mt-3';
+      wrap = document.createElement('div'); wrap.id = 'contasWrap'; wrap.className = 'mt-2';
       wrap.innerHTML = `
         <div class="d-flex justify-content-between align-items-center mb-2"><h6 class="mb-0">Contas do paciente</h6></div>
         <div class="table-responsive">
