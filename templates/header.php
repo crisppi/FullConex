@@ -724,7 +724,7 @@ function renderResults(items) {
     }
 
     const html = items.map((p, idx) => `
-        <a href="hub_paciente.php?id_paciente=${encodeURIComponent(p.id_paciente)}"
+        <a href="hub_paciente?id_paciente=${encodeURIComponent(p.id_paciente)}"
             class="dropdown-item d-flex justify-content-between align-items-center ${idx === 0 ? 'active' : ''}"
             data-id="${p.id_paciente}">
             <div>
