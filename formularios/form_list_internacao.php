@@ -323,6 +323,33 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
             $last_block          = end($paginas)["bloco"];
             $current_block       = reset($block_pages)["bloco"];
         }
+
+        $paginationBaseParams = [
+            'pesquisa_nome'       => $pesquisa_nome,
+            'pesquisa_pac'        => $pesquisa_pac,
+            'senha_int'           => $senha_int,
+            'data_intern_int'     => $data_intern_int,
+            'data_intern_int_max' => $data_intern_int_max,
+            'pesqInternado'       => $pesqInternado,
+            'limite_pag'          => $limite,
+            'ordenar'             => $ordenar,
+        ];
+
+        if (!function_exists('buildInternacaoPaginationUrl')) {
+            function buildInternacaoPaginationUrl(array $baseParams, array $override = []): string
+            {
+                $params = array_merge($baseParams, $override);
+                $params = array_filter($params, function ($value) {
+                    return $value !== null && $value !== '';
+                });
+
+                $query = http_build_query($params);
+                global $BASE_URL;
+                $baseUrl = rtrim($BASE_URL, '/') . '/internacoes/lista';
+
+                return $query ? $baseUrl . '?' . $query : $baseUrl;
+            }
+        }
         ?>
 
         <!-- TABELA DE REGISTROS -->
@@ -643,43 +670,81 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                                 $paginaAtual = isset($_GET['pag']) ? $_GET['pag'] : 1;
                                 ?>
                             <?php if ($current_block > $first_block): ?>
+                            <?php
+                                    $firstPageUrl = buildInternacaoPaginationUrl($paginationBaseParams, [
+                                        'pag' => 1,
+                                        'bl'  => 0
+                                    ]);
+                                    ?>
                             <li class="page-item">
-                                <a class="page-link" id="blocoNovo" href="#"
-                                    onclick="loadContent('internacoes/lista?pesquisa_nome=<?= $pesquisa_nome ?>&pesquisa_pac=<?= $pesquisa_pac ?>&senha_int=<?= $senha_int ?>&data_intern_int=<?= $data_intern_int ?>&pesqInternado=<?= $pesqInternado ?>&limite_pag=<?= $limite ?>&ordenar=<?= $ordenar ?>&pag=1&bl=0')">
-                                    <i class="fa-solid fa-angles-left"></i></a>
+                                <a class="page-link" id="blocoNovo" href="<?= htmlspecialchars($firstPageUrl) ?>"
+                                    onclick="return paginateInternacao('<?= htmlspecialchars($firstPageUrl, ENT_QUOTES) ?>');">
+                                    <i class="fa-solid fa-angles-left"></i>
+                                </a>
                             </li>
                             <?php endif; ?>
 
                             <?php if ($current_block <= $last_block && $last_block > 1 && $current_block != 1): ?>
+                            <?php
+                                    $prevPage  = max(1, $paginaAtual - 1);
+                                    $prevBlock = max(0, $blocoAtual - 5);
+                                    $prevUrl   = buildInternacaoPaginationUrl($paginationBaseParams, [
+                                        'pag' => $prevPage,
+                                        'bl'  => $prevBlock
+                                    ]);
+                                    ?>
                             <li class="page-item">
-                                <a class="page-link" href="#"
-                                    onclick="loadContent('internacoes/lista?pesquisa_nome=<?= $pesquisa_nome ?>&pesquisa_pac=<?= $pesquisa_pac ?>&senha_int=<?= $senha_int ?>&data_intern_int=<?= $data_intern_int ?>&pesqInternado=<?= $pesqInternado ?>&limite_pag=<?= $limite ?>&ordenar=<?= $ordenar ?>&pag=<?= $paginaAtual - 1 ?>&bl=<?= $blocoAtual - 5 ?>')">
-                                    <i class="fa-solid fa-angle-left"></i> </a>
+                                <a class="page-link" href="<?= htmlspecialchars($prevUrl) ?>"
+                                    onclick="return paginateInternacao('<?= htmlspecialchars($prevUrl, ENT_QUOTES) ?>');">
+                                    <i class="fa-solid fa-angle-left"></i>
+                                </a>
                             </li>
                             <?php endif; ?>
 
                             <?php for ($i = $first_page_in_block; $i <= $last_page_in_block; $i++): ?>
+                            <?php
+                                    $pageUrl = buildInternacaoPaginationUrl($paginationBaseParams, [
+                                        'pag' => $i,
+                                        'bl'  => $blocoAtual
+                                    ]);
+                                    ?>
                             <li class="page-item <?= ($_GET['pag'] ?? 1) == $i ? "active" : "" ?>">
-                                <a class="page-link" href="#"
-                                    onclick="loadContent('internacoes/lista?pesquisa_nome=<?= $pesquisa_nome ?>&pesquisa_pac=<?= $pesquisa_pac ?>&senha_int=<?= $senha_int ?>&data_intern_int=<?= $data_intern_int ?>&pesqInternado=<?= $pesqInternado ?>&limite_pag=<?= $limite ?>&ordenar=<?= $ordenar ?>&pag=<?= $i ?>&bl=<?= $blocoAtual ?>')">
+                                <a class="page-link" href="<?= htmlspecialchars($pageUrl) ?>"
+                                    onclick="return paginateInternacao('<?= htmlspecialchars($pageUrl, ENT_QUOTES) ?>');">
                                     <?= $i ?>
                                 </a>
                             </li>
                             <?php endfor; ?>
 
                             <?php if ($current_block < $last_block): ?>
+                            <?php
+                                    $nextPage  = min($total_pages, $paginaAtual + 1);
+                                    $nextBlock = $blocoAtual + 5;
+                                    $nextUrl   = buildInternacaoPaginationUrl($paginationBaseParams, [
+                                        'pag' => $nextPage,
+                                        'bl'  => $nextBlock
+                                    ]);
+                                    ?>
                             <li class="page-item">
-                                <a class="page-link" id="blocoNovo" href="#"
-                                    onclick="loadContent('internacoes/lista?pesquisa_nome=<?= $pesquisa_nome ?>&pesquisa_pac=<?= $pesquisa_pac ?>&senha_int=<?= $senha_int ?>&data_intern_int=<?= $data_intern_int ?>&pesqInternado=<?= $pesqInternado ?>&limite_pag=<?= $limite ?>&ordenar=<?= $ordenar ?>&pag=<?= $paginaAtual + 1 ?>&bl=<?= $blocoAtual + 5 ?>')">
-                                    <i class="fa-solid fa-angle-right"></i></a>
+                                <a class="page-link" id="blocoNovo" href="<?= htmlspecialchars($nextUrl) ?>"
+                                    onclick="return paginateInternacao('<?= htmlspecialchars($nextUrl, ENT_QUOTES) ?>');">
+                                    <i class="fa-solid fa-angle-right"></i>
+                                </a>
                             </li>
                             <?php endif; ?>
 
                             <?php if ($current_block < $last_block): ?>
+                            <?php
+                                    $lastUrl = buildInternacaoPaginationUrl($paginationBaseParams, [
+                                        'pag' => $total_pages,
+                                        'bl'  => ($last_block - 1) * 5
+                                    ]);
+                                    ?>
                             <li class="page-item">
-                                <a class="page-link" id="blocoNovo" href="#"
-                                    onclick="loadContent('internacoes/lista?pesquisa_nome=<?= $pesquisa_nome ?>&pesquisa_pac=<?= $pesquisa_pac ?>&senha_int=<?= $senha_int ?>&data_intern_int=<?= $data_intern_int ?>&pesqInternado=<?= $pesqInternado ?>&limite_pag=<?= $limite ?>&ordenar=<?= $ordenar ?>&pag=<?= count($paginas) ?>&bl=<?= ($last_block - 1) * 5 ?>')">
-                                    <i class="fa-solid fa-angles-right"></i></a>
+                                <a class="page-link" id="blocoNovo" href="<?= htmlspecialchars($lastUrl) ?>"
+                                    onclick="return paginateInternacao('<?= htmlspecialchars($lastUrl, ENT_QUOTES) ?>');">
+                                    <i class="fa-solid fa-angles-right"></i>
+                                </a>
                             </li>
                             <?php endif; ?>
                         </ul>
@@ -1047,6 +1112,19 @@ $(document).ready(function() {
     });
 
 });
+</script>
+
+<script>
+if (typeof window.paginateInternacao !== 'function') {
+    window.paginateInternacao = function(url) {
+        if (typeof loadContent === 'function') {
+            loadContent(url);
+            return false;
+        }
+        window.location.href = url;
+        return false;
+    };
+}
 </script>
 
 <script src="./js/input-estilo.js"></script>
