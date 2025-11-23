@@ -173,7 +173,7 @@ header("Content-type: text/html; charset=utf-8");
                                 Censo
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>cad_censo.php"><i
+                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>censo/novo"><i
                                             class="bi bi-book"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
                                         Cadastro Censo</a></li>
@@ -193,7 +193,7 @@ header("Content-type: text/html; charset=utf-8");
                                 Produção
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
-                                <!-- <li><a class="dropdown-item" href="<?php $BASE_URL ?>cad_censo.php"><i class="bi bi-book" style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i> Cadastro Censo</a></li> -->
+                                <!-- <li><a class="dropdown-item" href="<?php $BASE_URL ?>censo/novo"><i class="bi bi-book" style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i> Cadastro Censo</a></li> -->
                                 <li><a class="dropdown-item" href="<?php $BASE_URL ?>internacoes/nova"><i
                                             class="bi bi-calendar2-date"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i> Nova
@@ -206,7 +206,7 @@ header("Content-type: text/html; charset=utf-8");
                                 <li>
                                     <hr class="dropdown-divider">
                                 </li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_censo.php"><i
+                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>censo/lista"><i
                                             class="bi bi-book"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(27, 156, 55);"></i>
                                         Lista Censo</a></li>
@@ -248,7 +248,7 @@ header("Content-type: text/html; charset=utf-8");
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
 
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_censo.php"><i
+                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>censo/lista"><i
                                             class="bi bi-book"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(27, 156, 55);"></i>
                                         Lista Censo</a></li>

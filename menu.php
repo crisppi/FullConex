@@ -27,12 +27,12 @@ require_once("templates/header.php");
         <div class="col lista_menu">
             <hr>
             <li>
-                <a href="cad_censo.php" <?php if ($_SESSION['nivel'] < 2) { ?> style="pointer-events: none"
+                <a href="censo/novo" <?php if ($_SESSION['nivel'] < 2) { ?> style="pointer-events: none"
                     ?<?php } ?>><i class="bi bi-book"
                         style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
                     Censo</a>
             </li>
-            <li><a href="<?php $BASE_URL ?>list_censo.php"><i class="bi bi-book"
+            <li><a href="<?php $BASE_URL ?>censo/lista"><i class="bi bi-book"
                         style="font-size: 1rem;margin-right:5px; color: rgb(27, 156, 55);"></i> Lista
                     Censo</a>
             </li>

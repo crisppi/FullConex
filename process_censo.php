@@ -85,10 +85,10 @@ if ($type == "update") {
         $censo->titular_censo = $titular_censo;
         $censoDao->update($censo);
 
-        // header("location:list_censo.php");
+        // header("location:censo/lista");
     };
 
-    // header("location:list_censo.php");
+    // header("location:censo/lista");
 };
 
-// header("location:list_censo.php");
+// header("location:censo/lista");

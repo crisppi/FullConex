@@ -278,7 +278,7 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                             class="bi bi-calendar2-date"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i> Nova
                                         Internação</a></li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_censo.php"><i
+                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>censo/lista"><i
                                             class="bi bi-book"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(222, 156, 55);"></i>
                                         Censo</a></li>
@@ -326,7 +326,7 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
 
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_censo.php"><i
+                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>censo/lista"><i
                                             class="bi bi-book"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(222, 156, 55);"></i>
                                         Censo</a></li>
