@@ -171,7 +171,7 @@ class HospitalDAO implements HospitalDAOInterface
 
         $stmt->execute();
 
-        $this->message->setMessage("hospital adicionado com sucesso!", "success", "list_hospital.php");
+        $this->message->setMessage("hospital adicionado com sucesso!", "success", "hospitais");
     }
 
     public function update(Hospital $hospital)
@@ -223,7 +223,7 @@ class HospitalDAO implements HospitalDAOInterface
 
         $stmt->execute();
 
-        $this->message->setMessage("hospital atualizado com sucesso!", "success", "list_hospital.php");
+        $this->message->setMessage("hospital atualizado com sucesso!", "success", "hospitais");
     }
 
     public function deletarUpdate(Hospital $hospital)
@@ -237,7 +237,7 @@ class HospitalDAO implements HospitalDAOInterface
         $stmt->bindValue(":id_hospital", $hospital->id_hospital, PDO::PARAM_INT);
         $stmt->execute();
 
-        $this->message->setMessage("hospital atualizado com sucesso!", "success", "list_hospital.php");
+        $this->message->setMessage("hospital atualizado com sucesso!", "success", "hospitais");
     }
 
     public function destroy($id_hospital)
@@ -249,7 +249,7 @@ class HospitalDAO implements HospitalDAOInterface
         $stmt->bindValue(":id_hospital", $id_hospital, PDO::PARAM_INT);
         $stmt->execute();
 
-        $this->message->setMessage("hospital removido com sucesso!", "success", "list_hospital.php");
+        $this->message->setMessage("hospital removido com sucesso!", "success", "hospitais");
     }
 
     /* ============== LISTAGENS AVANÇADAS (associativas) ============== */

@@ -92,9 +92,9 @@ if ($type === "create") {
 
         $hospitalDao->create($hospital);
     }
-    header('location: list_hospital.php');
+    header("Location: " . $BASE_URL . "hospitais");
+    exit;
 }
-header("location:list_hospital.php");
 if ($type === "update") {
 
 
@@ -167,7 +167,8 @@ if ($type === "update") {
     $hospitalData->ativo_hosp = $ativo_hosp;
 
     $hospitalDao->update($hospitalData);
-    header("location:list_hospital.php");
+    header("Location: " . $BASE_URL . "hospitais");
+    exit;
 }
 
 if ($type === "delUpdate") {
@@ -183,7 +184,8 @@ if ($type === "delUpdate") {
 
     $hospitalDao->deletarUpdate($hospitalData);
 
-    header("location:list_hospital.php");
+    header("Location: " . $BASE_URL . "hospitais");
+    exit;
 }
 
 if ($type === "delete") {
@@ -198,7 +200,8 @@ if ($type === "delete") {
 
         $hospitalDao->destroy($id_hospital);
 
-        header("location:list_hospital.php");
+        header("Location: " . $BASE_URL . "hospitais");
+        exit;
     } else {
 
         $message->setMessage("Informações inválidas!", "error", "index.php");

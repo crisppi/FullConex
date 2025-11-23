@@ -199,12 +199,12 @@ require_once("templates/header.php");
 
             <li>
                 <a href="pacientes" <?php if ($_SESSION['nivel'] < 2) { ?> style="pointer-events: none"
-                    ?<?php } ?>><span class="bi bi-person"
+                    <?php } ?>><span class="bi bi-person"
                         style="font-size: 1rem;margin-right:5px; color: rgb(155, 155, 76);"></span> Pacientes</a>
             </li>
             <li>
-                <a href="list_hospital.php" <?php if ($_SESSION['nivel'] < 4) { ?> style="pointer-events: none"
-                    ?<?php } ?>><span class="bi bi-hospital"
+                <a href="hospitais" <?php if ($_SESSION['nivel'] < 4) { ?> style="pointer-events: none"
+                    <?php } ?>><span class="bi bi-hospital"
                         style="font-size: 1rem;margin-right:5px; color: rgb(67, 125, 525);"></span> Hospital</a>
             </li>
             <li>

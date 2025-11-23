@@ -230,7 +230,7 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                             class="bi bi-person"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
                                         Pacientes</a></li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_hospital.php"><span
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>hospitais"><span
                                             class="bi bi-hospital"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(67, 125, 525);"></span>
                                         Hospitais</a></li>

@@ -2,5 +2,6 @@ RewriteEngine On
 
 # Rota amigável para a listagem de pacientes
 RewriteRule ^pacientes/?$ list_paciente.php [L,QSA]
+RewriteRule ^hospitais/?$ list_hospital.php [L,QSA]
 RewriteRule ^hub_paciente/paciente([0-9]+)/?$ hub_paciente.php?id_paciente=$1 [L,QSA]
 RewriteRule ^hub_paciente/?$ hub_paciente.php [L,QSA]
