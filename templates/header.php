@@ -234,11 +234,11 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                             class="bi bi-hospital"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(67, 125, 525);"></span>
                                         Hospitais</a></li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_seguradora.php"><span
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>list_seguradora.php"><span
                                             class=" bi bi-heart-pulse"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(178, 156, 55);"></span>
                                         Seguradora</a></li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_estipulante.php"><i
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>estipulantes"><i
                                             class="bi bi-building"
                                             style="font-size:  1rem;margin-right:5px; color: rgb(213, 12, 155);"></i>
                                         Estipulante</a></li>

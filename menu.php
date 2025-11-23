@@ -213,8 +213,8 @@ require_once("templates/header.php");
                         style="font-size: 1rem; margin-right:5px; color: rgb(155, 16, 76);"></i> Usuário</a>
             </li>
             <li>
-                <a href="list_estipulante.php" <?php if ($_SESSION['nivel'] < 4) { ?> style="pointer-events: none"
-                    ?<?php } ?>><i class="bi bi-building"
+                <a href="estipulantes" <?php if ($_SESSION['nivel'] < 4) { ?> style="pointer-events: none"
+                    <?php } ?>><i class="bi bi-building"
                         style="font-size: 1rem;margin-right:5px; color: rgb(213, 12, 155);"></i> Estipulante</a>
             </li>
             <li>
