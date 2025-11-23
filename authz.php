@@ -90,7 +90,7 @@ final class Gate
         $_SESSION['mensagem_tipo'] = 'danger'; // vermelho
 
         // redireciona direto para a lista (sem ecoar nada)
-        $target = $to ?: ($BASE_URL . 'menu_app.php');
+        $target = $to ?: ($BASE_URL . 'dashboard');
         header('Location: ' . $target, true, 303); // 303 evita re-post
         exit;
     }
@@ -166,7 +166,7 @@ final class Gate
         }
 
         // 6) Último fallback: menu
-        if (!$toPath) $toPath = 'menu_app.php';
+        if (!$toPath) $toPath = 'dashboard';
 
         // monta URL final
         $toUrl = rtrim($BASE_URL, '/') . '/' . ltrim($toPath, '/');

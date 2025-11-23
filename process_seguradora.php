@@ -121,7 +121,7 @@ if ($type === "create") {
             $seguradora->cep_seg = $cep_seg;
 
             $seguradoraDao->create($seguradora);
-            header("location:list_seguradora.php");
+            header("Location: ' . $BASE_URL . 'seguradoras");
         }
     }
 } else if ($type === "update") {
@@ -225,7 +225,8 @@ if ($type === "create") {
 
         $seguradoraDao->update($seguradoraData);
 
-        include_once('list_seguradora.php');
+        header("Location: " . $BASE_URL . "seguradoras");
+        exit;
     }
 }
 
@@ -240,7 +241,8 @@ if ($type === "delete") {
     if ($seguradora) {
 
         $seguradoraDao->destroy($id_seguradora);
-        include_once('list_seguradora.php');
+        header("Location: " . $BASE_URL . "seguradoras");
+        exit;
     } else {
 
         //$message->setMessage("Informações inválidas!", "error", "index.php");
@@ -261,5 +263,6 @@ if ($type === "delUpdate") {
 
     $seguradoraDao->deletarUpdate($seguradoraData);
 
-    header("location:list_seguradora.php");
+    header("Location: " . $BASE_URL . "seguradoras");
+    exit;
 }

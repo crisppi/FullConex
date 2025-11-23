@@ -160,7 +160,7 @@ function cancelar() {
     let idAcoes = (document.getElementById('id-confirmacao'));
     idAcoes.style.display = 'none';
     console.log("chegou no cancelar");
-    window.location = "<?= $BASE_URL ?>list_seguradora.php";
+    window.location = "<?= $BASE_URL ?>seguradoras";
 
 
 };

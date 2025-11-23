@@ -256,7 +256,7 @@ class seguradoraDAO implements seguradoraDAOInterface
         $stmt->execute();
 
         // Mensagem de sucesso por adicionar filme
-        $this->message->setMessage("seguradora adicionado com sucesso!", "success", "list_seguradora.php");
+        $this->message->setMessage("seguradora adicionado com sucesso!", "success", "seguradoras");
     }
 
     public function update(seguradora $seguradora)
@@ -318,7 +318,7 @@ class seguradoraDAO implements seguradoraDAOInterface
         $stmt->execute();
 
         // Mensagem de sucesso por editar seguradora
-        $this->message->setMessage("seguradora atualizado com sucesso!", "success", "list_seguradora.php");
+        $this->message->setMessage("seguradora atualizado com sucesso!", "success", "seguradoras");
     }
 
     public function destroy($id_seguradora)
@@ -330,7 +330,7 @@ class seguradoraDAO implements seguradoraDAOInterface
         $stmt->execute();
 
         // Mensagem de sucesso por remover filme
-        $this->message->setMessage("seguradora removido com sucesso!", "success", "list_seguradora.php");
+        $this->message->setMessage("seguradora removido com sucesso!", "success", "seguradoras");
     }
 
     public function deletarUpdate(seguradora $seguradora)

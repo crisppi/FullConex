@@ -22,7 +22,7 @@ class Login
     public static function requireLogout()
     {
         if (self::isLogged()) {
-            header('location: menu.php');
+            header('Location: ' . $BASE_URL . 'menu');
             exit;
         };
     }

@@ -168,7 +168,7 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                 Menu
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>menu_app.php"><i
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>dashboard"><i
                                             class="bi bi-person"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
                                         Dashboard</a></li>
@@ -234,7 +234,7 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                             class="bi bi-hospital"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(67, 125, 525);"></span>
                                         Hospitais</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>list_seguradora.php"><span
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>seguradoras"><span
                                             class=" bi bi-heart-pulse"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(178, 156, 55);"></span>
                                         Seguradora</a></li>

@@ -314,5 +314,6 @@ if ($type === "update-senha") {
 
     $usuarioDao->update($usuarioData);
 
-    header("location:menu_app.php");
+    header("Location: " . $BASE_URL . "dashboard");
+    exit;
 }

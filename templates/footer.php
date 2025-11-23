@@ -13,7 +13,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-sm-3">
-                    <a class="navbar-brand" href="<?= $BASE_URL ?>index.php">
+                    <a class="navbar-brand" href="<?= $BASE_URL ?>inicio">
                         <img src="<?= $BASE_URL ?>img/full-03.png"
                             style="width:90px; height:10  0px;margin-top:-40px " alt="Full">
                     </a>

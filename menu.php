@@ -218,8 +218,8 @@ require_once("templates/header.php");
                         style="font-size: 1rem;margin-right:5px; color: rgb(213, 12, 155);"></i> Estipulante</a>
             </li>
             <li>
-                <a href="list_seguradora.php" <?php if ($_SESSION['nivel'] < 4) { ?> style="pointer-events: none"
-                    ?<?php } ?>><span class="bi bi-heart-pulse"
+                <a href="seguradoras" <?php if ($_SESSION['nivel'] < 4) { ?> style="pointer-events: none"
+                    <?php } ?>><span class="bi bi-heart-pulse"
                         style="font-size: 1rem;margin-right:5px; color: rgb(255, 215, 55);"></span> Seguradora</a>
             </li>
         </div>
