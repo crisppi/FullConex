@@ -158,21 +158,41 @@
     $condicoes = array_filter($condicoes);
     $where = implode(' AND ', $condicoes);
 
-    // URL base de paginação
-    $url = $rahFormAction . '?'
-        . 'id_hosp=' . urlencode((string)$id_hosp)
-        . '&pesquisa_nome=' . urlencode((string)$pesquisa_nome)
-        . '&pesquisa_pac=' . urlencode((string)$pesquisa_pac)
-        . '&senha_fin=' . urlencode((string)$senha_fin)
-        . '&encerrado_cap=' . urlencode((string)$encerrado_cap)
-        . '&med_check=' . urlencode((string)$med_check)
-        . '&enf_check=' . urlencode((string)$enf_check)
-        . '&lote=' . urlencode((string)$lote)
-        . '&adm_check=' . urlencode((string)$adm_check)
-        . '&senha_int=' . urlencode((string)$senha_int)
-        . '&encerrado_cap=' . urlencode((string)$encerrado_cap)
-        . '&data_intern_int=' . urlencode((string)$data_intern_int)
-        . '&data_intern_int_max=' . urlencode((string)$data_intern_int_max);
+    // Parâmetros base para montar as URLs de paginação mantendo os filtros
+    $rahPaginationBaseParams = [
+        'id_hosp'           => $id_hosp,
+        'pesquisa_nome'     => $pesquisa_nome,
+        'pesquisa_pac'      => $pesquisa_pac,
+        'senha_fin'         => $senha_fin,
+        'encerrado_cap'     => $encerrado_cap,
+        'med_check'         => $med_check,
+        'enf_check'         => $enf_check,
+        'adm_check'         => $adm_check,
+        'senha_int'         => $senha_int,
+        'lote'              => $lote,
+        'idcapeante'        => $idcapeante,
+        'data_intern_int'   => $data_intern_int,
+        'data_intern_int_max' => $data_intern_int_max,
+        'limite'            => $limite,
+        'ordenar'           => $ordenar,
+        'limite_pag'        => $limite_pag,
+    ];
+
+    if (!function_exists('buildRahPaginationUrl')) {
+        function buildRahPaginationUrl(string $action, array $baseParams, array $override = []): string
+        {
+            $params = array_merge($baseParams, $override);
+            $params = array_filter($params, function ($value) {
+                return $value !== null && $value !== '';
+            });
+            $query = http_build_query($params);
+            global $BASE_URL;
+            $actionPath = ltrim($action, '/');
+            $baseUrl    = rtrim($BASE_URL, '/') . '/' . $actionPath;
+
+            return $query ? $baseUrl . '?' . $query : $baseUrl;
+        }
+    }
 
     // =====================================================================
     // Consulta TOTAL (bruto) + TOTAL DEDUP por id_capeante
@@ -652,43 +672,77 @@
                                     $paginaAtual  = isset($_GET['pag']) ? (int)$_GET['pag'] : 1;
                                     ?>
                                 <?php if ($current_block > $first_block): ?>
+                                <?php
+                                        $firstPageUrl = buildRahPaginationUrl($rahFormAction, $rahPaginationBaseParams, [
+                                            'pag' => 1,
+                                            'bl'  => 0,
+                                        ]);
+                                        ?>
                                 <li class="page-item">
-                                    <a class="page-link" id="blocoNovo" href="#"
-                                        onclick="loadContent('<?= $url ?>&pag=1&bl=0&limite=<?= (int)$limite ?>&ordernar=<?= htmlspecialchars((string)$ordenar) ?>')">
-                                        <i class="fa-solid fa-angles-left"></i></a>
+                                    <a class="page-link" id="blocoNovo" href="<?= htmlspecialchars($firstPageUrl) ?>"
+                                        onclick="return paginateRah('<?= htmlspecialchars($firstPageUrl, ENT_QUOTES) ?>');">
+                                        <i class="fa-solid fa-angles-left"></i>
+                                    </a>
                                 </li>
                                 <?php endif; ?>
 
                                 <?php if ($current_block <= $last_block && $last_block > 1 && $current_block != 1): ?>
+                                <?php
+                                        $prevPageUrl = buildRahPaginationUrl($rahFormAction, $rahPaginationBaseParams, [
+                                            'pag' => max(1, $paginaAtual - 1),
+                                            'bl'  => max(0, $blocoAtual - 5),
+                                        ]);
+                                        ?>
                                 <li class="page-item">
-                                    <a class="page-link" href="#"
-                                        onclick="loadContent('<?= $url ?>&pag=<?= max(1, $paginaAtual - 1) ?>&bl=<?= max(0, $blocoAtual - 5) ?>&limite=<?= (int)$limite ?>&ordernar=<?= htmlspecialchars((string)$ordenar) ?>')">
-                                        <i class="fa-solid fa-angle-left"></i></a>
+                                    <a class="page-link" href="<?= htmlspecialchars($prevPageUrl) ?>"
+                                        onclick="return paginateRah('<?= htmlspecialchars($prevPageUrl, ENT_QUOTES) ?>');">
+                                        <i class="fa-solid fa-angle-left"></i>
+                                    </a>
                                 </li>
                                 <?php endif; ?>
 
                                 <?php for ($i = $first_page_in_block; $i <= $last_page_in_block; $i++): ?>
+                                <?php
+                                        $pageUrl = buildRahPaginationUrl($rahFormAction, $rahPaginationBaseParams, [
+                                            'pag' => $i,
+                                            'bl'  => $blocoAtual,
+                                        ]);
+                                        ?>
                                 <li class="page-item <?= (($_GET['pag'] ?? 1) == $i) ? "active" : "" ?>">
-                                    <a class="page-link" href="#"
-                                        onclick="loadContent('<?= $url ?>&pag=<?= $i ?>&bl=<?= $blocoAtual ?>&limite=<?= (int)$limite ?>&ordenar=<?= htmlspecialchars((string)$ordenar) ?>')">
+                                    <a class="page-link" href="<?= htmlspecialchars($pageUrl) ?>"
+                                        onclick="return paginateRah('<?= htmlspecialchars($pageUrl, ENT_QUOTES) ?>');">
                                         <?= $i ?>
                                     </a>
                                 </li>
                                 <?php endfor; ?>
 
                                 <?php if ($current_block < $last_block): ?>
+                                <?php
+                                        $nextPageUrl = buildRahPaginationUrl($rahFormAction, $rahPaginationBaseParams, [
+                                            'pag' => min($total_pages, $paginaAtual + 1),
+                                            'bl'  => $blocoAtual + 5,
+                                        ]);
+                                        ?>
                                 <li class="page-item">
-                                    <a class="page-link" id="blocoNovo" href="#"
-                                        onclick="loadContent('<?= $url ?>&pag=<?= $paginaAtual + 1 ?>&bl=<?= $blocoAtual + 5 ?>&limite=<?= (int)$limite ?>&ordernar=<?= htmlspecialchars((string)$ordenar) ?>')">
-                                        <i class="fa-solid fa-angle-right"></i></a>
+                                    <a class="page-link" id="blocoNovo" href="<?= htmlspecialchars($nextPageUrl) ?>"
+                                        onclick="return paginateRah('<?= htmlspecialchars($nextPageUrl, ENT_QUOTES) ?>');">
+                                        <i class="fa-solid fa-angle-right"></i>
+                                    </a>
                                 </li>
                                 <?php endif; ?>
 
                                 <?php if ($current_block < $last_block): ?>
+                                <?php
+                                        $lastPageUrl = buildRahPaginationUrl($rahFormAction, $rahPaginationBaseParams, [
+                                            'pag' => $total_pages,
+                                            'bl'  => ($last_block - 1) * 5,
+                                        ]);
+                                        ?>
                                 <li class="page-item">
-                                    <a class="page-link" id="blocoNovo" href="#"
-                                        onclick="loadContent('<?= $url ?>&pag=<?= count($paginas) ?>&bl=<?= ($last_block - 1) * 5 ?>&limite=<?= (int)$limite ?>&ordernar=<?= htmlspecialchars((string)$ordenar) ?>')">
-                                        <i class="fa-solid fa-angles-right"></i></a>
+                                    <a class="page-link" id="blocoNovo" href="<?= htmlspecialchars($lastPageUrl) ?>"
+                                        onclick="return paginateRah('<?= htmlspecialchars($lastPageUrl, ENT_QUOTES) ?>');">
+                                        <i class="fa-solid fa-angles-right"></i>
+                                    </a>
                                 </li>
                                 <?php endif; ?>
                             </ul>
@@ -709,7 +763,7 @@
         </div>
     </div>
 
-    <script>
+<script>
 // AJAX para submit do formulário de pesquisa
 $(document).ready(function() {
     $('#select-internacao-form').submit(function(e) {
@@ -723,7 +777,11 @@ $(document).ready(function() {
                 var tempElement = document.createElement('div');
                 tempElement.innerHTML = response;
                 var tableContent = tempElement.querySelector('#table-content');
-                $('#table-content').html(tableContent);
+                if (tableContent) {
+                    $('#table-content').html(tableContent.innerHTML);
+                } else {
+                    $('#table-content').html(response);
+                }
             },
             error: function() {
                 alert('Ocorreu um erro ao enviar o formulário.');
@@ -734,9 +792,17 @@ $(document).ready(function() {
 
 // Carregamento inicial
 $(document).ready(function() {
-    loadContent(
-        '<?= htmlspecialchars($rahFormAction, ENT_QUOTES, 'UTF-8') ?>?id_hosp=<?= urlencode((string)$id_hosp) ?>&pesquisa_pac=<?= urlencode((string)$pesquisa_pac) ?>&data_inter_int=<?= urlencode((string)$data_intern_int) ?>&med_check=&enfer_check=&pag=1&bl=0&limite=<?= (int)$limite ?>'
-    );
+    var initialRahUrl = '<?= htmlspecialchars(buildRahPaginationUrl(
+        $rahFormAction,
+        $rahPaginationBaseParams,
+        [
+            'pag' => $_GET['pag'] ?? 1,
+            'bl'  => $_GET['bl'] ?? 0,
+        ]
+    ), ENT_QUOTES) ?>';
+    if (typeof loadContent === 'function') {
+        loadContent(initialRahUrl);
+    }
 });
     </script>
 
@@ -749,7 +815,7 @@ $(document).ready(function() {
     }
 });
     </script>
-    <?php else: ?>
+<?php else: ?>
     <script>
 $(document).ready(function() {
     const $enc = $('#encerrado_cap');
@@ -759,6 +825,19 @@ $(document).ready(function() {
 });
     </script>
     <?php endif; ?>
+
+    <script>
+if (typeof window.paginateRah !== 'function') {
+    window.paginateRah = function(url) {
+        if (typeof loadContent === 'function') {
+            loadContent(url);
+            return false;
+        }
+        window.location.href = url;
+        return false;
+    };
+}
+    </script>
 
     <script src="./js/input-estilo.js"></script>
 

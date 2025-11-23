@@ -534,5 +534,5 @@ if (!empty($id_capeante)) {
 }
 
 /* Redireciona de volta */
-header("Location: list_internacao_cap_rah.php");
+header("Location: " . $BASE_URL . "internacoes/rah");
 exit;

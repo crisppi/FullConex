@@ -8,7 +8,7 @@ if (!isset($_GET['senha_fin']) || $_GET['senha_fin'] === '') {
     $_GET['senha_fin'] = $FORCE_SENHA_FIN_RAH;
 }
 $RAH_LIST_CONTEXT = 'senhas';
-$RAH_FORM_ACTION  = 'senhas_finalizadas_rah.php';
+$RAH_FORM_ACTION  = 'internacoes/rah/senhas';
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">

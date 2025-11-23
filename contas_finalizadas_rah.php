@@ -8,7 +8,7 @@ if (!isset($_GET['encerrado_cap']) || $_GET['encerrado_cap'] === '') {
     $_GET['encerrado_cap'] = $FORCE_ENCERRADO_CAP_RAH;
 }
 $RAH_LIST_CONTEXT = 'finalizadas';
-$RAH_FORM_ACTION  = 'contas_finalizadas_rah.php';
+$RAH_FORM_ACTION  = 'internacoes/rah/finalizadas';
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
