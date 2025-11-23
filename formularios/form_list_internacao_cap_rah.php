@@ -529,15 +529,17 @@
                             <tr style="font-size:13px">
                                 <td scope="row" class="col-id"><b><?= $intern["id_internacao"]; ?></b></td>
                                 <td scope="row" class="col-id"><b><?= $intern["id_capeante"]; ?></b></td>
-                                <td scope="row" class="nome-coluna-table"><b><?= $intern["nome_hosp"] ?></b></td>
-                                <td scope="row"><?= $intern["nome_pac"] ?></td>
-                                <td scope="row"><?= $intern["senha_int"] ?></td>
-                                <td scope="row"><?= date('d/m/Y', strtotime($intern["data_intern_int"])) ?></td>
+                            <td scope="row" class="nome-coluna-table"><b><?= $intern["nome_hosp"] ?></b></td>
+                            <td scope="row"><?= $intern["nome_pac"] ?></td>
+                            <td scope="row"><?= $intern["senha_int"] ?></td>
+                            <td scope="row"><?= date('d/m/Y', strtotime($intern["data_intern_int"])) ?></td>
+                            <td scope="row"><?= formatDateBrSafe($intern["data_fech_capeante"] ?? null) ?></td>
+                            <td scope="row"><?= formatDateBrSafe($intern["data_digit_capeante"] ?? null) ?></td>
 
-                                <td scope="row">
-                                    <?php if (($intern["med_check"] ?? 'n') === "s") { ?>
-                                    <a class="legenda-medico"><span class="bi bi-check-circle"
-                                            style="font-size:1.1rem;font-weight:1000;color:rgb(0,78,86);"></span></a>
+                            <td scope="row">
+                                <?php if (($intern["med_check"] ?? 'n') === "s") { ?>
+                                <a class="legenda-medico"><span class="bi bi-check-circle"
+                                        style="font-size:1.1rem;font-weight:1000;color:rgb(0,78,86);"></span></a>
                                     <?php } ?>
                                 </td>
                                 <td scope="row">
