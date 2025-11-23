@@ -225,7 +225,7 @@
                                                         class="fa-solid fa-clock edit-icon"></i>Historico</button>
                                             </li>
                                             <li>
-                                                <a href="<?= $BASE_URL ?>hub_paciente?id_paciente=<?= $id_paciente ?>"
+                                                <a href="<?= $BASE_URL ?>hub_paciente/paciente<?= $id_paciente ?>"
                                                     class="btn" style="font-size: .9rem;">
                                                     <i class="fa-solid fas fa-book-medical"
                                                         style="font-size: 1rem; margin-right:5px; color: rgb(0, 123, 255);"></i>
