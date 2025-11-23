@@ -5,7 +5,7 @@
     <title>Rodapé FullCare</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="css/footer-with-button-logo.css">
+    <link rel="stylesheet" href="<?= $BASE_URL ?>css/footer-with-button-logo.css">
 </head>
 
 <body>
@@ -13,8 +13,8 @@
         <div class="container">
             <div class="row">
                 <div class="col-sm-3">
-                    <a class="navbar-brand" href="index.php">
-                        <img src="<?php $BASE_URL ?>img/full-03.png"
+                    <a class="navbar-brand" href="<?= $BASE_URL ?>inicio">
+                        <img src="<?= $BASE_URL ?>img/full-03.png"
                             style="width:90px; height:10  0px;margin-top:-40px " alt="Full">
                     </a>
                 </div>
@@ -45,15 +45,15 @@
                 </div>
                 <div class="col-sm">
                     <div class="social-networks">
-                        <a href="https://www.linkedin.com/in/accertconsult/" style="font-size:1.2em" class="twitter"><i
-                                class="fa fa-twitter" target="_blank"></i>Linkedin</a>
-                        <a href="https://accertconsult.com.br/" style="font-size:1.2em" class="facebook"><i
-                                class="fa fa-facebook" target="_blank"></i>Facebook</a>
-                        <a href="https://www.instagram.com/accert_consult/" style="font-size:1.2em" class="instagram"><i
-                                class="fa fa-instagram" target="_blank"></i>Instagram</a>
+                        <a href="https://www.linkedin.com/in/accertconsult/" target="_blank" style="font-size:1.2em"
+                            class="linkedin"><i class="bi bi-linkedin text-primary me-1"></i>Linkedin</a>
+                        <a href="https://accertconsult.com.br/" target="_blank" style="font-size:1.2em"
+                            class="facebook"><i class="bi bi-facebook text-primary me-1"></i>Facebook</a>
+                        <a href="https://www.instagram.com/accert_consult/" target="_blank" style="font-size:1.2em"
+                            class="instagram"><i class="bi bi-instagram text-danger me-1"></i>Instagram</a>
                     </div>
-                    <a href="https://accertconsult.com.br/contato">
-                        <button type="button" class="btn btn-default" target="_blank">Contato</button>
+                    <a href="https://accertconsult.com.br/contato" target="_blank">
+                        <button type="button" class="btn btn-default">Contato</button>
                     </a>
                 </div>
             </div>

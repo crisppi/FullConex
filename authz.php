@@ -90,7 +90,7 @@ final class Gate
         $_SESSION['mensagem_tipo'] = 'danger'; // vermelho
 
         // redireciona direto para a lista (sem ecoar nada)
-        $target = $to ?: ($BASE_URL . 'menu_app.php');
+        $target = $to ?: ($BASE_URL . 'dashboard');
         header('Location: ' . $target, true, 303); // 303 evita re-post
         exit;
     }
@@ -100,7 +100,7 @@ final class Gate
     {
         // 1) Mapa manual (AJUSTE AQUI para seus nomes reais)
         $manualMap = [
-            'internac' => 'list_internacao.php', // <— exemplo real seu; ajuste se for outro
+            'internac' => 'internacoes/lista', // <— exemplo real seu; ajuste se for outro
             'pacient'  => 'lista_pacientes.php',
             'usuario'  => 'lista_usuario.php',
             'tuss'     => 'lista_tuss.php',
@@ -166,7 +166,7 @@ final class Gate
         }
 
         // 6) Último fallback: menu
-        if (!$toPath) $toPath = 'menu_app.php';
+        if (!$toPath) $toPath = 'dashboard';
 
         // monta URL final
         $toUrl = rtrim($BASE_URL, '/') . '/' . ltrim($toPath, '/');

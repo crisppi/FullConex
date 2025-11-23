@@ -34,7 +34,7 @@ if (isset($_POST["login"])) {
             $senha = $_POST['senha_login'];
             $post = $_POST;
             
-            header("location: menu.php");
+            header("Location: " . $BASE_URL . "menu");
         } else {
             $message = '<label>Usuário ou senha incorretas</label>';
         }

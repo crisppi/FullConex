@@ -235,14 +235,14 @@
                                 <?php if ($current_block > $first_block): ?>
                                 <li class="page-item">
                                     <a class="page-link" id="blocoNovo" href="#"
-                                        onclick="loadContent('list_hospital.php?pesquisa_nome=<?php print $pesquisa_nome ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print 1 ?>&bl=<?php print 0 ?>')">
+                                        onclick="loadContent('hospitais?pesquisa_nome=<?php print $pesquisa_nome ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print 1 ?>&bl=<?php print 0 ?>')">
                                         <i class="fa-solid fa-angles-left"></i></a>
                                 </li>
                                 <?php endif; ?>
                                 <?php if ($current_block <= $last_block && $last_block > 1 && $current_block != 1): ?>
                                 <li class="page-item">
                                     <a class="page-link" href="#"
-                                        onclick="loadContent('list_hospital.php?pesquisa_nome=<?php print $pesquisa_nome ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $paginaAtual - 1 ?>&bl=<?php print $blocoAtual - 5 ?>')">
+                                        onclick="loadContent('hospitais?pesquisa_nome=<?php print $pesquisa_nome ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $paginaAtual - 1 ?>&bl=<?php print $blocoAtual - 5 ?>')">
                                         <i class="fa-solid fa-angle-left"></i> </a>
                                 </li>
                                 <?php endif; ?>
@@ -251,7 +251,7 @@
                                 <li class="page-item <?php print ($_GET['pag'] ?? 1) == $i ? "active" : "" ?>">
 
                                     <a class="page-link" href="#"
-                                        onclick="loadContent('list_hospital.php?pesquisa_nome=<?php print $pesquisa_nome ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $i ?>&bl=<?php print $blocoAtual ?>')">
+                                        onclick="loadContent('hospitais?pesquisa_nome=<?php print $pesquisa_nome ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $i ?>&bl=<?php print $blocoAtual ?>')">
                                         <?php echo $i; ?>
                                     </a>
                                 </li>
@@ -260,14 +260,14 @@
                                 <?php if ($current_block < $last_block): ?>
                                 <li class="page-item">
                                     <a class="page-link" id="blocoNovo" href="#"
-                                        onclick="loadContent('list_hospital.php?pesquisa_nome=<?php print $pesquisa_nome ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $paginaAtual + 1 ?>&bl=<?php print $blocoAtual + 5 ?>')"><i
+                                        onclick="loadContent('hospitais?pesquisa_nome=<?php print $pesquisa_nome ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $paginaAtual + 1 ?>&bl=<?php print $blocoAtual + 5 ?>')"><i
                                             class="fa-solid fa-angle-right"></i></a>
                                 </li>
                                 <?php endif; ?>
                                 <?php if ($current_block < $last_block): ?>
                                 <li class="page-item">
                                     <a class="page-link" id="blocoNovo" href="#"
-                                        onclick="loadContent('list_hospital.php?pesquisa_nome=<?php print $pesquisa_nome ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print count($paginas) ?>&bl=<?php print ($last_block - 1) * 5 ?>')"><i
+                                        onclick="loadContent('hospitais?pesquisa_nome=<?php print $pesquisa_nome ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print count($paginas) ?>&bl=<?php print ($last_block - 1) * 5 ?>')"><i
                                             class="fa-solid fa-angles-right"></i></a>
                                 </li>
                                 <?php endif; ?>
@@ -318,7 +318,7 @@ $(document).ready(function() {
 
 $(document).ready(function() {
     loadContent(
-        'list_hospital.php?pesquisa_nome=<?php print $pesquisa_nome ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print 1 ?>&bl=<?php print 0 ?>'
+        'hospitais?pesquisa_nome=<?php print $pesquisa_nome ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print 1 ?>&bl=<?php print 0 ?>'
     );
 });
 </script>

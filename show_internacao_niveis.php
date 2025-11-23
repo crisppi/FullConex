@@ -76,7 +76,7 @@
 
     <hr>
     <div>
-        <a class="btn btn-success styled" style="margin-left:60px" href="cad_internacao.php">Nova internação</a>
+        <a class="btn btn-success styled" style="margin-left:60px" href="internacoes/nova">Nova internação</a>
     </div>
     <script type="text/javascript">
         // script div de gestao -->

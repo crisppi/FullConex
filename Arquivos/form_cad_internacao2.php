@@ -653,7 +653,7 @@ $acomodacao = $acomodacaoDao->findGeral();
 </script>
 
 <!-- <script src="js/scriptDataInt.js"></script> -->
-<script src="js/text_cad_internacao.js"></script>
+<script src="<?= $BASE_URL ?>js/text_cad_internacao.js"></script>
 <script src="js/select_internacao.js"></script>
 
 <script>

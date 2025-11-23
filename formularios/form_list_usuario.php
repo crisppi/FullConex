@@ -339,7 +339,7 @@ if ($qtdIntItens > $limite) {
                             <?php if ($current_block < $last_block): ?>
                             <li class="page-item">
                                 <a class="page-link" id="blocoNovo" href="#"
-                                    onclick="loadContent('list_internacao.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&pesqInternado=<?php print $pesqInternado ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print count($paginas) ?>&bl=<?php print ($last_block - 1) * 5 ?>')"><i
+                                    onclick="loadContent('internacoes/lista?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&pesqInternado=<?php print $pesqInternado ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print count($paginas) ?>&bl=<?php print ($last_block - 1) * 5 ?>')"><i
                                         class="fa-solid fa-angles-right"></i></a>
                             </li>
                             <?php endif; ?>

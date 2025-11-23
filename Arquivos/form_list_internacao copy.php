@@ -237,16 +237,16 @@ $internacao = new internacaoDAO($conn, $BASE_URL);
         echo "</div>";
         echo "<nav aria-label='Page navigation example'>";
         echo " <ul class='pagination'>";
-        echo " <li class='page-item'><a class='page-link' href='list_internacao.php?pag=1&" . $gets . "''><span aria-hidden='true'>&laquo;</span></a></li>"; ?>
+        echo " <li class='page-item'><a class='page-link' href='internacoes/lista?pag=1&" . $gets . "''><span aria-hidden='true'>&laquo;</span></a></li>"; ?>
         <?= $paginacao; ?>
-        <?php echo "<li class='page-item'><a class='page-link' href='list_internacao.php?pag=$totalcasos&" . $gets . "''><span aria-hidden='true'>&raquo;</span></a></li>";
+        <?php echo "<li class='page-item'><a class='page-link' href='internacoes/lista?pag=$totalcasos&" . $gets . "''><span aria-hidden='true'>&raquo;</span></a></li>";
         echo " </ul>";
         echo "</nav>";?>
         <hr>
     </div>
 
     <div>
-        <a class="btn btn-success styled" href="cad_internacao.php">Nova internação</a>
+        <a class="btn btn-success styled" href="internacoes/nova">Nova internação</a>
     </div>
 </div>
 <script>

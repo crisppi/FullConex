@@ -338,7 +338,7 @@
       <div>Especialidade: ${esc(int.especialidade || int.especialidade_int || '—')}</div>
     ` : `
       <div class="text-muted">Paciente sem internação ativa.</div>
-      <div class="mt-2"><a class="btn btn-primary btn-sm" href="cad_internacao.php?id_paciente=${encodeURIComponent(getPacienteId() || '')}">Lançar Internação</a></div>
+      <div class="mt-2"><a class="btn btn-primary btn-sm" href="internacoes/nova?id_paciente=${encodeURIComponent(getPacienteId() || '')}">Lançar Internação</a></div>
     `;
 
     box.innerHTML = `

@@ -24,6 +24,7 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FullCare</title>
+    <base href="<?= $BASE_URL ?>">
     <link rel="shortcut icon" type="image/x-icon" href="<?= $BASE_URL ?>img/full-ico.ico">
 
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -168,7 +169,7 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                 Menu
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>menu_app.php"><i
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>dashboard"><i
                                             class="bi bi-person"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
                                         Dashboard</a></li>
@@ -230,15 +231,15 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                             class="bi bi-person"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
                                         Pacientes</a></li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_hospital.php"><span
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>hospitais"><span
                                             class="bi bi-hospital"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(67, 125, 525);"></span>
                                         Hospitais</a></li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_seguradora.php"><span
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>seguradoras"><span
                                             class=" bi bi-heart-pulse"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(178, 156, 55);"></span>
                                         Seguradora</a></li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_estipulante.php"><i
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>estipulantes"><i
                                             class="bi bi-building"
                                             style="font-size:  1rem;margin-right:5px; color: rgb(213, 12, 155);"></i>
                                         Estipulante</a></li>
@@ -273,11 +274,11 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
 
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>cad_internacao.php"><i
+                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>internacoes/nova"><i
                                             class="bi bi-calendar2-date"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i> Nova
                                         Internação</a></li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_censo.php"><i
+                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>censo/lista"><i
                                             class="bi bi-book"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(222, 156, 55);"></i>
                                         Censo</a></li>
@@ -285,7 +286,7 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                     <hr class="dropdown-divider">
                                 </li>
 
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao.php"> <i
+                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>internacoes/lista"> <i
                                             class="bi bi-calendar2-date"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
 
@@ -325,11 +326,11 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
 
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_censo.php"><i
+                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>censo/lista"><i
                                             class="bi bi-book"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(222, 156, 55);"></i>
                                         Censo</a></li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao.php"> <i
+                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>internacoes/lista"> <i
                                             class="bi bi-calendar2-date"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
                                         Internação</a></li>
@@ -724,7 +725,7 @@ function renderResults(items) {
     }
 
     const html = items.map((p, idx) => `
-        <a href="hub_paciente.php?id_paciente=${encodeURIComponent(p.id_paciente)}"
+        <a href="hub_paciente/paciente${encodeURIComponent(p.id_paciente)}"
             class="dropdown-item d-flex justify-content-between align-items-center ${idx === 0 ? 'active' : ''}"
             data-id="${p.id_paciente}">
             <div>

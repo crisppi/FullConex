@@ -41,7 +41,7 @@ if ($type === "create") {
     $tuss->tuss_liberado_sn = $tuss_liberado_sn;
     $tussDao->create($tuss);
 
-    header("location:list_internacao.php");
+    header("location:internacoes/lista");
 }
 
 if ($type === "create-vis") {

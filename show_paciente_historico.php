@@ -73,7 +73,7 @@ $total_diarias_uti = $Internacao_geral->findTotalDiariasUtiByPacId($paciente['0'
 
                 </ul>
                 <div class="card-body">
-                    <a href="cad_internacao.php" class="card-link">Lançar Internação </a>
+                    <a href="internacoes/nova" class="card-link">Lançar Internação </a>
                 </div>
             </div>
         </div>

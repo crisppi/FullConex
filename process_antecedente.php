@@ -42,7 +42,7 @@ if ($type === "create-ant") {
         $antecedenteDao->create($antecedente);
         header('location:list_antecedente.php');
     } else {
-        $message->setMessage("Você precisa adicionar pelo menos: Antecedente!", "error", "cad_internacao.php");
+        $message->setMessage("Você precisa adicionar pelo menos: Antecedente!", "error", "internacoes/nova");
     }
 } else if ($type === "update-ant") {
 

@@ -245,7 +245,7 @@ class internacaoDAO implements internacaoDAOInterface
         $stmt->execute();
 
         // Mensagem de sucesso por adicionar filme
-        $this->message->setMessage("internacao adicionado com sucesso!", "success", "list_internacao.php");
+        $this->message->setMessage("internacao adicionado com sucesso!", "success", "internacoes/lista");
 
         return $this->findLastId();
     }
@@ -332,7 +332,7 @@ class internacaoDAO implements internacaoDAOInterface
         $stmt->execute();
 
         // Mensagem de sucesso
-        $this->message->setMessage("Internação atualizada com sucesso!", "success", "list_internacao.php");
+        $this->message->setMessage("Internação atualizada com sucesso!", "success", "internacoes/lista");
     }
 
 
@@ -410,7 +410,7 @@ class internacaoDAO implements internacaoDAOInterface
         $stmt->bindParam(":id_internacao", $internacao->id_internacao);
         $stmt->execute();
 
-        // $this->message->setMessage("internacao adicionado com sucesso!", "success", "list_internacao.php");
+        // $this->message->setMessage("internacao adicionado com sucesso!", "success", "internacoes/lista");
     }
     public function updateAlta(internacao $internacao)
     {
@@ -435,7 +435,7 @@ class internacaoDAO implements internacaoDAOInterface
         $stmt->execute();
 
         // Mensagem de sucesso por remover filme
-        $this->message->setMessage("internação removida com sucesso!", "success", "list_internacao.php");
+        $this->message->setMessage("internação removida com sucesso!", "success", "internacoes/lista");
     }
 
 

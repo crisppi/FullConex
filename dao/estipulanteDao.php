@@ -246,7 +246,7 @@ class EstipulanteDAO implements EstipulanteDAOInterface
         $stmt->execute();
 
         // Mensagem de sucesso por adicionar filme
-        $this->message->setMessage("estipulante adicionado com sucesso!", "success", "list_estipulante.php");
+        $this->message->setMessage("estipulante adicionado com sucesso!", "success", "estipulantes");
     }
 
     public function update(Estipulante $estipulante)
@@ -299,7 +299,7 @@ class EstipulanteDAO implements EstipulanteDAOInterface
         $stmt->execute();
 
         // Mensagem de sucesso por editar estipulante
-        $this->message->setMessage("estipulante atualizado com sucesso!", "success", "list_estipulante.php");
+        $this->message->setMessage("estipulante atualizado com sucesso!", "success", "estipulantes");
     }
 
     public function destroy($id_estipulante)
@@ -311,7 +311,7 @@ class EstipulanteDAO implements EstipulanteDAOInterface
         $stmt->execute();
 
         // Mensagem de sucesso por remover filme
-        $this->message->setMessage("estipulante removido com sucesso!", "success", "list_estipulante.php");
+        $this->message->setMessage("estipulante removido com sucesso!", "success", "estipulantes");
     }
 
     public function deletarUpdate(estipulante $estipulante)
@@ -330,7 +330,7 @@ class EstipulanteDAO implements EstipulanteDAOInterface
         $stmt->execute();
 
         // Mensagem de sucesso por editar hospital
-        $this->message->setMessage("estipulante deletado com sucesso!", "success", "list_estipulante.php");
+        $this->message->setMessage("estipulante deletado com sucesso!", "success", "estipulantes");
     }
 
 

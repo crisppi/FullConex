@@ -162,7 +162,7 @@ if (typeof jQuery !== 'undefined') {
             </a>
 
             <!-- Botão de Nova Internação -->
-            <a class="btn btn-success" href="<?= $BASE_URL ?>cad_internacao.php"
+            <a class="btn btn-success" href="<?= $BASE_URL ?>internacoes/nova"
                 style="border-radius:10px;background-color:#35bae1;font-family:var(--bs-font-sans-serif);box-shadow:0px 10px 15px -3px rgba(0,0,0,0.1);border:none">
                 <i class="fa-solid fa-plus" style="font-size:1rem;margin-right:5px;"></i>
                 Nova Internação
@@ -645,7 +645,7 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                             <?php if ($current_block > $first_block): ?>
                             <li class="page-item">
                                 <a class="page-link" id="blocoNovo" href="#"
-                                    onclick="loadContent('list_internacao.php?pesquisa_nome=<?= $pesquisa_nome ?>&pesquisa_pac=<?= $pesquisa_pac ?>&senha_int=<?= $senha_int ?>&data_intern_int=<?= $data_intern_int ?>&pesqInternado=<?= $pesqInternado ?>&limite_pag=<?= $limite ?>&ordenar=<?= $ordenar ?>&pag=1&bl=0')">
+                                    onclick="loadContent('internacoes/lista?pesquisa_nome=<?= $pesquisa_nome ?>&pesquisa_pac=<?= $pesquisa_pac ?>&senha_int=<?= $senha_int ?>&data_intern_int=<?= $data_intern_int ?>&pesqInternado=<?= $pesqInternado ?>&limite_pag=<?= $limite ?>&ordenar=<?= $ordenar ?>&pag=1&bl=0')">
                                     <i class="fa-solid fa-angles-left"></i></a>
                             </li>
                             <?php endif; ?>
@@ -653,7 +653,7 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                             <?php if ($current_block <= $last_block && $last_block > 1 && $current_block != 1): ?>
                             <li class="page-item">
                                 <a class="page-link" href="#"
-                                    onclick="loadContent('list_internacao.php?pesquisa_nome=<?= $pesquisa_nome ?>&pesquisa_pac=<?= $pesquisa_pac ?>&senha_int=<?= $senha_int ?>&data_intern_int=<?= $data_intern_int ?>&pesqInternado=<?= $pesqInternado ?>&limite_pag=<?= $limite ?>&ordenar=<?= $ordenar ?>&pag=<?= $paginaAtual - 1 ?>&bl=<?= $blocoAtual - 5 ?>')">
+                                    onclick="loadContent('internacoes/lista?pesquisa_nome=<?= $pesquisa_nome ?>&pesquisa_pac=<?= $pesquisa_pac ?>&senha_int=<?= $senha_int ?>&data_intern_int=<?= $data_intern_int ?>&pesqInternado=<?= $pesqInternado ?>&limite_pag=<?= $limite ?>&ordenar=<?= $ordenar ?>&pag=<?= $paginaAtual - 1 ?>&bl=<?= $blocoAtual - 5 ?>')">
                                     <i class="fa-solid fa-angle-left"></i> </a>
                             </li>
                             <?php endif; ?>
@@ -661,7 +661,7 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                             <?php for ($i = $first_page_in_block; $i <= $last_page_in_block; $i++): ?>
                             <li class="page-item <?= ($_GET['pag'] ?? 1) == $i ? "active" : "" ?>">
                                 <a class="page-link" href="#"
-                                    onclick="loadContent('list_internacao.php?pesquisa_nome=<?= $pesquisa_nome ?>&pesquisa_pac=<?= $pesquisa_pac ?>&senha_int=<?= $senha_int ?>&data_intern_int=<?= $data_intern_int ?>&pesqInternado=<?= $pesqInternado ?>&limite_pag=<?= $limite ?>&ordenar=<?= $ordenar ?>&pag=<?= $i ?>&bl=<?= $blocoAtual ?>')">
+                                    onclick="loadContent('internacoes/lista?pesquisa_nome=<?= $pesquisa_nome ?>&pesquisa_pac=<?= $pesquisa_pac ?>&senha_int=<?= $senha_int ?>&data_intern_int=<?= $data_intern_int ?>&pesqInternado=<?= $pesqInternado ?>&limite_pag=<?= $limite ?>&ordenar=<?= $ordenar ?>&pag=<?= $i ?>&bl=<?= $blocoAtual ?>')">
                                     <?= $i ?>
                                 </a>
                             </li>
@@ -670,7 +670,7 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                             <?php if ($current_block < $last_block): ?>
                             <li class="page-item">
                                 <a class="page-link" id="blocoNovo" href="#"
-                                    onclick="loadContent('list_internacao.php?pesquisa_nome=<?= $pesquisa_nome ?>&pesquisa_pac=<?= $pesquisa_pac ?>&senha_int=<?= $senha_int ?>&data_intern_int=<?= $data_intern_int ?>&pesqInternado=<?= $pesqInternado ?>&limite_pag=<?= $limite ?>&ordenar=<?= $ordenar ?>&pag=<?= $paginaAtual + 1 ?>&bl=<?= $blocoAtual + 5 ?>')">
+                                    onclick="loadContent('internacoes/lista?pesquisa_nome=<?= $pesquisa_nome ?>&pesquisa_pac=<?= $pesquisa_pac ?>&senha_int=<?= $senha_int ?>&data_intern_int=<?= $data_intern_int ?>&pesqInternado=<?= $pesqInternado ?>&limite_pag=<?= $limite ?>&ordenar=<?= $ordenar ?>&pag=<?= $paginaAtual + 1 ?>&bl=<?= $blocoAtual + 5 ?>')">
                                     <i class="fa-solid fa-angle-right"></i></a>
                             </li>
                             <?php endif; ?>
@@ -678,7 +678,7 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                             <?php if ($current_block < $last_block): ?>
                             <li class="page-item">
                                 <a class="page-link" id="blocoNovo" href="#"
-                                    onclick="loadContent('list_internacao.php?pesquisa_nome=<?= $pesquisa_nome ?>&pesquisa_pac=<?= $pesquisa_pac ?>&senha_int=<?= $senha_int ?>&data_intern_int=<?= $data_intern_int ?>&pesqInternado=<?= $pesqInternado ?>&limite_pag=<?= $limite ?>&ordenar=<?= $ordenar ?>&pag=<?= count($paginas) ?>&bl=<?= ($last_block - 1) * 5 ?>')">
+                                    onclick="loadContent('internacoes/lista?pesquisa_nome=<?= $pesquisa_nome ?>&pesquisa_pac=<?= $pesquisa_pac ?>&senha_int=<?= $senha_int ?>&data_intern_int=<?= $data_intern_int ?>&pesqInternado=<?= $pesqInternado ?>&limite_pag=<?= $limite ?>&ordenar=<?= $ordenar ?>&pag=<?= count($paginas) ?>&bl=<?= ($last_block - 1) * 5 ?>')">
                                     <i class="fa-solid fa-angles-right"></i></a>
                             </li>
                             <?php endif; ?>
@@ -920,7 +920,7 @@ $(document).ready(function() {
         var formData = $(this).serialize();
 
         $.ajax({
-            url: $(this).attr('action') || 'list_internacao.php',
+            url: $(this).attr('action') || 'internacoes/lista',
             type: $(this).attr('method') || 'GET',
             data: formData,
             success: function(response) {

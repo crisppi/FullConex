@@ -155,9 +155,7 @@ function deletar() {
 function cancelar() {
     let idAcoes = (document.getElementById('id-confirmacao'));
     idAcoes.style.display = 'none';
-    window.location = "<?= $BASE_URL ?>list_hospital.php?>";
-
-
+    window.location = "<?= $BASE_URL ?>hospitais";
 };
 src = "https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js";
 </script>

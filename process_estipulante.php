@@ -123,7 +123,7 @@ if ($type === "create") {
 
             $message->setMessage("Você precisa adicionar pelo menos: nome_est do estipulante!", "error", "back");
         }
-        header("location:list_estipulante.php");
+        header('Location: ' . $BASE_URL . 'estipulantes');
     }
 }
 if ($type === "update") {
@@ -225,7 +225,7 @@ if ($type === "update") {
 
     $estipulanteDao->update($estipulanteData);
 
-    header("location:list_estipulante.php");
+    header('Location: ' . $BASE_URL . 'estipulantes');
 }
 
 
@@ -241,7 +241,7 @@ if ($type === "delUpdate") {
     $estipulanteData->deletado_est = $deletado_est;
 
     $estipulanteDao->deletarUpdate($estipulanteData);
-    header("location:list_estipulante.php");
+    header('Location: ' . $BASE_URL . 'estipulantes');
 }
 
 if ($type === "delete") {

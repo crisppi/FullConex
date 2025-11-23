@@ -411,7 +411,7 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar
                         <div class="table-new-btn">
                             <a class="btn btn-success styled"
                                 style="background-color: #35bae1;font-family:var(--bs-font-sans-serif);box-shadow: 0px 10px 15px -3px rgba(0,0,0,0.1);border:none"
-                                href="cad_internacao.php"><i class="fa-solid fa-plus" style='font-size: 1rem;'></i>Nova
+                                href="internacoes/nova"><i class="fa-solid fa-plus" style='font-size: 1rem;'></i>Nova
                                 internação</a>
                         </div>
 

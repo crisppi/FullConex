@@ -21,5 +21,5 @@ if ($type === "delete") {
     print_r($id_censo);
     // exit();
     $censoDao->destroy($id_censo);
-    include_once('list_censo.php');
+    include_once('censo/lista');
 }

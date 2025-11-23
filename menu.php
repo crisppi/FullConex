@@ -27,18 +27,18 @@ require_once("templates/header.php");
         <div class="col lista_menu">
             <hr>
             <li>
-                <a href="cad_censo.php" <?php if ($_SESSION['nivel'] < 2) { ?> style="pointer-events: none"
+                <a href="censo/novo" <?php if ($_SESSION['nivel'] < 2) { ?> style="pointer-events: none"
                     ?<?php } ?>><i class="bi bi-book"
                         style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
                     Censo</a>
             </li>
-            <li><a href="<?php $BASE_URL ?>list_censo.php"><i class="bi bi-book"
+            <li><a href="<?php $BASE_URL ?>censo/lista"><i class="bi bi-book"
                         style="font-size: 1rem;margin-right:5px; color: rgb(27, 156, 55);"></i> Lista
                     Censo</a>
             </li>
             <li>
-                <a href="cad_internacao.php" <?php if ($_SESSION['nivel'] < 2) { ?> style="pointer-events: none"
-                    ?<?php } ?>><i class="bi bi-calendar2-date"
+                <a href="internacoes/nova" <?php if ($_SESSION['nivel'] < 2) { ?> style="pointer-events: none"
+                    <?php } ?>><i class="bi bi-calendar2-date"
                         style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i> Nova Internação</a>
             </li>
             <li>
@@ -49,7 +49,7 @@ require_once("templates/header.php");
             <hr>
 
             <li>
-                <a href="list_internacao.php" <?php if ($_SESSION['nivel'] < 2) { ?> style="pointer-events: none"
+                <a href="internacoes/lista" <?php if ($_SESSION['nivel'] < 2) { ?> style="pointer-events: none"
                     ?<?php } ?>><i class="bi bi-calendar2-date"
                         style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i> Lista Internação</a>
             </li>
@@ -199,12 +199,12 @@ require_once("templates/header.php");
 
             <li>
                 <a href="pacientes" <?php if ($_SESSION['nivel'] < 2) { ?> style="pointer-events: none"
-                    ?<?php } ?>><span class="bi bi-person"
+                    <?php } ?>><span class="bi bi-person"
                         style="font-size: 1rem;margin-right:5px; color: rgb(155, 155, 76);"></span> Pacientes</a>
             </li>
             <li>
-                <a href="list_hospital.php" <?php if ($_SESSION['nivel'] < 4) { ?> style="pointer-events: none"
-                    ?<?php } ?>><span class="bi bi-hospital"
+                <a href="hospitais" <?php if ($_SESSION['nivel'] < 4) { ?> style="pointer-events: none"
+                    <?php } ?>><span class="bi bi-hospital"
                         style="font-size: 1rem;margin-right:5px; color: rgb(67, 125, 525);"></span> Hospital</a>
             </li>
             <li>
@@ -213,13 +213,13 @@ require_once("templates/header.php");
                         style="font-size: 1rem; margin-right:5px; color: rgb(155, 16, 76);"></i> Usuário</a>
             </li>
             <li>
-                <a href="list_estipulante.php" <?php if ($_SESSION['nivel'] < 4) { ?> style="pointer-events: none"
-                    ?<?php } ?>><i class="bi bi-building"
+                <a href="estipulantes" <?php if ($_SESSION['nivel'] < 4) { ?> style="pointer-events: none"
+                    <?php } ?>><i class="bi bi-building"
                         style="font-size: 1rem;margin-right:5px; color: rgb(213, 12, 155);"></i> Estipulante</a>
             </li>
             <li>
-                <a href="list_seguradora.php" <?php if ($_SESSION['nivel'] < 4) { ?> style="pointer-events: none"
-                    ?<?php } ?>><span class="bi bi-heart-pulse"
+                <a href="seguradoras" <?php if ($_SESSION['nivel'] < 4) { ?> style="pointer-events: none"
+                    <?php } ?>><span class="bi bi-heart-pulse"
                         style="font-size: 1rem;margin-right:5px; color: rgb(255, 215, 55);"></span> Seguradora</a>
             </li>
         </div>

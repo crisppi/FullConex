@@ -279,7 +279,7 @@ class gestaoDAO implements gestaoDAOInterface
             die("SQL Error: " . $errorInfo[2]);
         }
 
-        $this->message->setMessage("Gestão adicionada com sucesso!", "success", "list_internacao.php");
+        $this->message->setMessage("Gestão adicionada com sucesso!", "success", "internacoes/lista");
     }
 
     public function update(gestao $gestao)
@@ -328,7 +328,7 @@ class gestaoDAO implements gestaoDAOInterface
         $stmt->execute();
 
         // Mensagem de sucesso ao editar gestão
-        $this->message->setMessage("Gestão atualizada com sucesso!", "success", "list_internacao.php");
+        $this->message->setMessage("Gestão atualizada com sucesso!", "success", "internacoes/lista");
     }
 
 

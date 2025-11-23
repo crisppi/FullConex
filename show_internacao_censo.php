@@ -80,7 +80,7 @@
     <hr>
     <div>
         <a class="btn btn-success styled btn-int-niveis" style="margin-left:10px; width: 150px"
-            href="cad_internacao.php">Nova internação</a>
+            href="internacoes/nova">Nova internação</a>
     </div>
 
 

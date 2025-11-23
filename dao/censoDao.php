@@ -108,7 +108,7 @@ class censoDAO implements censoDAOInterface
         $stmt->execute();
 
         // Mensagem de sucesso por adicionar filme
-        // $this->message->setMessage("censo adicionado com sucesso!", "success", "list_internacao.php");
+        // $this->message->setMessage("censo adicionado com sucesso!", "success", "internacoes/lista");
     }
 
     public function selectAllCensoList($where = null, $order = null, $limit = null)
@@ -179,7 +179,7 @@ class censoDAO implements censoDAOInterface
         $stmt->execute();
 
         // Mensagem de sucesso por adicionar filme
-        $this->message->setMessage("Censo internado com sucesso!", "success", "list_censo.php");
+        $this->message->setMessage("Censo internado com sucesso!", "success", "censo/lista");
     }
     public function destroy($id_censo)
     {
@@ -190,7 +190,7 @@ class censoDAO implements censoDAOInterface
         $stmt->execute();
 
         // Mensagem de sucesso por remover filme
-        $this->message->setMessage("censo removido com sucesso!", "success", "list_censo.php");
+        $this->message->setMessage("censo removido com sucesso!", "success", "censo/lista");
     }
     public function findGeral()
     {

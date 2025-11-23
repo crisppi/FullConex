@@ -399,7 +399,7 @@ if ($type === "create") {
         dbg("CREATE concluído. Redirecionamento suprimido no debug.");
         exit;
     }
-    header("Location: list_internacao.php");
+    header("Location: internacoes/lista");
     exit;
 }
 

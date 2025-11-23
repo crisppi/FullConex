@@ -61,7 +61,7 @@ if ($query[0]['ativo_user'] == "s") {
 
     if ($_SESSION['nivel'] == -1) {
         (header('location: list_internacao_cap_fin.php'));
-    } else header('location: menu_app.php');
+    } else header('Location: ' . $BASE_URL . 'dashboard');
 
 
     if ($query[0]['senha_default_user'] == "s") {
@@ -92,18 +92,18 @@ if ($query[0]['ativo_user'] == "s") {
 
             if ($_SESSION['nivel'] == -1) {
                 (header('location: list_internacao_cap_fin.php'));
-            } else header('location: menu_app.php');
+            } else header('Location: ' . $BASE_URL . 'dashboard');
         } else {
             $erro_login = "Usuário ou senha inválidos";
             $_SESSION['mensagem'] = $erro_login;
-            header('location: index.php');
+            header('Location: ' . $BASE_URL . 'inicio');
         }
     };
 } else {
 
     $erro_login = "Usuário Inativo!!";
     $_SESSION['mensagem'] = $erro_login;
-    header('location: index.php');
+    header('Location: ' . $BASE_URL . 'inicio');
 
 
     //verifica o cargo do usuario logado para ver se é enfermeiro ou auditor, caso contrario o cargo ficara nulo 

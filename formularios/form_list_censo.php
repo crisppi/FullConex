@@ -53,7 +53,7 @@ $user = $_SESSION['id_usuario'];
         <div>
             <a class="btn btn-success"
                 style="border-radius:10px;background-color: #35bae1;font-family:var(--bs-font-sans-serif);box-shadow: 0px 10px 15px -3px rgba(0,0,0,0.1);border:none"
-                href="cad_censo.php"><i class="fa-solid fa-plus" style='font-size: 1rem;margin-right:5px;'></i>Novo
+                href="censo/novo"><i class="fa-solid fa-plus" style='font-size: 1rem;margin-right:5px;'></i>Novo
                 lançamento</a>
 
             <a onclick="sendIdListToPHP()" id="submitInter" class="btn btn-success"
@@ -435,7 +435,7 @@ $(document).ready(function() {
 
 $(document).ready(function() {
     loadContent(
-        'list_censo.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&pesqInternado=<?php print $pesqInternado ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print 1 ?>&bl=<?php print 0 ?>'
+        'censo/lista?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&pesqInternado=<?php print $pesqInternado ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print 1 ?>&bl=<?php print 0 ?>'
     );
 });
 </script>

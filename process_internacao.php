@@ -761,5 +761,5 @@ if ($type == "update") {
         $tussDao->create($tuss);
     }
 
-    header("location:list_internacao.php");
+    header("location:internacoes/lista");
 }

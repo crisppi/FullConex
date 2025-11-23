@@ -67,7 +67,7 @@ if ($type === "create") {
     $gestao->fk_user_ges = $fk_user_ges;
 
     $gestaoDao->create($gestao);
-    header("location:list_internacao.php");
+    header("location:internacoes/lista");
 } else if ($type === "update") {
     // Receber os dados dos inputs
     $id_gestao = filter_input(INPUT_POST, "id_gestao");
@@ -132,5 +132,5 @@ if ($type === "create") {
     $gestao->fk_user_ges = $fk_user_ges;
     $gestaoDao->update($gestao);
 
-    header("location:list_internacao.php");
+    header("location:internacoes/lista");
 }
