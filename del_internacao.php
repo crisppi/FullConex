@@ -29,7 +29,7 @@ if ($type === "delete") {
 
         $internacaoDao->destroy($id_internacao);
 
-        include_once('list_internacao.php');
+        include_once('internacoes/lista');
     } else {
 
         //$message->setMessage("Informações inválidas!", "error", "index.php");

@@ -75,5 +75,5 @@ if ($typeUTI == "createUTI") {
         $message->setMessage("Você precisa adicionar pelo menos: Uti!", "error", "back");
     }
 
-    include_once('list_internacao.php');
+    include_once('internacoes/lista');
 }

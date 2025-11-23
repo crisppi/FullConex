@@ -108,7 +108,7 @@ class censoDAO implements censoDAOInterface
         $stmt->execute();
 
         // Mensagem de sucesso por adicionar filme
-        // $this->message->setMessage("censo adicionado com sucesso!", "success", "list_internacao.php");
+        // $this->message->setMessage("censo adicionado com sucesso!", "success", "internacoes/lista");
     }
 
     public function selectAllCensoList($where = null, $order = null, $limit = null)

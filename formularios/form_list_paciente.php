@@ -234,7 +234,7 @@
                                             </li>
 
                                             <li>
-                                                <a href="<?= $BASE_URL ?>cad_internacao.php?id_paciente=<?= (int)$id_paciente ?>"
+                                                <a href="<?= $BASE_URL ?>internacoes/nova?id_paciente=<?= (int)$id_paciente ?>"
                                                     class="btn" style="font-size:.9rem;">
                                                     <i class="fa-solid fa-notes-medical"
                                                         style="font-size:1rem;margin-right:5px;color:#007bff;"></i>

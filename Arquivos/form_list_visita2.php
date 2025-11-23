@@ -313,7 +313,7 @@ $internacao = new internacaoDAO($conn, $BASE_URL);
                 </table>
                 <div class="container" style="display: flex;">
                     <div>
-                        <a class="btn btn-success styled" style="background-color: #35bae1;font-family:var(--bs-font-sans-serif);box-shadow: 0px 10px 15px -3px rgba(0,0,0,0.1);border:none" href="cad_internacao.php">Nova internação</a>
+                        <a class="btn btn-success styled" style="background-color: #35bae1;font-family:var(--bs-font-sans-serif);box-shadow: 0px 10px 15px -3px rgba(0,0,0,0.1);border:none" href="internacoes/nova">Nova internação</a>
                     </div>
 
                     <div class="pagination" style="margin: 0 auto;">

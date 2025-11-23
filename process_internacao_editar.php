@@ -327,7 +327,7 @@ try {
     $conn->commit();
 
     // redirect único após todo o processamento
-    header('Location: list_internacao.php');
+    header('Location: internacoes/lista');
     exit;
 } catch (Throwable $e) {
     $conn->rollBack();

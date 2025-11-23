@@ -373,7 +373,7 @@
 
 
             <div>
-                <a class="btn btn-success styled" href="cad_internacao.php">Novo capeante</a>
+                <a class="btn btn-success styled" href="internacoes/nova">Novo capeante</a>
             </div>
     </div>
     <!------------------------------------>

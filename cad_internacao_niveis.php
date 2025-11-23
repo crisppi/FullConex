@@ -90,7 +90,7 @@ $listHopitaisPerfil = $hospitalList->joinHospitalUser($id_hospitalUser);
     </div>
     <hr>
     <div>
-        <a class="btn btn-success styled" href="cad_internacao.php">Nova internação</a>
+        <a class="btn btn-success styled" href="internacoes/nova">Nova internação</a>
     </div>
     <!-- FORMULARIO DE GESTÃO -->
     <?php include_once('formularios/form_cad_internacao_gestao.php'); ?>

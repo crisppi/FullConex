@@ -232,23 +232,23 @@ include_once("models/pagination.php");
         echo "</div>";
         echo "<nav aria-label='Page navigation example'>";
         echo " <ul class='pagination'>";
-        echo " <li class='page-item'><a class='page-link' href='list_internacao.php?pg=1'><span aria-hidden='true'>&laquo;</span></a></li>";
+        echo " <li class='page-item'><a class='page-link' href='internacoes/lista?pg=1'><span aria-hidden='true'>&laquo;</span></a></li>";
         if ($qtdPag > 1 && $pg <= $qtdPag) {
             for ($i = 1; $i <= $qtdPag; $i++) {
                 if ($i == $pg) {
                     echo "<li class='page-item active'><a class='page-link' class='ativo'>" . $i . "</a></li>";
                 } else {
-                    echo "<li class='page-item '><a class='page-link' href='list_internacao.php?pg=$i&pesquisa_hosp=&pesquisando=&pesqInternado=$pesquisando'>" . $i . "</a></li>";
+                    echo "<li class='page-item '><a class='page-link' href='internacoes/lista?pg=$i&pesquisa_hosp=&pesquisando=&pesqInternado=$pesquisando'>" . $i . "</a></li>";
                 }
             }
         }
-        echo "<li class='page-item'><a class='page-link' href='list_internacao.php?pg=$qtdPag&pesquisa_hosp=&pesquisando=&pesqInternado=$pesquisando'><span aria-hidden='true'>&raquo;</span></a></li>";
+        echo "<li class='page-item'><a class='page-link' href='internacoes/lista?pg=$qtdPag&pesquisa_hosp=&pesquisando=&pesqInternado=$pesquisando'><span aria-hidden='true'>&raquo;</span></a></li>";
         echo " </ul>";
         echo "</nav>";
         echo "</div>"; ?>
         <div>
             <hr>
-            <a class="btn btn-success styled" style="margin-left:120px" href="cad_internacao.php">Nova internação</a>
+            <a class="btn btn-success styled" style="margin-left:120px" href="internacoes/nova">Nova internação</a>
         </div>
     </div>
 </body>

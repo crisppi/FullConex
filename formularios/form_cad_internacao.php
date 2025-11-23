@@ -485,7 +485,7 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
             <div class="form-group col-sm-3">
                 <label class="control-label" for="fk_cid_int">CID</label>
                 <select class="form-control selectpicker show-tick" data-size="5" id="fk_cid_int" name="fk_cid_int"
-                    data-live-search="true" required>
+                    data-live-search="true">
                     <option value="">Selecione o CID</option>
                     <?php foreach ($cids as $cid): ?>
                     <option value="<?= $cid["id_cid"] ?>">
@@ -1003,7 +1003,7 @@ function teste(evt) {
 }
 </script>
 
-<script src="js/text_cad_internacao.js"></script>
+<script src="<?= $BASE_URL ?>js/text_cad_internacao.js"></script>
 <script src="js/select_internacao.js"></script>
 
 <script>

@@ -100,7 +100,7 @@ final class Gate
     {
         // 1) Mapa manual (AJUSTE AQUI para seus nomes reais)
         $manualMap = [
-            'internac' => 'list_internacao.php', // <— exemplo real seu; ajuste se for outro
+            'internac' => 'internacoes/lista', // <— exemplo real seu; ajuste se for outro
             'pacient'  => 'lista_pacientes.php',
             'usuario'  => 'lista_usuario.php',
             'tuss'     => 'lista_tuss.php',

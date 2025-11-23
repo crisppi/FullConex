@@ -37,8 +37,8 @@ require_once("templates/header.php");
                     Censo</a>
             </li>
             <li>
-                <a href="cad_internacao.php" <?php if ($_SESSION['nivel'] < 2) { ?> style="pointer-events: none"
-                    ?<?php } ?>><i class="bi bi-calendar2-date"
+                <a href="internacoes/nova" <?php if ($_SESSION['nivel'] < 2) { ?> style="pointer-events: none"
+                    <?php } ?>><i class="bi bi-calendar2-date"
                         style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i> Nova Internação</a>
             </li>
             <li>
@@ -49,7 +49,7 @@ require_once("templates/header.php");
             <hr>
 
             <li>
-                <a href="list_internacao.php" <?php if ($_SESSION['nivel'] < 2) { ?> style="pointer-events: none"
+                <a href="internacoes/lista" <?php if ($_SESSION['nivel'] < 2) { ?> style="pointer-events: none"
                     ?<?php } ?>><i class="bi bi-calendar2-date"
                         style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i> Lista Internação</a>
             </li>

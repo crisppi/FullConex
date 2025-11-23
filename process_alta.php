@@ -73,4 +73,4 @@ if ($alta_uti == "alta_uti") {
     $utiDao->findAltaUpdate($UTIData);
 }
 
-header('location:list_internacao.php');
+header('location:internacoes/lista');

@@ -64,10 +64,10 @@ if ($type === "create") {
 
         $utiDao->create($uti);
 
-        header("location:list_internacao.php");
+        header("location:internacoes/lista");
     } else {
         header("Location: javascript:history.back(1)");
-        $message->setMessage("Você precisa adicionar pelo menos: nome da internacao!", "error", "list_internacao.php");
+        $message->setMessage("Você precisa adicionar pelo menos: nome da internacao!", "error", "internacoes/lista");
     }
 } else if ($type === "update") {
 
@@ -114,5 +114,5 @@ if ($type === "create") {
 
     $internacaoDao->update($internacaoData);
 
-    header("location:list_internacao.php");
+    header("location:internacoes/lista");
 }
