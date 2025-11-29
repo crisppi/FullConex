@@ -205,11 +205,18 @@ if ($nome_str) {
 
         <!-- Internações -->
         <div class="tab-pane fade show active" id="tab-internacoes" role="tabpanel">
-          <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-2">
             <h6 class="mb-0">Histórico de internações</h6>
-            <div class="input-group input-group-sm" style="max-width:300px">
-              <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
-              <input id="buscaInternacoes" type="text" class="form-control" placeholder="Filtrar...">
+            <div class="d-flex flex-wrap gap-2">
+              <div class="input-group input-group-sm" style="max-width:260px">
+                <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
+                <input id="buscaInternacoes" type="text" class="form-control" placeholder="Filtrar...">
+              </div>
+              <button class="btn btn-sm btn-primary"
+                data-bs-toggle="modal" data-bs-target="#hubModal"
+                onclick="openModal('<?= $BASE_URL ?>cad_internacao.php?id_paciente=<?= (int)$p['id_paciente'] ?>')">
+                <i class="fa-solid fa-plus me-1"></i> Nova Internação
+              </button>
             </div>
           </div>
 
@@ -300,6 +307,21 @@ if ($nome_str) {
   </div>
 </div>
 
+<!-- Modal genérico para cadastros -->
+<div class="modal fade" id="hubModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xxl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cadastro</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <div class="modal-body">
+        <div id="content-php"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Modal de visualização do RAH -->
 <div class="modal fade" id="rahPreviewModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
@@ -332,6 +354,14 @@ if ($nome_str) {
     --brand-800: #431945;
     --brand-100: #f2e8f7;
     --brand-050: #f9f3fc;
+  }
+
+  #hubModal .modal-dialog {
+    max-width: 95vw;
+  }
+
+  #hubModal .modal-body {
+    min-height: 70vh;
   }
 
   #tab-contas {

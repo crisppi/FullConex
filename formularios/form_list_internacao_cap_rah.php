@@ -41,9 +41,9 @@
     $isFinalContext = ($rahListContext === 'finalizadas');
     $isSenhasContext = ($rahListContext === 'senhas');
     if ($isFinalContext || $isSenhasContext) {
-        $tableColspan = 13;
+        $tableColspan = 10;
     } else {
-        $tableColspan = 17;
+        $tableColspan = 14;
     }
 
     // =====================================================================
@@ -238,13 +238,13 @@
             $__render_rows[] = $row; // mantém, embora não devesse acontecer
             continue;
         }
-        $__render_count = count($__render_rows);
         if (!isset($__seen_cape[$idc])) {
             $__seen_cape[$idc] = true;
             $__render_rows[]   = $row;
         }
     }
     $qtdIntItens_pagina = count($__render_rows);
+    $__render_count     = $qtdIntItens_pagina;
 
     // =====================================================================
     // Blocos e páginas (para navegação)
@@ -452,9 +452,6 @@
                                 <th scope="col" style="width:8%">Data internação</th>
                                 <th scope="col" style="width:8%">Data fechamento</th>
                                 <th scope="col" style="width:8%">Data digitação</th>
-                                <th scope="col" style="width:4%;">Med</th>
-                                <th scope="col" style="width:4%;">Enf</th>
-                                <th scope="col" style="width:4%;">Adm</th>
                                 <th scope="col" style="width:6%;">Cap Encer</th>
                                 <th scope="col" style="width:15%;">Ações</th>
                             </tr>
@@ -471,29 +468,10 @@
                                 <td scope="row"><?= formatDateBrSafe($intern["data_fech_capeante"] ?? null) ?></td>
                                 <td scope="row"><?= formatDateBrSafe($intern["data_digit_capeante"] ?? null) ?></td>
                                 <td scope="row">
-                                    <?php if (($intern["med_check"] ?? 'n') === "s") { ?>
-                                    <a class="legenda-medico"><span class="bi bi-check-circle"
-                                            style="font-size:1.1rem;font-weight:1000;color:rgb(0,78,86);"></span></a>
-                                    <?php } ?>
-                                </td>
-                                <td scope="row">
-                                    <?php if (($intern["enfer_check"] ?? 'n') === "s") { ?>
-                                    <a class="legenda-enfermagem" style="font-weight:bold"><span
-                                            class="bi bi-check-circle"
-                                            style="font-size:1.1rem;font-weight:bold;color:rgb(234,128,55);"></span></a>
-                                    <?php } ?>
-                                </td>
-                                <td scope="row">
-                                    <?php if (($intern["adm_check"] ?? 'n') === "s") { ?>
-                                    <a class="legenda-administrativo"><span class="bi bi-check-circle"
-                                            style="font-size:1.1rem;font-weight:1000;color:rgb(25,78,255);"></span></a>
-                                    <?php } ?>
-                                </td>
-                                <td scope="row">
-                                    <?php if (($intern["encerrado_cap"] ?? 'n') === "s") { ?>
-                                    <a class="legenda-aberto"><span class="bi bi-briefcase"
-                                            style="font-size:1.1rem;color:green;font-weight:800;"></span></a>
-                                    <?php } ?>
+                                        <?php if (($intern["encerrado_cap"] ?? 'n') === "s") { ?>
+                                        <span class="legenda-aberto" style="cursor:default;"><span class="bi bi-briefcase"
+                                                style="font-size:1.1rem;color:green;font-weight:800;"></span></span>
+                                        <?php } ?>
                                 </td>
                                 <td class="action">
                                     <div class="d-flex flex-wrap gap-1 mt-1">
@@ -531,15 +509,9 @@
                                 <th scope="col" style="width:8%">Data internação</th>
                                 <th scope="col" style="width:8%;">Data fechamento</th>
                                 <th scope="col" style="width:8%;">Data digitação</th>
-                                <th scope="col" style="width:4%;">Med</th>
-                                <th scope="col" style="width:4%;">Enf</th>
-                                <th scope="col" style="width:4%;">Adm</th>
                                 <th scope="col" style="width:6%;">Cap Encer</th>
                                 <?php if (!$isSenhasContext): ?>
-                                <th scope="col" style="width:4%;">Parcial</th>
-                                <th scope="col" style="width:3%;">Final</th>
-                                <th scope="col" style="width:3%;">Aberto</th>
-                                <th scope="col" style="width:6%;">Em Audit</th>
+                                <th scope="col" style="width:6%;">Parcial</th>
                                 <?php endif; ?>
                                 <th scope="col" style="width:13%">Ações</th>
                             </tr>
@@ -555,53 +527,15 @@
                             <td scope="row"><?= date('d/m/Y', strtotime($intern["data_intern_int"])) ?></td>
                             <td scope="row"><?= formatDateBrSafe($intern["data_fech_capeante"] ?? null) ?></td>
                             <td scope="row"><?= formatDateBrSafe($intern["data_digit_capeante"] ?? null) ?></td>
-
-                            <td scope="row">
-                                <?php if (($intern["med_check"] ?? 'n') === "s") { ?>
-                                <a class="legenda-medico"><span class="bi bi-check-circle"
-                                        style="font-size:1.1rem;font-weight:1000;color:rgb(0,78,86);"></span></a>
-                                    <?php } ?>
-                                </td>
-                                <td scope="row">
-                                    <?php if (($intern["enfer_check"] ?? 'n') === "s") { ?>
-                                    <a class="legenda-enfermagem" style="font-weight:bold"><span
-                                            class="bi bi-check-circle"
-                                            style="font-size:1.1rem;font-weight:bold;color:rgb(234,128,55);"></span></a>
-                                    <?php } ?>
-                                </td>
-                                <td scope="row">
-                                    <?php if (($intern["adm_check"] ?? 'n') === "s") { ?>
-                                    <a class="legenda-administrativo"><span class="bi bi-check-circle"
-                                            style="font-size:1.1rem;font-weight:1000;color:rgb(25,78,255);"></span></a>
-                                    <?php } ?>
-                                </td>
-                                <?php if (!$isSenhasContext): ?>
-                                    <td scope="row"><?= $intern["parcial_num"]; ?></td>
-                                    <td scope="row">
-                                        <?php if (($intern["senha_finalizada"] ?? 'n') === "s") { ?>
-                                        <a class="legenda-finalizada"><span class="bi bi-briefcase"
-                                                style="font-size:1.1rem;font-weight:800;color:rgb(255,25,55);"></span></a>
-                                        <?php } ?>
-                                    </td>
-                                    <td scope="row">
-                                        <?php if (($intern["aberto_cap"] ?? 'n') === "s") { ?>
-                                        <a class="legenda-aberto"><span class="bi bi-book"
-                                                style="font-size:1.1rem;color:blue;font-weight:800"></span></a>
-                                        <?php } ?>
-                                    </td>
-                                    <td scope="row">
-                                        <?php if (($intern["em_auditoria_cap"] ?? 'n') === "s") { ?>
-                                        <a class="legenda-em-auditoria"><span class="bi bi-pencil-square"
-                                                style="font-size:1.1rem;font-weight:800;color:orange;"></span></a>
-                                        <?php } ?>
-                                    </td>
-                                <?php endif; ?>
                                 <td scope="row">
                                     <?php if (($intern["encerrado_cap"] ?? 'n') === "s") { ?>
                                     <a class="legenda-aberto"><span class="bi bi-briefcase"
                                             style="font-size:1.1rem;color:green;font-weight:800;"></span></a>
                                     <?php } ?>
                                 </td>
+                                <?php if (!$isSenhasContext): ?>
+                                    <td scope="row"><?= $intern["parcial_num"]; ?></td>
+                                <?php endif; ?>
 
                                 <td class="action">
                                     <?php if ($isSenhasContext): ?>
@@ -619,26 +553,24 @@
                                     <?php else: ?>
                                         <?php if (($intern['encerrado_cap'] ?? 'n') !== "s"): ?>
                                             <?php if (($intern['em_auditoria_cap'] ?? 'n') === "s"): ?>
-                                            <a class="legenda-em-auditoria" href="#"
-                                                onclick="edit('<?= $BASE_URL ?>cad_capeante_rah.php?id_capeante=<?= $intern['id_capeante'] ?>')">
+                                            <a class="legenda-em-auditoria" href="<?= $BASE_URL ?>cad_capeante_rah.php?id_capeante=<?= $intern['id_capeante'] ?>">
                                                 <i class="bi bi-file-text"
                                                     style="color:#db5a0f;font-size:1.1em;margin:0 5px"></i>
                                                 <span style="color:#db5a0f;">Analisar</span>
                                             </a>
                                             <?php else: ?>
-                                            <a class="legenda-iniciar" href="#"
-                                                onclick="edit('<?= $BASE_URL ?>cad_capeante_rah.php?id_capeante=<?= $intern['id_capeante'] ?>')">
+                                            <a class="legenda-iniciar" href="<?= $BASE_URL ?>cad_capeante_rah.php?id_capeante=<?= $intern['id_capeante'] ?>">
                                                 <i class="bi bi-file-text"
                                                     style="color:rgb(25,78,255);font-size:1.1em;font-weight:bold;margin:0 5px"></i>
                                                 <span>Rah -</span>
                                             </a>
                                             <?php endif; ?>
                                         <?php else: ?>
-                                        <a class="legenda-encerrado" href="#">
+                                        <span class="legenda-encerrado" style="cursor:not-allowed;">
                                             <i class="bi"
                                                 style="color:black;text-decoration:none;font-size:1.1em;font-weight:bold;margin:0 5px">
                                                 Encerrado</i>
-                                        </a>
+                                        </span>
                                         <?php endif; ?>
 
                                         <a class="legenda-parcial"

@@ -480,7 +480,8 @@ if ($havePages) {
                                             </a>
                                         <?php endif; ?>
                                     <?php else: ?>
-                                        <a class="legenda-encerrado" href="#">
+                                        <a class="legenda-encerrado" href="#"
+                                            onclick="return openCapeantePdf(<?= (int)$intern['id_capeante']; ?>);">
                                             <i class="bi"
                                                 style="color:black;text-decoration:none;font-size:1.1em;font-weight:bold;margin:0 5px">
                                                 Encerrado</i>
@@ -612,6 +613,15 @@ if ($havePages) {
     $(document).ready(function () {
         if ($('#encerrado_cap').length) $('#encerrado_cap').val('n');
     });
+</script>
+
+<script>
+    function openCapeantePdf(idCapeante) {
+        if (!idCapeante) return false;
+        var url = '<?= $BASE_URL ?>export_capeante_pdf.php?id_capeante=' + encodeURIComponent(idCapeante) + '&download=0';
+        window.open(url, '_blank', 'noopener');
+        return false;
+    }
 </script>
 
 <script src="./js/input-estilo.js"></script>

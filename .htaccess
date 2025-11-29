@@ -1,6 +1,5 @@
 RewriteEngine On
 
-# Rota amigável para a listagem de pacientes
 RewriteRule ^pacientes/?$ list_paciente.php [L,QSA]
 RewriteRule ^hospitais/?$ list_hospital.php [L,QSA]
 RewriteRule ^estipulantes/?$ list_estipulante.php [L,QSA]
@@ -10,7 +9,6 @@ RewriteRule ^internacoes/rah/?$ list_internacao_cap_rah.php [L,QSA]
 RewriteRule ^internacoes/rah/finalizadas/?$ contas_finalizadas_rah.php [L,QSA]
 RewriteRule ^internacoes/rah/senhas/?$ senhas_finalizadas_rah.php [L,QSA]
 RewriteRule ^menu/?$ menu.php [L,QSA]
-RewriteRule ^inicio/?$ index.php [L,QSA]
 RewriteRule ^dashboard/?$ menu_app.php [L,QSA]
 RewriteRule ^internacoes/nova/?$ cad_internacao.php [L,QSA]
 RewriteRule ^censo/lista/?$ list_censo.php [L,QSA]

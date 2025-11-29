@@ -43,6 +43,29 @@ $query = $estipulante->selectAllEstipulante($where, $ordenar, $obLimite);
 
 
 $totalcasos = ceil($qtdIntItens / 5);
+
+$estipulantePaginationBaseParams = [
+    'pesquisa_nome' => $pesquisa_nome,
+    'ativo_pac'     => $buscaAtivo,
+    'limite'        => $limite,
+    'ordenar'       => $ordenar,
+];
+
+if (!function_exists('buildEstipulantePaginationUrl')) {
+    function buildEstipulantePaginationUrl(array $baseParams, array $override = []): string
+    {
+        $params = array_merge($baseParams, $override);
+        $params = array_filter($params, function ($value) {
+            return $value !== null && $value !== '';
+        });
+
+        $query = http_build_query($params);
+        global $BASE_URL;
+        $baseUrl = rtrim($BASE_URL, '/') . '/estipulantes';
+
+        return $query ? $baseUrl . '?' . $query : $baseUrl;
+    }
+}
 // PAGINACAO
 if ($qtdIntItens > $limite) {
     $paginacao = '';
@@ -241,41 +264,71 @@ if ($qtdIntItens > $limite) {
                                 $paginaAtual = isset($_GET['pag']) ? $_GET['pag'] : 1;
                                 ?>
                             <?php if ($current_block > $first_block): ?>
+                            <?php
+                                    $firstPageUrl = buildEstipulantePaginationUrl($estipulantePaginationBaseParams, [
+                                        'pag' => 1,
+                                        'bl'  => 0
+                                    ]);
+                                    ?>
                             <li class="page-item">
-                                <a class="page-link" id="blocoNovo" href="#"
-                                    onclick="loadContent('estipulantes?pesquisa_nome=<?php print $pesquisa_nome ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print 1 ?>&bl=<?php print 0 ?>')">
+                                <a class="page-link" id="blocoNovo" href="<?= htmlspecialchars($firstPageUrl) ?>"
+                                    onclick="return paginateEstipulantes('<?= htmlspecialchars($firstPageUrl, ENT_QUOTES) ?>');">
                                     <i class="fa-solid fa-angles-left"></i></a>
                             </li>
                             <?php endif; ?>
                             <?php if ($current_block <= $last_block && $last_block > 1 && $current_block != 1): ?>
+                            <?php
+                                    $prevPageUrl = buildEstipulantePaginationUrl($estipulantePaginationBaseParams, [
+                                        'pag' => max(1, $paginaAtual - 1),
+                                        'bl'  => max(0, $blocoAtual - 5)
+                                    ]);
+                                    ?>
                             <li class="page-item">
-                                <a class="page-link" href="#"
-                                    onclick="loadContent('estipulantes?pesquisa_nome=<?php print $pesquisa_nome ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $paginaAtual - 1 ?>&bl=<?php print $blocoAtual - 5 ?>')">
+                                <a class="page-link" href="<?= htmlspecialchars($prevPageUrl) ?>"
+                                    onclick="return paginateEstipulantes('<?= htmlspecialchars($prevPageUrl, ENT_QUOTES) ?>');">
                                     <i class="fa-solid fa-angle-left"></i> </a>
                             </li>
                             <?php endif; ?>
 
                             <?php for ($i = $first_page_in_block; $i <= $last_page_in_block; $i++): ?>
+                            <?php
+                                    $pageUrl = buildEstipulantePaginationUrl($estipulantePaginationBaseParams, [
+                                        'pag' => $i,
+                                        'bl'  => $blocoAtual
+                                    ]);
+                                    ?>
                             <li class="page-item <?php print ($_GET['pag'] ?? 1) == $i ? "active" : "" ?>">
 
-                                <a class="page-link" href="#"
-                                    onclick="loadContent('estipulantes?pesquisa_nome=<?php print $pesquisa_nome ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $i ?>&bl=<?php print $blocoAtual ?>')">
+                                <a class="page-link" href="<?= htmlspecialchars($pageUrl) ?>"
+                                    onclick="return paginateEstipulantes('<?= htmlspecialchars($pageUrl, ENT_QUOTES) ?>');">
                                     <?php echo $i; ?>
                                 </a>
                             </li>
                             <?php endfor; ?>
 
                             <?php if ($current_block < $last_block): ?>
+                            <?php
+                                    $nextPageUrl = buildEstipulantePaginationUrl($estipulantePaginationBaseParams, [
+                                        'pag' => min($total_pages, $paginaAtual + 1),
+                                        'bl'  => $blocoAtual + 5
+                                    ]);
+                                    ?>
                             <li class="page-item">
-                                <a class="page-link" id="blocoNovo" href="#"
-                                    onclick="loadContent('estipulantes?pesquisa_nome=<?php print $pesquisa_nome ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $paginaAtual + 1 ?>&bl=<?php print $blocoAtual + 5 ?>')"><i
+                                <a class="page-link" id="blocoNovo" href="<?= htmlspecialchars($nextPageUrl) ?>"
+                                    onclick="return paginateEstipulantes('<?= htmlspecialchars($nextPageUrl, ENT_QUOTES) ?>');"><i
                                         class="fa-solid fa-angle-right"></i></a>
                             </li>
                             <?php endif; ?>
                             <?php if ($current_block < $last_block): ?>
+                            <?php
+                                    $lastPageUrl = buildEstipulantePaginationUrl($estipulantePaginationBaseParams, [
+                                        'pag' => count($paginas),
+                                        'bl'  => ($last_block - 1) * 5
+                                    ]);
+                                    ?>
                             <li class="page-item">
-                                <a class="page-link" id="blocoNovo" href="#"
-                                    onclick="loadContent('estipulantes?pesquisa_nome=<?php print $pesquisa_nome ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print count($paginas) ?>&bl=<?php print ($last_block - 1) * 5 ?>')"><i
+                                <a class="page-link" id="blocoNovo" href="<?= htmlspecialchars($lastPageUrl) ?>"
+                                    onclick="return paginateEstipulantes('<?= htmlspecialchars($lastPageUrl, ENT_QUOTES) ?>');"><i
                                         class="fa-solid fa-angles-right"></i></a>
                             </li>
                             <?php endif; ?>
@@ -313,7 +366,11 @@ $(document).ready(function() {
 
                 // Encontre o elemento com o ID "table-content" dentro do elemento temporário
                 var tableContent = tempElement.querySelector('#table-content');
-                $('#table-content').html(tableContent);
+                if (tableContent) {
+                    $('#table-content').html(tableContent.innerHTML);
+                } else {
+                    $('#table-content').html(response);
+                }
             },
             error: function() {
                 $('#responseMessage').html('Ocorreu um erro ao enviar o formulário.');
@@ -323,9 +380,16 @@ $(document).ready(function() {
 });
 
 $(document).ready(function() {
-    loadContent(
-        'estipulantes?pesquisa_nome=<?php print $pesquisa_nome ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print 1 ?>&bl=<?php print 0 ?>'
-    );
+    var initialEstUrl = '<?= htmlspecialchars(buildEstipulantePaginationUrl(
+        $estipulantePaginationBaseParams,
+        [
+            'pag' => $_GET['pag'] ?? 1,
+            'bl'  => $_GET['bl'] ?? 0
+        ]
+    ), ENT_QUOTES) ?>';
+    if (typeof loadContent === 'function') {
+        loadContent(initialEstUrl);
+    }
 });
 </script>
 
@@ -350,3 +414,16 @@ $(document).ready(function() {
 src = "https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js";
 </script>
 <script src="./scripts/cadastro/general.js"></script>
+
+<script>
+if (typeof window.paginateEstipulantes !== 'function') {
+    window.paginateEstipulantes = function(url) {
+        if (typeof loadContent === 'function') {
+            loadContent(url);
+            return false;
+        }
+        window.location.href = url;
+        return false;
+    };
+}
+</script>
