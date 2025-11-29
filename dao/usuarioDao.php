@@ -276,31 +276,41 @@ class UserDAO implements UserDAOInterface
     {
         $usuario = [];
 
-        $stmt = $this->conn->prepare("SELECT u.id_usuario, u.usuario_user, u.foto_usuario, m.mensagem AS ultima_mensagem, m.data_mensagem, m.vista, m.para_usuario
-                FROM tb_user u
-                LEFT JOIN (
-                    SELECT m1.*
-                    FROM tb_mensagem m1
-                    INNER JOIN (
-                        -- Subquery para pegar o último id_mensagem por usuário (última mensagem trocada)
-                        SELECT 
-                            CASE 
-                                WHEN m.de_usuario = :usuario_logado THEN m.para_usuario 
-                                ELSE m.de_usuario 
-                            END AS outro_usuario,
-                            MAX(m.id_mensagem) AS ultima_id_mensagem
-                        FROM tb_mensagem m
-                        WHERE m.de_usuario = :usuario_logado OR m.para_usuario = :usuario_logado
-                        GROUP BY outro_usuario
-                    ) AS ultimas_mensagens
-                    ON m1.id_mensagem = ultimas_mensagens.ultima_id_mensagem
-                ) AS m ON (u.id_usuario = m.de_usuario OR u.id_usuario = m.para_usuario)
-                WHERE u.id_usuario != :usuario_logado and u.ativo_user = 's'
-                ORDER BY m.data_mensagem DESC;
-        ");
+        $sql = "
+            SELECT u.id_usuario,
+                   u.usuario_user,
+                   u.foto_usuario,
+                   m.mensagem AS ultima_mensagem,
+                   m.data_mensagem,
+                   m.vista,
+                   m.para_usuario
+            FROM tb_user u
+            LEFT JOIN (
+                SELECT m1.*
+                FROM tb_mensagem m1
+                INNER JOIN (
+                    SELECT 
+                        CASE 
+                            WHEN m.de_usuario = :usuario_logado_main THEN m.para_usuario 
+                            ELSE m.de_usuario 
+                        END AS outro_usuario,
+                        MAX(m.id_mensagem) AS ultima_id_mensagem
+                    FROM tb_mensagem m
+                    WHERE m.de_usuario = :usuario_logado_sub1 OR m.para_usuario = :usuario_logado_sub2
+                    GROUP BY outro_usuario
+                ) AS ultimas_mensagens
+                ON m1.id_mensagem = ultimas_mensagens.ultima_id_mensagem
+            ) AS m ON (u.id_usuario = m.de_usuario OR u.id_usuario = m.para_usuario)
+            WHERE u.id_usuario != :usuario_logado
+              AND u.ativo_user = 's'
+            ORDER BY m.data_mensagem DESC";
 
-        // Executa a query com o bind do parâmetro
+        $stmt = $this->conn->prepare($sql);
+
         $stmt->bindParam(':usuario_logado', $usuario_logado, PDO::PARAM_INT);
+        $stmt->bindParam(':usuario_logado_main', $usuario_logado, PDO::PARAM_INT);
+        $stmt->bindParam(':usuario_logado_sub1', $usuario_logado, PDO::PARAM_INT);
+        $stmt->bindParam(':usuario_logado_sub2', $usuario_logado, PDO::PARAM_INT);
         $stmt->execute();
 
         // Busca os resultados

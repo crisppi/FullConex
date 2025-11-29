@@ -1762,7 +1762,7 @@ class internacaoDAO implements internacaoDAOInterface
             
 
         
-        ' . $where . ' '  . $order . ' ' . $limit);
+        ' . $where . ' ' . $group . ' ' . $order . ' ' . $limit);
 
         $query->execute();
 

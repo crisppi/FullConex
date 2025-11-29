@@ -69,18 +69,6 @@ include_once("templates/footer.php");
 
         let senhaUsuarioBd = document.getElementById("senha_usuario"); //senha do banco de dados
         let senhaUsuarioLogin = document.getElementById("senha_user"); //senha digitada no formulario
-        var teste = "<?php echo $teste; ?>"
-        <?php
-        // $variavelphp = "<script>document.write(senhaUsuarioLogin)</script>";
-        // print_r($variavelphp);
-        // exit;
-        if (password_verify($senha_login, $senha_user)) {
-            echo 'Password is valid!';
-        } else {
-            echo 'Invalid password.';
-        };
-
-        ?>
         var divMsgErr = document.querySelector("#notif-erro");
 
         if (senhaUsuarioBd.value === senhaUsuarioLogin.value) {

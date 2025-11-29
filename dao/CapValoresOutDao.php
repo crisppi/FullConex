@@ -34,12 +34,14 @@ class CapValoresOutDAO
                     fk_capeante, fk_int_capeante,
 
                     outros_pacote_qtd, outros_pacote_cobrado, outros_pacote_glosado, outros_pacote_liberado, outros_pacote_obs,
-                    outros_remocao_qtd, outros_remocao_cobrado, outros_remocao_glosado, outros_remocao_liberado, outros_remocao_obs
+                    outros_remocao_qtd, outros_remocao_cobrado, outros_remocao_glosado, outros_remocao_liberado, outros_remocao_obs,
+                    outros_desconto_out, comentarios_obs
                 ) VALUES (
                     :fk_capeante, :fk_int_capeante,
 
                     :outros_pacote_qtd, :outros_pacote_cobrado, :outros_pacote_glosado, :outros_pacote_liberado, :outros_pacote_obs,
-                    :outros_remocao_qtd, :outros_remocao_cobrado, :outros_remocao_glosado, :outros_remocao_liberado, :outros_remocao_obs
+                    :outros_remocao_qtd, :outros_remocao_cobrado, :outros_remocao_glosado, :outros_remocao_liberado, :outros_remocao_obs,
+                    :outros_desconto_out, :comentarios_obs
                 )
                 ON DUPLICATE KEY UPDATE
                     fk_int_capeante         = VALUES(fk_int_capeante),
@@ -54,7 +56,9 @@ class CapValoresOutDAO
                     outros_remocao_cobrado  = VALUES(outros_remocao_cobrado),
                     outros_remocao_glosado  = VALUES(outros_remocao_glosado),
                     outros_remocao_liberado = VALUES(outros_remocao_liberado),
-                    outros_remocao_obs      = VALUES(outros_remocao_obs)
+                    outros_remocao_obs      = VALUES(outros_remocao_obs),
+                    outros_desconto_out     = VALUES(outros_desconto_out),
+                    comentarios_obs         = VALUES(comentarios_obs)
         ";
 
         $st = $this->conn->prepare($sql);
@@ -76,6 +80,8 @@ class CapValoresOutDAO
         $st->bindValue(':outros_remocao_glosado',  self::toDec($d['outros_remocao_glosado'] ?? null));
         $st->bindValue(':outros_remocao_liberado', self::toDec($d['outros_remocao_liberado'] ?? null));
         $st->bindValue(':outros_remocao_obs',      (string)($d['outros_remocao_obs'] ?? ''));
+        $st->bindValue(':outros_desconto_out',     self::toDec($d['outros_desconto_out'] ?? null));
+        $st->bindValue(':comentarios_obs',         (string)($d['comentarios_obs'] ?? ''));
 
         return $st->execute();
     }

@@ -94,7 +94,7 @@ $rahJsonB64 = base64_encode($rahJson ?: '{}');
         ensureHidden('id_valor').value = data.header.id_valor;
       }
 
-      ['capeante', 'ap', 'uti', 'cc', 'diar'].forEach((section) => {
+      ['capeante', 'ap', 'uti', 'cc', 'diar', 'outros'].forEach((section) => {
         if (!data[section]) return;
         Object.entries(data[section]).forEach(function ([key, value]) {
           if (typeof value === 'object' && value !== null) return;

@@ -82,7 +82,9 @@ $defaults = [
     'valor_medicamentos' => null,
     'valor_sadt' => null,
     'valor_honorarios' => null,
-    'valor_opme' => null
+    'valor_opme' => null,
+    'desconto_valor_cap' => null,
+    'comentarios_obs' => null
 ];
 
 $where = '';
@@ -97,6 +99,37 @@ if ($where) {
         $row = array_merge($defaults, $lista[0]);
     }
 }
+$prevParcialRow = null;
+$prevParcialInfo = null;
+if ($id_internacao) {
+    $sqlPrev = "SELECT id_capeante, parcial_num, data_inicial_capeante, data_final_capeante,
+                        valor_apresentado_capeante, valor_final_capeante
+                 FROM tb_capeante
+                 WHERE fk_int_capeante = :fk" . ($id_capeante ? " AND id_capeante <> :atual" : '') . "
+                 ORDER BY COALESCE(data_final_capeante, data_inicial_capeante) DESC, id_capeante DESC
+                 LIMIT 1";
+    $stmtPrev = $conn->prepare($sqlPrev);
+    $stmtPrev->bindValue(':fk', (int)$id_internacao, PDO::PARAM_INT);
+    if ($id_capeante) {
+        $stmtPrev->bindValue(':atual', (int)$id_capeante, PDO::PARAM_INT);
+    }
+    if ($stmtPrev->execute()) {
+        $prevParcialRow = $stmtPrev->fetch(PDO::FETCH_ASSOC) ?: null;
+        if ($prevParcialRow) {
+        $prevParcialInfo = [
+            'nome'       => $row['nome_pac'] ?? '',
+            'hospital'   => $row['nome_hosp'] ?? '',
+            'numero'     => $prevParcialRow['parcial_num'] ?? null,
+            'id_capeante'=> $prevParcialRow['id_capeante'] ?? null,
+            'data_ini'   => $prevParcialRow['data_inicial_capeante'] ?? '',
+            'data_fim'   => $prevParcialRow['data_final_capeante'] ?? '',
+            'valor_apr'  => $prevParcialRow['valor_apresentado_capeante'] ?? null,
+            'valor_fin'  => $prevParcialRow['valor_final_capeante'] ?? null
+        ];
+        }
+    }
+}
+
 $novaParcial = filter_input(INPUT_GET, 'nova_parcial') ? true : false;
 if ($type === 'create' && $novaParcial && $id_internacao) {
     $row['parcial_capeante'] = 's';
@@ -107,6 +140,11 @@ if ($type === 'create' && $novaParcial && $id_internacao) {
         } catch (Throwable $e) {
             $row['parcial_num'] = null;
         }
+    }
+    if (!empty($prevParcialRow['data_final_capeante'])) {
+        $nextStart = date('Y-m-d', strtotime($prevParcialRow['data_final_capeante'] . ' +1 day'));
+        $row['data_inicial_capeante'] = $nextStart;
+        $row['data_final_capeante'] = null;
     }
 }
 $fv = function (string $k) use ($row) {
@@ -209,27 +247,35 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
 
         <div class="sec-body">
             <div class="row g-3">
-                <div class="col-md-3">
+                <div class="col-lg-2 col-md-3">
                     <label class="form-label">Data Inicial</label>
                     <input type="date" class="form-control" name="data_inicial_capeante"
                         value="<?= $h($fv('data_inicial_capeante') ?: $fv('data_intern_int')) ?>">
                 </div>
-                <div class="col-md-3">
+                <div class="col-lg-2 col-md-3">
                     <label class="form-label">Data Final</label>
                     <input type="date" class="form-control" name="data_final_capeante"
                         value="<?= $h($fv('data_final_capeante')) ?>">
                 </div>
-                <div class="col-md-3">
+                <div class="col-lg-3 col-md-6">
                     <label class="form-label">Valor Apresentado</label>
                     <input type="text" class="form-control dinheiro" id="inp_val_apr" name="valor_apresentado_capeante"
                         value="<?= is_numeric($fv('valor_apresentado_capeante')) ? number_format((float)$fv('valor_apresentado_capeante'), 2, ',', '.') : '' ?>"
                         placeholder="R$ 0,00">
                 </div>
-                <div class="col-md-3">
+                <div class="col-lg-3 col-md-6">
                     <label class="form-label">Valor Final</label>
                     <input type="text" class="form-control dinheiro" id="inp_val_fin" name="valor_final_capeante"
                         value="<?= is_numeric($fv('valor_final_capeante')) ? number_format((float)$fv('valor_final_capeante'), 2, ',', '.') : '' ?>"
                         placeholder="R$ 0,00">
+                </div>
+                <div class="col-lg-2 col-md-4">
+                    <label class="form-label text-danger fw-semibold">Desconto (R$)</label>
+                    <input type="text" class="form-control dinheiro" id="desconto_valor_cap"
+                        name="desconto_valor_cap"
+                        value="<?= is_numeric($fv('desconto_valor_cap')) ? number_format((float)$fv('desconto_valor_cap'), 2, ',', '.') : '' ?>"
+                        placeholder="R$ 0,00">
+                    <small class="text-muted">Valor abatido diretamente no total final.</small>
                 </div>
             </div>
 
@@ -980,6 +1026,27 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
         </div>
     </div>
 
+    <!-- OBSERVAÇÕES FINAIS -->
+    <div class="block">
+        <div id="alertPeriodo" class="alert alert-danger d-none" role="alert">
+            A data final não pode ser anterior à data inicial.
+        </div>
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div class="flex-grow-1">
+                <label class="form-label">Observações finais</label>
+                <div id="comentarios_obs_preview" class="border rounded p-3 bg-light"
+                    style="min-height:80px; white-space:pre-wrap;">
+                    <?= $h($fv('comentarios_obs') ?: 'Nenhuma observação adicionada.') ?>
+                </div>
+            </div>
+            <div class="text-end">
+                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
+                    data-bs-target="#modalComentariosObs">
+                    <i class="bi bi-pencil-square me-1"></i>Editar observações
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- AÇÕES -->
     <div class="block">
@@ -996,7 +1063,91 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
             style="display:none;margin-top:10px;padding:10px;border-radius:5px;font-weight:bold;text-align:center;">
         </div>
     </div>
+
+    <!-- Modal de Observações -->
+    <div class="modal fade" id="modalComentariosObs" tabindex="-1" aria-labelledby="modalComentariosObsLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalComentariosObsLabel">Observações finais</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <textarea class="form-control" name="comentarios_obs" id="comentarios_obs" rows="8"
+                        placeholder="Digite as observações que devem aparecer no final do RAH"><?= $h($fv('comentarios_obs')) ?></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btnSalvarComentariosObs">Salvar observações</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal informações da parcial anterior -->
+    <div class="modal fade" id="modalInfoParcial" tabindex="-1" aria-labelledby="modalInfoParcialLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="background:#f2f2f2;border-bottom:1px solid #dadada;">
+                    <h5 class="modal-title" id="modalInfoParcialLabel">Parcial anterior</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" style="color:#3a3a3a;">
+                    <div id="prevParcialEmpty" class="text-muted" style="<?= $prevParcialInfo ? 'display:none' : '' ?>">
+                        Nenhuma parcial anterior registrada.
+                    </div>
+                    <div id="prevParcialContent" style="<?= $prevParcialInfo ? '' : 'display:none' ?>">
+                        <div class="mb-2">
+                            <strong>Nome:</strong>
+                            <div id="prevParcial_nome" class="text-uppercase fw-semibold"></div>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Hospital:</strong>
+                            <div id="prevParcial_hosp" class="text-muted"></div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <strong>Nº da parcial</strong>
+                                <div id="prevParcial_num" class="text-muted"></div>
+                            </div>
+                            <div class="col-6">
+                                <strong>ID do capeante</strong>
+                                <div id="prevParcial_id" class="text-muted"></div>
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-2">
+                            <div class="col-6">
+                                <strong>Datas</strong>
+                                <div id="prevParcial_periodo" class="text-muted"></div>
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-1">
+                            <div class="col-6">
+                                <strong>Valor Apresentado</strong>
+                                <div id="prevParcial_valApr" class="fw-semibold"></div>
+                            </div>
+                            <div class="col-6">
+                                <strong>Valor Final</strong>
+                                <div id="prevParcial_valFin" class="fw-semibold"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendido</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </form>
+
+<?php
+$prevParcialData = base64_encode(json_encode($prevParcialInfo ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+?>
+<div id="prevParcialData" data-prev-parcial="<?= htmlspecialchars($prevParcialData, ENT_QUOTES, 'UTF-8') ?>">
+</div>
 
 <!-- Vendors -->
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js" defer></script>
@@ -1009,3 +1160,130 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
 <script src="<?= $h($BASE_URL) ?>js/rah-ui.js" defer></script>
 <script src="<?= $h($BASE_URL) ?>js/rah-pdf.js" defer></script>
 <script src="<?= $h($BASE_URL) ?>js/rah-cadcentral.js" defer></script>
+<script defer>
+document.addEventListener('DOMContentLoaded', function () {
+    var textarea = document.getElementById('comentarios_obs');
+    var preview = document.getElementById('comentarios_obs_preview');
+    var btnSalvar = document.getElementById('btnSalvarComentariosObs');
+    var modalEl = document.getElementById('modalComentariosObs');
+    var parcialSelect = document.getElementById('parcial_capeante');
+    var modalInfoParcial = document.getElementById('modalInfoParcial');
+    var prevDataHolder = document.getElementById('prevParcialData');
+    var prevParcialInfo = null;
+
+    if (prevDataHolder && prevDataHolder.dataset.prevParcial) {
+        try {
+            var decoded = atob(prevDataHolder.dataset.prevParcial);
+            var parsed = JSON.parse(decoded);
+            if (parsed && Object.keys(parsed).length > 0) {
+                prevParcialInfo = parsed;
+            }
+        } catch (err) {
+            console.error('Falha ao decodificar dados da parcial anterior', err);
+        }
+    }
+
+    function atualizaPreview() {
+        if (!preview || !textarea) return;
+        var texto = (textarea.value || '').trim();
+        preview.textContent = texto ? texto : 'Nenhuma observação adicionada.';
+    }
+    if (textarea) {
+        textarea.addEventListener('input', atualizaPreview);
+        textarea.addEventListener('change', atualizaPreview);
+    }
+
+    if (btnSalvar) {
+        btnSalvar.addEventListener('click', function () {
+            atualizaPreview();
+            if (modalEl && window.bootstrap) {
+                var modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+            }
+        });
+    }
+    if (modalEl) {
+        modalEl.addEventListener('hidden.bs.modal', atualizaPreview);
+    }
+    atualizaPreview();
+
+    function preencherModalParcial() {
+        if (!modalInfoParcial) return;
+        var emptyMsg = document.getElementById('prevParcialEmpty');
+        var content = document.getElementById('prevParcialContent');
+        if (!prevParcialInfo) {
+            if (emptyMsg) emptyMsg.style.display = '';
+            if (content) content.style.display = 'none';
+            return;
+        }
+        if (emptyMsg) emptyMsg.style.display = 'none';
+        if (content) content.style.display = '';
+
+        var campo = function (id, texto) {
+            var el = document.getElementById(id);
+            if (el) el.textContent = texto || '-';
+        };
+        campo('prevParcial_nome', prevParcialInfo.nome || '-');
+        campo('prevParcial_hosp', prevParcialInfo.hospital || '-');
+        campo('prevParcial_num', prevParcialInfo.numero ? ('Parcial #' + prevParcialInfo.numero) : '-');
+        campo('prevParcial_id', prevParcialInfo.id_capeante ? ('Capeante ID ' + prevParcialInfo.id_capeante) : '-');
+
+        var periodo = '-';
+        if (prevParcialInfo.data_ini) {
+            var inicio = new Date(prevParcialInfo.data_ini.replace(/-/g, '/'));
+            periodo = isNaN(inicio.getTime()) ? prevParcialInfo.data_ini : inicio.toLocaleDateString('pt-BR');
+            if (prevParcialInfo.data_fim) {
+                var fim = new Date(prevParcialInfo.data_fim.replace(/-/g, '/'));
+                periodo += ' a ' + (isNaN(fim.getTime()) ? prevParcialInfo.data_fim : fim.toLocaleDateString('pt-BR'));
+            }
+        }
+        campo('prevParcial_periodo', periodo);
+
+        var formatar = function (v) {
+            if (v === null || v === '' || isNaN(parseFloat(v))) return 'R$ 0,00';
+            var num = parseFloat(v);
+            return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        };
+        campo('prevParcial_valApr', formatar(prevParcialInfo.valor_apr));
+        campo('prevParcial_valFin', formatar(prevParcialInfo.valor_fin));
+    }
+
+    if (parcialSelect && modalInfoParcial) {
+        parcialSelect.addEventListener('change', function () {
+            if (this.value === 's') {
+                preencherModalParcial();
+                var modalInstance = window.bootstrap ? bootstrap.Modal.getOrCreateInstance(modalInfoParcial) : null;
+                if (modalInstance) modalInstance.show();
+            }
+        });
+        if (parcialSelect.value === 's' && prevParcialInfo) {
+            preencherModalParcial();
+            setTimeout(function () {
+                var modalInstance = window.bootstrap ? bootstrap.Modal.getOrCreateInstance(modalInfoParcial) : null;
+                if (modalInstance) modalInstance.show();
+            }, 300);
+        }
+    }
+
+    // Validação visual do período
+    var inputIni = document.querySelector('input[name="data_inicial_capeante"]');
+    var inputFim = document.querySelector('input[name="data_final_capeante"]');
+    var alertPeriodo = document.getElementById('alertPeriodo');
+    function validarPeriodo() {
+        if (!inputIni || !inputFim || !alertPeriodo) return;
+        var ini = inputIni.value;
+        var fim = inputFim.value;
+        if (ini && fim && new Date(fim) < new Date(ini)) {
+            inputFim.value = '';
+            alertPeriodo.classList.remove('d-none');
+            setTimeout(function () {
+                alertPeriodo.classList.add('d-none');
+            }, 5000);
+        } else {
+            alertPeriodo.classList.add('d-none');
+        }
+    }
+    if (inputIni) inputIni.addEventListener('change', validarPeriodo);
+    if (inputFim) inputFim.addEventListener('change', validarPeriodo);
+});
+</script>

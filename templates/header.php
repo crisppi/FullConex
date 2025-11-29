@@ -2,10 +2,6 @@
 
 include_once("globals.php");
 include_once("db.php");
-include_once("models/mensagem.php");
-require_once("dao/mensagemDao.php");
-$mensagemDao = new mensagemDAO($conn, $BASE_URL);
-$mensagensNaoLidasCount = $mensagemDao->getMensagensNaoLidas($_SESSION['id_usuario']);
 date_default_timezone_set('America/Sao_Paulo');
 header("Content-type: text/html; charset=utf-8");
 
@@ -126,9 +122,6 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
         min-width: 220px;
     }
 
-    .header-actions .action-chat {
-        margin-right: 0 !important;
-    }
     </style>
 </head>
 
@@ -170,9 +163,13 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
                                 <li><a class="dropdown-item" href="<?= $BASE_URL ?>dashboard"><i
-                                            class="bi bi-person"
+                                            class="bi bi-speedometer2"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
                                         Dashboard</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>dashboard_mensal.php"><i
+                                            class="bi bi-graph-up-arrow"
+                                            style="font-size: 1rem;margin-right:5px; color: rgb(94, 35, 99);"></i>
+                                        Painel Mensal</a></li>
                                 <li><a class="dropdown-item" href="https://manual.fullcareaudit.com.br"><i
                                             class="bi bi-person"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
@@ -485,15 +482,6 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                         style="display:none; max-height: 350px; overflow:auto; width: 420px; position:absolute; top:100%; left:0; z-index: 2000;">
                     </div>
                 </form>
-
-                <a href="show_chat.php" class="bi bi-chat-dots action-chat"
-                    style="font-size: 1.5rem; color: #5e2363; position: relative;">
-                    <?php if ($mensagensNaoLidasCount > 0): ?>
-                    <span class="badge badge-danger" style="position: absolute; top: -5px; right: -10px;">
-                        <?= $mensagensNaoLidasCount ?>
-                    </span>
-                    <?php endif; ?>
-                </a>
 
                 <div class="account-wrap">
                 <div class="account-item clearfix js-item-menu" style="margin-right:0">

@@ -170,6 +170,16 @@ function pick_visit_id($row)
     }
     return crc32(json_encode($row));
 }
+function pick_visit_acomodacao($row)
+{
+    $keys = ['acomodacao', 'acomodacao_int', 'acomodacao_vis', 'acomodacao_atual', 'acomod', 'acomod_int'];
+    foreach ($keys as $k) {
+        if (!empty($row[$k])) {
+            return $row[$k];
+        }
+    }
+    return '';
+}
 function pick_visit_auditor($row)
 {
     foreach (['auditor_nome', 'usuario_user', 'nome_usuario', 'usuario_cadastro', 'nome'] as $k) {
@@ -200,11 +210,20 @@ foreach (($visitas ?? []) as $v) {
         '_date'    => $d ?: date('Y-m-d'),
         '_time'    => pick_visit_time($v),
         '_text'    => pick_visit_text($v),
+        'acomodacao' => pick_visit_acomodacao($v),
         '_auditor' => $nomeExibicao,
         '_raw'     => $v,
     ];
 }
 usort($visitas_norm, fn($a, $b) => strcmp($a['_date'], $b['_date']));
+
+$visitas_recent = $visitas_norm;
+usort($visitas_recent, function ($a, $b) {
+    $ta = strtotime(($a['_date'] ?? '1970-01-01') . ' ' . ($a['_time'] ?? '00:00')) ?: 0;
+    $tb = strtotime(($b['_date'] ?? '1970-01-01') . ' ' . ($b['_time'] ?? '00:00')) ?: 0;
+    return $tb <=> $ta;
+});
+$visitas_recent = array_slice($visitas_recent, 0, 5);
 
 $minD = $visitas_norm ? $visitas_norm[0]['_date'] : null;
 $maxD = $visitas_norm ? $visitas_norm[count($visitas_norm) - 1]['_date'] : null;
@@ -624,18 +643,27 @@ usort($neg_filtered, function ($a, $b) {
                                                 ID <span id="v-rel-id"><?= e($initId ?: '') ?></span>
                                             </span>
                                         </h6>
-                                        <a id="btn-visita-pdf"
-                                            class="btn btn-sm <?= e($visitaBtnClass) ?><?= $initId ? '' : ' disabled' ?>"
-                                            data-pdf-base="<?= e($visitaPdfBase) ?>"
-                                            href="<?= e($visitaPdfHref) ?>"
-                                            target="_blank" rel="noopener"
-                                            aria-disabled="<?= $initId ? 'false' : 'true' ?>">
-                                            <i class="fa-solid fa-file-pdf me-1"></i> Baixar PDF
-                                            <span id="btn-visita-date"
-                                                class="d-block small mt-1 text-start<?= $initId ? '' : ' text-muted' ?>">
-                                                <?= e($initId ? 'Data: ' . $initDateLabel : 'Selecione uma visita') ?>
-                                            </span>
-                                        </a>
+                                        <div class="d-flex flex-wrap gap-2 align-items-stretch">
+                                            <?php if (!empty($visitas_norm)): ?>
+                                            <button type="button" class="btn btn-sm btn-outline-danger btn-ultimas-visitas"
+                                                data-bs-toggle="modal" data-bs-target="#modalUltimasVisitas">
+                                                <i class="fa-solid fa-clock-rotate-left me-1"></i>
+                                                Últimas visitas
+                                            </button>
+                                            <?php endif; ?>
+                                            <a id="btn-visita-pdf"
+                                                class="btn btn-sm <?= e($visitaBtnClass) ?><?= $initId ? '' : ' disabled' ?>"
+                                                data-pdf-base="<?= e($visitaPdfBase) ?>"
+                                                href="<?= e($visitaPdfHref) ?>"
+                                                target="_blank" rel="noopener"
+                                                aria-disabled="<?= $initId ? 'false' : 'true' ?>">
+                                                <i class="fa-solid fa-file-pdf me-1"></i> Baixar PDF
+                                                <span id="btn-visita-date"
+                                                    class="d-block small mt-1 text-start<?= $initId ? '' : ' text-muted' ?>">
+                                                    <?= e($initId ? 'Data: ' . $initDateLabel : 'Selecione uma visita') ?>
+                                                </span>
+                                            </a>
+                                        </div>
                                     </div>
                                     <div class="p-3 rounded border" style="border-color:#eee">
                                         <div class="v2-relatorio" id="v-rel-text" style="white-space:pre-wrap">
@@ -662,6 +690,55 @@ usort($neg_filtered, function ($a, $b) {
                         </div>
                         <?php endif; ?>
                     </div>
+                    <?php if (!empty($visitas_recent)): ?>
+                    <div class="modal fade modal-ultimas-visitas" id="modalUltimasVisitas" tabindex="-1"
+                        aria-labelledby="modalUltimasVisitasLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-xl modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header border-0">
+                                    <div>
+                                        <h5 class="modal-title" id="modalUltimasVisitasLabel">Últimas visitas</h5>
+                                    </div>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Fechar"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="ult-vis-header text-uppercase small fw-semibold text-muted mb-3">
+                                        <div>Data da visita</div>
+                                        <div>Evolução</div>
+                                        <div>Profissional</div>
+                                    </div>
+                                    <div class="visita-list">
+                                        <?php foreach ($visitas_recent as $vis):
+                                            $d = $vis['_date'] ? date('d/m/Y', strtotime($vis['_date'])) : '-';
+                                            $relatorio = trim((string)($vis['_text'] ?? ''));
+                                            ?>
+                                        <div class="visita-item">
+                                            <div class="visita-item-header">
+                                                <div class="visita-item-date">
+                                                    <span class="visita-label">Data</span>
+                                                    <strong><?= e($d) ?></strong>
+                                                </div>
+                                                <div class="visita-item-prof">
+                                                    <span class="visita-label">Profissional</span>
+                                                    <strong><?= e($vis['_auditor'] ?: '-') ?></strong>
+                                                </div>
+                                            </div>
+                                            <div class="visita-item-body">
+                                                <span class="visita-label">Evolução</span>
+                                                <p><?= nl2br(e($relatorio !== '' ? $relatorio : '-')) ?></p>
+                                            </div>
+                                        </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-0">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endif; ?>
 
                     <div class="tab-pane fade" id="prorrog" role="tabpanel" aria-labelledby="prorrog-tab">
                         <div class="card ov-card ov-int"
@@ -959,6 +1036,87 @@ usort($neg_filtered, function ($a, $b) {
     .ov-card.ov-int {
         --ov-accent: var(--brand);
         --ov-accent-100: var(--brand-100)
+    }
+
+    .btn-ultimas-visitas {
+        border: 2px solid #c62828;
+        color: #c62828;
+        background-color: #fff;
+        font-weight: 600;
+    }
+
+    .btn-ultimas-visitas:hover,
+    .btn-ultimas-visitas:focus {
+        background-color: #ffeceb;
+        color: #a11212;
+    }
+
+    .modal-ultimas-visitas .modal-dialog {
+        max-width: 95vw;
+    }
+
+    .modal-ultimas-visitas .modal-content {
+        border-radius: 18px;
+    }
+
+    .modal-ultimas-visitas .modal-body {
+        max-height: 75vh;
+        overflow-y: auto;
+        padding: 1.5rem 1.75rem;
+    }
+
+    .modal-ultimas-visitas .ult-vis-header {
+        display: grid;
+        grid-template-columns: 140px 1fr 220px;
+        gap: 12px;
+        letter-spacing: .08em;
+    }
+
+    .visita-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .visita-item {
+        border: 1px solid #eee;
+        border-radius: 14px;
+        padding: 1rem 1.25rem;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
+        background: #fff;
+    }
+
+    .visita-item-header {
+        display: grid;
+        grid-template-columns: 140px 1fr;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: .75rem;
+    }
+
+    .visita-label {
+        display: block;
+        font-size: .75rem;
+        text-transform: uppercase;
+        color: #9f9f9f;
+        letter-spacing: .08em;
+        margin-bottom: .1rem;
+    }
+
+    .visita-item-body p {
+        margin: 0;
+        color: #3a3a3a;
+        font-size: .95rem;
+        line-height: 1.4;
+    }
+
+    @media (max-width: 992px) {
+        .modal-ultimas-visitas .ult-vis-header {
+            display: none;
+        }
+        .visita-item-header {
+            grid-template-columns: 1fr;
+        }
     }
 
     .ov-card.ov-vis {

@@ -113,6 +113,58 @@ $data_final     = datePOST("data_final_capeante");
 $data_fech      = datePOST("data_fech_capeante");
 $data_digit     = datePOST("data_digit_capeante");
 
+/* --------- Validações de período --------- */
+if ($data_inicial && $data_final) {
+    if (strtotime($data_final) < strtotime($data_inicial)) {
+        $message->setMessage("A data final não pode ser anterior à data inicial.", "error", "back");
+        exit;
+    }
+}
+
+if ($parcial === 's' && $fk_internacao && $data_inicial && $data_final) {
+    $sql = "SELECT id_capeante, parcial_num, data_inicial_capeante, data_final_capeante
+            FROM tb_capeante
+            WHERE fk_int_capeante = :fk";
+    if ($id_capeante) {
+        $sql .= " AND id_capeante <> :id";
+    }
+    $stmt = $conn->prepare($sql);
+    $stmt->bindValue(':fk', (int)$fk_internacao, PDO::PARAM_INT);
+    if ($id_capeante) {
+        $stmt->bindValue(':id', (int)$id_capeante, PDO::PARAM_INT);
+    }
+    $stmt->execute();
+    $parciaisExistentes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $novoIni = strtotime($data_inicial);
+    $novoFim = strtotime($data_final);
+    $conflito = null;
+
+    foreach ($parciaisExistentes as $parc) {
+        $ini = strtotime($parc['data_inicial_capeante'] ?? '');
+        $fim = strtotime($parc['data_final_capeante'] ?? '');
+        if (!$ini || !$fim) continue;
+
+        $sobrepoe = ($novoIni <= $fim) && ($novoFim >= $ini);
+        if ($sobrepoe) {
+            $conflito = $parc;
+            break;
+        }
+    }
+
+    if ($conflito) {
+        $perIni = date('d/m/Y', strtotime($conflito['data_inicial_capeante']));
+        $perFim = date('d/m/Y', strtotime($conflito['data_final_capeante']));
+        $num    = $conflito['parcial_num'] ?? '?';
+        $message->setMessage(
+            "As datas informadas coincidem com a parcial nº {$num} ({$perIni} a {$perFim}). Ajuste o intervalo.",
+            "error",
+            "back"
+        );
+        exit;
+    }
+}
+
 if ($id_capeante && !$isCreate) {
     if ($id_valor) {
         $capValoresDao->touch($id_valor, (int)$id_capeante);
@@ -299,10 +351,11 @@ $glosa_oxig         = $cat_glo('gases');
 
 $valor_apresentado  = (float)$total_cobrado;
 
-/* Desconto (%) */
-$desconto_valor_cap = strPOST("desconto_valor_cap"); // "5" (%), ou null
-$desconto_pct       = $desconto_valor_cap !== null ? (float)str_replace(',', '.', $desconto_valor_cap) : 0.0;
-$valor_final        = $total_liberado * (1 - ($desconto_pct / 100));
+/* Desconto absoluto + observações */
+$desconto_valor_cap = max(0.0, moneyPOST("desconto_valor_cap"));
+$desconto_valor_cap = min($desconto_valor_cap, $total_liberado);
+$comentarios_obs    = strPOST('comentarios_obs');
+$valor_final        = max(0.0, $total_liberado - $desconto_valor_cap);
 $valor_glosa_total  = max(0.0, $valor_apresentado - $valor_final);
 
 /* ============================================================
@@ -529,7 +582,11 @@ if (!empty($id_capeante)) {
         (int)$id_capeante,
         $map_out,
         $outros_calc,
-        ['fk_int_capeante' => (int)$fk_internacao]
+        [
+            'fk_int_capeante'    => (int)$fk_internacao,
+            'outros_desconto_out' => to_varchar20($desconto_valor_cap),
+            'comentarios_obs'     => $comentarios_obs
+        ]
     );
 }
 

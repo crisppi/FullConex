@@ -375,5 +375,6 @@ if (empty($visitas)) {
 }
 
 ob_end_clean();
-$pdf->Output("relatorio_visita_{$id}.pdf", 'D');
+$filename = sprintf('rel_internacao-ID No. %s.pdf', $id);
+$pdf->Output($filename, 'D');
 exit();

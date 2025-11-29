@@ -33,6 +33,13 @@ final class Gate
         $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
         if (!in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) return; // nunca barra GET
 
+        $script = strtolower($_SERVER['SCRIPT_NAME'] ?? '');
+        $scriptBase = strtolower(basename($script));
+        if (($scriptBase === 'process_usuario.php' && strtolower($_POST['type'] ?? '') === 'update-senha')
+            || $scriptBase === 'process_reset_senha.php' || $scriptBase === 'nova_senha.php') {
+            return;
+        }
+
         // ignora assets
         $script = strtolower($_SERVER['SCRIPT_NAME'] ?? '');
         if (preg_match('/\.(css|js|png|jpg|jpeg|gif|svg|ico|map)$/', $script)) return;
@@ -102,7 +109,7 @@ final class Gate
         $manualMap = [
             'internac' => 'internacoes/lista', // <— exemplo real seu; ajuste se for outro
             'pacient'  => 'lista_pacientes.php',
-            'usuario'  => 'lista_usuario.php',
+            'usuario'  => 'list_usuario.php',
             'tuss'     => 'lista_tuss.php',
             'visita'   => 'lista_visitas.php',
         ];

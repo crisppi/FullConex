@@ -119,6 +119,40 @@ $internacao     = new internacaoDAO($conn, $BASE_URL);
     color: white;
     background: #35bae1;
 }
+
+/* Lista de ações da internação com alinhamento à esquerda */
+.action .dropdown-menu {
+    padding: 8px 0;
+    min-width: 190px;
+}
+
+.action .dropdown-menu li {
+    margin: 0;
+}
+
+.action .dropdown-menu .btn-default {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: none;
+    background: transparent;
+    font-size: 0.95rem;
+    color: #3a3a3a;
+    justify-content: flex-start;
+    text-align: left;
+    padding: 6px 16px;
+}
+
+.action .dropdown-menu .btn-default:hover {
+    background-color: #f4f4f4;
+}
+
+.action .dropdown-menu .btn-default i {
+    margin: 0;
+    min-width: 18px;
+    font-weight: 700;
+}
 </style>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
@@ -563,7 +597,7 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
 
                                         <li>
                                             <button type="button" class="btn btn-default"
-                                                style="font-size: .9rem; display: inline-flex; align-items: center;"
+                                                style="font-size: .9rem;"
                                                 onclick="window.location.href='<?= $BASE_URL ?>cad_visita.php?id_internacao=<?= $intern['id_internacao'] ?>'">
                                                 <i class="bi bi-file-text"
                                                     style="font-size: 1rem; margin-right:5px; color: rgba(128, 27, 156, 1);"></i>
@@ -605,7 +639,7 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
 
                                         <li>
                                             <button type="button" class="btn btn-default"
-                                                style="font-size: .9rem; display: inline-flex; align-items: center;"
+                                                style="font-size: .9rem;"
                                                 onclick="window.location.href='<?= $BASE_URL ?>edit_internacao.php?id_internacao=<?= $intern['id_internacao'] ?>'">
                                                 <i class="bi bi-pencil-square"
                                                     style="font-size: 1rem; margin-right: 5px; color: rgba(113, 27, 156, 1);"></i>
@@ -618,8 +652,8 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                                                 onclick="callProcessPdf(<?= $intern['id_internacao'] ?>)"
                                                 style="font-size: .9rem;">
                                                 <i class="bi-file-earmark-pdf"
-                                                    style="font-size: 1rem; margin-right:5px; color: rgba(101, 227, 249, 1);"></i>
-                                                PDF
+                                                    style="font-size: 1rem; margin-right:5px; color: #ff7043;"></i>
+                                                PDF - Internação
                                             </button>
                                         </li>
                                     </ul>

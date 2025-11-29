@@ -308,6 +308,9 @@ if ($preferPost && !empty($_POST)) {
     if (!is_string($k) || !is_string($v)) continue;
     if (in_array($k, ['valor_apresentado_capeante', 'valor_final_capeante'], true)) $dados[$k] = brl_to_float($v);
   }
+  if (isset($dados['comentarios_obs'])) {
+    $comentariosObs = trim((string)$dados['comentarios_obs']);
+  }
 }
 
 /* ---------- CAMPOS CABEÇALHO ---------- */
@@ -480,12 +483,16 @@ if (empty($cc)) {
     'Honorários (CC)'     => 'cc_honorarios',
   ]);
 }
+$comentariosObs = '';
 if (empty($outros)) {
   $outRow = $capValoresOutDao->findByCapeante($idCapeante);
-  if ($outRow) $outros = group_from_row($outRow, [
-    'Pacote'  => 'outros_pacote',
-    'Remoção' => 'outros_remocao',
-  ]);
+  if ($outRow) {
+    $comentariosObs = trim((string)($outRow['comentarios_obs'] ?? ''));
+    $outros = group_from_row($outRow, [
+      'Pacote'  => 'outros_pacote',
+      'Remoção' => 'outros_remocao',
+    ]);
+  }
 }
 if (empty($outros)) {
   $outros = group_from_db($conn, $idCapeante, 'tb_cap_valores_out', [
@@ -841,8 +848,9 @@ $totApos    = $sum($diarias, 'apos') + $sum($apto, 'apos') + $sum($uti, 'apos')
 $desconto           = (float)($dados['desconto_valor_cap'] ?? 0.0);
 $valorApresentado   = (float)($dados['valor_apresentado_capeante'] ?? 0.0);
 $valorFinalCapeante = (float)($dados['valor_final_capeante'] ?? 0.0);
-if ($valorFinalCapeante > 0) $totApos = $valorFinalCapeante;
-$valorFinal = max(0, $totApos - $desconto);
+$valorFinal = ($valorFinalCapeante > 0)
+  ? $valorFinalCapeante
+  : max(0, $totApos - $desconto);
 
 $pdf->SetFont('helvetica', '', $BODY_SIZE_PT);
 $totHtml = '
@@ -875,7 +883,8 @@ $totHtml = '
 $pdf->writeHTML($totHtml, true, false, false, false, '');
 
 /* ---------- CAMPOS FINAIS ---------- */
-$comentario = $dados['comentario_auditoria'] ?? '';
+$comentarioBase = $dados['comentario_auditoria'] ?? '';
+$comentario = $comentariosObs !== '' ? $comentariosObs : $comentarioBase;
 $cid        = $dados['cid_cap'] ?? ($dados['cid_principal'] ?? '');
 $proced     = $dados['proced_principal'] ?? '';
 $auditor    = $dados['nome_auditor'] ?? ($dados['fk_id_aud_med'] ?? '');

@@ -38,6 +38,7 @@ include_once("dao/CapValoresDiarDao.php");
 include_once("dao/CapValoresAPDao.php");
 include_once("dao/CapValoresUTIDao.php");
 include_once("dao/CapValoresCCDao.php");
+include_once("dao/CapValoresOutDao.php");
 
 include_once("array_dados.php");
 
@@ -75,6 +76,7 @@ $capValoresApDao   = new CapValoresAPDAO($conn);
 $capValoresUtiDao  = new CapValoresUTIDAO($conn);
 $capValoresCcDao   = new CapValoresCCDAO($conn);
 $capValoresDiarDao = new CapValoresDiarDAO($conn);
+$capValoresOutDao  = new CapValoresOutDAO($conn);
 
 $id_capeante = filter_input(INPUT_GET, "id_capeante", FILTER_VALIDATE_INT);
 $id_valor    = filter_input(INPUT_GET, "id_valor", FILTER_VALIDATE_INT);
@@ -105,6 +107,7 @@ $apRow   = $id_capeante ? $capValoresApDao->findByCapeante($id_capeante) : null;
 $utiRow  = $id_capeante ? $capValoresUtiDao->findByCapeante($id_capeante) : null;
 $ccRow   = $id_capeante ? $capValoresCcDao->findByCapeante($id_capeante) : null;
 $diarRow = $id_capeante ? $capValoresDiarDao->findByCapeante($id_capeante) : null;
+$outRow  = $id_capeante ? $capValoresOutDao->findByCapeante($id_capeante) : null;
 
 $toArray = function ($obj) {
     if (!$obj) return [];
@@ -118,6 +121,7 @@ $rahEditData = [
     'uti'      => $toArray($utiRow),
     'cc'       => $toArray($ccRow),
     'diar'     => $toArray($diarRow),
+    'outros'   => $toArray($outRow),
     'header'   => $capValorHeader ?: [],
 ];
 

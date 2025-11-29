@@ -391,9 +391,10 @@ $(document).ready(function() {
 });
 
 
-function resetSenha(id_user) {
-    // Impede o comportamento padrão ao acionar o evento, caso necessário
-    event.preventDefault();
+function resetSenha(id_user, evt) {
+    if (evt && typeof evt.preventDefault === 'function') {
+        evt.preventDefault();
+    }
 
     // Verifica se o id_user é válido
     if (!id_user) {
@@ -409,7 +410,7 @@ function resetSenha(id_user) {
 
     // Faz a requisição AJAX
     $.ajax({
-        url: 'process_reset_senha.php', // Substitua pelo caminho correto do backend
+        url: '<?= $BASE_URL ?>process_reset_senha.php',
         type: 'POST',
         data: formData,
         success: function(response) {

@@ -47,8 +47,8 @@
     function syncPeriodTotals(tCob, tLib) {
       const $desc  = $('#desconto_valor_cap');
       let d = 0;
-      if ($desc.length) d = parseFloat(($desc.val() || '').replace(',', '.')) || 0;
-      const vFinal = tLib * (1 - d / 100);
+      if ($desc.length) d = R.moneyToFloat($desc.val());
+      const vFinal = Math.max(0, tLib - d);
 
       const $inpApr = $('[name="valor_apresentado_capeante"]').first();
       const $inpFin = $('[name="valor_final_capeante"]').first();
@@ -75,8 +75,8 @@
       });
       const $desc = $('#desconto_valor_cap');
       let d = 0;
-      if ($desc.length) d = parseFloat(($desc.val() || '').replace(',', '.')) || 0;
-      const vFinal = tLib * (1 - d / 100);
+      if ($desc.length) d = R.moneyToFloat($desc.val());
+      const vFinal = Math.max(0, tLib - d);
       return { tCob, vFinal };
     }
 

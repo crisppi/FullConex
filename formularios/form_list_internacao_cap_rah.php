@@ -152,7 +152,7 @@
         strlen($senha_int)     ? 'senha_int LIKE "%' . $senha_int . '%"'         : NULL,
         strlen($data_intern_int) ? 'data_intern_int BETWEEN "' . $data_intern_int . '" AND "' . $data_intern_int_max . '"' : NULL,
 
-        (!$isDiretor && strlen((string)$userId)) ? 'hos.fk_usuario_hosp = "' . $userId . '"' : NULL
+        (!$isDiretor && strlen((string)$userId)) ? 'ho.fk_usuario_hosp = "' . $userId . '"' : NULL
     ];
 
     $condicoes = array_filter($condicoes);
@@ -445,7 +445,7 @@
                         <thead>
                             <tr>
                                 <th scope="col" style="width:4%">Reg Int</th>
-                                <th scope="col" style="width:5%">Conta No.</th>
+                                <th scope="col" style="width:6%">Capeante</th>
                                 <th scope="col" style="width:12%">Hospital</th>
                                 <th scope="col" style="width:16%">Paciente</th>
                                 <th scope="col" style="width:10%">Senha</th>
@@ -460,7 +460,12 @@
                             <?php foreach ($__render_rows as $intern): extract($intern); ?>
                             <tr style="font-size:13px">
                                 <td scope="row" class="col-id"><b><?= $intern["id_internacao"]; ?></b></td>
-                                <td scope="row" class="col-id"><b><?= $intern["id_capeante"]; ?></b></td>
+                                <td scope="row" class="col-id">
+                                    <div class="small mb-1"><strong>#<?= $intern["id_capeante"]; ?></strong></div>
+                                    <?php if (isset($intern["parcial_num"])): ?>
+                                        <span class="badge bg-light text-muted">Parcial <?= htmlspecialchars((string)$intern["parcial_num"]) ?></span>
+                                    <?php endif; ?>
+                                </td>
                                 <td scope="row" class="nome-coluna-table"><b><?= $intern["nome_hosp"] ?></b></td>
                                 <td scope="row"><?= $intern["nome_pac"] ?></td>
                                 <td scope="row"><?= $intern["senha_int"] ?></td>
@@ -502,7 +507,7 @@
                         <thead>
                             <tr>
                                 <th scope="col" style="width:4%">Reg Int</th>
-                                <th scope="col" style="width:5%">Conta No.</th>
+                                <th scope="col" style="width:6%">Capeante</th>
                                 <th scope="col" style="width:12%">Hospital</th>
                                 <th scope="col" style="width:16%">Paciente</th>
                                 <th scope="col" style="width:10%">Senha</th>
@@ -520,7 +525,12 @@
                             <?php foreach ($__render_rows as $intern): extract($intern); ?>
                             <tr style="font-size:13px">
                                 <td scope="row" class="col-id"><b><?= $intern["id_internacao"]; ?></b></td>
-                                <td scope="row" class="col-id"><b><?= $intern["id_capeante"]; ?></b></td>
+                                <td scope="row" class="col-id">
+                                    <div class="small mb-1"><strong>#<?= $intern["id_capeante"]; ?></strong></div>
+                                    <?php if (isset($intern["parcial_num"])): ?>
+                                        <span class="badge bg-light text-muted">Parcial <?= htmlspecialchars((string)$intern["parcial_num"]) ?></span>
+                                    <?php endif; ?>
+                                </td>
                             <td scope="row" class="nome-coluna-table"><b><?= $intern["nome_hosp"] ?></b></td>
                             <td scope="row"><?= $intern["nome_pac"] ?></td>
                             <td scope="row"><?= $intern["senha_int"] ?></td>
