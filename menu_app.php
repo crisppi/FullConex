@@ -296,69 +296,167 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    color: white;
-    font-size: 1.5em;
-    border-radius: 5px;
-    background: linear-gradient(to bottom, #5a296a, #7a3a80);
+    color: #3c2750;
+    font-size: 1.4em;
+    border-radius: 16px;
+    background: linear-gradient(150deg, #fbf8ff, #efe7ff);
     height: 120px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    box-shadow: 0 12px 20px rgba(53, 25, 64, 0.12);
+    border: 1px solid rgba(64, 38, 84, 0.08);
+    overflow: hidden;
+    padding: 6px 0;
+}
+
+.grid-item::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top left, rgba(111, 68, 138, 0.18), transparent 55%);
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.grid-item::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #8a5ab0, #5ad1f0);
+    opacity: 0.7;
 }
 
 .title-item {
     position: absolute;
-    top: 10px;
-    left: 15px;
+    top: 14px;
+    left: 18px;
     font-size: 0.8em;
-    color: white
+    color: #311b49;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
 }
 
 .icon-item {
     position: absolute;
-    bottom: 10px;
-    left: 15px;
-    font-size: 1.25em;
-    color: #5bd9f3;
+    bottom: 12px;
+    left: 18px;
+    font-size: 1.1em;
+    color: #fff;
+    background: linear-gradient(145deg, #784c9d, #52336e);
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 14px rgba(61, 32, 88, 0.25);
 }
 
 .badge-item {
     position: absolute;
-    bottom: 15px;
-    right: 15px;
-    width: 100px;
-    color: #9c27b0 !important;
-    background-color: #f3e5f5 !important;
-    padding: 5px 10px;
-    border-radius: 10em;
-    font-size: 0.9em;
+    bottom: 14px;
+    right: 16px;
+    min-width: 110px;
+    color: #432654 !important;
+    background-color: #ffffff !important;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.92em;
     text-align: center;
+    border: 1px solid rgba(64, 38, 84, 0.15);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+.badge-item.badge-neutral {
+    background-color: #f4edf8 !important;
+    color: #432654 !important;
+    border-color: rgba(77, 33, 109, 0.2);
+}
+
+.badge-item.badge-info {
+    background-color: #e4f3fb !important;
+    color: #125f85 !important;
+    border-color: rgba(17, 95, 133, 0.2);
+}
+
+.badge-item.badge-warning {
+    background-color: #fff4d7 !important;
+    color: #9b6500 !important;
+    border-color: rgba(201, 145, 40, 0.35);
+}
+
+.badge-item.badge-critical {
+    background-color: #ffe6eb !important;
+    color: #a2203b !important;
+    border-color: rgba(185, 64, 95, 0.35);
 }
 
 .select-item {
     position: absolute;
     bottom: 18px;
     left: 15px;
-    width: 90%;
+    right: 15px;
+}
+
+.select-wrapper {
+    width: 100%;
+}
+
+.select-shell {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border-radius: 18px;
+    border: 1px solid rgba(118, 77, 150, 0.35);
+    box-shadow: 0 8px 18px rgba(27, 10, 36, 0.12), inset 0 2px 0 rgba(255, 255, 255, 0.9);
+    padding: 4px 4px 4px 12px;
+    gap: 10px;
+}
+
+.select-chevron {
+    color: #8a6aa8;
+    font-size: 1rem;
+    pointer-events: none;
 }
 
 .button-item {
-    position: absolute;
-    bottom: 2px;
-    right: 5px;
-    width: 60px;
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #6b3d7d, #50245f);
+    box-shadow: 0 8px 12px rgba(38, 17, 49, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+}
+
+.button-item span {
+    color: #fff;
+    margin: 0;
 }
 
 .select-hospital {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    flex: 1;
+    border: none;
     background: transparent;
-    color: white;
+    color: #432654;
+    padding: 0.55rem 0.4rem;
+    font-size: 0.95rem;
 }
 
-#hospital_id.open {
-    background-color: transparent !important;
-    color: white
+.select-hospital:focus {
+    outline: none;
 }
 
-#hospital_id.open option {
-    color: gray
+.select-hospital option {
+    color: #432654;
+    background: #fff;
 }
 
 .header_div {
@@ -374,29 +472,33 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
 <script src="js/timeout.js"></script>
 
 <div id='main-container'>
-    <div class="container-fluid" style="margin-top:20px">
+    <div class="container-fluid" style="margin-top:6px">
         <div class="grid-container">
             <div class="grid-item">
                 <div class="title-item"><i class="fa-solid fa-hospital"></i> Filtrar Hospital</div>
                 <form id="filter-status-form" method="POST">
                     <div class="select-item">
-                        <select name="hospital_id" id="hospital_id" class="form-control form-control-md select-hospital"
-                            style="margin-bottom:4px;">
-                            <option value=""><?= htmlspecialchars($hospital_name, ENT_QUOTES, 'UTF-8') ?></option>
-                            <?php foreach ($dados_hospital_select as $hospital1):
-                                $hid = (int)$hospital1['id_hospital'];
-                                $hn  = (string)$hospital1['nome_hosp'];
-                            ?>
-                            <option value="<?= $hid ?>" <?= ($hospital_selecionado === $hid ? 'selected' : '') ?>>
-                                <?= htmlspecialchars($hn !== '' ? $hn : ('Hospital #' . $hid), ENT_QUOTES, 'UTF-8') ?>
-                            </option>
-                            <?php endforeach; ?>
-                        </select>
-                        <button type="submit" class="btn button-item"
-                            style="background-color:transparent;width:42px;height:37px;border:none;">
-                            <span class="material-icons"
-                                style="margin-left:-3px;margin-top:-2px;color:white">search</span>
-                        </button>
+                        <div class="select-wrapper">
+                            <div class="select-shell">
+                                <select name="hospital_id" id="hospital_id"
+                                    class="form-control form-control-md select-hospital">
+                                    <option value=""><?= htmlspecialchars($hospital_name, ENT_QUOTES, 'UTF-8') ?>
+                                    </option>
+                                    <?php foreach ($dados_hospital_select as $hospital1):
+                                        $hid = (int)$hospital1['id_hospital'];
+                                        $hn  = (string)$hospital1['nome_hosp'];
+                                    ?>
+                                    <option value="<?= $hid ?>" <?= ($hospital_selecionado === $hid ? 'selected' : '') ?>>
+                                        <?= htmlspecialchars($hn !== '' ? $hn : ('Hospital #' . $hid), ENT_QUOTES, 'UTF-8') ?>
+                                    </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <span class="select-chevron"><i class="fa-solid fa-chevron-down"></i></span>
+                                <button type="submit" class="btn button-item">
+                                    <span class="material-icons">search</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -404,55 +506,55 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
             <div class="grid-item">
                 <div class="title-item"><i class="fa-solid fa-bed"></i> Total Internados</div>
                 <div class="icon-item"><i class="fa-solid fa-chart-simple"></i></div>
-                <div class="badge-item"><?= count($dados_internacoes) ?></div>
+                <div class="badge-item badge-neutral"><?= count($dados_internacoes) ?></div>
             </div>
 
             <div class="grid-item">
                 <div class="title-item"><i class="fa-solid fa-clock"></i> Longa Permanência</div>
                 <div class="icon-item"><i class="fa-solid fa-chart-simple"></i></div>
-                <div class="badge-item"><?= !empty($longa_perm) ? count($longa_perm) : 0 ?></div>
+                <div class="badge-item badge-warning"><?= !empty($longa_perm) ? count($longa_perm) : 0 ?></div>
             </div>
 
             <div class="grid-item">
                 <div class="title-item"><i class="fa-solid fa-bars-progress"></i> Reinternações &lt; 2 dias</div>
                 <div class="icon-item"><i class="fa-solid fa-chart-simple"></i></div>
-                <div class="badge-item"><?= $total_reinternacoes ?? 0 ?></div>
+                <div class="badge-item badge-warning"><?= $total_reinternacoes ?? 0 ?></div>
             </div>
 
             <div class="grid-item">
                 <div class="title-item"><i class="fa-solid fa-calendar"></i> Visitas em Atraso</div>
                 <div class="icon-item"><i class="fa-solid fa-chart-simple"></i></div>
-                <div class="badge-item"><?= count($dados_visitas_atraso) ?></div>
+                <div class="badge-item badge-warning"><?= count($dados_visitas_atraso) ?></div>
             </div>
 
             <div class="grid-item">
                 <div class="title-item"><i class="fa-solid fa-stethoscope"></i> Acima meta DRG</div>
                 <div class="icon-item"><i class="fa-solid fa-chart-simple"></i></div>
-                <div class="badge-item"><?= $drg_acima[0] ?? 0 ?></div>
+                <div class="badge-item badge-critical"><?= $drg_acima[0] ?? 0 ?></div>
             </div>
 
             <div class="grid-item">
                 <div class="title-item"><i class="fa-solid fa-dollar-sign"></i> Contas em Auditoria</div>
                 <div class="icon-item"><i class="fa-solid fa-chart-simple"></i></div>
-                <div class="badge-item"><?= is_array($dados_capeante) ? count($dados_capeante) : 0 ?></div>
+                <div class="badge-item badge-info"><?= is_array($dados_capeante) ? count($dados_capeante) : 0 ?></div>
             </div>
 
             <div class="grid-item">
                 <div class="title-item"><i class="fa-solid fa-circle-stop"></i> Contas Paradas</div>
                 <div class="icon-item"><i class="fa-solid fa-chart-simple"></i></div>
-                <div class="badge-item"><?= $contas_paradas[0] ?? 0 ?></div>
+                <div class="badge-item badge-critical"><?= $contas_paradas[0] ?? 0 ?></div>
             </div>
 
             <div class="grid-item">
                 <div class="title-item"><i class="fa-solid fa-percent"></i> Porcentagem em UTI</div>
                 <div class="icon-item"><i class="fa-solid fa-chart-simple"></i></div>
-                <div class="badge-item"><?= $perc_uti[0] ?? "0.00%" ?></div>
+                <div class="badge-item badge-info"><?= $perc_uti[0] ?? "0.00%" ?></div>
             </div>
 
             <div class="grid-item">
                 <div class="title-item"><i class="fa-solid fa-heart"></i> UTI Não Pertinente</div>
                 <div class="icon-item"><i class="fa-solid fa-chart-simple"></i></div>
-                <div class="badge-item"><?= $uti_nao_pertinente[0] ?? 0 ?></div>
+                <div class="badge-item badge-critical"><?= $uti_nao_pertinente[0] ?? 0 ?></div>
             </div>
         </div>
     </div>
