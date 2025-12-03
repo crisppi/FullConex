@@ -43,6 +43,9 @@ include_once("dao/tussAnsDao.php");
 include_once("models/tuss.php");
 include_once("dao/tussDao.php");
 
+include_once("models/negociacao.php");
+include_once("dao/negociacaoDao.php");
+
 include_once("array_dados.php");
 
 
@@ -84,6 +87,7 @@ $tuss = new tussAnsDAO($conn, $BASE_URL);
 $tussGeral = $tuss->findAll();
 
 $tussInt = new tussDAO($conn, $BASE_URL);
+$negociacaoDao = new negociacaoDAO($conn, $BASE_URL);
 
 $id_internacao = filter_input(INPUT_GET, 'id_internacao', FILTER_VALIDATE_INT);
 
@@ -98,6 +102,94 @@ $where = implode(' AND ', $condicoes);
 $internacaoList = $internacaoDao->selectAllInternacaoVis($where, $order = null, $limit = null);
 $tussIntern = $tussInt->selectAllTUSSByIntern($id_internacao);
 $prorrogIntern = $prorrogacao->selectAllInternacaoProrrog($id_internacao);
+$tussPorVisita = [];
+$tussPorInternacao = [];
+$negPorVisita = [];
+$negPorInternacao = [];
+$gestaoPorVisita = [];
+$gestaoPorInternacao = [];
+$utiPorVisita = [];
+$utiPorInternacao = [];
+$prorrogPorVisita = [];
+$prorrogPorInternacao = [];
+$visitaInterMap = [];
+if ($id_internacao) {
+    foreach ((array)$visitasAntigas as $row) {
+        if (!is_array($row)) continue;
+        $visId = isset($row['id_visita']) ? (int)$row['id_visita'] : null;
+        $intId = isset($row['fk_internacao_vis']) ? (int)$row['fk_internacao_vis'] : (int)$id_internacao;
+        if ($visId) $visitaInterMap[$visId] = $intId;
+    }
+
+    $tussRaw = $tussInt->selectRawByInternacao((int) $id_internacao);
+    foreach ($tussRaw as $row) {
+        $vid = (int) ($row['fk_vis_tuss'] ?? 0);
+        $intId = (int) ($row['fk_int_tuss'] ?? 0);
+        $entry = [
+            'id_tuss'             => (int) ($row['id_tuss'] ?? 0),
+            'tuss_solicitado'     => $row['tuss_solicitado'] ?? '',
+            'tuss_liberado_sn'    => $row['tuss_liberado_sn'] ?? '',
+            'qtd_tuss_solicitado' => $row['qtd_tuss_solicitado'] ?? '',
+            'qtd_tuss_liberado'   => $row['qtd_tuss_liberado'] ?? '',
+            'data_realizacao_tuss'=> $row['data_realizacao_tuss'] ?? '',
+            'fk_usuario_tuss'     => $row['fk_usuario_tuss'] ?? null
+        ];
+        if ($vid > 0) $tussPorVisita[$vid][] = $entry;
+        elseif ($intId > 0) $tussPorInternacao[$intId][] = $entry;
+    }
+
+    $negRows = $negociacaoDao->selectByInternacao((int) $id_internacao, null, null, true);
+    foreach ($negRows as $row) {
+        $vid = (int) ($row['fk_visita_neg'] ?? 0);
+        $intId = (int) ($row['fk_id_int'] ?? 0);
+        $entry = [
+            'id_negociacao'   => (int) ($row['id_negociacao'] ?? 0),
+            'tipo_negociacao' => $row['tipo_negociacao'] ?? '',
+            'data_inicio_negoc' => $row['data_inicio_neg'] ?? '',
+            'data_fim_negoc'    => $row['data_fim_neg'] ?? '',
+            'troca_de'        => $row['troca_de'] ?? '',
+            'troca_para'      => $row['troca_para'] ?? '',
+            'qtd'             => $row['qtd'] ?? '',
+            'saving'          => $row['saving'] ?? '',
+            'fk_usuario_neg'  => $row['fk_usuario_neg'] ?? null
+        ];
+        if ($vid > 0) $negPorVisita[$vid][] = $entry;
+        elseif ($intId > 0) $negPorInternacao[$intId][] = $entry;
+    }
+
+    $gestaoRows = $gestao->selectRawByInternacao((int) $id_internacao);
+    foreach ($gestaoRows as $row) {
+        $vid = (int) ($row['fk_visita_ges'] ?? 0);
+        $intId = (int) ($row['fk_internacao_ges'] ?? 0);
+        if ($vid > 0) {
+            $gestaoPorVisita[$vid] = $row;
+        } elseif ($intId > 0 && !isset($gestaoPorInternacao[$intId])) {
+            $gestaoPorInternacao[$intId] = $row;
+        }
+    }
+
+    $utiRows = $uti->selectRawByInternacao((int) $id_internacao);
+    foreach ($utiRows as $row) {
+        $vid = (int) ($row['fk_visita_uti'] ?? 0);
+        $intId = (int) ($row['fk_internacao_uti'] ?? 0);
+        if ($vid > 0) {
+            $utiPorVisita[$vid] = $row;
+        } elseif ($intId > 0 && !isset($utiPorInternacao[$intId])) {
+            $utiPorInternacao[$intId] = $row;
+        }
+    }
+
+    $prorrogRaw = $prorrogacao->selectRawByInternacao((int) $id_internacao);
+    foreach ($prorrogRaw as $row) {
+        $vid = (int) ($row['fk_visita_pror'] ?? 0);
+        $intId = (int) ($row['fk_internacao_pror'] ?? 0);
+        if ($vid > 0) {
+            $prorrogPorVisita[$vid][] = $row;
+        } elseif ($intId > 0) {
+            $prorrogPorInternacao[$intId][] = $row;
+        }
+    }
+}
 extract($internacaoList);
 
 $ultimaVis = end($internacaoList);

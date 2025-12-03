@@ -19,7 +19,7 @@ foreach ($messages as $mensagem) {
   // Substituir o padrão "link_capeante=numero" por um link
   $mensagemComLink = preg_replace_callback('/link_capeante=(\d+)/', function ($matches) {
     $id_capeante = $matches[1]; // Captura o número após o "link_capeante="
-    return "<a href='cad_capeante_audit.php?id_capeante={$id_capeante}' target='_blank'>Link Capeante #{$id_capeante}</a>";
+    return "<a href='cad_capeante_rah.php?id_capeante={$id_capeante}' target='_blank'>Link Capeante #{$id_capeante}</a>";
   }, $mensagem->mensagem);
 
   echo "<div class='message $messageClass' data-id='{$mensagem->id_mensagem}'>

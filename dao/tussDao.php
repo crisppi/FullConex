@@ -225,6 +225,32 @@ class tussDAO implements tussDAOInterface
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    /**
+     * Retorna todos os registros de TUSS de uma internação (dados crus),
+     * incluindo o vínculo com a visita.
+     */
+    public function selectRawByInternacao(int $id_internacao): array
+    {
+        $stmt = $this->conn->prepare("
+            SELECT *
+            FROM tb_tuss
+            WHERE fk_int_tuss = :id
+            ORDER BY id_tuss ASC
+        ");
+        $stmt->bindValue(':id', $id_internacao, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
+
+    /** Remove todos os registros de TUSS associados a uma visita específica. */
+    public function deleteByVisita(int $visitaId): void
+    {
+        if ($visitaId <= 0) return;
+        $stmt = $this->conn->prepare("DELETE FROM tb_tuss WHERE fk_vis_tuss = :visita");
+        $stmt->bindValue(':visita', $visitaId, PDO::PARAM_INT);
+        $stmt->execute();
+    }
+
 
     public function selectAllInternacaoTUSS($where = null, $order = null, $limit = null)
     {

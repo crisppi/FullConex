@@ -20,6 +20,12 @@ function fmt_br($raw)
     $ts = @strtotime($raw);
     return $ts ? date('d/m/Y', $ts) : $raw;
 }
+function fmt_cnpj($raw)
+{
+    $digits = preg_replace('/\D+/', '', (string)$raw);
+    if (strlen($digits) !== 14) return $raw;
+    return substr($digits,0,2) . '.' . substr($digits,2,3) . '.' . substr($digits,5,3) . '/' . substr($digits,8,4) . '-' . substr($digits,12,2);
+}
 function qs_keep(array $replace = [])
 {
     $q = $_GET;
@@ -41,11 +47,19 @@ $T_PAT = 'tb_patologia';
 $T_CID = 'tb_cid';
 $T_USR = 'tb_user';
 
+$pageContext = strtolower(trim($_GET['context'] ?? ''));
+$isFaturamentoView = $pageContext === 'faturamento';
+$pageTitle = $isFaturamentoView ? 'Faturamento - Visitas' : 'Lista de Visitas';
+
 /* ==== Entrada ==== */
 $nomePaciente = trim($_GET['nome'] ?? '');
 $hospitalId   = trim($_GET['hospital_id'] ?? '');
 $dtIni        = trim($_GET['dt_ini'] ?? ''); // YYYY-MM-DD
 $dtFim        = trim($_GET['dt_fim'] ?? ''); // YYYY-MM-DD
+$faturadoVis  = strtolower(trim($_GET['faturado'] ?? 'n'));
+if (!in_array($faturadoVis, ['s', 'n', ''], true)) {
+    $faturadoVis = 'n';
+}
 
 if ($dtIni !== '' && $dtFim !== '' && $dtIni > $dtFim) {
     [$dtIni, $dtFim] = [$dtFim, $dtIni];
@@ -62,22 +76,37 @@ $isExport = isset($_GET['export']) && $_GET['export'] == '1';
 /* ==== Campos exibíveis ==== */
 $fieldsMap = [
     'id_visita'       => ['label' => 'ID da visita',     'sql' => "v1.id_visita AS id_visita"],
+    'senha'           => ['label' => 'Senha',            'sql' => "i.senha_int AS senha"],
     'hospital'        => ['label' => 'Hospital',         'sql' => "ho.nome_hosp AS hospital"],
+    'cnpj_hospital'   => ['label' => 'CNPJ do hospital', 'sql' => "ho.cnpj_hosp AS cnpj_hospital"],
     'nome_paciente'   => ['label' => 'Nome do paciente', 'sql' => "pa.nome_pac AS nome_paciente"],
+    'matricula'       => ['label' => 'Matrícula do paciente', 'sql' => "pa.matricula_pac AS matricula"],
     'data_internacao' => ['label' => 'Data internação',  'sql' => "i.data_intern_int AS data_internacao"],
     'data_visita'     => ['label' => 'Data visita',      'sql' => "v.data_visita_fmt AS data_visita"],
+    'data_lancamento' => [
+        'label' => 'Data lançamento',
+        'sql'   => "v1.data_lancamento_vis AS data_lancamento"
+    ],
+    'periodo_faturamento' => [
+        'label' => 'Período faturamento (30 dias)',
+        'sql'   => "CASE WHEN v.last_data_lancamento_iso IS NULL THEN NULL ELSE CONCAT(IFNULL(v.periodo_ini_fmt,''), ' a ', v.last_data_lancamento_fmt) END AS periodo_faturamento"
+    ],
     'auditor_medico'  => [
         'label' => 'Auditor médico',
         'sql'   => "COALESCE(u.usuario_user, u2.usuario_user, NULLIF(v1.visita_auditor_prof_med,'')) AS auditor_medico"
     ],
-    'acomodacao'      => ['label' => 'Acomodação',       'sql' => "i.acomodacao_int AS acomodacao"],
-    'patologia'       => ['label' => 'Patologia',        'sql' => "pc.patologia AS patologia"],
-    'especialidade'   => ['label' => 'Especialidade',    'sql' => "i.especialidade_int AS especialidade"],
     'alta_flag'       => ['label' => 'Alta',             'sql' => "IF(a1.fk_id_int_alt IS NULL,'Não','Sim') AS alta_flag"],
     'data_alta'       => ['label' => 'Data alta',        'sql' => "a1.data_alta_alt AS data_alta"],
     'cid'             => ['label' => 'CID',              'sql' => "pc.cid AS cid"],
+    'faturado_vis'    => ['label' => 'Faturado?',        'sql' => "IFNULL(NULLIF(v1.faturado_vis,''), 'n') AS faturado_vis"],
     'rel_visita_vis'  => ['label' => 'Relatório Visita', 'sql' => "v1.rel_visita_vis AS rel_visita_vis"],
 ];
+
+if ($isFaturamentoView) {
+    unset($fieldsMap['rel_visita_vis']);
+} else {
+    unset($fieldsMap['periodo_faturamento']);
+}
 
 /* ==== SELECT dinâmico ==== */
 $selected = isset($_GET['fields']) && is_array($_GET['fields'])
@@ -116,7 +145,11 @@ LEFT JOIN (
       SUBSTRING_INDEX(GROUP_CONCAT(CASE WHEN v0.parsed_date IS NOT NULL THEN v0.id_visita END ORDER BY v0.parsed_date DESC, v0.id_visita DESC SEPARATOR ','), ',', 1),
       SUBSTRING_INDEX(GROUP_CONCAT(v0.id_visita ORDER BY v0.id_visita DESC SEPARATOR ','), ',', 1)
     ) AS id_visita_pick,
-    DATE_FORMAT(COALESCE(MAX(CASE WHEN {$hasTextExpr} THEN v0.parsed_date END), MAX(v0.parsed_date)), '%d/%m/%Y') AS data_visita_fmt
+    DATE_FORMAT(COALESCE(MAX(CASE WHEN {$hasTextExpr} THEN v0.parsed_date END), MAX(v0.parsed_date)), '%d/%m/%Y') AS data_visita_fmt,
+    MAX(v0.data_lancamento_vis) AS last_data_lancamento_raw,
+    DATE_FORMAT(MAX(v0.data_lancamento_vis), '%Y-%m-%d') AS last_data_lancamento_iso,
+    DATE_FORMAT(MAX(v0.data_lancamento_vis), '%d/%m/%Y') AS last_data_lancamento_fmt,
+    DATE_FORMAT(DATE_SUB(MAX(v0.data_lancamento_vis), INTERVAL 30 DAY), '%d/%m/%Y') AS periodo_ini_fmt
   FROM (
     SELECT t.*,
       COALESCE(
@@ -168,6 +201,11 @@ if ($hospitalId !== '') {
 // Se período definido, garante que só traga internações com visita escolhida
 if ($dtIni !== '' || $dtFim !== '') {
     $whereConditions .= " AND v.id_visita_pick IS NOT NULL ";
+}
+if ($faturadoVis === 's') {
+    $whereConditions .= " AND LOWER(IFNULL(v1.faturado_vis,'')) = 's' ";
+} elseif ($faturadoVis === 'n') {
+    $whereConditions .= " AND (v1.faturado_vis IS NULL OR v1.faturado_vis = '' OR LOWER(v1.faturado_vis) <> 's') ";
 }
 
 $sqlBase = "
@@ -258,8 +296,12 @@ if ($isExport) {
             $col = 1;
             foreach ($selected as $k) {
                 $val = $r[$k] ?? '';
-                if (in_array($k, ['data_internacao', 'data_visita', 'data_alta'], true)) {
+                if (in_array($k, ['data_internacao', 'data_visita', 'data_alta', 'data_lancamento'], true)) {
                     $val = fmt_br($val); // saída dd/mm/aaaa
+                } elseif ($k === 'faturado_vis') {
+                    $val = strtolower((string)$val) === 's' ? 'Sim' : 'Não';
+                } elseif ($k === 'cnpj_hospital') {
+                    $val = fmt_cnpj($val);
                 }
                 // Como texto: preserva zeros à esquerda e evita reinterpretação
                 $sheet->setCellValueExplicitByColumnAndRow(
@@ -300,11 +342,14 @@ if ($isExport) {
 
 /* ==== Render ==== */
 include_once __DIR__ . "/templates/header.php";
+
+$brandColor = $isFaturamentoView ? '#0a4fa3' : '#5e2363';
+$brandSoftColor = $isFaturamentoView ? '#d6e4ff' : '#f3e9f8';
 ?>
 <style>
     :root {
-        --brand: #5e2363;
-        --brand-100: #f3e9f8;
+        --brand: <?= htmlspecialchars($brandColor, ENT_QUOTES, 'UTF-8') ?>;
+        --brand-100: <?= htmlspecialchars($brandSoftColor, ENT_QUOTES, 'UTF-8') ?>;
     }
 
     .page-title {
@@ -363,7 +408,7 @@ include_once __DIR__ . "/templates/header.php";
 </style>
 
 <div class="container-fluid" style="margin-top:-10px;">
-    <h4 class="page-title mt-0 mb-2">Lista de Visitas</h4>
+    <h4 class="page-title mt-0 mb-2"><?= h($pageTitle) ?></h4>
     <hr class="mt-1 mb-3">
 
     <?php if ($DEBUG): ?>
@@ -379,17 +424,20 @@ include_once __DIR__ . "/templates/header.php";
     <?php endif; ?>
 
     <?php
-    $fieldIcons = [
+$fieldIcons = [
         'id_visita'       => 'bi-hash',
+        'senha'           => 'bi-key',
         'hospital'        => 'bi-hospital',
+        'cnpj_hospital'   => 'bi-building',
         'nome_paciente'   => 'bi-person',
+        'matricula'       => 'bi-123',
         'data_internacao' => 'bi-calendar2-plus',
         'data_visita'     => 'bi-calendar2-event',
+        'data_lancamento' => 'bi-calendar-event-fill',
+        'periodo_faturamento' => 'bi-calendar-range',
         'cid'             => 'bi-hash',
         'auditor_medico'  => 'bi-person-vcard',
-        'acomodacao'      => 'bi-door-closed',
-        'patologia'       => 'bi-clipboard2-pulse',
-        'especialidade'   => 'bi-stethoscope',
+        'faturado_vis'    => 'bi-clipboard-check',
         'alta_flag'       => 'bi-box-arrow-up-right',
         'data_alta'       => 'bi-calendar2-check',
         'rel_visita_vis'  => 'bi-file-earmark-text',
@@ -453,6 +501,15 @@ include_once __DIR__ . "/templates/header.php";
                     </select>
                 </div>
             </div>
+            <div class="col-12 col-sm-6 col-lg-2">
+                <div class="input-group"><span class="input-group-text"><i class="bi bi-cash-stack"></i></span>
+                    <select name="faturado" class="form-select">
+                        <option value="" <?= $faturadoVis === '' ? 'selected' : '' ?>>Todos</option>
+                        <option value="s" <?= $faturadoVis === 's' ? 'selected' : '' ?>>Faturado</option>
+                        <option value="n" <?= $faturadoVis === 'n' ? 'selected' : '' ?>>Não faturado</option>
+                    </select>
+                </div>
+            </div>
         </div>
 
         <div class="sticky-actions mt-3 d-flex flex-wrap gap-2 justify-content-end">
@@ -476,7 +533,13 @@ include_once __DIR__ . "/templates/header.php";
                             <tr>
                                 <?php foreach ($selected as $k):
                                     $val = $r[$k] ?? '';
-                                    if (in_array($k, ['data_internacao', 'data_visita', 'data_alta'], true)) $val = fmt_br($val);
+                                    if (in_array($k, ['data_internacao', 'data_visita', 'data_alta', 'data_lancamento'], true)) {
+                                        $val = fmt_br($val);
+                                    } elseif ($k === 'faturado_vis') {
+                                        $val = strtolower((string)$val) === 's' ? 'Sim' : 'Não';
+                                    } elseif ($k === 'cnpj_hospital') {
+                                        $val = fmt_cnpj($val);
+                                    }
                                 ?>
                                     <td class="col-<?= h($k) ?>">
                                         <?php if ($k === 'rel_visita_vis'): ?>
@@ -521,10 +584,16 @@ include_once __DIR__ . "/templates/header.php";
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        const formEl = document.getElementById('form-visitas');
         const updateColumnVisibility = (checkbox) => {
             const k = checkbox.value;
             const isChecked = checkbox.checked;
-            document.querySelectorAll('th.col-' + k + ', td.col-' + k).forEach(cell => {
+            const cells = document.querySelectorAll('th.col-' + k + ', td.col-' + k);
+            if (isChecked && cells.length === 0 && formEl) {
+                formEl.submit();
+                return;
+            }
+            cells.forEach(cell => {
                 cell.style.display = isChecked ? '' : 'none';
             });
         };

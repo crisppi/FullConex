@@ -42,6 +42,16 @@ $acomodacao = $acomodacaoDao->findGeral();
 $idSessao = $_SESSION["id_usuario"] ?? '';
 $cargoSessao = $_SESSION['cargo'] ?? ($_SESSION['cargo_user'] ?? '');
 $emailSessao = $_SESSION['email_user'] ?? '';
+$nivelSessaoRaw = (string) ($_SESSION['nivel'] ?? '');
+$nivelSessaoInt = (int) $nivelSessaoRaw;
+$normCargoSessao = mb_strtolower(str_replace([' ', '-'], '_', (string) $cargoSessao), 'UTF-8');
+$isMedOuEnf = in_array($normCargoSessao, ['med_auditor', 'medico_auditor', 'enf_auditor', 'enfer_auditor'], true);
+$cargoSessaoLower = mb_strtolower((string) $cargoSessao, 'UTF-8');
+$isDiretorSessao = (mb_stripos($cargoSessaoLower, 'diretor') !== false)
+    || (mb_stripos($cargoSessaoLower, 'diretoria') !== false)
+    || in_array($nivelSessaoRaw, ['1', '-1'], true);
+$cadastroCentralObrigatorio = $isDiretorSessao;
+$mostrarCadastroCentral = $cadastroCentralObrigatorio || !$isMedOuEnf;
 
 $dataAtual = date('Y-m-d');
 $agora = date('Y-m-d');
@@ -69,10 +79,6 @@ try {
         if (!$id)
             continue;
 
-        /* ===== Mostrar Cadastro Central APENAS se NÃO for médico nem enfermeiro ===== */
-        $normCargo = mb_strtolower(str_replace([' ', '-'], '_', (string) $cargoSessao), 'UTF-8');
-        $mostrarCadastroCentral = !in_array($normCargo, ['med_auditor', 'medico_auditor', 'enf_auditor', 'enfer_auditor'], true);
-
         $row = [
             'id_usuario' => (int) $id,
             'usuario_user' => (string) $nome,
@@ -97,9 +103,9 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
     $hospitalDao = new hospitalDAO($conn, $BASE_URL);
 
     $userIdSessao = (int) ($_SESSION['id_usuario'] ?? 0);
-    $nivelSessao = (int) ($_SESSION['nivel'] ?? 0);
+    $nivelSessaoLista = $nivelSessaoInt;
 
-    if ($nivelSessao > 3) {
+    if ($nivelSessaoLista > 3) {
         $rawHospitais = $hospitalDao->findGeral();
     } else {
         $rawHospitais = $hospitalUserDao->listarPorUsuario($userIdSessao);
@@ -333,6 +339,8 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
             <input type="hidden" id="visita_med_int" name="visita_med_int" value="n">
             <input type="hidden" id="visita_auditor_prof_enf" name="visita_auditor_prof_enf" value="">
             <input type="hidden" id="visita_auditor_prof_med" name="visita_auditor_prof_med" value="">
+            <input type="hidden" id="cad_central_obrigatorio" name="cad_central_obrigatorio"
+                value="<?= $cadastroCentralObrigatorio ? '1' : '0' ?>">
         </div>
 
         <!-- ===== CADASTRO CENTRAL (só aparece se NÃO for med/enf) ===== -->
@@ -341,7 +349,12 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
             style="margin-top:8px;display:block !important;border:2px dashed #8a2be2;padding:10px;border-radius:8px;">
             <div class="form-group col-sm-12" style="margin-bottom:6px;">
                 <span style="font-weight:700;color:#5e2363;">Cadastro Central ativo</span>
+                <?php if ($cadastroCentralObrigatorio): ?>
+                <small style="margin-left:8px;color:#b02a37;font-weight:600;">Obrigatório para diretores: selecione o
+                    tipo e o responsável.</small>
+                <?php else: ?>
                 <small style="margin-left:8px;color:#666;">(opcional: escolha o tipo e o responsável)</small>
+                <?php endif; ?>
             </div>
 
             <div class="form-group row align-items-end">
@@ -1236,6 +1249,9 @@ document.addEventListener('DOMContentLoaded', mirrorVisitMedFromFk);
 
     const idSessao = "<?= htmlspecialchars($idSessao) ?>";
     const cargoSessao = "<?= addslashes($cargoSessao) ?>";
+    const clearInvalid = (el) => {
+        if (el) el.classList.remove('is-invalid');
+    };
 
     function hide(el) {
         if (el) {
@@ -1269,6 +1285,9 @@ document.addEventListener('DOMContentLoaded', mirrorVisitMedFromFk);
     resetToSessionUser();
 
     respTipo?.addEventListener('change', function() {
+        clearInvalid(respTipo);
+        clearInvalid(selMed);
+        clearInvalid(selEnf);
         const v = this.value;
         if (selMed) selMed.value = '';
         if (selEnf) selEnf.value = '';
@@ -1292,6 +1311,7 @@ document.addEventListener('DOMContentLoaded', mirrorVisitMedFromFk);
     });
 
     selMed?.addEventListener('change', function() {
+        clearInvalid(selMed);
         const opt = this.selectedOptions[0];
         if (!opt?.value) {
             resetToSessionUser();
@@ -1305,6 +1325,7 @@ document.addEventListener('DOMContentLoaded', mirrorVisitMedFromFk);
     });
 
     selEnf?.addEventListener('change', function() {
+        clearInvalid(selEnf);
         const opt = this.selectedOptions[0];
         if (!opt?.value) {
             resetToSessionUser();
@@ -1357,6 +1378,39 @@ $("#myForm").submit(function(event) {
     // Se a borda já for verde (ou padrão), não fará mal.
     if ($("#hospital_selected").css("border-color") === "rgb(255, 0, 0)") { // Verifica se a cor é vermelho
         $("#hospital_selected").css("border", "2px solid green"); // Muda para verde se estava vermelha
+    }
+
+    const cadCentralObrig = document.getElementById('cad_central_obrigatorio')?.value === '1';
+    if (cadCentralObrig) {
+        const respTipoEl = document.getElementById('resp_tipo');
+        const respMedEl = document.getElementById('resp_med_id');
+        const respEnfEl = document.getElementById('resp_enf_id');
+        [respTipoEl, respMedEl, respEnfEl].forEach(function(el) {
+            if (el) el.classList.remove('is-invalid');
+        });
+
+        const respTipoVal = respTipoEl?.value || '';
+        let cadMsg = '';
+
+        if (!respTipoVal) {
+            cadMsg = 'Selecione o tipo de responsável pela visita.';
+            respTipoEl?.classList.add('is-invalid');
+        } else if (respTipoVal === 'med' && !(respMedEl?.value)) {
+            cadMsg = 'Selecione o médico responsável pela visita.';
+            respMedEl?.classList.add('is-invalid');
+        } else if (respTipoVal === 'enf' && !(respEnfEl?.value)) {
+            cadMsg = 'Selecione o enfermeiro responsável pela visita.';
+            respEnfEl?.classList.add('is-invalid');
+        }
+
+        if (cadMsg) {
+            $('#alert').removeClass("alert-success").addClass("alert-danger");
+            $('#alert').fadeIn().html("<b>Erro:</b> " + cadMsg);
+            setTimeout(function() {
+                $('#alert').fadeOut('Slow');
+            }, 3000);
+            return;
+        }
     }
 
 

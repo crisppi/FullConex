@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Manual | Eventos adversos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+    body{margin:0;font-family:'Inter',sans-serif;background:#f8f6fb;color:#2d1740;line-height:1.5}
+    header{background:linear-gradient(135deg,#6b3d7d,#422257);color:#fff;padding:45px 5vw 70px}
+    main{width:min(900px,92vw);margin:-40px auto 50px}
+    h2{font-size:26px;margin-bottom:14px;position:relative}
+    h2::after{content:"";position:absolute;left:0;bottom:-6px;width:60px;height:3px;border-radius:99px;background:linear-gradient(90deg,#8a5ab0,#5ad1f0)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+    .card{background:#fff;border-radius:16px;padding:22px;border:1px solid rgba(90,43,120,.1);box-shadow:0 12px 24px rgba(57,23,92,.1)}
+    ul{margin:0;padding-left:18px}
+    a.voltar{color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.4);padding:6px 12px;border-radius:999px}
+    footer{text-align:center;color:#6f6b78;padding:30px}
+    </style>
+</head>
+<body>
+<header>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+        <div>
+            <h1>Eventos adversos</h1>
+            <p>Registro de intercorrências clínicas, administrativas ou estruturais durante a internação.</p>
+        </div>
+        <a class="voltar" href="manual.html">← Voltar</a>
+    </div>
+</header>
+<main>
+    <section>
+        <h2>Fluxo</h2>
+        <div class="grid">
+            <article class="card">
+                <ul>
+                    <li>Menu Produção &gt; Eventos adversos ou botão no hub do paciente.</li>
+                    <li>Informar tipo, data/hora, descrição e responsável.</li>
+                    <li>Vincular à internação atual e anexar documentos.</li>
+                </ul>
+            </article>
+            <article class="card">
+                <h3>Travas</h3>
+                <ul>
+                    <li>Data deve estar dentro do período da internação.</li>
+                    <li>Eventos críticos exigem preenchimento do campo "Ação tomada".</li>
+                    <li>Apenas auditor responsável ou diretoria pode excluir.</li>
+                </ul>
+            </article>
+        </div>
+    </section>
+    <section>
+        <h2>Integração</h2>
+        <article class="card">
+            <ul>
+                <li>Resumo aparece na aba Resumo da internação e no RAH.</li>
+                <li>Dashboard pode filtrar eventos por hospital/tipo.</li>
+                <li>Alertas críticos disparam e-mail e registram log.</li>
+            </ul>
+        </article>
+    </section>
+</main>
+<footer>Manual Eventos Adversos • versão 0.2</footer>
+</body>
+</html>

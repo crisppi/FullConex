@@ -130,6 +130,20 @@ if ($id_internacao) {
     }
 }
 
+$nextAutoDate = '';
+if ($type === 'create' && !empty($prevParcialRow['data_final_capeante']) && $prevParcialRow['data_final_capeante'] !== '0000-00-00') {
+    $ts = strtotime($prevParcialRow['data_final_capeante'] . ' +1 day');
+    if ($ts) {
+        $nextAutoDate = date('Y-m-d', $ts);
+        if (empty($row['data_inicial_capeante'])) {
+            $row['data_inicial_capeante'] = $nextAutoDate;
+        }
+        if (empty($row['data_final_capeante'])) {
+            $row['data_final_capeante'] = $nextAutoDate;
+        }
+    }
+}
+
 $novaParcial = filter_input(INPUT_GET, 'nova_parcial') ? true : false;
 if ($type === 'create' && $novaParcial && $id_internacao) {
     $row['parcial_capeante'] = 's';
@@ -140,11 +154,6 @@ if ($type === 'create' && $novaParcial && $id_internacao) {
         } catch (Throwable $e) {
             $row['parcial_num'] = null;
         }
-    }
-    if (!empty($prevParcialRow['data_final_capeante'])) {
-        $nextStart = date('Y-m-d', strtotime($prevParcialRow['data_final_capeante'] . ' +1 day'));
-        $row['data_inicial_capeante'] = $nextStart;
-        $row['data_final_capeante'] = null;
     }
 }
 $fv = function (string $k) use ($row) {

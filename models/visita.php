@@ -19,6 +19,8 @@ class visita
   public $visita_enf_vis;
   public $fk_usuario_vis;
   public $data_visita_vis;
+  public $data_lancamento_vis;
+  public $faturado_vis;
   public $oportunidades_enf;
   public $exames_enf;
   public $programacao_enf;

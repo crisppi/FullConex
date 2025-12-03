@@ -48,6 +48,19 @@
   };
 
   const fmtDateBr = (d) => (d && d !== '0000-00-00' ? d : '—');
+  const parseIsoDate = (iso) => {
+    if (!iso) return null;
+    const dt = new Date(`${iso}T00:00:00Z`);
+    return Number.isNaN(dt.getTime()) ? null : dt;
+  };
+  const formatDateBrFromDate = (date) => (date
+    ? date.toLocaleDateString('pt-BR', { timeZone: 'UTC' })
+    : null);
+  const addDaysUtc = (date, days) => {
+    const clone = new Date(date.getTime());
+    clone.setUTCDate(clone.getUTCDate() + days);
+    return clone;
+  };
 
   const esc = (s) => (s ?? '').toString()
     .replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -387,7 +400,7 @@
                 <th>Internação</th><th>Conta</th><th>Hospital</th><th>Período</th>
                 <th>Fechamento</th><th>Lançamento</th>
                 <th class="text-end">Apresentado</th><th class="text-end">Glosa</th><th class="text-end">Final</th>
-                <th>Status</th><th>Parcial</th><th>Ações</th>
+                <th>Status</th><th>Parcial / Nº</th><th>Ações</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -404,39 +417,198 @@
   function renderContasRows(rows) {
     ensureContasTable();
     const tbody = document.querySelector('#tblContas tbody'); if (!tbody) return;
+    const colCount = document.querySelectorAll('#tblContas thead th').length || 13;
     tbody.innerHTML = '';
-    if (!rows || !rows.length) { const tr = document.createElement('tr'); tr.innerHTML = `<td colspan="12" class="text-center text-muted py-3">Nenhuma conta encontrada.</td>`; tbody.appendChild(tr); return; }
-    rows.forEach(r => {
+    if (!rows || !rows.length) {
       const tr = document.createElement('tr');
-      const valorId = r.id_valor ? String(r.id_valor) : '';
-      const capeanteId = r.id_capeante ? String(r.id_capeante) : '';
-      const intId = r.id_internacao ? String(r.id_internacao) : '';
-
-      const baseRahUrl = `cad_capeante_rah.php?id_capeante=${encodeURIComponent(capeanteId)}${intId ? `&id_internacao=${encodeURIComponent(intId)}` : ''}`;
-      const rahViewUrl = baseRahUrl;
-      const rahEditUrl = valorId
-        ? `edit_capeante_rah.php?id_valor=${encodeURIComponent(valorId)}`
-        : `edit_capeante_rah.php?id_capeante=${encodeURIComponent(capeanteId)}${intId ? `&id_internacao=${encodeURIComponent(intId)}` : ''}`;
-      const rahPreviewUrl = `export_capeante_rah_pdf.php?id_capeante=${encodeURIComponent(capeanteId)}&download=0`;
-
-      tr.innerHTML = `
-        <td>${esc(r.id_internacao)}</td>
-        <td>#${esc(r.id_capeante)}</td>
-        <td>${esc(r.hospital || '—')}</td>
-        <td>${esc(r.periodo || '—')}</td>
-        <td>${esc(r.data_fechamento || '—')}</td>
-        <td>${esc(r.data_lancamento || '—')}</td>
-        <td class="text-end">R$ ${Number(r.valor_apresentado || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-        <td class="text-end">R$ ${Number(r.glosa_total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-        <td class="text-end">R$ ${Number(r.valor_final || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-        <td>${esc(r.status || '—')}</td>
-        <td>${esc(r.parcial || '—')}</td>
-        <td class="d-flex gap-1 flex-wrap">
-          <a class="btn btn-sm btn-outline-primary" href="${rahEditUrl}" title="Editar RAH da conta">Editar RAH</a>
-          <a class="btn btn-sm btn-outline-success" href="${rahViewUrl}" title="Criar/visualizar RAH">RAH</a>
-          <button class="btn btn-sm btn-rah-view" type="button" data-action="preview-rah" data-url="${rahPreviewUrl}" title="Visualizar RAH em tela">Ver RAH</button>
-        </td>`;
+      tr.innerHTML = `<td colspan="${colCount}" class="text-center text-muted py-3">Nenhuma conta encontrada.</td>`;
       tbody.appendChild(tr);
+      return;
+    }
+
+    const grouped = new Map();
+    rows.forEach((row) => {
+      const key = row.id_internacao != null ? String(row.id_internacao) : '—';
+      if (!grouped.has(key)) grouped.set(key, []);
+      grouped.get(key).push(Object.assign({}, row));
+    });
+
+    const analyzeGroup = (contas = []) => {
+      const ordered = [...contas].sort((a, b) => {
+        const aStart = parseIsoDate(a.periodo_inicio_raw);
+        const bStart = parseIsoDate(b.periodo_inicio_raw);
+        if (aStart && bStart && aStart.getTime() !== bStart.getTime()) return aStart - bStart;
+        if (aStart && !bStart) return -1;
+        if (!aStart && bStart) return 1;
+        const aParcial = Number.isFinite(parseInt(a.parcial_numero, 10)) ? parseInt(a.parcial_numero, 10) : null;
+        const bParcial = Number.isFinite(parseInt(b.parcial_numero, 10)) ? parseInt(b.parcial_numero, 10) : null;
+        if (aParcial !== null && bParcial !== null && aParcial !== bParcial) return aParcial - bParcial;
+        if (aParcial !== null && bParcial === null) return -1;
+        if (aParcial === null && bParcial !== null) return 1;
+        return (a.id_capeante || 0) - (b.id_capeante || 0);
+      });
+
+      const END_OF_TIME = new Date('9999-12-31T00:00:00Z');
+      let hasOpen = false;
+      let hasOverlap = false;
+      let prevEnd = null;
+      let prevRow = null;
+      let firstDate = null;
+      const uncoveredRanges = [];
+      let hasEncerrado = false;
+
+      ordered.forEach((row, idx) => {
+        const start = parseIsoDate(row.periodo_inicio_raw);
+        const end = parseIsoDate(row.periodo_fim_raw);
+        row.__parsedStart = start;
+        row.__parsedEnd = end;
+        if (!firstDate && start) firstDate = start;
+
+        if (!end) {
+          row.__periodoAberto = true;
+          hasOpen = true;
+        }
+        const statusStr = (row.status || '').toString().toLowerCase();
+        if (statusStr.includes('encerrado')) {
+          hasEncerrado = true;
+        }
+
+        const effectiveEnd = end || END_OF_TIME;
+        if (start && prevEnd) {
+          const gapStart = addDaysUtc(prevEnd, 1);
+          const gapEnd = addDaysUtc(start, -1);
+          if (gapStart <= gapEnd) {
+            uncoveredRanges.push({ start: gapStart, end: gapEnd });
+            hasOpen = true;
+          }
+        }
+
+        if (start && prevEnd && start < prevEnd) {
+          hasOverlap = true;
+          row.__hasOverlap = true;
+          if (prevRow) prevRow.__hasOverlap = true;
+        }
+
+        if ((end && (!prevEnd || end > prevEnd)) || (!prevEnd)) {
+          prevEnd = effectiveEnd;
+          prevRow = row;
+        } else if (!end) {
+          prevEnd = effectiveEnd;
+          prevRow = row;
+        }
+
+        const rawParcialNum = Number.isFinite(parseInt(row.parcial_numero, 10))
+          ? parseInt(row.parcial_numero, 10)
+          : null;
+        row.__displayParcialNum = rawParcialNum;
+      });
+
+      const multipleContas = ordered.length > 1;
+      ordered.forEach((row, idx) => {
+        if (row.__displayParcialNum == null && multipleContas) {
+          row.__displayParcialNum = idx + 1;
+        }
+        const rawFlag = (row.is_parcial ?? row.parcial_flag ?? false) === true ||
+          (typeof row.is_parcial === 'string' && row.is_parcial.toLowerCase() === 'true');
+        row.__derivedParcial = rawFlag || multipleContas;
+      });
+
+      return { ordered, hasOpen, hasOverlap, hasEncerrado, firstDate, uncoveredRanges };
+    };
+
+    const groupEntries = [...grouped.entries()].map(([key, contas]) => {
+      const analysis = analyzeGroup(contas);
+      return {
+        key,
+        contas: analysis.ordered,
+        hasOpen: analysis.hasOpen,
+        hasOverlap: analysis.hasOverlap,
+        hasEncerrado: analysis.hasEncerrado,
+        firstDate: analysis.firstDate,
+        uncoveredRanges: analysis.uncoveredRanges
+      };
+    }).sort((a, b) => {
+      if (a.firstDate && b.firstDate && a.firstDate.getTime() !== b.firstDate.getTime()) return a.firstDate - b.firstDate;
+      if (a.firstDate && !b.firstDate) return -1;
+      if (!a.firstDate && b.firstDate) return 1;
+      return (parseInt(a.key, 10) || 0) - (parseInt(b.key, 10) || 0);
+    });
+
+    groupEntries.forEach(({ key, contas, hasOpen, hasOverlap, hasEncerrado, uncoveredRanges }) => {
+      const openSegments = [];
+      contas.forEach((r) => {
+        if (r.__periodoAberto) openSegments.push(r.periodo || 'Período sem data final');
+      });
+      (uncoveredRanges || []).forEach((range) => {
+        const startStr = formatDateBrFromDate(range.start) || '—';
+        const endStr = formatDateBrFromDate(range.end) || '—';
+        openSegments.push(`${startStr} a ${endStr}`);
+      });
+      const openDesc = hasOpen ? openSegments.join(' | ') : '';
+      const trHead = document.createElement('tr');
+      trHead.className = 'contas-group-row';
+      const label = key && key !== '0' && key !== '—'
+        ? `Internação ${esc(key)}`
+        : 'Sem internação vinculada';
+      trHead.innerHTML = `
+        <td colspan="${colCount}">
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div class="fw-semibold">${label}</div>
+            <div class="d-flex flex-wrap gap-2">
+              ${hasEncerrado ? '<span class="badge badge-soft badge-success">Senha encerrada</span>' : ''}
+              ${hasOpen ? `<span class="badge badge-soft badge-danger">Período em aberto${openDesc ? ` (${esc(openDesc)})` : ''}</span>` : ''}
+              ${hasOverlap ? '<span class="badge badge-soft badge-danger">Sobreposição detectada</span>' : ''}
+            </div>
+          </div>
+        </td>`;
+      tbody.appendChild(trHead);
+
+      contas.forEach((r) => {
+        const tr = document.createElement('tr');
+        const rowClasses = [];
+        if (r.__periodoAberto) rowClasses.push('conta-periodo-aberto');
+        if (r.__hasOverlap) rowClasses.push('conta-periodo-overlap');
+        if (rowClasses.length) tr.className = rowClasses.join(' ');
+        const valorId = r.id_valor ? String(r.id_valor) : '';
+        const capeanteId = r.id_capeante ? String(r.id_capeante) : '';
+        const intId = r.id_internacao ? String(r.id_internacao) : '';
+        const baseRahUrl = `cad_capeante_rah.php?id_capeante=${encodeURIComponent(capeanteId)}${intId ? `&id_internacao=${encodeURIComponent(intId)}` : ''}`;
+        const rahEditUrl = valorId
+          ? `edit_capeante_rah.php?id_valor=${encodeURIComponent(valorId)}`
+          : `edit_capeante_rah.php?id_capeante=${encodeURIComponent(capeanteId)}${intId ? `&id_internacao=${encodeURIComponent(intId)}` : ''}`;
+        const rahPreviewUrl = `export_capeante_rah_pdf.php?id_capeante=${encodeURIComponent(capeanteId)}&download=0`;
+        const rahDownloadUrl = `export_capeante_rah_pdf.php?id_capeante=${encodeURIComponent(capeanteId)}&download=1`;
+        const derivedIsParcial = typeof r.__derivedParcial === 'boolean'
+          ? r.__derivedParcial
+          : (Boolean(r.is_parcial ?? r.parcial_flag ?? false) || contas.length > 1);
+        const parcialNumero = derivedIsParcial ? (r.__displayParcialNum ?? r.parcial_numero ?? r.parcialNum ?? null) : null;
+        const parcialBadge = derivedIsParcial
+          ? '<span class="badge badge-soft badge-parcial">Parcial</span>'
+          : '<span class="badge badge-soft badge-final">Conta final</span>';
+        const parcialNumText = parcialNumero ? `#${esc(parcialNumero)}` : '—';
+
+        const periodoLabel = `${esc(r.periodo || '—')}${r.__periodoAberto ? ' <span class="badge badge-soft badge-open-period">Em aberto</span>' : ''}`;
+        const overlapIndicator = r.__hasOverlap ? '<div class="text-danger small mt-1">Intervalo conflitante</div>' : '';
+
+        tr.innerHTML = `
+          <td>${esc(r.id_internacao ?? '—')}</td>
+          <td>#${esc(r.id_capeante)}</td>
+          <td>${esc(r.hospital || '—')}</td>
+          <td>${periodoLabel}${overlapIndicator}</td>
+          <td>${esc(r.data_fechamento || '—')}</td>
+          <td>${esc(r.data_lancamento || '—')}</td>
+          <td class="text-end">R$ ${Number(r.valor_apresentado || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+          <td class="text-end">R$ ${Number(r.glosa_total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+          <td class="text-end">R$ ${Number(r.valor_final || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+          <td>${esc(r.status || '—')}</td>
+          <td>${parcialBadge}${parcialNumText && parcialNumText !== '—' ? ` <span class="text-muted small ms-1">(${parcialNumText})</span>` : ''}</td>
+          <td class="d-flex gap-1 flex-wrap">
+            <a class="btn btn-sm btn-outline-primary" href="${rahEditUrl}" title="Editar RAH da conta">Editar RAH</a>
+            <a class="btn btn-sm btn-outline-success" href="${rahDownloadUrl}" target="_blank" rel="noopener" title="Baixar PDF do RAH">PDF - RAH</a>
+            <button class="btn btn-sm btn-rah-view" type="button" data-action="preview-rah" data-url="${rahPreviewUrl}" title="Visualizar RAH em tela">Ver RAH</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
     });
   }
   function renderContasTotal(total) { const el = document.getElementById('cont-total'); if (el) el.textContent = `Total: ${total}`; }

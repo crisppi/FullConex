@@ -86,6 +86,285 @@ function strOrNull($v)
     return $v === '' ? null : $v;
 }
 
+function normalizeDateTimeInput($value)
+{
+    if ($value === null) return null;
+    $value = trim((string)$value);
+    if ($value === '') return null;
+    $formats = [
+        ['fmt' => 'Y-m-d\\TH:i:s', 'has_time' => true],
+        ['fmt' => 'Y-m-d\\TH:i',   'has_time' => true],
+        ['fmt' => 'Y-m-d H:i:s',     'has_time' => true],
+        ['fmt' => 'Y-m-d H:i',       'has_time' => true],
+        ['fmt' => 'd/m/Y H:i:s',     'has_time' => true],
+        ['fmt' => 'd/m/Y H:i',       'has_time' => true],
+        ['fmt' => 'Y-m-d',           'has_time' => false],
+        ['fmt' => 'd/m/Y',           'has_time' => false],
+    ];
+    foreach ($formats as $conf) {
+        $dt = DateTime::createFromFormat($conf['fmt'], $value);
+        if ($dt instanceof DateTime) {
+            if (!$conf['has_time']) {
+                $dt->setTime(0, 0, 0);
+            }
+            return $dt->format('Y-m-d H:i:s');
+        }
+    }
+    $ts = strtotime($value);
+    return $ts ? date('Y-m-d 00:00:00', $ts) : null;
+}
+
+function decodeJsonArray(?string $raw): ?array
+{
+    if ($raw === null || $raw === '') return null;
+    $data = json_decode($raw, true);
+    if (json_last_error() !== JSON_ERROR_NONE) return null;
+    return $data;
+}
+
+function processTussEntries(
+    string $flag,
+    ?string $jsonRaw,
+    int $visitaId,
+    int $fkInternacao,
+    tussDAO $tussDao,
+    ?int $fkUsuarioVis
+): void {
+    if ($visitaId <= 0) return;
+    $tussDao->deleteByVisita($visitaId);
+    if ($flag !== 's') return;
+    $decoded = decodeJsonArray($jsonRaw);
+    if (!is_array($decoded) || !isset($decoded['tussEntries']) || !is_array($decoded['tussEntries'])) return;
+    foreach ($decoded['tussEntries'] as $row) {
+        if (!is_array($row)) continue;
+        $descricao = strOrNull($row['tuss_solicitado'] ?? null);
+        if (!$descricao) continue;
+        $tuss = new tuss();
+        $tuss->fk_int_tuss = $fkInternacao;
+        $tuss->fk_vis_tuss = $visitaId;
+        $tuss->tuss_solicitado = $descricao;
+        $tuss->tuss_liberado_sn = strOrNull($row['tuss_liberado_sn'] ?? null);
+        $tuss->qtd_tuss_solicitado = toIntOrNull($row['qtd_tuss_solicitado'] ?? null);
+        $tuss->qtd_tuss_liberado = toIntOrNull($row['qtd_tuss_liberado'] ?? null);
+        $tuss->data_realizacao_tuss = strOrNull($row['data_realizacao_tuss'] ?? null);
+        $tuss->fk_usuario_tuss = toIntOrNull($row['fk_usuario_tuss'] ?? $fkUsuarioVis);
+        $tuss->data_create_tuss = date('Y-m-d H:i:s');
+        $tussDao->create($tuss);
+    }
+}
+
+function processNegociacoesEntries(
+    string $flag,
+    ?string $jsonRaw,
+    int $visitaId,
+    int $fkInternacao,
+    negociacaoDAO $negociacaoDao,
+    ?int $fkUsuarioNeg
+): void {
+    if ($visitaId <= 0) return;
+    $negociacaoDao->deleteByVisita($visitaId);
+    if ($flag !== 's') return;
+    $decoded = decodeJsonArray($jsonRaw);
+    if (!is_array($decoded)) return;
+    foreach ($decoded as $row) {
+        if (!is_array($row)) continue;
+        $tipo = strOrNull($row['tipo_negociacao'] ?? null);
+        if (!$tipo) continue;
+        $negociacao = new negociacao();
+        $negociacao->fk_id_int = $fkInternacao;
+        $negociacao->fk_visita_neg = $visitaId;
+        $negociacao->tipo_negociacao = $tipo;
+        $negociacao->data_inicio_neg = strOrNull($row['data_inicio_negoc'] ?? null);
+        $negociacao->data_fim_neg = strOrNull($row['data_fim_negoc'] ?? null);
+        $negociacao->troca_de = strOrNull($row['troca_de'] ?? null);
+        $negociacao->troca_para = strOrNull($row['troca_para'] ?? null);
+        $negociacao->qtd = toIntOrNull($row['qtd'] ?? null);
+        $negociacao->saving = toFloatOrNull($row['saving'] ?? null);
+        $negociacao->fk_usuario_neg = toIntOrNull($row['fk_usuario_neg'] ?? $fkUsuarioNeg);
+        $negociacaoDao->create($negociacao);
+    }
+}
+
+function collectGestaoPostData(): array
+{
+    return [
+        'alto_custo_ges' => strOrNull($_POST['alto_custo_ges'] ?? null),
+        'rel_alto_custo_ges' => strOrNull($_POST['rel_alto_custo_ges'] ?? null),
+        'opme_ges' => strOrNull($_POST['opme_ges'] ?? null),
+        'rel_opme_ges' => strOrNull($_POST['rel_opme_ges'] ?? null),
+        'home_care_ges' => strOrNull($_POST['home_care_ges'] ?? null),
+        'rel_home_care_ges' => strOrNull($_POST['rel_home_care_ges'] ?? null),
+        'desospitalizacao_ges' => strOrNull($_POST['desospitalizacao_ges'] ?? null),
+        'rel_desospitalizacao_ges' => strOrNull($_POST['rel_desospitalizacao_ges'] ?? null),
+        'evento_adverso_ges' => strOrNull($_POST['evento_adverso_ges'] ?? null),
+        'rel_evento_adverso_ges' => strOrNull($_POST['rel_evento_adverso_ges'] ?? null),
+        'tipo_evento_adverso_gest' => strOrNull($_POST['tipo_evento_adverso_gest'] ?? null),
+        'evento_retorno_qual_hosp_ges' => strOrNull($_POST['evento_retorno_qual_hosp_ges'] ?? null),
+        'evento_classificado_hospital_ges' => strOrNull($_POST['evento_classificado_hospital_ges'] ?? null),
+        'evento_data_ges' => strOrNull($_POST['evento_data_ges'] ?? null),
+        'evento_encerrar_ges' => strOrNull($_POST['evento_encerrar_ges'] ?? null),
+        'evento_impacto_financ_ges' => strOrNull($_POST['evento_impacto_financ_ges'] ?? null),
+        'evento_prolongou_internacao_ges' => strOrNull($_POST['evento_prolongou_internacao_ges'] ?? null),
+        'evento_concluido_ges' => strOrNull($_POST['evento_concluido_ges'] ?? null),
+        'evento_classificacao_ges' => strOrNull($_POST['evento_classificacao_ges'] ?? null),
+        'evento_fech_ges' => strOrNull($_POST['evento_fech_ges'] ?? null),
+        'fk_user_ges' => toIntOrNull($_POST['fk_user_ges'] ?? null),
+        'evento_valor_negoc_ges' => strOrNull($_POST['evento_valor_negoc_ges'] ?? null),
+        'evento_negociado_ges' => strOrNull($_POST['evento_negociado_ges'] ?? null),
+        'evento_discutido_ges' => strOrNull($_POST['evento_discutido_ges'] ?? null),
+        'evento_sinalizado_ges' => strOrNull($_POST['evento_sinalizado_ges'] ?? null),
+        'evento_prorrogar_ges' => strOrNull($_POST['evento_prorrogar_ges'] ?? null)
+    ];
+}
+
+function processGestaoData(
+    string $flag,
+    array $data,
+    int $visitaId,
+    int $fkInternacao,
+    gestaoDAO $gestaoDao,
+    bool $clearExisting = false
+): void {
+    if ($visitaId <= 0) return;
+    if ($clearExisting) {
+        if (method_exists($gestaoDao, 'deleteByVisita')) {
+            $gestaoDao->deleteByVisita($visitaId);
+        }
+    }
+    if ($flag !== 's') return;
+
+    $gestao = new gestao();
+    $gestao->fk_internacao_ges = $fkInternacao;
+    $gestao->fk_visita_ges = $visitaId;
+    $gestao->alto_custo_ges = $data['alto_custo_ges'];
+    $gestao->rel_alto_custo_ges = $data['rel_alto_custo_ges'];
+    $gestao->opme_ges = $data['opme_ges'];
+    $gestao->rel_opme_ges = $data['rel_opme_ges'];
+    $gestao->home_care_ges = $data['home_care_ges'];
+    $gestao->rel_home_care_ges = $data['rel_home_care_ges'];
+    $gestao->desospitalizacao_ges = $data['desospitalizacao_ges'];
+    $gestao->rel_desospitalizacao_ges = $data['rel_desospitalizacao_ges'];
+    $gestao->evento_adverso_ges = $data['evento_adverso_ges'];
+    $gestao->rel_evento_adverso_ges = $data['rel_evento_adverso_ges'];
+    $gestao->tipo_evento_adverso_gest = $data['tipo_evento_adverso_gest'];
+    $gestao->evento_retorno_qual_hosp_ges = $data['evento_retorno_qual_hosp_ges'];
+    $gestao->evento_classificado_hospital_ges = $data['evento_classificado_hospital_ges'];
+    $gestao->evento_data_ges = $data['evento_data_ges'];
+    $gestao->evento_encerrar_ges = $data['evento_encerrar_ges'];
+    $gestao->evento_impacto_financ_ges = $data['evento_impacto_financ_ges'];
+    $gestao->evento_prolongou_internacao_ges = $data['evento_prolongou_internacao_ges'];
+    $gestao->evento_concluido_ges = $data['evento_concluido_ges'];
+    $gestao->evento_classificacao_ges = $data['evento_classificacao_ges'];
+    $gestao->evento_fech_ges = $data['evento_fech_ges'];
+    $gestao->fk_user_ges = $data['fk_user_ges'];
+    $gestao->evento_valor_negoc_ges = $data['evento_valor_negoc_ges'];
+    $gestao->evento_negociado_ges = $data['evento_negociado_ges'] ?? null;
+    $gestao->evento_discutido_ges = $data['evento_discutido_ges'] ?? null;
+    $gestao->evento_sinalizado_ges = $data['evento_sinalizado_ges'] ?? null;
+    $gestao->evento_prorrogar_ges = $data['evento_prorrogar_ges'] ?? null;
+
+    $gestaoDao->create($gestao);
+}
+
+function collectUtiPostData(string $usuarioCreate): array
+{
+    return [
+        'internado_uti' => strOrNull($_POST['internado_uti'] ?? null),
+        'criterios_uti' => strOrNull($_POST['criterios_uti'] ?? null),
+        'data_alta_uti' => strOrNull($_POST['data_alta_uti'] ?? null),
+        'data_internacao_uti' => strOrNull($_POST['data_internacao_uti'] ?? null),
+        'dva_uti' => strOrNull($_POST['dva_uti'] ?? null),
+        'especialidade_uti' => strOrNull($_POST['especialidade_uti'] ?? null),
+        'internacao_uti' => strOrNull($_POST['internacao_uti'] ?? null),
+        'just_uti' => strOrNull($_POST['just_uti'] ?? null),
+        'motivo_uti' => strOrNull($_POST['motivo_uti'] ?? null),
+        'rel_uti' => strOrNull($_POST['rel_uti'] ?? null),
+        'saps_uti' => strOrNull($_POST['saps_uti'] ?? null),
+        'score_uti' => strOrNull($_POST['score_uti'] ?? null),
+        'vm_uti' => strOrNull($_POST['vm_uti'] ?? null),
+        'id_internacao' => toIntOrNull($_POST['id_internacao'] ?? null),
+        'fk_user_uti' => toIntOrNull($_POST['fk_user_uti'] ?? null),
+        'glasgow_uti' => strOrNull($_POST['glasgow_uti'] ?? null),
+        'suporte_vent_uti' => strOrNull($_POST['suporte_vent_uti'] ?? null),
+        'justifique_uti' => strOrNull($_POST['justifique_uti'] ?? null),
+        'hora_internacao_uti' => strOrNull($_POST['hora_internacao_uti'] ?? null),
+        'dist_met_uti' => strOrNull($_POST['dist_met_uti'] ?? null),
+        'usuario_create_uti' => $usuarioCreate
+    ];
+}
+
+function processUtiData(
+    string $flag,
+    array $data,
+    int $visitaId,
+    int $fkInternacao,
+    utiDAO $utiDao,
+    bool $clearExisting = false
+): void {
+    if ($visitaId <= 0) return;
+    if ($clearExisting && method_exists($utiDao, 'deleteByVisita')) {
+        $utiDao->deleteByVisita($visitaId);
+    }
+    if ($flag !== 's') return;
+
+    $uti = new uti();
+    $uti->fk_internacao_uti = $fkInternacao;
+    $uti->fk_visita_uti = $visitaId;
+    $uti->internado_uti = $data['internado_uti'];
+    $uti->criterios_uti = $data['criterios_uti'];
+    $uti->data_alta_uti = $data['data_alta_uti'];
+    $uti->data_internacao_uti = $data['data_internacao_uti'];
+    $uti->dva_uti = $data['dva_uti'];
+    $uti->especialidade_uti = $data['especialidade_uti'];
+    $uti->internacao_uti = $data['internacao_uti'];
+    $uti->just_uti = $data['just_uti'];
+    $uti->motivo_uti = $data['motivo_uti'];
+    $uti->rel_uti = $data['rel_uti'];
+    $uti->saps_uti = $data['saps_uti'];
+    $uti->score_uti = $data['score_uti'];
+    $uti->vm_uti = $data['vm_uti'];
+    $uti->id_internacao = $data['id_internacao'];
+    $uti->usuario_create_uti = $data['usuario_create_uti'];
+    $uti->fk_user_uti = $data['fk_user_uti'];
+    $uti->glasgow_uti = $data['glasgow_uti'];
+    $uti->suporte_vent_uti = $data['suporte_vent_uti'];
+    $uti->justifique_uti = $data['justifique_uti'];
+    $uti->hora_internacao_uti = $data['hora_internacao_uti'];
+    $uti->dist_met_uti = $data['dist_met_uti'];
+
+    $utiDao->create($uti);
+}
+
+function processProrrogacoesEntries(
+    string $flag,
+    ?string $jsonRaw,
+    int $visitaId,
+    int $fkInternacao,
+    prorrogacaoDAO $prorrogacaoDao,
+    bool $clearExisting = false
+): void {
+    if ($visitaId <= 0) return;
+    if ($clearExisting && method_exists($prorrogacaoDao, 'deleteByVisita')) {
+        $prorrogacaoDao->deleteByVisita($visitaId);
+    }
+    if ($flag !== 's') return;
+    $decoded = decodeJsonArray($jsonRaw);
+    if (!is_array($decoded) || !isset($decoded['prorrogations']) || !is_array($decoded['prorrogations'])) return;
+    foreach ($decoded['prorrogations'] as $row) {
+        if (!is_array($row)) continue;
+        $pr = new prorrogacao();
+        $pr->fk_internacao_pror = $fkInternacao;
+        $pr->fk_usuario_pror = toIntOrNull($row['fk_usuario_pror'] ?? null);
+        $pr->acomod1_pror = strOrNull($row['acomod1_pror'] ?? null);
+        $pr->prorrog1_ini_pror = strOrNull($row['prorrog1_ini_pror'] ?? null);
+        $pr->prorrog1_fim_pror = strOrNull($row['prorrog1_fim_pror'] ?? null);
+        $pr->isol_1_pror = strOrNull($row['isol_1_pror'] ?? null);
+        $pr->diarias_1 = toIntOrNull($row['diarias_1'] ?? null);
+        $pr->fk_visita_pror = $visitaId;
+        $prorrogacaoDao->create($pr);
+    }
+}
+
 // ======================================================================
 // Roteamento por tipo
 // ======================================================================
@@ -108,6 +387,8 @@ if ($type === "create") {
     $visita_auditor_prof_enf     = strOrNull($_POST['visita_auditor_prof_enf'] ?? null);
     $visita_auditor_prof_med     = strOrNull($_POST['visita_auditor_prof_med'] ?? null);
     $fk_usuario_vis              = toIntOrNull($_POST['fk_usuario_vis'] ?? null);
+    $data_lancamento_vis_input   = normalizeDateTimeInput($_POST['data_lancamento_vis'] ?? null);
+    $data_lancamento_vis         = $data_lancamento_vis_input ?: date('Y-m-d H:i:s');
 
     // bloco enfermagem (visita)
     $exames_enf                  = strOrNull($_POST['exames_enf'] ?? null);
@@ -116,9 +397,12 @@ if ($type === "create") {
 
     // retificar (ATENÇÃO: precisa ser número de visita, não data)
     $retificou                   = toIntOrNull($_POST['retificou'] ?? null);
+    $id_visita_edit              = toIntOrNull($_POST['id_visita_edit'] ?? null);
 
     // json antecedentes
     $jsonAntecRaw                = $_POST['json-antec'] ?? null;
+    $tussJsonRaw                 = $_POST['tuss-json'] ?? '';
+    $negociacoesJsonRaw          = $_POST['negociacoes_json'] ?? '';
 
     // ------------------- Tabelas adicionais (flags) --------------------
     $select_tuss                 = strOrNull($_POST['select_tuss'] ?? null);     // 's'/'n'
@@ -127,8 +411,14 @@ if ($type === "create") {
     $select_prorrog              = strOrNull($_POST['select_prorrog'] ?? null);  // 's'/'n'
     $select_negoc                = strOrNull($_POST['select_negoc'] ?? null);    // 's'/'n'
 
+    // ------------------- Dados auxiliares para módulos ----------------
+    $gestaoPostData              = collectGestaoPostData();
+    $utiPostData                 = collectUtiPostData($usuario_create ?? '');
+    $prorrogacoesJsonRaw         = $_POST['prorrogacoes-json'] ?? '[]';
+
     // ------------------- IDs auxiliares usados por você ----------------
     $fk_int_visita               = toIntOrNull($_POST['fk_int_visita'] ?? null); // você já envia "próximo id" no form
+    $fk_usuario_neg_form         = toIntOrNull($_POST['fk_usuario_neg'] ?? null);
 
     // ------------------- Sanidade mínima ------------------------------
     if (!$fk_internacao_vis) {
@@ -148,32 +438,86 @@ if ($type === "create") {
         exit;
     }
 
-    // ------------------- Retificação (somente se inteiro) --------------
-    try {
-        if (is_int($retificou) && $retificou > 0) {
-            // Assinatura esperada: retificarVisita(int $fk_internacao, int $visita_no_vis)
-            $visitaDao->retificarVisita((int)$fk_internacao_vis, (int)$retificou);
-            if ($__DEBUG) dbg("Retificação aplicada para visita_no_vis", $retificou);
+    // ------------------- Determina se é edição completa ----------------
+    $visitaEmEdicao = null;
+    if ($id_visita_edit) {
+        $visitaObj = $visitaDao->findById((int)$id_visita_edit);
+        if ($visitaObj) {
+            $visitaEmEdicao = get_object_vars($visitaObj);
         }
-    } catch (Throwable $e) {
-        error_log("retificarVisita falhou: " . $e->getMessage());
-        if ($__DEBUG) dbg("retificarVisita EXCEPTION", $e->getMessage());
-        // Não aborta o fluxo, apenas registra.
+    } elseif (is_int($retificou) && $retificou > 0 && $fk_internacao_vis) {
+        $visitaOriginal = $visitaDao->findByInternacaoNumero((int)$fk_internacao_vis, (int)$retificou);
+        if ($visitaOriginal && isset($visitaOriginal['id_visita'])) {
+            $id_visita_edit = (int)$visitaOriginal['id_visita'];
+            $visitaEmEdicao = $visitaOriginal;
+        }
+    }
+    $isEditMode = $visitaEmEdicao && $id_visita_edit;
+
+    if ($isEditMode) {
+        $dadosAtualizados = [
+            'id_visita'               => $id_visita_edit,
+            'rel_visita_vis'          => $rel_visita_vis,
+            'acoes_int_vis'           => $acoes_int_vis,
+            'usuario_create'          => $usuario_create,
+            'visita_auditor_prof_med' => $visita_auditor_prof_med,
+            'visita_auditor_prof_enf' => $visita_auditor_prof_enf,
+            'visita_med_vis'          => $visita_med_vis,
+            'visita_enf_vis'          => $visita_enf_vis,
+            'visita_no_vis'           => $visitaEmEdicao['visita_no_vis'] ?? $visita_no_vis,
+            'fk_usuario_vis'          => $fk_usuario_vis,
+            'data_visita_vis'         => $data_visita_vis ?: ($visitaEmEdicao['data_visita_vis'] ?? null),
+            'data_lancamento_vis'     => $data_lancamento_vis_input ?: ($visitaEmEdicao['data_lancamento_vis'] ?? null),
+            'faturado_vis'            => $visitaEmEdicao['faturado_vis'] ?? 'n',
+            'exames_enf'              => $exames_enf,
+            'oportunidades_enf'       => $oportunidades_enf,
+            'programacao_enf'         => $programacao_enf
+        ];
+        try {
+            if (!$visitaDao->updateDirect($dadosAtualizados)) {
+                throw new RuntimeException('Falha ao atualizar visita.');
+            }
+            $novoRegistro = array_merge($visitaEmEdicao, $dadosAtualizados);
+            $usuarioNomeLog = $_SESSION['nome_user'] ?? ($_SESSION['email_user'] ?? null);
+            $visitaDao->logAlteracao($visitaEmEdicao, $novoRegistro, $fk_usuario_vis, $usuarioNomeLog);
+            processTussEntries($select_tuss ?? '', $tussJsonRaw, $id_visita_edit, $fk_internacao_vis, $tussDao, $fk_usuario_vis);
+            processNegociacoesEntries($select_negoc ?? '', $negociacoesJsonRaw, $id_visita_edit, $fk_internacao_vis, $negociacaoDao, $fk_usuario_neg_form ?? $fk_usuario_vis);
+            processGestaoData($select_gestao ?? '', $gestaoPostData, $id_visita_edit, $fk_internacao_vis, $gestaoDao, true);
+            processUtiData($select_uti ?? '', $utiPostData, $id_visita_edit, $fk_internacao_vis, $utiDao, true);
+            processProrrogacoesEntries($select_prorrog ?? '', $prorrogacoesJsonRaw, $id_visita_edit, $fk_internacao_vis, $prorrogacaoDao, true);
+        } catch (Throwable $e) {
+            error_log("Erro ao atualizar visita: " . $e->getMessage());
+            if ($__DEBUG) {
+                dbg("ERRO update visita", $e->getMessage());
+                exit;
+            }
+            $message->setMessage("Erro ao atualizar visita.", "error", "back");
+            exit;
+        }
+
+        if ($__DEBUG) {
+            dbg("VISITA editada", $dadosAtualizados);
+            exit;
+        }
+        header("Location: internacoes/lista");
+        exit;
     }
 
-    // ------------------- Monta objeto VISITA ---------------------------
+    // ------------------- Monta objeto VISITA (novo registro) ----------
     $visita                           = new visita();
     $visita->fk_internacao_vis        = $fk_internacao_vis;
     $visita->usuario_create           = $usuario_create;
     $visita->rel_visita_vis           = $rel_visita_vis;
     $visita->acoes_int_vis            = $acoes_int_vis;
     $visita->data_visita_vis          = $data_visita_vis;
+    $visita->data_lancamento_vis      = $data_lancamento_vis;
     $visita->visita_no_vis            = $visita_no_vis;
     $visita->visita_enf_vis           = $visita_enf_vis;
     $visita->visita_med_vis           = $visita_med_vis;
     $visita->visita_auditor_prof_enf  = $visita_auditor_prof_enf;
     $visita->visita_auditor_prof_med  = $visita_auditor_prof_med;
     $visita->fk_usuario_vis           = $fk_usuario_vis;
+    $visita->faturado_vis             = 'n';
 
     // enfermagem (texto)
     $visita->exames_enf               = $exames_enf;
@@ -182,7 +526,12 @@ if ($type === "create") {
 
     // ------------------- Persistência VISITA --------------------------
     try {
-        $visitaDao->create($visita);
+        $novoIdVisita = $visitaDao->create($visita);
+        processTussEntries($select_tuss ?? '', $tussJsonRaw, $novoIdVisita, $fk_internacao_vis, $tussDao, $fk_usuario_vis);
+        processNegociacoesEntries($select_negoc ?? '', $negociacoesJsonRaw, $novoIdVisita, $fk_internacao_vis, $negociacaoDao, $fk_usuario_neg_form ?? $fk_usuario_vis);
+        processGestaoData($select_gestao ?? '', $gestaoPostData, $novoIdVisita, $fk_internacao_vis, $gestaoDao);
+        processUtiData($select_uti ?? '', $utiPostData, $novoIdVisita, $fk_internacao_vis, $utiDao);
+        processProrrogacoesEntries($select_prorrog ?? '', $prorrogacoesJsonRaw, $novoIdVisita, $fk_internacao_vis, $prorrogacaoDao);
         if ($__DEBUG) dbg("VISITA criada", $visita);
     } catch (Throwable $e) {
         error_log("Erro ao criar visita: " . $e->getMessage());
@@ -209,186 +558,6 @@ if ($type === "create") {
                 } catch (Throwable $e) {
                     error_log("Erro ao salvar antecedente: " . $e->getMessage());
                     if ($__DEBUG) dbg("Antecedente erro", $e->getMessage(), $row);
-                }
-            }
-        }
-    }
-
-    // ------------------- GESTAO --------------------------
-    if ($select_gestao === 's') {
-        try {
-            $gestao = new gestao();
-
-            $gestao->fk_internacao_ges             = $fk_internacao_vis;
-            $gestao->fk_visita_ges                 = toIntOrNull($_POST['fk_visita_ges'] ?? null);
-            $gestao->alto_custo_ges                = strOrNull($_POST['alto_custo_ges'] ?? null);
-            $gestao->rel_alto_custo_ges            = strOrNull($_POST['rel_alto_custo_ges'] ?? null);
-            $gestao->opme_ges                      = strOrNull($_POST['opme_ges'] ?? null);
-            $gestao->rel_opme_ges                  = strOrNull($_POST['rel_opme_ges'] ?? null);
-            $gestao->home_care_ges                 = strOrNull($_POST['home_care_ges'] ?? null);
-            $gestao->rel_home_care_ges             = strOrNull($_POST['rel_home_care_ges'] ?? null);
-            $gestao->desospitalizacao_ges          = strOrNull($_POST['desospitalizacao_ges'] ?? null);
-            $gestao->rel_desospitalizacao_ges      = strOrNull($_POST['rel_desospitalizacao_ges'] ?? null);
-
-            $gestao->evento_adverso_ges            = strOrNull($_POST['evento_adverso_ges'] ?? null);
-            $gestao->rel_evento_adverso_ges        = strOrNull($_POST['rel_evento_adverso_ges'] ?? null);
-            $gestao->tipo_evento_adverso_gest      = strOrNull($_POST['tipo_evento_adverso_gest'] ?? null);
-            $gestao->evento_retorno_qual_hosp_ges  = strOrNull($_POST['evento_retorno_qual_hosp_ges'] ?? null);
-            $gestao->evento_classificado_hospital_ges = strOrNull($_POST['evento_classificado_hospital_ges'] ?? null);
-            $gestao->evento_data_ges               = strOrNull($_POST['evento_data_ges'] ?? null);
-            $gestao->evento_encerrar_ges           = strOrNull($_POST['evento_encerrar_ges'] ?? null);
-            $gestao->evento_impacto_financ_ges     = strOrNull($_POST['evento_impacto_financ_ges'] ?? null);
-            $gestao->evento_prolongou_internacao_ges = strOrNull($_POST['evento_prolongou_internacao_ges'] ?? null);
-            $gestao->evento_concluido_ges          = strOrNull($_POST['evento_concluido_ges'] ?? null);
-            $gestao->evento_classificacao_ges      = strOrNull($_POST['evento_classificacao_ges'] ?? null);
-            $gestao->evento_fech_ges               = strOrNull($_POST['evento_fech_ges'] ?? null);
-            $gestao->fk_user_ges                   = toIntOrNull($_POST['fk_user_ges'] ?? null);
-
-            $gestaoDao->create($gestao);
-            if ($__DEBUG) dbg("GESTAO criada", $gestao);
-        } catch (Throwable $e) {
-            error_log("Erro ao criar gestão: " . $e->getMessage());
-            if ($__DEBUG) dbg("ERRO create gestao", $e->getMessage());
-        }
-    }
-
-    // ------------------- TUSS (JSON) --------------------
-    if ($select_tuss === 's') {
-        $tussJson = $_POST['tuss-json'] ?? '[]';
-        $tussArr = json_decode($tussJson, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            error_log("TUSS JSON inválido: " . json_last_error_msg());
-            if ($__DEBUG) dbg("JSON TUSS inválido", json_last_error_msg(), $tussJson);
-        } elseif (is_array($tussArr) && isset($tussArr['tussEntries']) && is_array($tussArr['tussEntries'])) {
-            foreach ($tussArr['tussEntries'] as $row) {
-                try {
-                    $tuss = new tuss();
-                    $tuss->fk_int_tuss           = $fk_internacao_vis;
-                    $tuss->fk_usuario_tuss       = toIntOrNull($row['fk_usuario_tuss'] ?? null);
-                    $tuss->tuss_solicitado       = strOrNull($row['tuss_solicitado'] ?? null);
-                    $tuss->data_realizacao_tuss  = strOrNull($row['data_realizacao_tuss'] ?? null);
-                    $tuss->qtd_tuss_solicitado   = toIntOrNull($row['qtd_tuss_solicitado'] ?? null);
-                    $tuss->qtd_tuss_liberado     = toIntOrNull($row['qtd_tuss_liberado'] ?? null);
-                    $tuss->tuss_liberado_sn      = strOrNull($row['tuss_liberado_sn'] ?? null);
-                    // Você usava isso assim no arquivo original:
-                    $tuss->fk_vis_tuss           = $row['fk_int_tuss'] ?? null; // mantido
-                    $tuss->data_create_tuss      = $data_visita_vis;
-
-                    $tussDao->create($tuss);
-                } catch (Throwable $e) {
-                    error_log("Erro ao criar TUSS: " . $e->getMessage());
-                    if ($__DEBUG) dbg("ERRO create TUSS", $e->getMessage(), $row);
-                }
-            }
-        }
-    }
-
-    // ------------------- UTI ----------------------------
-    if ($select_uti === 's') {
-        try {
-            $uti = new uti();
-
-            $uti->fk_internacao_uti    = $fk_internacao_vis;
-            $uti->internado_uti        = strOrNull($_POST['internado_uti'] ?? null);
-            $uti->criterios_uti        = strOrNull($_POST['criterios_uti'] ?? null);
-            $uti->data_alta_uti        = strOrNull($_POST['data_alta_uti'] ?? null);
-            $uti->data_internacao_uti  = strOrNull($_POST['data_internacao_uti'] ?? null);
-            $uti->dva_uti              = strOrNull($_POST['dva_uti'] ?? null);
-            $uti->especialidade_uti    = strOrNull($_POST['especialidade_uti'] ?? null);
-            $uti->internacao_uti       = strOrNull($_POST['internacao_uti'] ?? null);
-            $uti->just_uti             = strOrNull($_POST['just_uti'] ?? null);
-            $uti->motivo_uti           = strOrNull($_POST['motivo_uti'] ?? null);
-            $uti->rel_uti              = strOrNull($_POST['rel_uti'] ?? null);
-            $uti->saps_uti             = strOrNull($_POST['saps_uti'] ?? null);
-            $uti->score_uti            = strOrNull($_POST['score_uti'] ?? null);
-            $uti->vm_uti               = strOrNull($_POST['vm_uti'] ?? null);
-            $uti->id_internacao        = toIntOrNull($_POST['id_internacao'] ?? null);
-            $uti->usuario_create_uti   = $usuario_create;
-            $uti->fk_user_uti          = toIntOrNull($_POST['fk_user_uti'] ?? null);
-            $uti->glasgow_uti          = strOrNull($_POST['glasgow_uti'] ?? null);
-            $uti->suporte_vent_uti     = strOrNull($_POST['suporte_vent_uti'] ?? null);
-            $uti->justifique_uti       = strOrNull($_POST['justifique_uti'] ?? null);
-            $uti->hora_internacao_uti  = strOrNull($_POST['hora_internacao_uti'] ?? null);
-            $uti->dist_met_uti         = strOrNull($_POST['dist_met_uti'] ?? null);
-            $uti->fk_visita_uti        = $fk_int_visita; // você já envia via hidden
-
-            $utiDao->create($uti);
-            if ($__DEBUG) dbg("UTI criada", $uti);
-        } catch (Throwable $e) {
-            error_log("Erro ao criar UTI: " . $e->getMessage());
-            if ($__DEBUG) dbg("ERRO create UTI", $e->getMessage());
-        }
-    }
-
-    // ------------------- NEGOCIAÇÕES (JSON) -------------
-    if ($select_negoc === 's') {
-        $negJson = $_POST['negociacoes_json'] ?? '[]';
-        $negArr  = json_decode($negJson, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            error_log("Negociações JSON inválido: " . json_last_error_msg());
-            if ($__DEBUG) dbg("JSON Neg inválido", json_last_error_msg(), $negJson);
-        } elseif (is_array($negArr) && count($negArr) > 0) {
-            foreach ($negArr as $row) {
-                try {
-                    $negociacao                     = new Negociacao();
-                    $negociacao->fk_id_int          = $fk_internacao_vis;
-                    $negociacao->fk_usuario_neg     = toIntOrNull($row['fk_usuario_neg'] ?? null);
-                    $negociacao->troca_de           = toIntOrNull($row['troca_de'] ?? null);
-                    $negociacao->troca_para         = toIntOrNull($row['troca_para'] ?? null);
-                    $negociacao->qtd                = toIntOrNull($row['qtd'] ?? null);
-                    $negociacao->saving             = toFloatOrNull($row['saving'] ?? null);
-                    $negociacao->fk_visita_neg      = $fk_int_visita;
-
-                    $negociacao->tipo_negociacao    = strOrNull($row['tipo_negociacao'] ?? null);
-                    $negociacao->data_inicio_neg    = strOrNull($row['data_inicio_negoc'] ?? null);
-                    $negociacao->data_fim_neg       = strOrNull($row['data_fim_negoc'] ?? null);
-
-                    // valida mínimo
-                    if (!$negociacao->troca_de || !$negociacao->troca_para || !$negociacao->qtd || $negociacao->saving === null) {
-                        if ($__DEBUG) dbg("NEG inválida ignorada", $row);
-                        continue;
-                    }
-
-                    if (!$negociacaoDao->existeNegociacao($negociacao)) {
-                        $negociacaoDao->create($negociacao);
-                    } else {
-                        if ($__DEBUG) dbg("NEG duplicada ignorada", $negociacao);
-                    }
-                } catch (Throwable $e) {
-                    error_log("Erro ao criar negociação: " . $e->getMessage());
-                    if ($__DEBUG) dbg("ERRO create NEG", $e->getMessage(), $row);
-                }
-            }
-        }
-    }
-
-    // ------------------- PRORROGAÇÕES (JSON) ------------
-    if ($select_prorrog === 's') {
-        $prJson = $_POST['prorrogacoes-json'] ?? '[]';
-        $prArr  = json_decode($prJson, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            error_log("Prorrogações JSON inválido: " . json_last_error_msg());
-            if ($__DEBUG) dbg("JSON Prorr inválido", json_last_error_msg(), $prJson);
-        } elseif (is_array($prArr) && isset($prArr['prorrogations']) && is_array($prArr['prorrogations'])) {
-            foreach ($prArr['prorrogations'] as $row) {
-                try {
-                    $pr = new prorrogacao();
-                    $pr->fk_internacao_pror   = $fk_internacao_vis;
-                    $pr->fk_usuario_pror      = toIntOrNull($row['fk_usuario_pror'] ?? null);
-                    $pr->acomod1_pror         = strOrNull($row['acomod1_pror'] ?? null);
-                    $pr->prorrog1_ini_pror    = strOrNull($row['prorrog1_ini_pror'] ?? null);
-                    $pr->prorrog1_fim_pror    = strOrNull($row['prorrog1_fim_pror'] ?? null);
-                    $pr->isol_1_pror          = strOrNull($row['isol_1_pror'] ?? null);
-                    $pr->diarias_1            = toIntOrNull($row['diarias_1'] ?? null);
-                    $pr->fk_visita_pror       = $fk_int_visita;
-
-                    $prorrogacaoDao->create($pr);
-                } catch (Throwable $e) {
-                    error_log("Erro ao criar prorrogação: " . $e->getMessage());
-                    if ($__DEBUG) dbg("ERRO create PRORR", $e->getMessage(), $row);
                 }
             }
         }

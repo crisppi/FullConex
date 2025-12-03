@@ -136,6 +136,47 @@ class prorrogacaoDAO implements prorrogacaoDAOInterface
         return $prorrogacao;
     }
 
+    /**
+     * Recupera todas as prorrogações ligadas à internação (fallback).
+     */
+    public function selectRawByInternacao(int $id_internacao): array
+    {
+        if ($id_internacao <= 0) {
+            return [];
+        }
+        $stmt = $this->conn->prepare("SELECT * FROM tb_prorrogacao WHERE fk_internacao_pror = :id ORDER BY id_prorrogacao ASC");
+        $stmt->bindValue(':id', $id_internacao, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
+
+    /**
+     * Recupera todas as prorrogações ligadas à visita.
+     */
+    public function selectByVisita(int $visitaId): array
+    {
+        if ($visitaId <= 0) {
+            return [];
+        }
+        $stmt = $this->conn->prepare("SELECT * FROM tb_prorrogacao WHERE fk_visita_pror = :visita ORDER BY id_prorrogacao ASC");
+        $stmt->bindValue(':visita', $visitaId, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
+
+    /**
+     * Remove prorrogações associadas à visita.
+     */
+    public function deleteByVisita(int $visitaId): void
+    {
+        if ($visitaId <= 0) {
+            return;
+        }
+        $stmt = $this->conn->prepare("DELETE FROM tb_prorrogacao WHERE fk_visita_pror = :visita");
+        $stmt->bindValue(':visita', $visitaId, PDO::PARAM_INT);
+        $stmt->execute();
+    }
+
 
 
     public function update($prorrogacao)

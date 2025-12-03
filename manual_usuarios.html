@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Manual | Usuários</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+    body{margin:0;font-family:'Inter',sans-serif;background:#f8f6fb;color:#2d1740;line-height:1.5}
+    header{background:linear-gradient(135deg,#6b3d7d,#422257);color:#fff;padding:48px 5vw 80px}
+    header p{max-width:700px;color:rgba(255,255,255,.9)}
+    main{width:min(900px,92vw);margin:-40px auto 50px}
+    h2{font-size:26px;margin-bottom:14px;position:relative}
+    h2::after{content:"";position:absolute;left:0;bottom:-6px;width:60px;height:3px;border-radius:99px;background:linear-gradient(90deg,#8a5ab0,#5ad1f0)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+    .card{background:#fff;border-radius:16px;padding:22px;border:1px solid rgba(90,43,120,.1);box-shadow:0 12px 24px rgba(57,23,92,.1)}
+    ul{margin:0;padding-left:18px}
+    a.voltar{color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.4);padding:6px 12px;border-radius:999px}
+    footer{text-align:center;color:#6f6b78;padding:30px}
+    </style>
+</head>
+<body>
+<header>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+        <div>
+            <h1>Usuários</h1>
+            <p>Gestão de perfis, permissões e vínculos com hospitais. Essencial para definir o que cada colaborador pode
+                visualizar ou editar.</p>
+        </div>
+        <a class="voltar" href="manual.html">← Voltar</a>
+    </div>
+</header>
+<main>
+    <section>
+        <h2>Fluxo de cadastro</h2>
+        <div class="grid">
+            <article class="card">
+                <h3>Etapas</h3>
+                <ul>
+                    <li>Menu Usuários &gt; Novo.</li>
+                    <li>Informar nome, e-mail, telefone e nível (1 a 6).</li>
+                    <li>Vincular hospital padrão e, se necessário, múltiplos hospitais (aba "Usuários por hospital").</li>
+                </ul>
+            </article>
+            <article class="card">
+                <h3>Status</h3>
+                <ul>
+                    <li>Campo "Ativo/Inativo" controla acesso imediato sem apagar histórico.</li>
+                    <li>Usuários inativos aparecem com badge cinza na lista.</li>
+                </ul>
+            </article>
+        </div>
+    </section>
+
+    <section>
+        <h2>Permissões</h2>
+        <div class="grid">
+            <article class="card">
+                <h3>Perfis</h3>
+                <ul>
+                    <li>Nível -1: diretores (acesso total).</li>
+                    <li>Nível 3+: podem cadastrar/editar pacientes e internações.</li>
+                    <li>Nível 4+: exclusões, reativações e acesso às permissões.</li>
+                </ul>
+            </article>
+            <article class="card">
+                <h3>Travas automáticas</h3>
+                <ul>
+                    <li>Usuário sem hospital padrão não consegue editar cadastros.</li>
+                    <li>E-mail duplicado gera alerta e impede salvamento.</li>
+                    <li>Ajustes em "Permissões" refletem no menu após recarregar a página.</li>
+                </ul>
+            </article>
+        </div>
+    </section>
+
+    <section>
+        <h2>Reset e logs</h2>
+        <div class="grid">
+            <article class="card">
+                <h3>Reset de senha</h3>
+                <ul>
+                    <li>Botão na lista envia link imediato para redefinir.</li>
+                    <li>Diretoria pode resetar mesmo sem aprovação prévia.</li>
+                </ul>
+            </article>
+            <article class="card">
+                <h3>Histórico</h3>
+                <ul>
+                    <li>Alterações de perfil e permissões ficam registradas com usuário/data.</li>
+                    <li>Logs acessíveis em Menu &gt; Permissões &gt; Histórico.</li>
+                </ul>
+            </article>
+        </div>
+    </section>
+</main>
+<footer>Manual Usuários • versão 0.2</footer>
+</body>
+</html>

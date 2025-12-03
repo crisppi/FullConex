@@ -466,14 +466,14 @@ if ($havePages) {
                                 <td class="action">
                                     <?php if (($intern['encerrado_cap'] ?? 'n') !== "s"): ?>
                                         <?php if (($intern['em_auditoria_cap'] ?? 'n') === "s"): ?>
-                                            <a class="legenda-em-auditoria" href="#"
-                                                onclick="edit('<?= $BASE_URL ?>cad_capeante_audit.php?id_capeante=<?= $intern['id_capeante'] ?>')">
+                                            <a class="legenda-em-auditoria"
+                                                href="<?= $BASE_URL ?>cad_capeante_rah.php?id_capeante=<?= $intern['id_capeante'] ?>">
                                                 <i class="bi bi-file-text" style="color:#db5a0f;font-size:1.1em;margin:0 5px"></i>
                                                 <span style="color:#db5a0f;">Analisar</span>
                                             </a>
                                         <?php else: ?>
-                                            <a class="legenda-iniciar" href="#"
-                                                onclick="edit('<?= $BASE_URL ?>cad_capeante_audit.php?id_capeante=<?= $intern['id_capeante'] ?>')">
+                                            <a class="legenda-iniciar"
+                                                href="<?= $BASE_URL ?>cad_capeante_rah.php?id_capeante=<?= $intern['id_capeante'] ?>">
                                                 <i class="bi bi-file-text"
                                                     style="color:rgb(25,78,255);font-size:1.1em;font-weight:bold;margin:0 5px"></i>
                                                 <span>Iniciar</span>
@@ -489,7 +489,7 @@ if ($havePages) {
                                     <?php endif; ?>
 
                                     <a class="legenda-parcial"
-                                        href="<?= $BASE_URL ?>cad_capeante_audit.php?id_internacao=<?= $intern["id_internacao"] ?>&type=create">
+                                        href="<?= $BASE_URL ?>cad_capeante_rah.php?id_internacao=<?= $intern["id_internacao"] ?>&type=create">
                                         <i class="legenda-parcial bi bi-file-text"
                                             style="color:green;text-decoration:none;font-size:10px;font-weight:bold;margin:0 5px">
                                             Parcial</i>
@@ -518,24 +518,21 @@ if ($havePages) {
                                 ?>
                                 <?php if ($current_block > $first_block): ?>
                                     <li class="page-item">
-                                        <a class="page-link" id="blocoNovo" href="#"
-                                            onclick="loadContent('<?= $url ?>&pag=1&bl=0')">
+                                        <a class="page-link" id="blocoNovo" href="<?= $url ?>&pag=1&bl=0">
                                             <i class="fa-solid fa-angles-left"></i></a>
                                     </li>
                                 <?php endif; ?>
 
                                 <?php if ($current_block <= $last_block && $last_block > 1 && $current_block != 1): ?>
                                     <li class="page-item">
-                                        <a class="page-link" href="#"
-                                            onclick="loadContent('<?= $url ?>&pag=<?= max(1, $paginaAtual - 1) ?>&bl=<?= max(0, $blocoAtual - 5) ?>')">
+                                        <a class="page-link" href="<?= $url ?>&pag=<?= max(1, $paginaAtual - 1) ?>&bl=<?= max(0, $blocoAtual - 5) ?>">
                                             <i class="fa-solid fa-angle-left"></i></a>
                                     </li>
                                 <?php endif; ?>
 
                                 <?php for ($i = $first_page_in_block; $i <= $last_page_in_block; $i++): ?>
                                     <li class="page-item <?= (($_GET['pag'] ?? 1) == $i) ? "active" : "" ?>">
-                                        <a class="page-link" href="#"
-                                            onclick="loadContent('<?= $url ?>&pag=<?= $i ?>&bl=<?= (int) $blocoAtual ?>')">
+                                        <a class="page-link" href="<?= $url ?>&pag=<?= $i ?>&bl=<?= (int) $blocoAtual ?>">
                                             <?= $i ?>
                                         </a>
                                     </li>
@@ -543,16 +540,14 @@ if ($havePages) {
 
                                 <?php if ($current_block < $last_block): ?>
                                     <li class="page-item">
-                                        <a class="page-link" id="blocoNovo" href="#"
-                                            onclick="loadContent('<?= $url ?>&pag=<?= $paginaAtual + 1 ?>&bl=<?= $blocoAtual + 5 ?>')">
+                                        <a class="page-link" id="blocoNovo" href="<?= $url ?>&pag=<?= $paginaAtual + 1 ?>&bl=<?= $blocoAtual + 5 ?>">
                                             <i class="fa-solid fa-angle-right"></i></a>
                                     </li>
                                 <?php endif; ?>
 
                                 <?php if ($current_block < $last_block): ?>
                                     <li class="page-item">
-                                        <a class="page-link" id="blocoNovo" href="#"
-                                            onclick="loadContent('<?= $url ?>&pag=<?= $total_pages ?>&&bl=<?= ($last_block - 1) * 5 ?>')">
+                                        <a class="page-link" id="blocoNovo" href="<?= $url ?>&pag=<?= $total_pages ?>&bl=<?= ($last_block - 1) * 5 ?>">
                                             <i class="fa-solid fa-angles-right"></i></a>
                                     </li>
                                 <?php endif; ?>

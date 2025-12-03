@@ -140,18 +140,10 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                         min-height: 50px;" alt="FullCare">
                 </a>
                 <div class="collapse navbar-collapse" id="navbarScroll">
-                    <ul class="nav-tabs navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll"
+                    <ul class="nav-tabs navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll align-items-center"
                         style="--bs-scroll-height: 80px;">
                         <!-- Ícone de mensagem -->
-                        <?php if ($_SESSION['nivel'] == -1) { ?>
-
-                        <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_cap_fin.php"> <span
-                                    id="boot-icon" class="bi bi-shield-check fw-bold"
-                                    style="font-size: 1rem; margin-right:5px;color: rgb(21, 56, 210);"> </span>
-                                Contas Para Validar
-                            </a>
-                        </li>
-                        <?php }; ?>
+                        
                         <?php if ($_SESSION['nivel'] > 0) { ?>
 
                         <li class="nav-item dropdown">
@@ -170,10 +162,16 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                             class="bi bi-graph-up-arrow"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(94, 35, 99);"></i>
                                         Painel Mensal</a></li>
-                                <li><a class="dropdown-item" href="https://manual.fullcareaudit.com.br"><i
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>manual.html"><i
                                             class="bi bi-person"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
                                         Manual</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>solicitacao_customizacao_pdf.php"
+                                        target="_blank">
+                                        <i class="bi bi-file-earmark-text"
+                                            style="font-size: 1rem;margin-right:5px; color: #5e2363;"></i>
+                                        Solicitação de Customização (PDF)
+                                    </a></li>
                                 <?php if ($_SESSION['nivel'] > 3) { ?>
                                 <li class="nav-item">
                                     <a class="dropdown-item" href="<?= $BASE_URL ?>admin_permissao.php">
@@ -201,11 +199,11 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                             </a>
                             <ul class="dropdown-menu" id="dropMenu1" aria-labelledby="navbarScrollingDropdown">
 
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_usuario.php"><i
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>list_usuario.php"><i
                                             class="bi bi-file-medical"
                                             style="font-size: 1rem; margin-right:5px; color: rgb(155, 95, 76);"></i>
                                         Pesquisa Usuários</a></li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_hospitalUser.php"><i
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>list_hospitalUser.php"><i
                                             class="bi bi-person-badge"
                                             style="font-size: 1rem; margin-right:5px; color: rgb(15, 155, 176);"></i>
                                         Hospital por Usuário</a>
@@ -244,7 +242,7 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
 
                                     <hr class="dropdown-divider">
                                 </li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_acomodacao.php"><i
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>list_acomodacao.php"><i
                                             class=" bi bi-clipboard-heart"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(145, 156, 55);"></i>
                                         Acomodação</a></li>
@@ -312,6 +310,32 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                             </ul>
                         </li>
                         <?php }; ?>
+                        <?php if ($_SESSION['nivel'] >= 3): ?>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="dropdownContasRah" role="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-journal-richtext me-1" style="color:#5e2363;"></i>Contas
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownContasRah">
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>list_internacao_cap.php">
+                                        <i class="bi bi-currency-dollar text-success me-2"></i>Contas para Auditar
+                                    </a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>list_internacao_cap_fin.php">
+                                        <i class="bi bi-shield-check text-primary me-2"></i>Contas Finalizadas
+                                    </a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>list_internacao_senha_fin.php">
+                                        <i class="bi bi-bookmark-check text-danger me-2"></i>Senhas Finalizadas
+                                    </a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>list_internacao_cap_par.php">
+                                        <i class="bi bi-pause-circle text-warning me-2"></i>Contas Paradas
+                                    </a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>list_internacao_cap_jornada.php">
+                                        <i class="bi bi-diagram-3 text-info me-2"></i>Jornada da Conta
+                                    </a></li>
+                            </ul>
+                        </li>
+                        <?php endif; ?>
+
                         <?php if ($_SESSION['nivel'] >= 3) { ?>
 
                         <li class="nav-item dropdown">
@@ -359,64 +383,26 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                             </ul>
                         </li>
                         <?php }; ?>
+                        <?php if ($_SESSION['nivel'] >= 3) { ?>
                         <li class="nav-item dropdown">
-                            <?php if ($_SESSION['nivel'] >= 3) { ?>
-
                             <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
                                 data-bs-toggle="dropdown" aria-expanded="false">
                                 <i style="font-size: 1rem;margin-right:5px; color:#5e2363;" name="type" value="edite"
                                     class="fa-solid fa-file-invoice edit-icon"></i>
-                                Contas
+                                Faturamento
                             </a>
-
                             <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>internacoes/rah"><span
-                                            id="boot-icon1" class="bi bi-currency-dollar"
-                                            style="font-size: 1rem; margin-right:5px; color: rgb(77, 155, 67);">
-                                        </span> Rah - Contas para Auditar</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>internacoes/rah/finalizadas"><span
-                                            id="boot-icon1" class="bi bi-check2-circle"
-                                            style="font-size: 1rem; margin-right:5px; color: rgb(27, 156, 55);">
-                                        </span> Rah - Contas Finalizadas</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>internacoes/rah/senhas"><span
-                                            id="boot-icon1" class="bi bi-key"
-                                            style="font-size: 1rem; margin-right:5px; color: rgb(128, 94, 222);">
-                                        </span> Rah - Senhas Finalizadas</a></li>
-                                <li>
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_cap_fin.php"> <span
-                                            id="boot-icon" class="bi bi-shield-check fw-bold"
-                                            style="font-size: 1rem; margin-right:5px;color: rgb(21, 56, 210);"> </span>
-                                        Contas Finalizadas
-                                    </a>
-                                </li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_senha_fin.php">
-                                        <span id="boot-icon" class="bi bi-bookmark-check"
-                                            style="font-size:  1rem; margin-right:5px;color: rgb(213, 56, 210);">
-                                        </span>
-                                        Senhas Finalizadas
-                                    </a>
-                                </li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_cap_par.php"><span
-                                            id="boot-icon1" class="bi bi-slash-circle"
-                                            style="font-size: 1rem; margin-right:5px; color: rgb(77, 155, 67);">
-                                        </span> Contas Paradas</a></li>
-                                <li>
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>
-                                <li><a class="dropdown-item"
-                                        href="<?php $BASE_URL ?>list_internacao_cap_jornada.php"><span id="boot-icon1"
-                                            class="bi bi-card-list"
-                                            style="font-size: 1rem; margin-right:5px; color: rgba(112, 6, 38, 1);">
-                                        </span> Jornada da Conta</a></li>
-                                <li>
-                                    <?php }; ?>
-
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>lista_visitas.php?context=faturamento"><i
+                                            class="bi bi-clipboard-check"
+                                            style="font-size: 1rem;margin-right:5px; color:#5e2363;"></i>
+                                        Visitas</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>list_internacao_cap_fin.php"><i
+                                            class="bi bi-card-checklist"
+                                            style="font-size: 1rem;margin-right:5px; color:rgb(28, 118, 175);"></i>
+                                        Contas</a></li>
                             </ul>
                         </li>
+                        <?php }; ?>
                         <!-- <?php if ($_SESSION['nivel'] >= 2) { ?>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"

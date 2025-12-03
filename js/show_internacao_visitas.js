@@ -4,7 +4,9 @@
 
     var tabsBound = false;
     var visitasEventsBound = false;
-
+    var filtroAplicado = false;
+    var ultimoIniAplicado = '';
+    var ultimoFimAplicado = '';
     function ensureTimelineFocus() {
         var container = document.querySelector('#visitas .ht-container');
         if (!container) return;
@@ -88,7 +90,7 @@
 
         if (!selecWrap || !rangeEl) return;
 
-        if (hasFilter && (ini || fim)) {
+        if (hasFilter) {
             var iniFmt = ini ? ini.split('-').reverse().join('/') : '—';
             var fimFmt = fim ? fim.split('-').reverse().join('/') : '—';
             rangeEl.textContent = iniFmt + ' — ' + fimFmt;
@@ -96,6 +98,42 @@
         } else {
             selecWrap.style.display = 'none';
             rangeEl.textContent = '';
+        }
+
+        updateRangePdfButton(ini, fim, hasFilter);
+    }
+
+    function updateRangePdfButton(ini, fim, hasFilter) {
+        var btn = document.getElementById('btn-visitas-range-pdf');
+        var info = document.getElementById('btn-visitas-range-info');
+        if (!btn) return;
+        var base = btn.getAttribute('data-base') || '';
+        var enable = Boolean(hasFilter && base);
+        if (!enable) {
+            btn.href = '#';
+            btn.classList.add('disabled');
+            btn.setAttribute('aria-disabled', 'true');
+            if (info) {
+                info.textContent = 'Use o filtro de datas';
+                info.classList.add('text-muted');
+            }
+            return;
+        }
+        var params = [];
+        if (ini) params.push('data_ini=' + encodeURIComponent(ini));
+        if (fim) params.push('data_fim=' + encodeURIComponent(fim));
+        var href = base;
+        if (params.length) {
+            href += (base.indexOf('?') !== -1 ? '&' : '?') + params.join('&');
+        }
+        btn.href = href;
+        btn.classList.remove('disabled');
+        btn.setAttribute('aria-disabled', 'false');
+        if (info) {
+            var iniFmt = ini ? ini.split('-').reverse().join('/') : '—';
+            var fimFmt = fim ? fim.split('-').reverse().join('/') : '—';
+            info.textContent = iniFmt + ' — ' + fimFmt;
+            info.classList.remove('text-muted');
         }
     }
 
@@ -113,9 +151,7 @@
 
         var ini = normDate($ini.val());
         var fim = normDate($fim.val());
-
         var ultimoVisivel = null;
-        var hasFilter = Boolean(ini || fim);
 
         $markers.each(function() {
             var $m = $(this);
@@ -130,6 +166,7 @@
         });
 
         if (!ultimoVisivel) {
+            updateSelectedRange('', '', false);
             return;
         }
 
@@ -151,7 +188,10 @@
             cont.scrollLeft = Math.max(0, ativoVisivel.offsetLeft - cont.clientWidth / 2);
         }
 
-        updateSelectedRange(ini, fim, hasFilter);
+        ultimoIniAplicado = ini;
+        ultimoFimAplicado = fim;
+        filtroAplicado = true;
+        updateSelectedRange(ini, fim, true);
     }
 
     function limparFiltro() {
@@ -166,8 +206,8 @@
         var $fim = ctx.$fim;
         var $markers = ctx.$markers;
 
-        var defIni = $ini.data('default') || '';
-        var defFim = $fim.data('default') || '';
+        var defIni = normDate($ini.attr('data-default') || '');
+        var defFim = normDate($fim.attr('data-default') || '');
 
         $ini.val(defIni);
         $fim.val(defFim);
@@ -194,6 +234,9 @@
             }
         }
 
+        filtroAplicado = false;
+        ultimoIniAplicado = '';
+        ultimoFimAplicado = '';
         updateSelectedRange('', '', false);
     }
 

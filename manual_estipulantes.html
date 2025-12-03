@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Manual | Estipulantes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+    body{margin:0;font-family:'Inter',sans-serif;background:#f8f6fb;color:#2d1740;line-height:1.5}
+    header{background:linear-gradient(135deg,#6b3d7d,#422257);color:#fff;padding:45px 5vw 70px}
+    main{width:min(840px,92vw);margin:-40px auto 40px}
+    h2{font-size:26px;margin-bottom:14px;position:relative}
+    h2::after{content:"";position:absolute;left:0;bottom:-6px;width:60px;height:3px;border-radius:99px;background:linear-gradient(90deg,#8a5ab0,#5ad1f0)}
+    .card{background:#fff;border-radius:16px;padding:20px;border:1px solid rgba(90,43,120,.1);box-shadow:0 12px 22px rgba(57,23,92,.1);margin-bottom:18px}
+    ul{margin:0;padding-left:18px}
+    a.voltar{color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.4);padding:6px 12px;border-radius:999px}
+    footer{text-align:center;color:#6f6b78;padding:20px}
+    </style>
+</head>
+<body>
+<header>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+        <div>
+            <h1>Estipulantes</h1>
+            <p>Ligam seguradoras às empresas contratantes e impactam relatórios financeiros.</p>
+        </div>
+        <a class="voltar" href="manual.html">← Voltar</a>
+    </div>
+</header>
+<main>
+    <section>
+        <h2>Cadastro</h2>
+        <article class="card">
+            <ul>
+                <li>Menu Cadastros &gt; Estipulantes &gt; Novo.</li>
+                <li>Informar nome, CNPJ, contato e observações.</li>
+                <li>Associar seguradoras relevantes via select múltiplo.</li>
+                <li>Níveis 4+ podem excluir; demais apenas editar.</li>
+            </ul>
+        </article>
+    </section>
+    <section>
+        <h2>Alertas e travas</h2>
+        <article class="card">
+            <ul>
+                <li>Estipulante com contratos ativos não permite exclusão.</li>
+                <li>Badge "Inativo" evita seleção indevida na lista.</li>
+                <li>Log registra alterações de CNPJ e contatos críticos.</li>
+            </ul>
+        </article>
+    </section>
+</main>
+<footer>Manual Estipulantes • versão 0.2</footer>
+</body>
+</html>

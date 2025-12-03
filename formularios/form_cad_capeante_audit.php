@@ -188,6 +188,24 @@ if (is_array($intern) && isset($intern[0]) && is_array($intern[0])) {
     $internRow = array_merge($defaults, $intern[0]);
 }
 
+$lastCapeanteFinal = null;
+$autoNextDate = '';
+if (!empty($ultimo['data_final_capeante']) && $ultimo['data_final_capeante'] !== '0000-00-00') {
+    $lastCapeanteFinal = $ultimo['data_final_capeante'];
+}
+if ($type === 'create' && $lastCapeanteFinal) {
+    $ts = strtotime($lastCapeanteFinal . ' +1 day');
+    if ($ts) {
+        $autoNextDate = date('Y-m-d', $ts);
+        if (empty($internRow['data_inicial_capeante'])) {
+            $internRow['data_inicial_capeante'] = $autoNextDate;
+        }
+        if (empty($internRow['data_final_capeante'])) {
+            $internRow['data_final_capeante'] = $autoNextDate;
+        }
+    }
+}
+
 // PONTO CRÍTICO CORRIGIDO 2 (continuação): Usando a função anônima compatível
 $val = function (string $k) use ($internRow) {
     return $internRow[$k] ?? null;
@@ -245,11 +263,12 @@ $mostrarCadastroCentral = !($isMed($cargoSessao) || $isEnf($cargoSessao));
 
 $agora = date('Y-m-d H:i:s');
 $lastFinalDateHidden = '';
-if ($type === 'create' && !empty($ultimo['data_final_capeante']) && $ultimo['data_final_capeante'] !== '0000-00-00') {
-    $lastFinalDateHidden = (string)$ultimo['data_final_capeante'];
+if ($type === 'create' && $lastCapeanteFinal) {
+    $lastFinalDateHidden = (string)$lastCapeanteFinal;
 }
 ?>
 <input type="hidden" id="last_final_date" value="<?= $h($lastFinalDateHidden) ?>">
+<input type="hidden" id="next_start_date" value="<?= $h($autoNextDate) ?>">
 
 <!-- (Opcional) moment -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
@@ -890,6 +909,7 @@ function prevStep(n) {
     const inputInicio = document.getElementById('data_inicial_capeante');
     const inputFim = document.getElementById('data_final_capeante');
     const lastFinalEl = document.getElementById('last_final_date');
+    const nextStartEl = document.getElementById('next_start_date');
     const feedbackEl = document.querySelector('.invalid-feedback.notif1');
     if (!inputInicio || !lastFinalEl) return;
 
@@ -922,6 +942,18 @@ function prevStep(n) {
     const minStartStr = formatYMD(minStart);
     inputInicio.setAttribute('min', minStartStr);
 
+    const applyAutoDefaults = () => {
+        if (!nextStartEl) return;
+        const suggestion = (nextStartEl.value || '').trim();
+        if (!suggestion) return;
+        if (!inputInicio.value) {
+            inputInicio.value = suggestion;
+        }
+        if (inputFim && !inputFim.value) {
+            inputFim.value = suggestion;
+        }
+    };
+
     const coerceIfNeeded = () => {
         const v = inputInicio.value;
         if (!v) return;
@@ -949,6 +981,7 @@ function prevStep(n) {
         }
     };
 
+    applyAutoDefaults();
     coerceIfNeeded();
     inputInicio.addEventListener('change', coerceIfNeeded);
     inputInicio.addEventListener('blur', coerceIfNeeded);

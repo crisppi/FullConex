@@ -43,6 +43,219 @@ function formatBool($value)
     return '';
 }
 
+function parseDateInput(?string $value): ?string
+{
+    if ($value === null) return null;
+    $value = trim($value);
+    if ($value === '') return null;
+    $formats = ['Y-m-d', 'd/m/Y'];
+    foreach ($formats as $fmt) {
+        $dt = DateTime::createFromFormat($fmt, $value);
+        if ($dt && $dt->format($fmt) === $value) {
+            return $dt->format('Y-m-d');
+        }
+    }
+    $ts = strtotime($value);
+    return $ts ? date('Y-m-d', $ts) : null;
+}
+
+function renderInternacaoSection(RelatorioVisitaPDF $pdf, array $internacao, array $corCinza): void
+{
+    $pdf->SetFont('helvetica', 'B', 7);
+    $pdf->SetTextColor(0, 0, 0);
+    $pdf->Cell(0, 5, 'INFORMAÇÕES DA INTERNAÇÃO', 0, 1, 'L');
+    $pdf->SetDrawColor(200, 200, 200);
+    $yLinhaInfo = $pdf->GetY();
+    $pdf->Line(15, $yLinhaInfo, 195, $yLinhaInfo);
+    $pdf->Ln(2);
+
+    $pdf->SetFont('helvetica', '', 7);
+    $pdf->SetFillColor(...$corCinza);
+    $pdf->Cell(50, 6, 'Nome do Paciente:', 1, 0, 'L', true);
+    $pdf->Cell(0, 6, $internacao['nome_pac'] ?? '', 1, 1, 'L');
+    $pdf->Ln(1);
+
+    $cidCode = trim((string)($internacao['cid_cat'] ?? ''));
+    $cidDesc = trim((string)($internacao['cid_descricao'] ?? ''));
+    $cidValue = trim($cidCode . ($cidDesc ? ' - ' . $cidDesc : ''));
+
+    $dadosInternacao = [
+        'ID da Internação'    => $internacao['id_internacao'] ?? '',
+        'Data da Internação'  => formatDate($internacao['data_intern_int'] ?? ''),
+        'Hospital'            => $internacao['nome_hosp'] ?? '',
+        'Especialidade'       => $internacao['especialidade_int'] ?? '',
+        'Origem'              => $internacao['origem_int'] ?? '',
+        'Modo de Internação'  => $internacao['modo_internacao_int'] ?? '',
+        'Tipo de Admissão'    => $internacao['tipo_admissao_int'] ?? '',
+        'Acomodação'          => $internacao['acomodacao_int'] ?? '',
+        'Grupo de Patologia'  => $internacao['grupo_patologia_int'] ?? '',
+        'Patologia / CID'     => trim(($internacao['patologia2_pat'] ?? '') . ($cidValue ? ' (CID: ' . $cidValue . ')' : '')),
+        'UTI'                 => formatBool($internacao['internado_uti_int'] ?? ''),
+        'Senha'               => $internacao['senha_int'] ?? '',
+    ];
+
+    $itensInt = [];
+    foreach ($dadosInternacao as $campo => $valor) {
+        $itensInt[] = ['label' => $campo, 'valor' => $valor];
+    }
+
+    $colsPerRow  = 3;
+    $colWidth    = 60;
+    $totalItens  = count($itensInt);
+    $totalRows   = (int) ceil($totalItens / $colsPerRow);
+
+    $pdf->SetFillColor(...$corCinza);
+    $pdf->SetDrawColor(180, 180, 180);
+    $startX = $pdf->GetX();
+    for ($row = 0; $row < $totalRows; $row++) {
+        $currentY = $pdf->GetY();
+        for ($col = 0; $col < $colsPerRow; $col++) {
+            $idx  = $row * $colsPerRow + $col;
+            $html = '';
+
+            if (isset($itensInt[$idx])) {
+                $label = htmlspecialchars($itensInt[$idx]['label'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $valor = htmlspecialchars((string)$itensInt[$idx]['valor'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $html  = '<b>' . $label . ':</b> ' . $valor;
+            }
+
+            $x = $startX + $col * $colWidth;
+            $pdf->writeHTMLCell(
+                $colWidth,
+                6,
+                $x,
+                $currentY,
+                $html,
+                1,
+                0,
+                1,
+                false,
+                'L',
+                true
+            );
+        }
+        $pdf->SetY($currentY + 6);
+        $pdf->SetX($startX);
+    }
+    $pdf->Ln(4);
+}
+
+function renderVisitaSection(
+    RelatorioVisitaPDF $pdf,
+    array $visita,
+    array $corCinza,
+    string $signatureFont,
+    ?string $extraTitle = null
+): void
+{
+    $numero = $visita['visita_no_vis'] ?? ($visita['id_visita'] ?? '');
+    $titulo = 'DETALHES DA VISITA';
+    if ($numero !== '') {
+        $titulo .= ' #' . $numero;
+    }
+    if ($extraTitle) {
+        $titulo .= ' - ' . $extraTitle;
+    }
+
+    $pdf->SetFont('helvetica', 'B', 7);
+    $pdf->Cell(0, 5, $titulo, 0, 1, 'L');
+    $pdf->SetDrawColor(200, 200, 200);
+    $yLinhaVis = $pdf->GetY();
+    $pdf->Line(15, $yLinhaVis, 195, $yLinhaVis);
+    $pdf->Ln(2);
+
+    $dadosVisita = [
+        'Id Visita'      => $visita['id_visita'] ?? '',
+        'Data da Visita' => formatDate($visita['data_visita_vis'] ?? ''),
+        'Hospital'       => $visita['nome_hosp'] ?? '',
+        'Titular'        => $visita['titular_int'] ?? '',
+        'Acomodação'     => $visita['acomodacao_int'] ?? '',
+    ];
+
+    $itensVis = [];
+    foreach ($dadosVisita as $campo => $valor) {
+        $itensVis[] = ['label' => $campo, 'valor' => $valor];
+    }
+
+    $colsPerRowV = 3;
+    $colWidthV   = 60;
+    $totalItensV = count($itensVis);
+    $totalRowsV  = (int) ceil($totalItensV / $colsPerRowV);
+
+    $pdf->SetFillColor(...$corCinza);
+    $pdf->SetDrawColor(180, 180, 180);
+    $startXv = $pdf->GetX();
+    for ($row = 0; $row < $totalRowsV; $row++) {
+        $currentYv = $pdf->GetY();
+        for ($col = 0; $col < $colsPerRowV; $col++) {
+            $idxV  = $row * $colsPerRowV + $col;
+            $htmlV = '';
+
+            if (isset($itensVis[$idxV])) {
+                $labelV = htmlspecialchars($itensVis[$idxV]['label'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $valorV = htmlspecialchars((string)$itensVis[$idxV]['valor'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $htmlV  = '<b>' . $labelV . ':</b> ' . $valorV;
+            }
+
+            $xv = $startXv + $col * $colWidthV;
+            $pdf->writeHTMLCell(
+                $colWidthV,
+                6,
+                $xv,
+                $currentYv,
+                $htmlV,
+                1,
+                0,
+                1,
+                false,
+                'L',
+                true
+            );
+        }
+        $pdf->SetY($currentYv + 6);
+        $pdf->SetX($startXv);
+    }
+    $pdf->Ln(3);
+
+    $pdf->SetFillColor(...$corCinza);
+    $pdf->SetFont('helvetica', 'B', 7);
+    $pdf->MultiCell(0, 6, 'Relatório da Visita:', 1, 'L', true);
+    $pdf->SetFont('helvetica', '', 7);
+    $pdf->MultiCell(0, 6, $visita['rel_visita_vis'] ?? '', 1, 'L');
+    $pdf->Ln(1);
+
+    $pdf->SetFillColor(...$corCinza);
+    $pdf->SetFont('helvetica', 'B', 7);
+    $pdf->MultiCell(0, 6, 'Ações da Visita:', 1, 'L', true);
+    $pdf->SetFont('helvetica', '', 7);
+    $pdf->MultiCell(0, 6, $visita['acoes_int_vis'] ?? '', 1, 'L');
+    $pdf->Ln(1);
+
+    $profissionalNome     = trim((string)($visita['auditor_nome'] ?? ''));
+    $profissionalRegistro = trim((string)($visita['auditor_registro'] ?? ''));
+    $profissionalValor    = trim($profissionalNome . ($profissionalRegistro ? ' - ' . $profissionalRegistro : ''));
+
+    $pdf->SetFillColor(...$corCinza);
+    $pdf->SetFont('helvetica', 'B', 7);
+    $pdf->MultiCell(0, 6, 'Profissional:', 1, 'L', true);
+    $pdf->SetFont('helvetica', '', 7);
+    $pdf->MultiCell(0, 6, $profissionalValor, 1, 'L');
+
+    if ($profissionalNome !== '') {
+        $pdf->Ln(0.8);
+        $pdf->SetFont($signatureFont, '', 14);
+        $pdf->Cell(0, 5, $profissionalNome, 0, 1, 'C');
+        $pdf->SetY($pdf->GetY() - 2.5);
+        $pdf->SetFont('helvetica', '', 7);
+        $pdf->Cell(0, 3.5, str_repeat('_', 55), 0, 1, 'C');
+        if ($profissionalRegistro !== '') {
+            $pdf->SetFont('helvetica', '', 8);
+            $pdf->Cell(0, 5, $profissionalRegistro, 0, 1, 'C');
+        }
+    }
+    $pdf->Ln(3);
+}
+
 /**
  * TCPDF com rodapé padrão.
  */
@@ -84,32 +297,73 @@ function renderHeader($pdf, $logoPath)
 
 $idVisita = filter_input(INPUT_GET, "id_visita", FILTER_VALIDATE_INT);
 $idInternacaoOverride = filter_input(INPUT_GET, "id_internacao", FILTER_VALIDATE_INT);
+$rangeMode = isset($_GET['range']) && $_GET['range'] === '1';
+$rangeDateIni = parseDateInput($_GET['data_ini'] ?? null);
+$rangeDateFim = parseDateInput($_GET['data_fim'] ?? null);
+if ($rangeMode && $rangeDateIni && $rangeDateFim && $rangeDateIni > $rangeDateFim) {
+    $tmp = $rangeDateIni;
+    $rangeDateIni = $rangeDateFim;
+    $rangeDateFim = $tmp;
+}
 
-if (!$idVisita) {
+if (!$rangeMode && !$idVisita) {
     die("ID da visita inválido.");
+}
+if ($rangeMode && !$idInternacaoOverride) {
+    die("Internação inválida para geração do PDF em lote.");
 }
 
 $visitaDao     = new visitaDao($conn, $BASE_URL);
 $internacaoDao = new internacaoDao($conn, $BASE_URL);
 
-$visitaRows = $visitaDao->joinVisitaInternacaoShow($idVisita);
-if (empty($visitaRows)) {
-    die("Visita não encontrada.");
+$visitaList = [];
+if ($rangeMode) {
+    $idInternacao = (int)$idInternacaoOverride;
+    $internacoes = $internacaoDao->selectAllInternacao('id_internacao = ' . $idInternacao);
+    $internacao = $internacoes[0] ?? [];
+    if (!$internacao) {
+        $internacao = ['id_internacao' => $idInternacao];
+    }
+    $todasVisitas = $visitaDao->joinVisitaInternacao($idInternacao);
+    foreach ($todasVisitas as $row) {
+        $data = $row['data_visita_vis'] ?? null;
+        if (!$data) continue;
+        if ($rangeDateIni && $data < $rangeDateIni) continue;
+        if ($rangeDateFim && $data > $rangeDateFim) continue;
+        $visitaList[] = $row;
+    }
+    if (!$visitaList) {
+        die("Nenhuma visita encontrada para o período selecionado.");
+    }
+    usort($visitaList, function($a, $b) {
+        $cmp = strcmp($a['data_visita_vis'] ?? '', $b['data_visita_vis'] ?? '');
+        if ($cmp === 0) {
+            $cmp = ($a['id_visita'] ?? 0) <=> ($b['id_visita'] ?? 0);
+        }
+        return $cmp;
+    });
+} else {
+    $visitaRows = $visitaDao->joinVisitaInternacaoShow($idVisita);
+    if (empty($visitaRows)) {
+        die("Visita não encontrada.");
+    }
+    $visita = $visitaRows[0];
+    $idInternacao = $idInternacaoOverride ?: ($visita['id_internacao'] ?? null);
+    if (!$idInternacao) {
+        die("Internação relacionada não encontrada.");
+    }
+    $internacoes = $internacaoDao->selectAllInternacao('id_internacao = ' . (int) $idInternacao);
+    $internacao = $internacoes[0] ?? $visita;
+    $visitaList = [$visita];
 }
-
-$visita = $visitaRows[0];
-$idInternacao = $idInternacaoOverride ?: ($visita['id_internacao'] ?? null);
-if (!$idInternacao) {
-    die("Internação relacionada não encontrada.");
-}
-
-$internacoes = $internacaoDao->selectAllInternacao('id_internacao = ' . (int) $idInternacao);
-$internacao = $internacoes[0] ?? $visita;
 
 $pdf = new RelatorioVisitaPDF('P', 'mm', 'A4', true, 'UTF-8');
 $pdf->SetCreator('FullCare');
 $pdf->SetAuthor('FullCare');
-$pdf->SetTitle("Relatório de Visita - #{$idVisita}");
+$pdfTitle = $rangeMode
+    ? "Relatório de Visitas - Internação #{$idInternacao}"
+    : "Relatório de Visita - #{$idVisita}";
+$pdf->SetTitle($pdfTitle);
 $pdf->SetMargins(15, 15, 15);
 $pdf->SetAutoPageBreak(true, 18);
 $pdf->setPrintHeader(false);
@@ -122,188 +376,56 @@ renderHeader($pdf, $logoPath);
 $corAzulHeader = [0, 86, 143];
 $corCinza      = [236, 239, 241];
 
-// ===================== INFORMAÇÕES DA INTERNAÇÃO =====================
-$pdf->SetFont('helvetica', 'B', 7);
-$pdf->SetTextColor(0, 0, 0);
-$pdf->Cell(0, 5, 'INFORMAÇÕES DA INTERNAÇÃO', 0, 1, 'L');
-$pdf->SetDrawColor(200, 200, 200);
-$yLinhaInfo = $pdf->GetY();
-$pdf->Line(15, $yLinhaInfo, 195, $yLinhaInfo);
-$pdf->Ln(2);
+renderInternacaoSection($pdf, $internacao, $corCinza);
 
-$pdf->SetFont('helvetica', '', 7);
-$pdf->SetFillColor(...$corCinza);
-$pdf->Cell(50, 6, 'Nome do Paciente:', 1, 0, 'L', true);
-$pdf->Cell(0, 6, $internacao['nome_pac'] ?? '', 1, 1, 'L');
-$pdf->Ln(1);
+if ($rangeMode) {
+    $periodoDesc = sprintf(
+        "Período selecionado: %s — %s",
+        $rangeDateIni ? formatDate($rangeDateIni) : 'Início não definido',
+        $rangeDateFim ? formatDate($rangeDateFim) : 'Fim não definido'
+    );
+    $pdf->SetFont('helvetica', 'I', 8);
+    $pdf->Cell(0, 5, $periodoDesc, 0, 1, 'L');
+    $pdf->Ln(2);
 
-$cidCode = trim((string)($internacao['cid_cat'] ?? ''));
-$cidDesc = trim((string)($internacao['cid_descricao'] ?? ''));
-$cidValue = trim($cidCode . ($cidDesc ? ' - ' . $cidDesc : ''));
-
-$dadosInternacao = [
-    'ID da Internação'    => $internacao['id_internacao'] ?? '',
-    'Data da Internação'  => formatDate($internacao['data_intern_int'] ?? ''),
-    'Hospital'            => $internacao['nome_hosp'] ?? '',
-    'Especialidade'       => $internacao['especialidade_int'] ?? '',
-    'Origem'              => $internacao['origem_int'] ?? '',
-    'Modo de Internação'  => $internacao['modo_internacao_int'] ?? '',
-    'Tipo de Admissão'    => $internacao['tipo_admissao_int'] ?? '',
-    'Acomodação'          => $internacao['acomodacao_int'] ?? '',
-    'Grupo de Patologia'  => $internacao['grupo_patologia_int'] ?? '',
-    'Patologia / CID'     => trim(($internacao['patologia2_pat'] ?? '') . ($cidValue ? ' (CID: ' . $cidValue . ')' : '')),
-    'UTI'                 => formatBool($internacao['internado_uti_int'] ?? ''),
-    'Senha'               => $internacao['senha_int'] ?? '',
-];
-
-$itensInt = [];
-foreach ($dadosInternacao as $campo => $valor) {
-    $itensInt[] = ['label' => $campo, 'valor' => $valor];
-}
-
-$colsPerRow  = 3;
-$colWidth    = 60;
-$totalItens  = count($itensInt);
-$totalRows   = (int) ceil($totalItens / $colsPerRow);
-
-$pdf->SetFillColor(...$corCinza);
-$pdf->SetDrawColor(180, 180, 180);
-$startX = $pdf->GetX();
-for ($row = 0; $row < $totalRows; $row++) {
-    $currentY = $pdf->GetY();
-    for ($col = 0; $col < $colsPerRow; $col++) {
-        $idx  = $row * $colsPerRow + $col;
-        $html = '';
-
-        if (isset($itensInt[$idx])) {
-            $label = htmlspecialchars($itensInt[$idx]['label'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-            $valor = htmlspecialchars((string)$itensInt[$idx]['valor'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-            $html  = '<b>' . $label . ':</b> ' . $valor;
+    usort($visitaList, function ($a, $b) {
+        $dataA = $a['data_visita_vis'] ?? '';
+        $dataB = $b['data_visita_vis'] ?? '';
+        if ($dataA === $dataB) {
+            return ($b['id_visita'] ?? 0) <=> ($a['id_visita'] ?? 0);
         }
+        return strcmp($dataB, $dataA);
+    });
 
-        $x = $startX + $col * $colWidth;
-        $pdf->writeHTMLCell(
-            $colWidth,
-            6,
-            $x,
-            $currentY,
-            $html,
-            1,
-            0,
-            1,
-            false,
-            'L',
-            true
-        );
-    }
-    $pdf->SetY($currentY + 6);
-    $pdf->SetX($startX);
-}
-$pdf->Ln(4);
-
-// ===================== DETALHES DA VISITA =====================
-$pdf->SetFont('helvetica', 'B', 7);
-$pdf->Cell(0, 5, 'DETALHES DA VISITA #' . ($visita['visita_no_vis'] ?? $idVisita), 0, 1, 'L');
-$pdf->SetDrawColor(200, 200, 200);
-$yLinhaVis = $pdf->GetY();
-$pdf->Line(15, $yLinhaVis, 195, $yLinhaVis);
-$pdf->Ln(2);
-
-$dadosVisita = [
-    'Id Visita'      => $visita['id_visita'] ?? '',
-    'Data da Visita' => formatDate($visita['data_visita_vis'] ?? ''),
-    'Hospital'       => $visita['nome_hosp'] ?? '',
-    'Titular'        => $visita['titular_int'] ?? '',
-    'Acomodação'     => $visita['acomodacao_int'] ?? '',
-];
-
-$itensVis = [];
-foreach ($dadosVisita as $campo => $valor) {
-    $itensVis[] = ['label' => $campo, 'valor' => $valor];
-}
-
-$colsPerRowV = 3;
-$colWidthV   = 60;
-$totalItensV = count($itensVis);
-$totalRowsV  = (int) ceil($totalItensV / $colsPerRowV);
-
-$pdf->SetFillColor(...$corCinza);
-$pdf->SetDrawColor(180, 180, 180);
-$startXv = $pdf->GetX();
-for ($row = 0; $row < $totalRowsV; $row++) {
-    $currentYv = $pdf->GetY();
-    for ($col = 0; $col < $colsPerRowV; $col++) {
-        $idxV  = $row * $colsPerRowV + $col;
-        $htmlV = '';
-
-        if (isset($itensVis[$idxV])) {
-            $labelV = htmlspecialchars($itensVis[$idxV]['label'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-            $valorV = htmlspecialchars((string)$itensVis[$idxV]['valor'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-            $htmlV  = '<b>' . $labelV . ':</b> ' . $valorV;
+    foreach ($visitaList as $index => $visitaItem) {
+        if ($index > 0) {
+            $pdf->Ln(5);
+            $pdf->SetDrawColor(210, 210, 210);
+            $pdf->Line(15, $pdf->GetY(), 195, $pdf->GetY());
+            $pdf->Ln(4);
         }
-
-        $xv = $startXv + $col * $colWidthV;
-        $pdf->writeHTMLCell(
-            $colWidthV,
-            6,
-            $xv,
-            $currentYv,
-            $htmlV,
-            1,
-            0,
-            1,
-            false,
-            'L',
-            true
-        );
+        $extraTitle = $visitaItem['data_visita_vis'] ? formatDate($visitaItem['data_visita_vis']) : null;
+        renderVisitaSection($pdf, $visitaItem, $corCinza, $signatureFont, $extraTitle);
     }
-    $pdf->SetY($currentYv + 6);
-    $pdf->SetX($startXv);
-}
-$pdf->Ln(3);
-
-// Relatório
-$pdf->SetFillColor(...$corCinza);
-$pdf->SetFont('helvetica', 'B', 7);
-$pdf->MultiCell(0, 6, 'Relatório da Visita:', 1, 'L', true);
-$pdf->SetFont('helvetica', '', 7);
-$pdf->MultiCell(0, 6, $visita['rel_visita_vis'] ?? '', 1, 'L');
-$pdf->Ln(1);
-
-// Ações
-$pdf->SetFillColor(...$corCinza);
-$pdf->SetFont('helvetica', 'B', 7);
-$pdf->MultiCell(0, 6, 'Ações da Visita:', 1, 'L', true);
-$pdf->SetFont('helvetica', '', 7);
-$pdf->MultiCell(0, 6, $visita['acoes_int_vis'] ?? '', 1, 'L');
-$pdf->Ln(1);
-
-// Profissional
-$profissionalNome     = trim((string)($visita['auditor_nome'] ?? ''));
-$profissionalRegistro = trim((string)($visita['auditor_registro'] ?? ''));
-$profissionalValor    = trim($profissionalNome . ($profissionalRegistro ? ' - ' . $profissionalRegistro : ''));
-
-$pdf->SetFillColor(...$corCinza);
-$pdf->SetFont('helvetica', 'B', 7);
-$pdf->MultiCell(0, 6, 'Profissional:', 1, 'L', true);
-$pdf->SetFont('helvetica', '', 7);
-$pdf->MultiCell(0, 6, $profissionalValor, 1, 'L');
-
-if ($profissionalNome !== '') {
-    $pdf->Ln(0.8);
-    $pdf->SetFont($signatureFont, '', 14);
-    $pdf->Cell(0, 5, $profissionalNome, 0, 1, 'C');
-    $pdf->SetY($pdf->GetY() - 2.5);
-    $pdf->SetFont('helvetica', '', 7);
-    $pdf->Cell(0, 3.5, str_repeat('_', 55), 0, 1, 'C');
-    if ($profissionalRegistro !== '') {
-        $pdf->SetFont('helvetica', '', 8);
-        $pdf->Cell(0, 5, $profissionalRegistro, 0, 1, 'C');
+} else {
+    foreach ($visitaList as $index => $visitaItem) {
+        if ($index > 0) {
+            $pdf->AddPage();
+            renderHeader($pdf, $logoPath);
+        }
+        $extraTitle = null;
+        renderVisitaSection($pdf, $visitaItem, $corCinza, $signatureFont, $extraTitle);
     }
 }
-$pdf->Ln(3);
 
 ob_end_clean();
-$nomeArquivo = sprintf("relatorio_visita_%d.pdf", $idVisita);
+$nomeArquivo = $rangeMode
+    ? sprintf(
+        "relatorio_visitas_%d_%s_%s.pdf",
+        $idInternacao,
+        $rangeDateIni ? str_replace('-', '', $rangeDateIni) : 'inicio',
+        $rangeDateFim ? str_replace('-', '', $rangeDateFim) : 'fim'
+    )
+    : sprintf("relatorio_visita_%d.pdf", $idVisita);
 $pdf->Output($nomeArquivo, 'D');
 exit();

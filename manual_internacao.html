@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Manual | Internação</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+    body{margin:0;font-family:'Inter',sans-serif;background:#f8f6fb;color:#2d1740;line-height:1.5}
+    header{background:linear-gradient(135deg,#6b3d7d,#422257);color:#fff;padding:48px 5vw 80px}
+    main{width:min(1100px,92vw);margin:-40px auto 60px}
+    h2{font-size:26px;margin:30px 0 14px;position:relative}
+    h2::after{content:"";position:absolute;left:0;bottom:-6px;width:60px;height:3px;border-radius:99px;background:linear-gradient(90deg,#8a5ab0,#5ad1f0)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:18px}
+    .card{background:#fff;border-radius:16px;padding:22px;border:1px solid rgba(90,43,120,.1);box-shadow:0 14px 28px rgba(57,23,92,.12)}
+    ul{margin:0;padding-left:18px}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{text-align:left;padding:10px;border-bottom:1px solid rgba(90,43,120,.1)}
+    th{text-transform:uppercase;font-size:12px;background:#f5f0fb}
+    a.voltar{color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.4);padding:6px 12px;border-radius:999px}
+    footer{text-align:center;color:#6f6b78;padding:30px}
+    </style>
+</head>
+<body>
+<header>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+        <div>
+            <h1>Internação</h1>
+            <p>Processo central conectando paciente, hospital, visitas, prorrogações, TUSS, negociações e contas.</p>
+        </div>
+        <a class="voltar" href="manual.html">← Voltar</a>
+    </div>
+</header>
+<main>
+    <section>
+        <h2>Fluxo principal</h2>
+        <div class="grid">
+            <article class="card">
+                <h3>Etapas</h3>
+                <ol style="padding-left:18px;margin:0">
+                    <li>Selecione paciente pelo hub ou lista.</li>
+                    <li>Informe hospital, acomodação e status (internado, alta, prorrogado).</li>
+                    <li>Datas inicial/final: cada novo capeante assume data final anterior + 1.</li>
+                    <li>Associe auditores (médico, enfermagem, administrativo).</li>
+                    <li>Salvar gera número do capeante/parcial automaticamente.</li>
+                </ol>
+            </article>
+            <article class="card">
+                <h3>Abas disponíveis</h3>
+                <ul>
+                    <li><strong>Resumo</strong> – período, equipe, status da senha.</li>
+                    <li><strong>Visitas</strong> – linha do tempo com modal "Últimas visitas".</li>
+                    <li><strong>Prorrogações</strong> – solicitações/aprovações.</li>
+                    <li><strong>TUSS</strong> – procedimentos vinculados.</li>
+                    <li><strong>Negociações</strong> – acordos e descontos.</li>
+                </ul>
+            </article>
+        </div>
+    </section>
+
+    <section>
+        <h2>Datas e prorrogações</h2>
+        <div class="grid">
+            <article class="card">
+                <h3>Regras de data</h3>
+                <ul>
+                    <li>Data final não pode ser menor que a inicial (campo é limpo e alerta vermelho aparece por 5s).</li>
+                    <li>Nova parcial herda data inicial = data final anterior + 1. Sobreposições são bloqueadas.</li>
+                    <li>Ao clicar em "Parcial", modal mostra dados da parcial anterior (nome, hospital, n°, valores).</li>
+                </ul>
+            </article>
+            <article class="card">
+                <h3>Prorrogações</h3>
+                <ul>
+                    <li>Solicitação define data sugerida e justificativa.</li>
+                    <li>Datas aprovadas atualizam timeline e liberam visitas no novo intervalo.</li>
+                    <li>Negativa gera badge "Prorrogação negada" e trava novas solicitações até ajuste.</li>
+                </ul>
+            </article>
+        </div>
+    </section>
+
+    <section>
+        <h2>Visitas e timeline</h2>
+        <div class="grid">
+            <article class="card">
+                <h3>Layout</h3>
+                <ul>
+                    <li>Linha do tempo horizontal com marcador por visita.</li>
+                    <li>Relatório ocupa quase toda a largura; cabeçalho mostra data, acomodação e profissional.</li>
+                    <li>Botão "Últimas visitas" abre modal quase tela cheia, com scroll e ordenação descrescente.</li>
+                </ul>
+            </article>
+            <article class="card">
+                <h3>Regras</h3>
+                <ul>
+                    <li>Máximo de 5 visitas recentes destacadas; demais via modal.</li>
+                    <li>Visitas atrasadas aparecem no dashboard e na aba com ícone de atenção.</li>
+                    <li>Link "Mostrar últimas visitas" abre modal com histórico completo (quase tela inteira).</li>
+                </ul>
+            </article>
+        </div>
+    </section>
+
+    <section>
+        <h2>Relatórios / PDF</h2>
+        <div class="grid">
+            <article class="card">
+                <h3>Pelo histórico</h3>
+                <ul>
+                    <li>Na lista de internações, botão "PDF – Internação" gera arquivo com todas as visitas registradas.</li>
+                    <li>Ideal para auditorias completas ou envio para seguradora.</li>
+                </ul>
+            </article>
+            <article class="card">
+                <h3>Dentro da visita</h3>
+                <ul>
+                    <li>Na visualização da visita, botão "PDF" gera relatório apenas daquela evolução.</li>
+                    <li>Usado quando hospital pede cópia isolada da visita (sem histórico completo).</li>
+                </ul>
+            </article>
+        </div>
+    </section>
+
+    <section>
+        <h2>Alertas e automatismos</h2>
+        <article class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Evento</th>
+                        <th>Resposta do sistema</th>
+                        <th>Ação sugerida</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Período final &lt; inicial</td>
+                        <td>Banner vermelho, campo final é limpo e foco retorna.</td>
+                        <td>Corrigir intervalo ou criar nova parcial.</td>
+                    </tr>
+                    <tr>
+                        <td>Internação fora da senha</td>
+                        <td>Badge “Senha encerrada” bloqueia novas parciais.</td>
+                        <td>Reabrir senha ou registrar nova autorização.</td>
+                    </tr>
+                    <tr>
+                        <td>Longa permanência</td>
+                        <td>Dashboard destaca paciente e envia e-mail da régua.</td>
+                        <td>Registrar justificativa em Observações.</td>
+                    </tr>
+                    <tr>
+                        <td>Visita sem relatório</td>
+                        <td>Ícone de alerta na timeline e na lista de visitas.</td>
+                        <td>Registrar evolução ou cancelar visita.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </article>
+    </section>
+</main>
+<footer>Manual Internação • versão 0.2</footer>
+</body>
+</html>

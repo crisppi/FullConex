@@ -265,6 +265,7 @@ $initAuditor   = $activeVisit['_auditor'];
 $visitaBtnClass = $initId ? 'btn-success' : 'btn-outline-secondary';
 $visitaPdfBase = $BASE_URL . 'process_visita_pdf.php?id_internacao=' . urlencode((string)$id_internacao) . '&id_visita=';
 $visitaPdfHref = $initId ? $visitaPdfBase . urlencode((string)$initId) : '#';
+$visitaRangePdfBase = $BASE_URL . 'process_visita_pdf.php?range=1&id_internacao=' . urlencode((string)$id_internacao);
 
 /* =========================================================
    PRORROGAÇÕES
@@ -545,6 +546,10 @@ usort($neg_filtered, function ($a, $b) {
                                 $spanForWidth = max(1, $spanDays);
                                 $timelineMarginPct = 3;
                                 $trackWidthPx = max(800, $countVis * 160, $spanForWidth * 40);
+                                $labelMinDistancePx = 120;
+                                $markerPaddingPx = 40;
+                                $offsetStepPx = 26;
+                                $markerPositions = [];
                                 ?>
                                 <div class="ht-container">
                                     <div class="ht-track" style="width: <?= (int)$trackWidthPx ?>px">
@@ -560,6 +565,27 @@ usort($neg_filtered, function ($a, $b) {
                                                     $pct = 50;
                                                 }
                                                 $pct = round(max($timelineMarginPct, min(100 - $timelineMarginPct, $pct)), 2);
+                                                $leftPx = ($pct / 100) * $trackWidthPx;
+                                                $finalPx = $leftPx;
+                                                $maxAttempts = 12;
+                                                for ($attempt = 0; $attempt < $maxAttempts; $attempt++) {
+                                                    $hasOverlap = false;
+                                                    foreach ($markerPositions as $registeredPos) {
+                                                        if (abs($finalPx - $registeredPos) < $labelMinDistancePx) {
+                                                            $hasOverlap = true;
+                                                            break;
+                                                        }
+                                                    }
+                                                    if (!$hasOverlap) {
+                                                        break;
+                                                    }
+                                                    $direction = ($attempt % 2 === 0) ? 1 : -1;
+                                                    $steps = (int)ceil(($attempt + 1) / 2);
+                                                    $shift = $direction * $steps * $offsetStepPx;
+                                                    $finalPx = max($markerPaddingPx, min($trackWidthPx - $markerPaddingPx, $leftPx + $shift));
+                                                }
+                                                $markerPositions[] = $finalPx;
+                                                $pctPosition = round(($finalPx / $trackWidthPx) * 100, 2);
                                                 $isActive  = ($activeVisit && $activeVisit['_id'] === $v['_id']);
                                                 $dataLabel = date('d/m/Y', strtotime($v['_date']));
                                                 $hora      = $v['_time'] ?: '';
@@ -567,7 +593,7 @@ usort($neg_filtered, function ($a, $b) {
                                                 $auditorNome = $v['_auditor'] ?? '';
                                             ?>
                                         <a class="ht-marker<?= $isActive ? ' active' : '' ?>" href="#"
-                                            style="left: <?= $pct ?>%;" data-dateraw="<?= e($v['_date']) ?>"
+                                            style="left: <?= $pctPosition ?>%;" data-dateraw="<?= e($v['_date']) ?>"
                                             data-id="<?= (int)$v['_id'] ?>" data-date="<?= e($dataLabel) ?>"
                                             data-time="<?= e($hora) ?>" data-text="<?= e($texto) ?>"
                                             data-auditor="<?= e($auditorNome) ?>" onclick="(function(m){
@@ -661,6 +687,17 @@ usort($neg_filtered, function ($a, $b) {
                                                 <span id="btn-visita-date"
                                                     class="d-block small mt-1 text-start<?= $initId ? '' : ' text-muted' ?>">
                                                     <?= e($initId ? 'Data: ' . $initDateLabel : 'Selecione uma visita') ?>
+                                                </span>
+                                            </a>
+                                            <a id="btn-visitas-range-pdf"
+                                                class="btn btn-sm btn-outline-primary disabled"
+                                                data-base="<?= e($visitaRangePdfBase) ?>" href="#"
+                                                target="_blank" rel="noopener"
+                                                aria-disabled="true">
+                                                <i class="fa-solid fa-file-pdf me-1"></i> PDF (período)
+                                                <span id="btn-visitas-range-info"
+                                                    class="d-block small mt-1 text-start text-muted">
+                                                    Use o filtro de datas
                                                 </span>
                                             </a>
                                         </div>
@@ -1163,7 +1200,7 @@ usort($neg_filtered, function ($a, $b) {
         box-shadow: inset 0 0 0 1px #e5d8ef
     }
 
-    .ht-marker {
+.ht-marker {
         position: absolute;
         top: 0;
         transform: translateX(-50%);
@@ -1172,21 +1209,25 @@ usort($neg_filtered, function ($a, $b) {
         color: inherit;
         text-decoration: none;
         scroll-snap-align: center;
-        max-width: 45%
+        max-width: 45%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        overflow: visible;
     }
 
     .ht-label {
         display: inline-block;
         font-size: 12px;
         color: var(--brand);
-        margin-bottom: 6px;
         white-space: nowrap;
         transition: all .2s ease;
         padding: 4px 8px;
         border-radius: 8px;
         max-width: 220px;
         overflow: hidden;
-        text-overflow: ellipsis
+        text-overflow: ellipsis;
     }
 
     .ht-marker:hover .ht-label {

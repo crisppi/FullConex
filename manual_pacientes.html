@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Manual | Pacientes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+    body{margin:0;font-family:'Inter',sans-serif;background:#f8f6fb;color:#2d1740;line-height:1.5}
+    header{background:linear-gradient(135deg,#6b3d7d,#422257);color:#fff;padding:48px 5vw 80px}
+    header p{max-width:760px;color:rgba(255,255,255,.9)}
+    main{width:min(1100px,92vw);margin:-50px auto 50px}
+    h2{font-size:26px;margin-bottom:14px;position:relative}
+    h2::after{content:"";position:absolute;left:0;bottom:-6px;width:60px;height:3px;border-radius:99px;background:linear-gradient(90deg,#8a5ab0,#5ad1f0)}
+    .section{margin-top:40px}
+    .two-col{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+    .card{background:#fff;border-radius:16px;padding:22px;border:1px solid rgba(90,43,120,.1);box-shadow:0 12px 24px rgba(57,23,92,.1)}
+    ul{margin:0;padding-left:18px}
+    .flow-step{display:flex;gap:12px;padding:8px 0}
+    .flow-step span{font-weight:700;color:#5a2b78}
+    a.voltar{color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.4);padding:6px 12px;border-radius:999px}
+    footer{text-align:center;color:#6f6b78;padding:30px}
+    </style>
+</head>
+<body>
+<header>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+        <div>
+            <h1>Pacientes</h1>
+            <p>Cadastro mestre do sistema. A partir dele nascem internações, visitas, eventos adversos e contas. Aqui você
+                encontra fluxos, campos monitorados, alertas e integrações.</p>
+        </div>
+        <a class="voltar" href="manual.html">← Voltar</a>
+    </div>
+</header>
+
+<main>
+    <section class="section">
+        <h2>Fluxos essenciais</h2>
+        <div class="two-col">
+            <article class="card">
+                <h3>Listar e localizar</h3>
+                <ul>
+                    <li>Pesquisa na lista com filtros por nome, CPF, seguradora e status.</li>
+                    <li>Busca global (campo no header) abre modal com atalhos para o hub.</li>
+                    <li>Hub mostra histórico completo, últimas internações e botões para ações rápidas.</li>
+                </ul>
+            </article>
+            <article class="card">
+                <h3>Novo registro</h3>
+                <div class="flow-step"><span>1.</span> Clique em "Novo Paciente".</div>
+                <div class="flow-step"><span>2.</span> Preencha Nome, CPF, Data de nascimento, Sexo e Seguradora.</div>
+                <div class="flow-step"><span>3.</span> Salve; duplicidades de CPF geram alerta.</div>
+                <div class="flow-step"><span>4.</span> Após salvar, surgem botões para internação, visita e anexos.</div>
+            </article>
+        </div>
+        <article class="card" style="margin-top:18px">
+            <h3>Editar e excluir</h3>
+            <div class="two-col">
+                <div>
+                    <p><strong>Edição rápida:</strong> ícones na lista. CPF e matrícula ficam bloqueados após vincular
+                        internação.</p>
+                    <p><strong>Histórico:</strong> cada alteração gera log com usuário/data.</p>
+                </div>
+                <div>
+                    <p><strong>Exclusão/Inativação:</strong> só antes de gerar internações. Caso contrário, botão fica cinza
+                        com tooltip "Possui internações".</p>
+                    <p><strong>Reativação:</strong> níveis 4+ podem reativar desde que não haja contas abertas.</p>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <section class="section">
+        <h2>Cadastro e campos monitorados</h2>
+        <div class="two-col">
+            <article class="card">
+                <h3>Obrigatórios</h3>
+                <ul>
+                    <li>Nome completo – aparece nos relatórios PDF.</li>
+                    <li>CPF – máscara automática e valida duplicidade.</li>
+                    <li>Data de nascimento – bloqueia datas futuras.</li>
+                    <li>Sexo – usado em relatórios epidemiológicos.</li>
+                    <li>Seguradora/Plano – alimenta filtros e dashboards.</li>
+                </ul>
+            </article>
+            <article class="card">
+                <h3>Complementares</h3>
+                <ul>
+                    <li>Contato (telefone/e-mail) para alertas e notificações.</li>
+                    <li>Endereço – CEP preenche automaticamente quando disponível.</li>
+                    <li>Responsável – necessário para autorizações pediátricas.</li>
+                    <li>Anexos – carteira do plano, documentos e laudos.</li>
+                    <li>Observações internas – visível somente para auditores.</li>
+                </ul>
+            </article>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2>Alertas e travas</h2>
+        <article class="card">
+            <table style="width:100%;border-collapse:collapse;font-size:14px">
+                <thead>
+                    <tr style="text-transform:uppercase;font-size:12px;background:#f5f0fb">
+                        <th style="text-align:left;padding:10px">Cenário</th>
+                        <th style="text-align:left;padding:10px">Comportamento</th>
+                        <th style="text-align:left;padding:10px">Quem resolve</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding:10px">CPF duplicado</td>
+                        <td style="padding:10px">Bloqueia envio com mensagem "CPF já cadastrado".</td>
+                        <td style="padding:10px">Usuário com permissão para editar / diretoria aprova fusão.</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:10px">Internações vinculadas</td>
+                        <td style="padding:10px">Esconde botão "Excluir" e mostra tooltip.</td>
+                        <td style="padding:10px">Somente diretoria pode desvincular.</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:10px">Sem hospital vinculado</td>
+                        <td style="padding:10px">Campos bloqueados com alerta "Sem hospital padrão".</td>
+                        <td style="padding:10px">Administrativo relaciona hospital em Usuários &gt; Hospital.</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:10px">Documentos faltantes</td>
+                        <td style="padding:10px">Banner amarelo "Faltando documentos obrigatórios".</td>
+                        <td style="padding:10px">Qualquer usuário com acesso a anexos.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </article>
+    </section>
+
+    <section class="section">
+        <h2>Automatismos e integrações</h2>
+        <div class="two-col">
+            <article class="card">
+                <h3>Validações automáticas</h3>
+                <ul>
+                    <li>Máscara inteligente para CPF, telefone e CEP.</li>
+                    <li>Ao abrir nova internação via hub, dados do paciente já vêm preenchidos.</li>
+                    <li>Logs registram toda alteração com usuário e horário.</li>
+                </ul>
+            </article>
+            <article class="card">
+                <h3>Integrações</h3>
+                <ul>
+                    <li>Busca por matrícula consulta API da seguradora (quando disponível).</li>
+                    <li>Lista de pacientes pode ser exportada em CSV para BI.</li>
+                    <li>Cronograma de visitas usa data de nascimento para faixas etárias.</li>
+                </ul>
+            </article>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2>Boas práticas e hub</h2>
+        <div class="two-col">
+            <article class="card">
+                <h3>Checklist</h3>
+                <ul>
+                    <li>Confirme contatos antes da primeira internação.</li>
+                    <li>Anexe carteira da seguradora para agilizar auditoria.</li>
+                    <li>Use observações internas para alergias ou particularidades.</li>
+                </ul>
+            </article>
+            <article class="card">
+                <h3>Hub do paciente</h3>
+                <ul>
+                    <li>Mostra últimas internações, visitas programadas e alertas.</li>
+                    <li>Possui botões para criar internação, visita ou evento adverso.</li>
+                    <li>Histórico mostra auditor responsável e status de cada capeante.</li>
+                </ul>
+            </article>
+            <article class="card">
+                <h3>Documentos &amp; integrações</h3>
+                <ul>
+                    <li>Anexos aceitam múltiplos formatos. Use padrão <code>tipo-data</code> no nome.</li>
+                    <li>Flag "Documento obrigatório" mantém alerta até upload.</li>
+                    <li>Eventos adversos e negociações iniciadas pelo hub já preenchem paciente e internação.</li>
+                </ul>
+            </article>
+        </div>
+    </section>
+</main>
+<footer>Manual Pacientes • versão 0.2</footer>
+</body>
+</html>

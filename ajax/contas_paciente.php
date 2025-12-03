@@ -127,19 +127,30 @@ try {
         }
         $parcialNum = (int)($r['parcial_num'] ?? 0);
         if (!$isParcial && $parcialNum > 0) $isParcial = true;
+        $inicioRaw = $r['data_inicial_capeante'] ?? null;
+        $fimRaw = $r['data_final_capeante'] ?? null;
+        $inicioIso = ($inicioRaw && $inicioRaw !== '0000-00-00') ? $inicioRaw : null;
+        $fimIso = ($fimRaw && $fimRaw !== '0000-00-00') ? $fimRaw : null;
+        $isPeriodoAberto = $fimIso === null;
+
         return [
-            'id_internacao'   => (int)($r['id_internacao'] ?? 0),
-            'id_capeante'     => (int)($r['id_capeante'] ?? 0),
-            'hospital'        => $r['nome_hosp'] ?? '',
-            'periodo'         => trim(($fmtDate($r['data_inicial_capeante'] ?? null) ?: '—') . ' a ' . ($fmtDate($r['data_final_capeante'] ?? null) ?: '—')),
-            'valor_apresentado' => (float)($r['valor_apresentado_capeante'] ?? 0),
-            'valor_final'       => (float)($r['valor_final_capeante'] ?? 0),
-            'glosa_total'       => (float)($r['valor_glosa_total'] ?? 0),
-            'parcial'         => $isParcial ? ('Parcial #' . ($parcialNum ?: 1)) : '—',
-            'status'          => $status,
-            'id_valor'        => isset($r['id_valor']) ? (int)$r['id_valor'] : null,
-            'data_fechamento' => $fmtDate($r['data_fech_capeante'] ?? null),
-            'data_lancamento' => $fmtDate($r['data_digit_capeante'] ?? null),
+            'id_internacao'      => (int)($r['id_internacao'] ?? 0),
+            'id_capeante'        => (int)($r['id_capeante'] ?? 0),
+            'hospital'           => $r['nome_hosp'] ?? '',
+            'periodo'            => trim(($fmtDate($r['data_inicial_capeante'] ?? null) ?: '—') . ' a ' . ($fmtDate($r['data_final_capeante'] ?? null) ?: '—')),
+            'periodo_inicio_raw' => $inicioIso,
+            'periodo_fim_raw'    => $fimIso,
+            'periodo_em_aberto'  => $isPeriodoAberto,
+            'valor_apresentado'  => (float)($r['valor_apresentado_capeante'] ?? 0),
+            'valor_final'        => (float)($r['valor_final_capeante'] ?? 0),
+            'glosa_total'        => (float)($r['valor_glosa_total'] ?? 0),
+            'parcial'            => $isParcial ? ('Parcial #' . ($parcialNum ?: 1)) : '—',
+            'is_parcial'         => $isParcial,
+            'parcial_numero'     => $isParcial ? ($parcialNum ?: null) : null,
+            'status'             => $status,
+            'id_valor'           => isset($r['id_valor']) ? (int)$r['id_valor'] : null,
+            'data_fechamento'    => $fmtDate($r['data_fech_capeante'] ?? null),
+            'data_lancamento'    => $fmtDate($r['data_digit_capeante'] ?? null),
         ];
     }, $rows);
 

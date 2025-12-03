@@ -61,7 +61,7 @@
         <input type="hidden" id="negociacoes_json" name="negociacoes_json" value="">
 
         <!-- Primeira linha (SEM botão "-") -->
-        <div class="negotiation-field-container form-group row">
+        <div class="negotiation-field-container form-group row" data-initial="true">
             <div class="form-group col-sm-2">
                 <label for="tipo_negociacao">Tipo Negociação</label>
                 <select name="tipo_negociacao" id="tipo_negociacao" class="form-control">

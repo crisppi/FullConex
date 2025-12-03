@@ -172,8 +172,9 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
             </div>
             <div class="form-group col-sm-2">
                 <?php
-                // Alterado de 'd-m-Y' para 'Y-m-d' para funcionar no input type="date"
+                // Alterado de 'd-m-Y' para 'Y-m-d' para funcionar nos inputs type="date"
                 $agora = date('Y-m-d');
+                $agoraLanc = $agora;
                 ?>
                 <label for="data_visita_vis">Data da Visita</label>
 
@@ -181,6 +182,13 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
                     name="data_visita_vis">
 
                 <p id="data-visita-error" style="color: red; display: none;">Data Inválida</p>
+            </div>
+
+            <div class="form-group col-sm-3">
+                <label for="data_lancamento_vis">Data do lançamento</label>
+                <input type="date" value="<?= $agoraLanc; ?>" class="form-control"
+                    id="data_lancamento_vis" name="data_lancamento_vis">
+                <small class="text-muted">Ajuste se precisar registrar o dia real do lançamento.</small>
             </div>
 
             <div class="form-group col-sm-3">
@@ -200,6 +208,7 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
 
 
             <input type="hidden" value="" id="json-antec" name="json-antec">
+            <input type="hidden" value="" id="id_visita_edit" name="id_visita_edit">
             <input type="hidden" class="form-control" id="usuario_create" value="<?= $_SESSION['email_user'] ?>"
                 name="usuario_create">
             <input type="hidden" class="form-control" id="fk_usuario_vis" value="<?= $idSessao ?>"
@@ -632,6 +641,7 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
                             <th scope="col" style="width:2%">Enf</th>
                             <th scope="col" style="width:15%">Relatório</th>
                             <th scope="col" style="width:2%">Visualizar</th>
+                            <th scope="col" style="width:2%">Editar</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -661,6 +671,13 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
                             <td><a href="<?= $BASE_URL ?>show_visita.php?id_visita=<?= $intern["id_visita"] ?>"><i
                                         style="color:green; margin-right:10px"
                                         class="aparecer-acoes fas fa-eye check-icon"></i></a>
+                            </td>
+                            <td class="text-center">
+                                <button type="button" class="btn btn-link p-0 text-primary"
+                                    onclick="selecionarVisitaParaEditar(<?= (int) $intern['id_visita'] ?>)"
+                                    title="Editar esta visita">
+                                    <i class="fas fa-pen"></i>
+                                </button>
                             </td>
 
                         </tr>
@@ -749,18 +766,18 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
         }
     });
 
-    selectMed?.addEventListener('change', function() {
+    if (selectMed) selectMed.addEventListener('change', function() {
         const opt = this.selectedOptions[0];
-        if (!opt?.value) {
+        if (!opt || !opt.value) {
             resetToSession();
             return;
         }
         applySelection(opt.value, 'med');
     });
 
-    selectEnf?.addEventListener('change', function() {
+    if (selectEnf) selectEnf.addEventListener('change', function() {
         const opt = this.selectedOptions[0];
-        if (!opt?.value) {
+        if (!opt || !opt.value) {
             resetToSession();
             return;
         }
@@ -939,29 +956,599 @@ dataVisitaInput.addEventListener('click', () => {
 </script>
 
 <script>
+window.VISITA_TUSS_DATA = <?= json_encode($tussPorVisita, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+window.VISITA_TUSS_FALLBACK = <?= json_encode($tussPorInternacao, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+window.VISITA_NEG_DATA = <?= json_encode($negPorVisita, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+window.VISITA_NEG_FALLBACK = <?= json_encode($negPorInternacao, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+window.VISITA_GESTAO_DATA = <?= json_encode($gestaoPorVisita, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+window.VISITA_GESTAO_FALLBACK = <?= json_encode($gestaoPorInternacao, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+window.VISITA_UTI_DATA = <?= json_encode($utiPorVisita, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+window.VISITA_UTI_FALLBACK = <?= json_encode($utiPorInternacao, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+window.VISITA_PRORR_DATA = <?= json_encode($prorrogPorVisita, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+window.VISITA_PRORR_FALLBACK = <?= json_encode($prorrogPorInternacao, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+window.VISITA_INTER_MAP = <?= json_encode($visitaInterMap, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+</script>
+<script>
+const __VISITA_INTER_MAP = window.VISITA_INTER_MAP || {};
+const __TUSS_FALLBACK = window.VISITA_TUSS_FALLBACK || {};
+const __NEG_FALLBACK = window.VISITA_NEG_FALLBACK || {};
+const __GESTAO_FALLBACK = window.VISITA_GESTAO_FALLBACK || {};
+const __UTI_FALLBACK = window.VISITA_UTI_FALLBACK || {};
+const __PRORR_FALLBACK = window.VISITA_PRORR_FALLBACK || {};
+</script>
+
+<script>
 document.addEventListener("DOMContentLoaded", function() {
     const select = document.getElementById("retificou");
 
     if (!select.value) {
-        // Data no formato 'dd/mm/yyyy' para exibir
         const hoje = new Date();
         const dia = String(hoje.getDate()).padStart(2, '0');
         const mes = String(hoje.getMonth() + 1).padStart(2, '0');
         const ano = hoje.getFullYear();
         const dataExibicao = `${dia}/${mes}/${ano}`;
-        // Correct format: yyyy-MM-dd
         const dataValor = `${ano}-${mes}-${dia}`;
-        console.log(dataValor); // Verifica o formato da data
-        // Cria a nova opção
         const novaOption = document.createElement("option");
-        novaOption.value = dataValor; // agora está no formato correto!
+        novaOption.value = dataValor;
         novaOption.text = `Data Atual - ${dataExibicao}`;
-
-        // Adiciona e seleciona
         select.add(novaOption);
         select.value = dataValor;
     }
 });
+</script>
+
+<script>
+(function() {
+    const visitasOriginais = <?= json_encode($visitasAntigas ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+    const visitaMap = {};
+    const visitaMapById = {};
+    (visitasOriginais || []).forEach((row) => {
+        if (!row || typeof row !== 'object') return;
+        const noKey = row.visita_no_vis != null ? String(row.visita_no_vis) : null;
+        const idKey = row.id_visita != null ? String(row.id_visita) : null;
+        if (noKey) visitaMap[noKey] = row;
+        if (idKey) visitaMapById[idKey] = row;
+    });
+
+    const selectRet = document.getElementById('retificou');
+    const dataVisitaInput = document.getElementById('data_visita_vis');
+    const visitaNoInput = document.getElementById('visita_no_vis');
+    const relInput = document.getElementById('rel_visita_vis');
+    const acoesInput = document.getElementById('acoes_int_vis');
+    const examesInput = document.getElementById('exames_enf');
+    const oportunidadesInput = document.getElementById('oportunidades_enf');
+    const programacaoInput = document.getElementById('programacao_enf');
+    const auditorMedInput = document.getElementById('visita_auditor_prof_med');
+    const auditorEnfInput = document.getElementById('visita_auditor_prof_enf');
+    const flagMedInput = document.getElementById('visita_med_vis');
+    const flagEnfInput = document.getElementById('visita_enf_vis');
+    const dataLancInput = document.getElementById('data_lancamento_vis');
+    const editIdInput = document.getElementById('id_visita_edit');
+    const fkVisitaInput = document.getElementById('fk_int_visita');
+    const modalEl = document.getElementById('myModal1');
+
+    if (!selectRet) return;
+
+    function formatLancamentoDateValue(value) {
+        if (!value) return '';
+        const normalized = String(value).trim();
+        const match = normalized.match(/^(\d{4}-\d{2}-\d{2})/);
+        if (match) {
+            return match[1];
+        }
+        const parsed = new Date(normalized.replace('T', ' '));
+        if (!Number.isNaN(parsed.getTime())) {
+            const pad = (n) => String(n).padStart(2, '0');
+            return `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}`;
+        }
+        return '';
+    }
+
+    const defaults = {
+        dataVisita: dataVisitaInput ? dataVisitaInput.value : '',
+        visitaNo: visitaNoInput ? visitaNoInput.value : '',
+        rel: relInput ? relInput.value : '',
+        acoes: acoesInput ? acoesInput.value : '',
+        exames: examesInput ? examesInput.value : '',
+        oportunidades: oportunidadesInput ? oportunidadesInput.value : '',
+        programacao: programacaoInput ? programacaoInput.value : '',
+        fkVisita: fkVisitaInput ? fkVisitaInput.value : '',
+        dataLanc: dataLancInput ? dataLancInput.value : ''
+    };
+
+    function fillCampos(vis) {
+        if (visitaNoInput && vis.visita_no_vis != null) {
+            visitaNoInput.value = vis.visita_no_vis;
+        }
+        if (fkVisitaInput && vis.id_visita != null) {
+            fkVisitaInput.value = vis.id_visita;
+        }
+        if (editIdInput) editIdInput.value = vis.id_visita ?? '';
+        if (dataVisitaInput && vis.data_visita_vis) {
+            dataVisitaInput.value = vis.data_visita_vis;
+        }
+        if (dataLancInput) {
+            const formattedLanc = formatLancamentoDateValue(vis.data_lancamento_vis);
+            dataLancInput.value = formattedLanc || defaults.dataLanc || '';
+        }
+        if (relInput) relInput.value = vis.rel_visita_vis || '';
+        if (acoesInput) acoesInput.value = vis.acoes_int_vis || '';
+        if (examesInput) examesInput.value = vis.exames_enf || '';
+        if (oportunidadesInput) oportunidadesInput.value = vis.oportunidades_enf || '';
+        if (programacaoInput) programacaoInput.value = vis.programacao_enf || '';
+        if (auditorMedInput) auditorMedInput.value = vis.visita_auditor_prof_med || '';
+        if (auditorEnfInput) auditorEnfInput.value = vis.visita_auditor_prof_enf || '';
+        if (flagMedInput) flagMedInput.value = vis.visita_med_vis || flagMedInput.value;
+        if (flagEnfInput) flagEnfInput.value = vis.visita_enf_vis || flagEnfInput.value;
+        hydrateTussForVisita(vis.id_visita);
+        hydrateNegForVisita(vis.id_visita);
+        hydrateGestaoForVisita(vis.id_visita);
+        hydrateUtiForVisita(vis.id_visita);
+        hydrateProrrogForVisita(vis.id_visita);
+    }
+
+    function resetCampos() {
+        if (visitaNoInput) visitaNoInput.value = defaults.visitaNo;
+        if (dataVisitaInput) dataVisitaInput.value = defaults.dataVisita;
+        if (relInput) relInput.value = defaults.rel;
+        if (acoesInput) acoesInput.value = defaults.acoes;
+        if (examesInput) examesInput.value = defaults.exames;
+        if (oportunidadesInput) oportunidadesInput.value = defaults.oportunidades;
+        if (programacaoInput) programacaoInput.value = defaults.programacao;
+        if (fkVisitaInput) fkVisitaInput.value = defaults.fkVisita;
+        if (editIdInput) editIdInput.value = '';
+        if (dataLancInput) dataLancInput.value = defaults.dataLanc;
+        resetAdditionalTables();
+    }
+
+    selectRet.addEventListener('change', function() {
+        const key = this.value && /^\d+$/.test(this.value) ? this.value : null;
+        if (key && visitaMap[key]) {
+            fillCampos(visitaMap[key]);
+        } else {
+            resetCampos();
+        }
+    });
+
+    window.selecionarVisitaParaEditar = function(idVisita) {
+        const mapKey = idVisita != null ? String(idVisita) : null;
+        const visita = mapKey ? visitaMapById[mapKey] : null;
+        if (!visita) return;
+        if (selectRet && visita.visita_no_vis != null) {
+            selectRet.value = String(visita.visita_no_vis);
+            selectRet.dispatchEvent(new Event('change'));
+        }
+        if (modalEl) {
+            if (window.bootstrap && window.bootstrap.Modal) {
+                const instance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                instance.hide();
+            } else if (window.jQuery) {
+                $('#myModal1').modal('hide');
+            }
+        }
+    };
+})();
+
+const GESTAO_FIELD_DEFAULTS = {
+    alto_custo_ges: 'n',
+    rel_alto_custo_ges: '',
+    opme_ges: 'n',
+    rel_opme_ges: '',
+    home_care_ges: 'n',
+    rel_home_care_ges: '',
+    desospitalizacao_ges: 'n',
+    rel_desospitalizacao_ges: '',
+    evento_adverso_ges: 'n',
+    rel_evento_adverso_ges: '',
+    tipo_evento_adverso_gest: '',
+    evento_sinalizado_ges: 'n',
+    evento_discutido_ges: 'n',
+    evento_negociado_ges: 'n',
+    evento_valor_negoc_ges: '',
+    evento_retorno_qual_hosp_ges: 'n',
+    evento_classificado_hospital_ges: 'n',
+    evento_data_ges: '',
+    evento_encerrar_ges: 'n',
+    evento_impacto_financ_ges: 'n',
+    evento_prolongou_internacao_ges: 'n',
+    evento_concluido_ges: 'n',
+    evento_classificacao_ges: '',
+    evento_prorrogar_ges: 'n',
+    evento_fech_ges: 'n'
+};
+
+const UTI_FIELD_MAP = [
+    { key: 'internado_uti', id: 'internado_uti', defaultValue: 's' },
+    { key: 'motivo_uti', id: 'motivo_uti', defaultValue: '' },
+    { key: 'just_uti', id: 'just_uti', defaultValue: 'Pertinente' },
+    { key: 'criterios_uti', id: 'criterio_uti', defaultValue: '' },
+    { key: 'data_internacao_uti', id: 'data_internacao_uti', defaultValue: '', formatter: normalizeDateValue },
+    { key: 'hora_internacao_uti', id: 'hora_internacao_uti', defaultValue: '', formatter: normalizeTimeValue },
+    { key: 'data_alta_uti', id: 'data_alta_uti', defaultValue: '', formatter: normalizeDateValue },
+    { key: 'vm_uti', id: 'vm_uti', defaultValue: 'n' },
+    { key: 'dva_uti', id: 'dva_uti', defaultValue: 'n' },
+    { key: 'suporte_vent_uti', id: 'suporte_vent_uti', defaultValue: 'n' },
+    { key: 'glasgow_uti', id: 'glasgow_uti', defaultValue: '' },
+    { key: 'dist_met_uti', id: 'dist_met_uti', defaultValue: 'n' },
+    { key: 'score_uti', id: 'score_uti', defaultValue: '' },
+    { key: 'saps_uti', id: 'saps_uti', defaultValue: '' },
+    { key: 'rel_uti', id: 'rel_uti', defaultValue: '' }
+];
+
+function resetAdditionalTables() {
+    const selectTuss = document.getElementById('select_tuss');
+    const selectNeg = document.getElementById('select_negoc');
+    const selectGestao = document.getElementById('select_gestao');
+    const selectUti = document.getElementById('select_uti');
+    const selectProrrog = document.getElementById('select_prorrog');
+    if (selectTuss) {
+        selectTuss.value = '';
+        selectTuss.dispatchEvent(new Event('change'));
+    }
+    if (selectNeg) {
+        selectNeg.value = '';
+        selectNeg.dispatchEvent(new Event('change'));
+    }
+    if (selectGestao) {
+        selectGestao.value = '';
+        selectGestao.dispatchEvent(new Event('change'));
+    }
+    if (selectUti) {
+        selectUti.value = '';
+        selectUti.dispatchEvent(new Event('change'));
+    }
+    if (selectProrrog) {
+        selectProrrog.value = '';
+        selectProrrog.dispatchEvent(new Event('change'));
+    }
+    resetTussFields();
+    resetNegotiationFields();
+    resetGestaoFields();
+    resetUtiFields();
+    resetProrrogFields();
+}
+
+function hydrateTussForVisita(visitaId) {
+    const map = window.VISITA_TUSS_DATA || {};
+    const key = visitaId != null ? String(visitaId) : null;
+    let entries = key && map[key] ? map[key] : [];
+    if ((!entries || !entries.length) && visitaId != null) {
+        const interId = __VISITA_INTER_MAP[String(visitaId)];
+        if (interId && __TUSS_FALLBACK[String(interId)]) {
+            entries = __TUSS_FALLBACK[String(interId)];
+        }
+    }
+    const selectTuss = document.getElementById('select_tuss');
+    if (!selectTuss) return;
+    if (!entries.length) {
+        resetTussFields();
+        selectTuss.value = '';
+        selectTuss.dispatchEvent(new Event('change'));
+        return;
+    }
+    selectTuss.value = 's';
+    selectTuss.dispatchEvent(new Event('change'));
+    applyTussEntries(entries);
+}
+
+function resetTussFields() {
+    if (typeof clearTussInputs === 'function') {
+        clearTussInputs();
+    }
+    const tussJsonField = document.getElementById('tuss-json');
+    if (tussJsonField) tussJsonField.value = '';
+}
+
+function applyTussEntries(entries) {
+    if (!Array.isArray(entries) || !entries.length) return;
+    if (typeof clearTussInputs === 'function') clearTussInputs();
+    const initial = document.querySelector('.tuss-field-container[data-initial="true"]');
+    if (!initial) return;
+    entries.forEach((entry, idx) => {
+        let target = initial;
+        if (idx > 0) {
+            if (typeof addTussField === 'function') addTussField();
+            const containers = document.querySelectorAll('.tuss-field-container');
+            target = containers[containers.length - 1];
+        }
+        if (!target) return;
+        const selectDesc = target.querySelector('[name="tuss_solicitado"]');
+        if (selectDesc) {
+            selectDesc.value = entry.tuss_solicitado || '';
+            if (typeof $ !== 'undefined' && $.fn.selectpicker) $(selectDesc).selectpicker('refresh');
+        }
+        const dataInput = target.querySelector('[name="data_realizacao_tuss"]');
+        if (dataInput) dataInput.value = (entry.data_realizacao_tuss || '').substring(0, 10);
+        const qtdSol = target.querySelector('[name="qtd_tuss_solicitado"]');
+        if (qtdSol) qtdSol.value = entry.qtd_tuss_solicitado || '';
+        const qtdLib = target.querySelector('[name="qtd_tuss_liberado"]');
+        if (qtdLib) qtdLib.value = entry.qtd_tuss_liberado || '';
+        const liberado = target.querySelector('[name="tuss_liberado_sn"]');
+        if (liberado) liberado.value = entry.tuss_liberado_sn || '';
+    });
+    if (typeof generateTussJSON === 'function') generateTussJSON();
+}
+
+function hydrateNegForVisita(visitaId) {
+    const map = window.VISITA_NEG_DATA || {};
+    const key = visitaId != null ? String(visitaId) : null;
+    let entries = key && map[key] ? map[key] : [];
+    if ((!entries || !entries.length) && visitaId != null) {
+        const interId = __VISITA_INTER_MAP[String(visitaId)];
+        if (interId && __NEG_FALLBACK[String(interId)]) {
+            entries = __NEG_FALLBACK[String(interId)];
+        }
+    }
+    const selectNeg = document.getElementById('select_negoc');
+    if (!selectNeg) return;
+    if (!entries.length) {
+        resetNegotiationFields();
+        selectNeg.value = '';
+        selectNeg.dispatchEvent(new Event('change'));
+        return;
+    }
+    selectNeg.value = 's';
+    selectNeg.dispatchEvent(new Event('change'));
+    applyNegotiationEntries(entries);
+}
+
+function resetNegotiationFields() {
+    const containers = document.querySelectorAll('.negotiation-field-container');
+    containers.forEach((container) => {
+        if (container.hasAttribute('data-initial')) {
+            container.querySelectorAll('input:not([type="hidden"]), select').forEach((el) => {
+                el.value = '';
+            });
+        } else {
+            container.remove();
+        }
+    });
+    const jsonField = document.getElementById('negociacoes_json');
+    if (jsonField) jsonField.value = '';
+}
+
+function applyNegotiationEntries(entries) {
+    if (!Array.isArray(entries) || !entries.length) return;
+    resetNegotiationFields();
+    const base = document.querySelector('.negotiation-field-container[data-initial="true"]');
+    if (!base) return;
+    entries.forEach((entry, idx) => {
+        let target = base;
+        if (idx > 0) {
+            if (typeof addNegotiationField === 'function') addNegotiationField();
+            const containers = document.querySelectorAll('.negotiation-field-container');
+            target = containers[containers.length - 1];
+        }
+        if (!target) return;
+        const tipo = target.querySelector('[name="tipo_negociacao"]');
+        if (tipo) tipo.value = entry.tipo_negociacao || '';
+        const dataIni = target.querySelector('[name="data_inicio_negoc"]');
+        if (dataIni) dataIni.value = (entry.data_inicio_negoc || '').substring(0, 10);
+        const dataFim = target.querySelector('[name="data_fim_negoc"]');
+        if (dataFim) dataFim.value = (entry.data_fim_negoc || '').substring(0, 10);
+        const trocaDe = target.querySelector('[name="troca_de"]');
+        if (trocaDe) trocaDe.value = entry.troca_de || '';
+        const trocaPara = target.querySelector('[name="troca_para"]');
+        if (trocaPara) trocaPara.value = entry.troca_para || '';
+        const qtd = target.querySelector('[name="qtd"]');
+        if (qtd) qtd.value = entry.qtd || '';
+        const saving = target.querySelector('[name="saving"]');
+        if (saving) saving.value = entry.saving || '';
+        const savingShow = target.querySelector('[name="saving_show"]');
+        if (savingShow) savingShow.value = entry.saving ? `R$ ${parseFloat(entry.saving).toFixed(2)}` : '';
+
+        if (typeof setTrocaFromTipo === 'function') setTrocaFromTipo($(target));
+        if (typeof calculateSaving === 'function') calculateSaving($(target));
+    });
+    if (typeof generateNegotiationsJSON === 'function') generateNegotiationsJSON();
+    if (typeof validarTodasDatas === 'function') validarTodasDatas();
+}
+
+function resetGestaoFields() {
+    Object.keys(GESTAO_FIELD_DEFAULTS).forEach((fieldId) => {
+        const field = document.getElementById(fieldId);
+        if (!field) return;
+        const defaultValue = GESTAO_FIELD_DEFAULTS[fieldId];
+        field.value = defaultValue != null ? defaultValue : '';
+        if (field.tagName === 'SELECT') {
+            field.dispatchEvent(new Event('change'));
+        }
+    });
+}
+
+function applyGestaoEntry(entry) {
+    if (!entry) {
+        resetGestaoFields();
+        return;
+    }
+    Object.keys(GESTAO_FIELD_DEFAULTS).forEach((fieldId) => {
+        const field = document.getElementById(fieldId);
+        if (!field) return;
+        let value = entry[fieldId];
+        if (value === undefined || value === null || value === '') {
+            value = GESTAO_FIELD_DEFAULTS[fieldId] ?? '';
+        }
+        field.value = value;
+        if (field.tagName === 'SELECT') {
+            field.dispatchEvent(new Event('change'));
+        }
+    });
+}
+
+function hydrateGestaoForVisita(visitaId) {
+    const map = window.VISITA_GESTAO_DATA || {};
+    const key = visitaId != null ? String(visitaId) : null;
+    let entry = key && map[key] ? map[key] : null;
+    if (!entry && visitaId != null) {
+        const interId = __VISITA_INTER_MAP[String(visitaId)];
+        if (interId && __GESTAO_FALLBACK[String(interId)]) {
+            entry = __GESTAO_FALLBACK[String(interId)];
+        }
+    }
+    const selectGestao = document.getElementById('select_gestao');
+    if (!entry) {
+        resetGestaoFields();
+        if (selectGestao) {
+            selectGestao.value = '';
+            selectGestao.dispatchEvent(new Event('change'));
+        }
+        return;
+    }
+    if (selectGestao) {
+        selectGestao.value = 's';
+        selectGestao.dispatchEvent(new Event('change'));
+    }
+    applyGestaoEntry(entry);
+}
+
+function resetUtiFields() {
+    UTI_FIELD_MAP.forEach((fieldInfo) => {
+        const field = document.getElementById(fieldInfo.id);
+        if (!field) return;
+        const defaultValue = fieldInfo.defaultValue != null ? fieldInfo.defaultValue : '';
+        field.value = defaultValue;
+        if (field.tagName === 'SELECT') {
+            field.dispatchEvent(new Event('change'));
+        }
+    });
+    const justifyEl = document.querySelector('textarea[name="justifique_uti"]');
+    if (justifyEl) justifyEl.value = '';
+}
+
+function applyUtiEntry(entry) {
+    if (!entry) {
+        resetUtiFields();
+        return;
+    }
+    UTI_FIELD_MAP.forEach((fieldInfo) => {
+        const field = document.getElementById(fieldInfo.id);
+        if (!field) return;
+        let value = entry[fieldInfo.key];
+        if (fieldInfo.formatter && value) {
+            value = fieldInfo.formatter(value);
+        }
+        if (value === undefined || value === null || value === '') {
+            value = fieldInfo.defaultValue != null ? fieldInfo.defaultValue : '';
+        }
+        field.value = value;
+        if (field.tagName === 'SELECT') {
+            field.dispatchEvent(new Event('change'));
+        }
+    });
+    const justifyEl = document.querySelector('textarea[name="justifique_uti"]');
+    if (justifyEl && entry.justifique_uti) {
+        justifyEl.value = entry.justifique_uti;
+    }
+}
+
+function hydrateUtiForVisita(visitaId) {
+    const map = window.VISITA_UTI_DATA || {};
+    const key = visitaId != null ? String(visitaId) : null;
+    let entry = key && map[key] ? map[key] : null;
+    if (!entry && visitaId != null) {
+        const interId = __VISITA_INTER_MAP[String(visitaId)];
+        if (interId && __UTI_FALLBACK[String(interId)]) {
+            entry = __UTI_FALLBACK[String(interId)];
+        }
+    }
+    const selectUti = document.getElementById('select_uti');
+    if (!entry) {
+        resetUtiFields();
+        if (selectUti) {
+            selectUti.value = '';
+            selectUti.dispatchEvent(new Event('change'));
+        }
+        return;
+    }
+    if (selectUti) {
+        selectUti.value = 's';
+        selectUti.dispatchEvent(new Event('change'));
+    }
+    applyUtiEntry(entry);
+}
+
+function normalizeDateValue(value) {
+    return value ? String(value).substring(0, 10) : '';
+}
+
+function normalizeTimeValue(value) {
+    return value ? String(value).substring(0, 5) : '';
+}
+
+function resetProrrogFields() {
+    if (typeof clearProrrogInputs === 'function') {
+        clearProrrogInputs();
+    }
+    const jsonField = document.getElementById('prorrogacoes-json');
+    if (jsonField) jsonField.value = '';
+}
+
+function applyProrrogEntries(entries) {
+    if (!Array.isArray(entries) || !entries.length) {
+        resetProrrogFields();
+        return;
+    }
+    if (typeof clearProrrogInputs === 'function') {
+        clearProrrogInputs();
+    }
+    let base = document.querySelector('.field-container');
+    if (!base && typeof addField === 'function') {
+        addField();
+        base = document.querySelector('.field-container');
+    }
+    if (!base) return;
+    entries.forEach((entry, idx) => {
+        let target = base;
+        if (idx > 0 && typeof addField === 'function') {
+            addField();
+            const containers = document.querySelectorAll('.field-container');
+            target = containers[containers.length - 1];
+        }
+        if (!target) return;
+        const acomod = target.querySelector('[name="acomod1_pror"]');
+        if (acomod) acomod.value = entry.acomod1_pror || '';
+        const ini = target.querySelector('[name="prorrog1_ini_pror"]');
+        if (ini) ini.value = normalizeDateValue(entry.prorrog1_ini_pror);
+        const fim = target.querySelector('[name="prorrog1_fim_pror"]');
+        if (fim) fim.value = normalizeDateValue(entry.prorrog1_fim_pror);
+        const isol = target.querySelector('[name="isol_1_pror"]');
+        if (isol) isol.value = entry.isol_1_pror || 'n';
+        const diarias = target.querySelector('[name="diarias_1"]');
+        if (diarias) diarias.value = entry.diarias_1 || '';
+        if (typeof calculateDiarias === 'function') {
+            calculateDiarias(target);
+        }
+    });
+    if (typeof generateProrJSON === 'function') {
+        generateProrJSON();
+    }
+}
+
+function hydrateProrrogForVisita(visitaId) {
+    const map = window.VISITA_PRORR_DATA || {};
+    const key = visitaId != null ? String(visitaId) : null;
+    let entries = key && map[key] ? map[key] : [];
+    if ((!entries || !entries.length) && visitaId != null) {
+        const interId = __VISITA_INTER_MAP[String(visitaId)];
+        if (interId && __PRORR_FALLBACK[String(interId)]) {
+            entries = __PRORR_FALLBACK[String(interId)];
+        }
+    }
+    const selectProrr = document.getElementById('select_prorrog');
+    if (!entries || !entries.length) {
+        resetProrrogFields();
+        if (selectProrr) {
+            selectProrr.value = '';
+            selectProrr.dispatchEvent(new Event('change'));
+        }
+        return;
+    }
+    if (selectProrr) {
+        selectProrr.value = 's';
+        selectProrr.dispatchEvent(new Event('change'));
+    }
+    applyProrrogEntries(entries);
+}
 </script>
 
 

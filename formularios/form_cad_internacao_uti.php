@@ -13,12 +13,20 @@
 
     <!-- DADOS PARA FORMULARIO UTI -->
     <div class="form-group row">
-        <!-- <?php
-                $a = ($findMaxUtiInt[0]);
-                $ultimoReg = ($a["ultimoReg"]) + 1;
-                ?> -->
+        <?php
+            $fkInternacaoUtiValue = 0;
+            if (!empty($id_internacao)) {
+                $fkInternacaoUtiValue = (int) $id_internacao;
+            } elseif (!empty($internacaoList[0]['id_internacao'])) {
+                $fkInternacaoUtiValue = (int) $internacaoList[0]['id_internacao'];
+            } elseif (isset($ultimoReg)) {
+                $fkInternacaoUtiValue = (int) $ultimoReg;
+            } elseif (!empty($findMaxUtiInt) && isset($findMaxUtiInt[0]['ultimoReg'])) {
+                $fkInternacaoUtiValue = (int) $findMaxUtiInt[0]['ultimoReg'] + 1;
+            }
+        ?>
         <input type="hidden" class="form-control" readonly id="fk_internacao_uti" name="fk_internacao_uti"
-            value="<?= ($ultimoReg) ?> ">
+            value="<?= $fkInternacaoUtiValue ?>">
         <input type="hidden" class="form-control" id="internacao_uti" name="internacao_uti" value="s">
         <input type="hidden" class="form-control" id="internado_uti_int" name="internado_uti_int" value="s">
         <input type="hidden" class="form-control" id="fk_user_uti" value="<?= $_SESSION['id_usuario'] ?>"

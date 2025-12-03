@@ -410,6 +410,43 @@ if ($nome_str) {
   .contas-table-wrapper h6 {
     margin-bottom: .25rem;
   }
+  #tblContas .contas-group-row td {
+    background: rgba(94, 35, 99, .08);
+    color: var(--brand-800);
+    font-weight: 600;
+    border-top: 2px solid rgba(94, 35, 99, .2);
+  }
+  #tblContas .badge-parcial {
+    color: #b45309;
+    border-color: #fcd34d;
+    background: #fef3c7;
+  }
+  #tblContas .badge-final {
+    color: #166534;
+    border-color: #86efac;
+    background: #ecfdf5;
+  }
+  #tblContas .badge-success {
+    color: #166534;
+    border-color: #4ade80;
+    background: #dcfce7;
+  }
+  #tblContas .badge-danger {
+    color: #991b1b;
+    border-color: #fecaca;
+    background: #fee2e2;
+    font-size: .95rem;
+    padding: .35rem .7rem;
+  }
+  #tblContas .badge-open-period {
+    margin-left: .35rem;
+  }
+  #tblContas tr.conta-periodo-aberto td {
+    border-left: 3px solid #fcd34d;
+  }
+  #tblContas tr.conta-periodo-overlap td {
+    background: #fff5f5;
+  }
 
   .btn-rah-view {
     border: none;
@@ -464,6 +501,42 @@ if ($nome_str) {
   .btn-outline-info:focus,
   .btn-outline-secondary:focus {
     box-shadow: 0 0 0 .2rem rgba(94, 35, 99, .25) !important;
+  }
+  #tblInternacoes [data-action="ver-int"] {
+    color: #78350f;
+    background-color: #fef9c3;
+    border-color: #facc15;
+    font-weight: 600;
+  }
+  #tblInternacoes [data-action="ver-int"]:hover,
+  #tblInternacoes [data-action="ver-int"]:focus {
+    color: #fff;
+    background-color: #f59e0b;
+    border-color: #d97706;
+  }
+  #tblInternacoes [data-action="editar-int"] {
+    color: var(--brand-700);
+    border-color: rgba(94, 35, 99, .35);
+    background-color: rgba(94, 35, 99, .08);
+    font-weight: 600;
+  }
+  #tblInternacoes [data-action="editar-int"]:hover,
+  #tblInternacoes [data-action="editar-int"]:focus {
+    color: #fff;
+    background-color: var(--brand-700);
+    border-color: var(--brand-700);
+  }
+  #tblInternacoes [data-action="alta-int"] {
+    color: #065f46;
+    background-color: #d1fae5;
+    border-color: #34d399;
+    font-weight: 600;
+  }
+  #tblInternacoes [data-action="alta-int"]:hover,
+  #tblInternacoes [data-action="alta-int"]:focus {
+    color: #fff;
+    background-color: #10b981;
+    border-color: #059669;
   }
 
   /* Abas (nav-pills) */

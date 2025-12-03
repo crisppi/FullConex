@@ -427,6 +427,15 @@ public function selectAllnegociacao($where = null, $order = null, $limit = null)
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    /** Remove todas as negociações associadas a uma visita específica. */
+    public function deleteByVisita(int $visitaId): void
+    {
+        if ($visitaId <= 0) return;
+        $stmt = $this->conn->prepare("DELETE FROM tb_negociacao WHERE fk_visita_neg = :visita");
+        $stmt->bindValue(':visita', $visitaId, PDO::PARAM_INT);
+        $stmt->execute();
+    }
+
     // dao/negociacaoDao.php
 public function selectByInternacao(
     int $id_internacao,

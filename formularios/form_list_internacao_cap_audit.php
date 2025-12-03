@@ -438,14 +438,14 @@ if ($qtdIntItens > $limite) {
                             <td class="action">
                                 <?php if (($intern['encerrado_cap'] ?? 'n') !== "s"): ?>
                                 <?php if (($intern['em_auditoria_cap'] ?? 'n') === "s"): ?>
-                                <a class="legenda-em-auditoria" href="#"
-                                    onclick="edit('<?= $BASE_URL ?>cad_capeante_audit.php?id_capeante=<?= $intern['id_capeante'] ?>')">
+                                            <a class="legenda-em-auditoria"
+                                                href="<?= $BASE_URL ?>cad_capeante_rah.php?id_capeante=<?= $intern['id_capeante'] ?>">
                                     <i class="bi bi-file-text" style="color:#db5a0f;font-size:1.1em;margin:0 5px"></i>
                                     <span style="color:#db5a0f;">Analisar</span>
                                 </a>
                                 <?php else: ?>
-                                <a class="legenda-iniciar" href="#"
-                                    onclick="edit('<?= $BASE_URL ?>cad_capeante_audit.php?id_capeante=<?= $intern['id_capeante'] ?>')">
+                                            <a class="legenda-iniciar"
+                                                href="<?= $BASE_URL ?>cad_capeante_rah.php?id_capeante=<?= $intern['id_capeante'] ?>">
                                     <i class="bi bi-file-text"
                                         style="color:rgb(25,78,255);font-size:1.1em;font-weight:bold;margin:0 5px"></i>
                                     <span>Iniciar</span>
@@ -459,8 +459,8 @@ if ($qtdIntItens > $limite) {
                                 </a>
                                 <?php endif; ?>
 
-                                <a class="legenda-parcial"
-                                    href="<?= $BASE_URL ?>cad_capeante_audit.php?id_internacao=<?= $intern["id_internacao"] ?>&type=create">
+                                    <a class="legenda-parcial"
+                                        href="<?= $BASE_URL ?>cad_capeante_rah.php?id_internacao=<?= $intern["id_internacao"] ?>&type=create">
                                     <i class="legenda-parcial bi bi-file-text"
                                         style="color:green;text-decoration:none;font-size:10px;font-weight:bold;margin:0 5px">
                                         Parcial</i>

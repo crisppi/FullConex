@@ -379,13 +379,13 @@ if ($qtdIntItens > $limite) {
                                 <?php
                                     if ($intern['encerrado_cap'] <> "s")
                                         if ($intern['em_auditoria_cap'] == "s") { ?>
-                                <a class="legenda-em-auditoria" href="#"
-                                    onclick="edit('<?= $BASE_URL ?>cad_capeante_audit.php?id_capeante=<?= $intern['id_capeante'] ?>')"><i
+                                    <a class="legenda-em-auditoria"
+                                    href="<?= $BASE_URL ?>cad_capeante_rah.php?id_capeante=<?= $intern['id_capeante'] ?>"><i
                                         style="color:rgb(255, 55, 25); text-decoration: none; font-size: 10px; font-weight:bold; margin-left:5px;margin-right:5px"
                                         name="type" value="capeante" class="bi bi-file-text"> Em análise</i></a>
                                 <?php } else { ?>
-                                <a class="legenda-iniciar" href="#"
-                                    onclick="edit('<?= $BASE_URL ?>cad_capeante_audit.php?id_capeante=<?= $intern['id_capeante'] ?>')"><i
+                                    <a class="legenda-iniciar"
+                                    href="<?= $BASE_URL ?>cad_capeante_rah.php?id_capeante=<?= $intern['id_capeante'] ?>"><i
                                         style="color:rgb(25, 78, 255); text-decoration: none; font-size: 10px; font-weight:bold; margin-left:5px;margin-right:5px"
                                         name="type" value="capeante" class="bi bi-file-text"> Iniciar</i></a>
                                 <?php }
@@ -402,7 +402,7 @@ if ($qtdIntItens > $limite) {
                                     ?>
                                 <?php if ($intern['encerrado_cap'] == "s" and $intern['id_capeante'] == $last_cape) { ?>
                                 <a class="legenda-parcial"
-                                    href="<?= $BASE_URL ?>cad_capeante_audit.php?id_internacao=<?= $intern["id_internacao"] ?>&type=create">
+                                    href="<?= $BASE_URL ?>cad_capeante_rah.php?id_internacao=<?= $intern["id_internacao"] ?>&type=create">
                                     <i style="color:green; text-decoration: none; font-size: 10px; font-weight:bold; margin-left:5px;margin-right:5px"
                                         name="type" value="capeante" class="legenda-parcial bi bi-file-text">
                                         Parcial</i></a>

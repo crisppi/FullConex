@@ -456,6 +456,47 @@ class gestaoDAO implements gestaoDAOInterface
         return $findMaxGesInt;
     }
 
+    /**
+     * Retorna todos os registros de gestão vinculados à internação.
+     */
+    public function selectRawByInternacao(int $id_internacao): array
+    {
+        if ($id_internacao <= 0) {
+            return [];
+        }
+        $stmt = $this->conn->prepare("SELECT * FROM tb_gestao WHERE fk_internacao_ges = :id ORDER BY id_gestao ASC");
+        $stmt->bindValue(':id', $id_internacao, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
+
+    /**
+     * Retorna todos os registros de gestão vinculados à visita.
+     */
+    public function selectByVisita(int $visitaId): array
+    {
+        if ($visitaId <= 0) {
+            return [];
+        }
+        $stmt = $this->conn->prepare("SELECT * FROM tb_gestao WHERE fk_visita_ges = :visita ORDER BY id_gestao ASC");
+        $stmt->bindValue(':visita', $visitaId, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
+
+    /**
+     * Remove registros de gestão associados a uma visita.
+     */
+    public function deleteByVisita(int $visitaId): void
+    {
+        if ($visitaId <= 0) {
+            return;
+        }
+        $stmt = $this->conn->prepare("DELETE FROM tb_gestao WHERE fk_visita_ges = :visita");
+        $stmt->bindValue(':visita', $visitaId, PDO::PARAM_INT);
+        $stmt->execute();
+    }
+
 
     // METODO PESQUISA UTI NOVA QUERY COMPLETA
     public function selectAllGestao($where = null, $order = null, $limit = null)

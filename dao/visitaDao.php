@@ -10,14 +10,19 @@ class visitaDAO
     private PDO $conn;
     private string $url;
     public Message $message;
+    private bool $lancamentoColumnEnsured = false;
+    private bool $logTableEnsured = false;
 
     private const TABLE = 'tb_visita';
+    private const LOG_TABLE = 'tb_visita_log';
 
     public function __construct(PDO $conn, string $url)
     {
         $this->conn    = $conn;
         $this->url     = $url;
         $this->message = new Message($url);
+        $this->ensureLancamentoColumn();
+        $this->ensureLogTable();
     }
 
     /* ======================================================
@@ -42,6 +47,8 @@ class visitaDAO
         $v->exames_enf              = $data["exames_enf"]              ?? null;
         $v->oportunidades_enf       = $data["oportunidades_enf"]       ?? null;
         $v->programacao_enf         = $data["programacao_enf"]         ?? null;
+        $v->data_lancamento_vis     = $data["data_lancamento_vis"]     ?? null;
+        $v->faturado_vis            = $data["faturado_vis"]            ?? 'n';
         $v->retificou               = $data["retificou"]               ?? null;
         $v->retificado              = $data["retificado"]              ?? null;
 
@@ -74,6 +81,60 @@ class visitaDAO
         return date('Y-m-d H:i:s');
     }
 
+    private function ensureLancamentoColumn(): void
+    {
+        if ($this->lancamentoColumnEnsured) {
+            return;
+        }
+        try {
+            $stmt = $this->conn->query("
+                SELECT COUNT(*) 
+                  FROM information_schema.COLUMNS 
+                 WHERE TABLE_SCHEMA = DATABASE()
+                   AND TABLE_NAME = '" . self::TABLE . "'
+                   AND COLUMN_NAME = 'data_lancamento_vis'
+            ");
+            $exists = (int)$stmt->fetchColumn() > 0;
+            if (!$exists) {
+                $this->conn->exec("
+                    ALTER TABLE " . self::TABLE . " 
+                    ADD COLUMN data_lancamento_vis DATETIME NULL AFTER data_visita_vis
+                ");
+            }
+        } catch (Throwable $e) {
+            error_log('Falha ao garantir coluna data_lancamento_vis: ' . $e->getMessage());
+        } finally {
+            $this->lancamentoColumnEnsured = true;
+        }
+    }
+
+
+    private function ensureLogTable(): void
+    {
+        if ($this->logTableEnsured) {
+            return;
+        }
+        try {
+            $sql = "
+                CREATE TABLE IF NOT EXISTS " . self::LOG_TABLE . " (
+                    id_log INT AUTO_INCREMENT PRIMARY KEY,
+                    id_visita INT NULL,
+                    fk_internacao_vis INT NULL,
+                    visita_no_vis INT NULL,
+                    usuario_id INT NULL,
+                    usuario_nome VARCHAR(255) NULL,
+                    dados_anteriores LONGTEXT,
+                    dados_novos LONGTEXT,
+                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+            $this->conn->exec($sql);
+        } catch (Throwable $e) {
+            error_log('Falha ao garantir tabela de log de visitas: ' . $e->getMessage());
+        } finally {
+            $this->logTableEnsured = true;
+        }
+    }
+
     /** Executa o INSERT base e retorna o lastInsertId */
     private function doInsert(visita $visita): int
     {
@@ -89,6 +150,8 @@ class visitaDAO
             visita_no_vis,
             fk_usuario_vis,
             data_visita_vis,
+            data_lancamento_vis,
+            faturado_vis,
             exames_enf,
             oportunidades_enf,
             programacao_enf,
@@ -105,6 +168,8 @@ class visitaDAO
             :visita_no_vis,
             :fk_usuario_vis,
             :data_visita_vis,
+            :data_lancamento_vis,
+            :faturado_vis,
             :exames_enf,
             :oportunidades_enf,
             :programacao_enf,
@@ -133,6 +198,8 @@ class visitaDAO
 
         // DATAS
         $stmt->bindValue(":data_visita_vis", $visita->data_visita_vis ?: $this->now());
+        $stmt->bindValue(":data_lancamento_vis", $visita->data_lancamento_vis ?: $this->now());
+        $stmt->bindValue(":faturado_vis", $this->sn($visita->faturado_vis ?? 'n', 'n'));
 
         // ENF
         $stmt->bindValue(":exames_enf",        $visita->exames_enf ?: 'Sem exames relevantes no período');
@@ -175,6 +242,8 @@ class visitaDAO
             visita_no_vis           = :visita_no_vis,
             fk_usuario_vis          = :fk_usuario_vis,
             data_visita_vis         = :data_visita_vis,
+            data_lancamento_vis     = :data_lancamento_vis,
+            faturado_vis            = :faturado_vis,
             exames_enf              = :exames_enf,
             oportunidades_enf       = :oportunidades_enf,
             programacao_enf         = :programacao_enf
@@ -201,6 +270,8 @@ class visitaDAO
 
         // DATAS
         $stmt->bindValue(":data_visita_vis", $data['data_visita_vis'] ?? $this->now());
+        $stmt->bindValue(":data_lancamento_vis", $data['data_lancamento_vis'] ?? null);
+        $stmt->bindValue(":faturado_vis", $this->sn($data['faturado_vis'] ?? 'n', 'n'));
 
         // ENF
         $stmt->bindValue(":exames_enf",        $data['exames_enf']        ?? null);
@@ -216,6 +287,50 @@ class visitaDAO
             $this->message->setMessage("Visita atualizada com sucesso!", "success", "list_visita.php");
         }
         return $ok;
+    }
+
+    /** Atualização sem mensagens (usada no fluxo do hub) */
+    public function updateDirect(array $data): bool
+    {
+        $sql = "UPDATE " . self::TABLE . " SET
+            rel_visita_vis          = :rel_visita_vis,
+            acoes_int_vis           = :acoes_int_vis,
+            usuario_create          = :usuario_create,
+            visita_auditor_prof_med = :visita_auditor_prof_med,
+            visita_auditor_prof_enf = :visita_auditor_prof_enf,
+            visita_med_vis          = :visita_med_vis,
+            visita_enf_vis          = :visita_enf_vis,
+            visita_no_vis           = :visita_no_vis,
+            fk_usuario_vis          = :fk_usuario_vis,
+            data_visita_vis         = :data_visita_vis,
+            data_lancamento_vis     = :data_lancamento_vis,
+            faturado_vis            = :faturado_vis,
+            exames_enf              = :exames_enf,
+            oportunidades_enf       = :oportunidades_enf,
+            programacao_enf         = :programacao_enf
+        WHERE id_visita = :id_visita";
+
+        $stmt = $this->conn->prepare($sql);
+
+        $stmt->bindValue(":rel_visita_vis",          $data['rel_visita_vis']          ?? null);
+        $stmt->bindValue(":acoes_int_vis",           $data['acoes_int_vis']           ?? null);
+        $stmt->bindValue(":usuario_create",          $data['usuario_create']          ?? null);
+        $stmt->bindValue(":visita_auditor_prof_med", $data['visita_auditor_prof_med'] ?? null);
+        $stmt->bindValue(":visita_auditor_prof_enf", $data['visita_auditor_prof_enf'] ?? null);
+
+        $stmt->bindValue(":visita_med_vis", $this->sn($data['visita_med_vis'] ?? 'n', 'n'));
+        $stmt->bindValue(":visita_enf_vis", $this->sn($data['visita_enf_vis'] ?? 'n', 'n'));
+        $stmt->bindValue(":visita_no_vis", (int)($data['visita_no_vis'] ?? 1), PDO::PARAM_INT);
+        $this->bindIntOrNull($stmt, ":fk_usuario_vis", $data['fk_usuario_vis'] ?? null);
+        $stmt->bindValue(":data_visita_vis", $data['data_visita_vis'] ?? $this->now());
+        $stmt->bindValue(":data_lancamento_vis", $data['data_lancamento_vis'] ?? null);
+        $stmt->bindValue(":faturado_vis", $this->sn($data['faturado_vis'] ?? 'n', 'n'));
+        $stmt->bindValue(":exames_enf",        $data['exames_enf']        ?? null);
+        $stmt->bindValue(":oportunidades_enf", $data['oportunidades_enf'] ?? null);
+        $stmt->bindValue(":programacao_enf",   $data['programacao_enf']   ?? null);
+        $stmt->bindValue(":id_visita", (int)$data['id_visita'], PDO::PARAM_INT);
+
+        return $stmt->execute();
     }
 
     /** Exclui e avisa */
@@ -255,6 +370,23 @@ class visitaDAO
         $stmt->execute();
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
         return $data ? $this->buildvisita($data) : null;
+    }
+
+    /** Busca uma visita específica por internação + número (considera inclusive retificadas) */
+    public function findByInternacaoNumero(int $fkInternacao, int $visitaNo): ?array
+    {
+        $sql = "SELECT *
+                  FROM " . self::TABLE . "
+                 WHERE fk_internacao_vis = :fk
+                   AND visita_no_vis = :visita
+                 ORDER BY id_visita DESC
+                 LIMIT 1";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':fk', $fkInternacao, PDO::PARAM_INT);
+        $stmt->bindValue(':visita', $visitaNo, PDO::PARAM_INT);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
     }
 
     /** Retorna array de objetos visita (mantido para compatibilidade) */
@@ -383,18 +515,63 @@ class visitaDAO
     /* ======================================================
        OUTROS
        ====================================================== */
-    /** Marca como retificado um par (internação, visita_no) */
-    public function retificarVisita(int $id_internacao, int $visita_no_vis): void
+    /** Marca como retificado um par (internação, visita_no) podendo ignorar o último ID criado */
+    public function retificarVisita(int $id_internacao, int $visita_no_vis, ?int $ignorarId = null): void
     {
-        $stmt = $this->conn->prepare("
+        $sql = "
             UPDATE " . self::TABLE . "
                SET retificado = 1
              WHERE fk_internacao_vis = :id_internacao
-               AND visita_no_vis     = :visita_no_vis
-        ");
+               AND visita_no_vis     = :visita_no_vis";
+        if ($ignorarId !== null) {
+            $sql .= " AND id_visita <> :ignorar_id";
+        }
+        $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':id_internacao', $id_internacao, PDO::PARAM_INT);
         $stmt->bindValue(':visita_no_vis', $visita_no_vis, PDO::PARAM_INT);
+        if ($ignorarId !== null) {
+            $stmt->bindValue(':ignorar_id', $ignorarId, PDO::PARAM_INT);
+        }
         $stmt->execute();
+    }
+
+    /** Registra no log a alteração realizada em uma visita */
+    public function logAlteracao(array $antes, array $depois, ?int $usuarioId = null, ?string $usuarioNome = null): void
+    {
+        $this->ensureLogTable();
+        try {
+            $stmt = $this->conn->prepare("
+                INSERT INTO " . self::LOG_TABLE . " (
+                    id_visita,
+                    fk_internacao_vis,
+                    visita_no_vis,
+                    usuario_id,
+                    usuario_nome,
+                    dados_anteriores,
+                    dados_novos,
+                    created_at
+                ) VALUES (
+                    :id_visita,
+                    :fk_internacao_vis,
+                    :visita_no_vis,
+                    :usuario_id,
+                    :usuario_nome,
+                    :dados_anteriores,
+                    :dados_novos,
+                    NOW()
+                )
+            ");
+            $stmt->bindValue(':id_visita', (int)($antes['id_visita'] ?? $depois['id_visita'] ?? 0), PDO::PARAM_INT);
+            $stmt->bindValue(':fk_internacao_vis', (int)($antes['fk_internacao_vis'] ?? $depois['fk_internacao_vis'] ?? 0), PDO::PARAM_INT);
+            $stmt->bindValue(':visita_no_vis', (int)($antes['visita_no_vis'] ?? $depois['visita_no_vis'] ?? 0), PDO::PARAM_INT);
+            $this->bindIntOrNull($stmt, ':usuario_id', $usuarioId);
+            $stmt->bindValue(':usuario_nome', $usuarioNome);
+            $stmt->bindValue(':dados_anteriores', json_encode($antes, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+            $stmt->bindValue(':dados_novos', json_encode($depois, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+            $stmt->execute();
+        } catch (Throwable $e) {
+            error_log('Falha ao registrar log de visita: ' . $e->getMessage());
+        }
     }
 
     /** Último id inserido (útil p/ debug) */
