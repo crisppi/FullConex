@@ -101,6 +101,7 @@ if ($where) {
 }
 $prevParcialRow = null;
 $prevParcialInfo = null;
+$parciaisLista = [];
 if ($id_internacao) {
     $sqlPrev = "SELECT id_capeante, parcial_num, data_inicial_capeante, data_final_capeante,
                         valor_apresentado_capeante, valor_final_capeante
@@ -118,6 +119,8 @@ if ($id_internacao) {
         if ($prevParcialRow) {
         $prevParcialInfo = [
             'nome'       => $row['nome_pac'] ?? '',
+            'senha'      => $row['senha_int'] ?? '',
+            'matricula'  => $row['matricula_pac'] ?? '',
             'hospital'   => $row['nome_hosp'] ?? '',
             'numero'     => $prevParcialRow['parcial_num'] ?? null,
             'id_capeante'=> $prevParcialRow['id_capeante'] ?? null,
@@ -127,6 +130,41 @@ if ($id_internacao) {
             'valor_fin'  => $prevParcialRow['valor_final_capeante'] ?? null
         ];
         }
+    }
+    try {
+        $sqlLista = "SELECT 
+                id_capeante,
+                parcial_num,
+                data_inicial_capeante,
+                data_final_capeante,
+                data_fech_capeante,
+                data_digit_capeante,
+                valor_apresentado_capeante,
+                valor_final_capeante
+            FROM tb_capeante
+            WHERE fk_int_capeante = :fk_lista
+            ORDER BY COALESCE(data_final_capeante, data_inicial_capeante, data_fech_capeante, data_digit_capeante, id_capeante) DESC";
+        $stmtLista = $conn->prepare($sqlLista);
+        $stmtLista->bindValue(':fk_lista', (int)$id_internacao, PDO::PARAM_INT);
+        $stmtLista->execute();
+        $parciaisLista = $stmtLista->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        if (!$prevParcialInfo && $parciaisLista) {
+            $primeira = $parciaisLista[0];
+            $prevParcialInfo = [
+                'nome'       => $row['nome_pac'] ?? '',
+                'senha'      => $row['senha_int'] ?? '',
+                'matricula'  => $row['matricula_pac'] ?? '',
+                'hospital'   => $row['nome_hosp'] ?? '',
+                'numero'     => $primeira['parcial_num'] ?? null,
+                'id_capeante'=> $primeira['id_capeante'] ?? null,
+                'data_ini'   => $primeira['data_inicial_capeante'] ?? '',
+                'data_fim'   => $primeira['data_final_capeante'] ?? '',
+                'valor_apr'  => $primeira['valor_apresentado_capeante'] ?? null,
+                'valor_fin'  => $primeira['valor_final_capeante'] ?? null
+            ];
+        }
+    } catch (Throwable $e) {
+        $parciaisLista = [];
     }
 }
 
@@ -1076,7 +1114,7 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
     <!-- Modal de Observações -->
     <div class="modal fade" id="modalComentariosObs" tabindex="-1" aria-labelledby="modalComentariosObsLabel"
         aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-dialog modal-dialog-centered modal-xl" style="max-width:1400px;width:95vw">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalComentariosObsLabel">Observações finais</h5>
@@ -1097,50 +1135,49 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
     <!-- Modal informações da parcial anterior -->
     <div class="modal fade" id="modalInfoParcial" tabindex="-1" aria-labelledby="modalInfoParcialLabel"
         aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
             <div class="modal-content">
                 <div class="modal-header" style="background:#f2f2f2;border-bottom:1px solid #dadada;">
                     <h5 class="modal-title" id="modalInfoParcialLabel">Parcial anterior</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" style="color:#3a3a3a;">
-                    <div id="prevParcialEmpty" class="text-muted" style="<?= $prevParcialInfo ? 'display:none' : '' ?>">
+                    <div id="prevParcialEmpty" class="text-muted" style="<?= !empty($parciaisLista) ? 'display:none' : '' ?>">
                         Nenhuma parcial anterior registrada.
                     </div>
-                    <div id="prevParcialContent" style="<?= $prevParcialInfo ? '' : 'display:none' ?>">
-                        <div class="mb-2">
-                            <strong>Nome:</strong>
-                            <div id="prevParcial_nome" class="text-uppercase fw-semibold"></div>
-                        </div>
-                        <div class="mb-2">
-                            <strong>Hospital:</strong>
-                            <div id="prevParcial_hosp" class="text-muted"></div>
-                        </div>
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <strong>Nº da parcial</strong>
-                                <div id="prevParcial_num" class="text-muted"></div>
+                    <div id="prevParcialContent" style="<?= !empty($parciaisLista) ? '' : 'display:none' ?>">
+                        <div class="row g-3 mb-3 parciais-header" id="prevParcialTituloRow">
+                            <div class="col-12 col-md-4">
+                                <strong>Nome</strong>
+                                <div id="prevParcial_nome" class="text-uppercase fw-semibold"></div>
                             </div>
-                            <div class="col-6">
-                                <strong>ID do capeante</strong>
-                                <div id="prevParcial_id" class="text-muted"></div>
+                            <div class="col-12 col-md-4">
+                                <strong>Senha</strong>
+                                <div id="prevParcial_senha" class="text-muted"></div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <strong>Matrícula</strong>
+                                <div id="prevParcial_matricula" class="text-muted"></div>
                             </div>
                         </div>
-                        <div class="row g-3 mt-2">
-                            <div class="col-6">
-                                <strong>Datas</strong>
-                                <div id="prevParcial_periodo" class="text-muted"></div>
-                            </div>
-                        </div>
-                        <div class="row g-3 mt-1">
-                            <div class="col-6">
-                                <strong>Valor Apresentado</strong>
-                                <div id="prevParcial_valApr" class="fw-semibold"></div>
-                            </div>
-                            <div class="col-6">
-                                <strong>Valor Final</strong>
-                                <div id="prevParcial_valFin" class="fw-semibold"></div>
-                            </div>
+                        <div class="table-responsive mt-4">
+                            <table class="table table-striped align-middle" id="prevParcialTabela">
+                                <thead class="table-light text-dark fw-semibold" style="background:#dfe9ff;color:#1f2a44;">
+                                    <tr>
+                                        <th>Parcial</th>
+                                        <th>Período</th>
+                                        <th>Valor apresentado</th>
+                                        <th>Valor final</th>
+                                        <th>Data fechamento</th>
+                                        <th>Data lançamento</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="text-muted">
+                                        <td colspan="6" class="text-center">Nenhuma parcial registrada.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -1152,10 +1189,37 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
     </div>
 </form>
 
+<style>
+#modalInfoParcial .modal-dialog.modal-xl {
+    max-width: 1200px;
+    width: 95%;
+}
+#modalInfoParcial .parciais-header strong {
+    display: block;
+    font-size: 0.95rem;
+    color: #5c5c5c;
+}
+#modalInfoParcial .parciais-header div {
+    font-size: 1.15rem;
+}
+#modalInfoParcial #prevParcialTabela thead th {
+    font-size: 1.2rem;
+    background-color: #dfe9ff !important;
+    color: #1f2a44 !important;
+    border-bottom: 2px solid #c0cde6;
+}
+#modalInfoParcial #prevParcialTabela td {
+    font-size: 1.15rem;
+}
+</style>
+
 <?php
 $prevParcialData = base64_encode(json_encode($prevParcialInfo ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+$listaParciaisData = base64_encode(json_encode($parciaisLista ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 ?>
-<div id="prevParcialData" data-prev-parcial="<?= htmlspecialchars($prevParcialData, ENT_QUOTES, 'UTF-8') ?>">
+<div id="prevParcialData"
+    data-prev-parcial="<?= htmlspecialchars($prevParcialData, ENT_QUOTES, 'UTF-8') ?>"
+    data-parciais="<?= htmlspecialchars($listaParciaisData, ENT_QUOTES, 'UTF-8') ?>">
 </div>
 
 <!-- Vendors -->
@@ -1179,6 +1243,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var modalInfoParcial = document.getElementById('modalInfoParcial');
     var prevDataHolder = document.getElementById('prevParcialData');
     var prevParcialInfo = null;
+    var listaParciais = [];
 
     if (prevDataHolder && prevDataHolder.dataset.prevParcial) {
         try {
@@ -1191,6 +1256,69 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error('Falha ao decodificar dados da parcial anterior', err);
         }
     }
+    if (prevDataHolder && prevDataHolder.dataset.parciais) {
+        try {
+            var decodedList = atob(prevDataHolder.dataset.parciais);
+            var parsedList = JSON.parse(decodedList);
+            if (Array.isArray(parsedList)) listaParciais = parsedList;
+        } catch (err) {
+            console.error('Falha ao decodificar lista de parciais', err);
+        }
+    }
+
+    function formatCurrencyBR(value) {
+        var num = Number(value);
+        if (isNaN(num)) return 'R$ 0,00';
+        return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function formatDateBR(value) {
+        if (!value) return '-';
+        var dt = new Date(value.replace(/-/g, '/'));
+        return isNaN(dt.getTime()) ? value : dt.toLocaleDateString('pt-BR');
+    }
+
+    function formatPeriodoRange(ini, fim) {
+        if (!ini && !fim) return '-';
+        var iniFmt = formatDateBR(ini);
+        var fimFmt = fim ? formatDateBR(fim) : '';
+        return fimFmt ? (iniFmt + ' a ' + fimFmt) : iniFmt;
+    }
+
+    function renderTabelaParciais(lista) {
+        var tabela = document.getElementById('prevParcialTabela');
+        if (!tabela) return;
+        var corpo = tabela.querySelector('tbody');
+        if (!corpo) return;
+        corpo.innerHTML = '';
+        if (!Array.isArray(lista) || lista.length === 0) {
+            corpo.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Nenhuma parcial registrada.</td></tr>';
+            return;
+        }
+        lista.forEach(function (item) {
+            var periodo = formatPeriodoRange(item.data_inicial_capeante, item.data_final_capeante);
+            corpo.insertAdjacentHTML('beforeend', `
+                <tr>
+                    <td>${item.parcial_num ? ('#' + item.parcial_num) : '-'}</td>
+                    <td>${periodo}</td>
+                    <td>${formatCurrencyBR(item.valor_apresentado_capeante)}</td>
+                    <td>${formatCurrencyBR(item.valor_final_capeante)}</td>
+                    <td>${formatDateBR(item.data_fech_capeante)}</td>
+                    <td>${formatDateBR(item.data_digit_capeante)}</td>
+                </tr>
+            `);
+        });
+    }
+
+        renderTabelaParciais(listaParciais);
+        var campo = function(id, texto) {
+            var el = document.getElementById(id);
+            if (el) el.textContent = texto || '-';
+        };
+        campo('prevParcial_nome', prevParcialInfo && prevParcialInfo.nome ? prevParcialInfo.nome : '-');
+        campo('prevParcial_senha', prevParcialInfo && prevParcialInfo.senha ? prevParcialInfo.senha : '-');
+        campo('prevParcial_matricula', prevParcialInfo && prevParcialInfo.matricula ? prevParcialInfo.matricula : '-');
+
 
     function atualizaPreview() {
         if (!preview || !textarea) return;
@@ -1220,41 +1348,23 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!modalInfoParcial) return;
         var emptyMsg = document.getElementById('prevParcialEmpty');
         var content = document.getElementById('prevParcialContent');
-        if (!prevParcialInfo) {
+        var temLista = Array.isArray(listaParciais) && listaParciais.length > 0;
+        if (!temLista) {
             if (emptyMsg) emptyMsg.style.display = '';
             if (content) content.style.display = 'none';
             return;
         }
         if (emptyMsg) emptyMsg.style.display = 'none';
         if (content) content.style.display = '';
-
-        var campo = function (id, texto) {
-            var el = document.getElementById(id);
-            if (el) el.textContent = texto || '-';
-        };
-        campo('prevParcial_nome', prevParcialInfo.nome || '-');
-        campo('prevParcial_hosp', prevParcialInfo.hospital || '-');
-        campo('prevParcial_num', prevParcialInfo.numero ? ('Parcial #' + prevParcialInfo.numero) : '-');
-        campo('prevParcial_id', prevParcialInfo.id_capeante ? ('Capeante ID ' + prevParcialInfo.id_capeante) : '-');
-
-        var periodo = '-';
-        if (prevParcialInfo.data_ini) {
-            var inicio = new Date(prevParcialInfo.data_ini.replace(/-/g, '/'));
-            periodo = isNaN(inicio.getTime()) ? prevParcialInfo.data_ini : inicio.toLocaleDateString('pt-BR');
-            if (prevParcialInfo.data_fim) {
-                var fim = new Date(prevParcialInfo.data_fim.replace(/-/g, '/'));
-                periodo += ' a ' + (isNaN(fim.getTime()) ? prevParcialInfo.data_fim : fim.toLocaleDateString('pt-BR'));
-            }
+        renderTabelaParciais(listaParciais);
+        const titulo = document.getElementById('prevParcialTitulo');
+        if (titulo) {
+            var partes = [];
+            if (prevParcialInfo && prevParcialInfo.nome) partes.push(prevParcialInfo.nome);
+            if (prevParcialInfo && prevParcialInfo.senha) partes.push('Senha ' + prevParcialInfo.senha);
+            if (prevParcialInfo && prevParcialInfo.matricula) partes.push('Matricula ' + prevParcialInfo.matricula);
+            titulo.textContent = partes.length ? partes.join(' • ') : 'Parciais anteriores';
         }
-        campo('prevParcial_periodo', periodo);
-
-        var formatar = function (v) {
-            if (v === null || v === '' || isNaN(parseFloat(v))) return 'R$ 0,00';
-            var num = parseFloat(v);
-            return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        };
-        campo('prevParcial_valApr', formatar(prevParcialInfo.valor_apr));
-        campo('prevParcial_valFin', formatar(prevParcialInfo.valor_fin));
     }
 
     if (parcialSelect && modalInfoParcial) {
@@ -1265,7 +1375,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (modalInstance) modalInstance.show();
             }
         });
-        if (parcialSelect.value === 's' && prevParcialInfo) {
+        if (parcialSelect.value === 's' && Array.isArray(listaParciais) && listaParciais.length) {
             preencherModalParcial();
             setTimeout(function () {
                 var modalInstance = window.bootstrap ? bootstrap.Modal.getOrCreateInstance(modalInfoParcial) : null;

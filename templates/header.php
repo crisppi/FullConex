@@ -121,7 +121,6 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
     .header-actions #global-patient-search {
         min-width: 220px;
     }
-
     </style>
 </head>
 
@@ -143,7 +142,7 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                     <ul class="nav-tabs navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll align-items-center"
                         style="--bs-scroll-height: 80px;">
                         <!-- Ícone de mensagem -->
-                        
+
                         <?php if ($_SESSION['nivel'] > 0) { ?>
 
                         <li class="nav-item dropdown">
@@ -162,8 +161,7 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                             class="bi bi-graph-up-arrow"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(94, 35, 99);"></i>
                                         Painel Mensal</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>manual.html"><i
-                                            class="bi bi-person"
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>manual.html"><i class="bi bi-person"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
                                         Manual</a></li>
                                 <li><a class="dropdown-item" href="<?= $BASE_URL ?>solicitacao_customizacao_pdf.php"
@@ -222,8 +220,7 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                 Cadastros
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>pacientes"><i
-                                            class="bi bi-person"
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>pacientes"><i class="bi bi-person"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
                                         Pacientes</a></li>
                                 <li><a class="dropdown-item" href="<?= $BASE_URL ?>hospitais"><span
@@ -273,8 +270,7 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                             class="bi bi-calendar2-date"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i> Nova
                                         Internação</a></li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>censo/lista"><i
-                                            class="bi bi-book"
+                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>censo/lista"><i class="bi bi-book"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(222, 156, 55);"></i>
                                         Censo</a></li>
                                 <li>
@@ -317,7 +313,7 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                 <i class="bi bi-journal-richtext me-1" style="color:#5e2363;"></i>Contas
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="dropdownContasRah">
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>list_internacao_cap.php">
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>list_internacao_cap_rah.php">
                                         <i class="bi bi-currency-dollar text-success me-2"></i>Contas para Auditar
                                     </a></li>
                                 <li><a class="dropdown-item" href="<?= $BASE_URL ?>list_internacao_cap_fin.php">
@@ -347,8 +343,7 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
 
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>censo/lista"><i
-                                            class="bi bi-book"
+                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>censo/lista"><i class="bi bi-book"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(222, 156, 55);"></i>
                                         Censo</a></li>
                                 <li><a class="dropdown-item" href="<?php $BASE_URL ?>internacoes/lista"> <i
@@ -392,7 +387,8 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                 Faturamento
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>lista_visitas.php?context=faturamento"><i
+                                <li><a class="dropdown-item"
+                                        href="<?= $BASE_URL ?>lista_visitas.php?context=faturamento"><i
                                             class="bi bi-clipboard-check"
                                             style="font-size: 1rem;margin-right:5px; color:#5e2363;"></i>
                                         Visitas</a></li>
@@ -470,29 +466,29 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                 </form>
 
                 <div class="account-wrap">
-                <div class="account-item clearfix js-item-menu" style="margin-right:0">
-                    <div class="image" style="margin-top:15px">
-                        <?php
-                        // imagem padrão
-                        $defaultFoto = $BASE_URL . 'uploads/usuarios/default-user.jpeg';
+                    <div class="account-item clearfix js-item-menu" style="margin-right:0">
+                        <div class="image" style="margin-top:15px">
+                            <?php
+                            // imagem padrão
+                            $defaultFoto = $BASE_URL . 'uploads/usuarios/default-user.jpeg';
 
-                        // arquivo da sessão (sanitizado) e checagem no filesystem
-                        $sessFoto  = $_SESSION['foto_usuario'] ?? '';
-                        $fileName  = $sessFoto ? basename($sessFoto) : '';
-                        $fsPath    = __DIR__ . '/uploads/usuarios/' . $fileName;
-                        $urlFoto   = ($fileName && is_file($fsPath))
-                            ? ($BASE_URL . 'uploads/usuarios/' . $fileName)
-                            : $defaultFoto;
-                        ?>
-                        <img src="<?= htmlspecialchars($urlFoto) ?>" alt="Usuário"
-                            onerror="this.onerror=null;this.src='<?= $defaultFoto ?>';" />
-                    </div>
-                    <div class="content">
-                        <a class="js-acc-btn" href="#"><?php print $_SESSION['usuario_user'] ?></a>
-                    </div>
-                    <div class="account-dropdown js-dropdown">
+                            // arquivo da sessão (sanitizado) e checagem no filesystem
+                            $sessFoto  = $_SESSION['foto_usuario'] ?? '';
+                            $fileName  = $sessFoto ? basename($sessFoto) : '';
+                            $fsPath    = __DIR__ . '/uploads/usuarios/' . $fileName;
+                            $urlFoto   = ($fileName && is_file($fsPath))
+                                ? ($BASE_URL . 'uploads/usuarios/' . $fileName)
+                                : $defaultFoto;
+                            ?>
+                            <img src="<?= htmlspecialchars($urlFoto) ?>" alt="Usuário"
+                                onerror="this.onerror=null;this.src='<?= $defaultFoto ?>';" />
+                        </div>
+                        <div class="content">
+                            <a class="js-acc-btn" href="#"><?php print $_SESSION['usuario_user'] ?></a>
+                        </div>
+                        <div class="account-dropdown js-dropdown">
 
-                        <!-- <div class="account-dropdown__body">
+                            <!-- <div class="account-dropdown__body">
                                 <div class="account-dropdown__item">
                                     <a href="#">
                                         <i class="zmdi zmdi-account"></i>Account</a>
@@ -506,71 +502,71 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                         <i class="zmdi zmdi-money-box"></i>Billing</a>
                                 </div>
                             </div> -->
-                        <div class="account-dropdown__footer">
-                            <a href="<?php $BASE_URL ?>destroi.php">
-                                <i class="zmdi zmdi-power"></i>Sair</a>
+                            <div class="account-dropdown__footer">
+                                <a href="<?php $BASE_URL ?>destroi.php">
+                                    <i class="zmdi zmdi-power"></i>Sair</a>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-    </div>
-    </nav>
+        </nav>
 
-    <!-- notification message -->
-    <?php if (session_status() !== PHP_SESSION_ACTIVE) session_start(); ?>
-    <?php
-    $flashMsg  = $_SESSION['mensagem']      ?? '';
-    $flashType = $_SESSION['mensagem_tipo'] ?? 'danger';
-    unset($_SESSION['mensagem'], $_SESSION['mensagem_tipo']);
-    ?>
-    <?php if ($flashMsg): ?>
-    <div class="container mt-3">
-        <div id="app-flash"
-            class="alert alert-<?= htmlspecialchars($flashType) ?> text-center alert-dismissible fade show"
-            role="alert">
-            <?= htmlspecialchars($flashMsg) ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        <!-- notification message -->
+        <?php if (session_status() !== PHP_SESSION_ACTIVE) session_start(); ?>
+        <?php
+        $flashMsg  = $_SESSION['mensagem']      ?? '';
+        $flashType = $_SESSION['mensagem_tipo'] ?? 'danger';
+        unset($_SESSION['mensagem'], $_SESSION['mensagem_tipo']);
+        ?>
+        <?php if ($flashMsg): ?>
+        <div class="container mt-3">
+            <div id="app-flash"
+                class="alert alert-<?= htmlspecialchars($flashType) ?> text-center alert-dismissible fade show"
+                role="alert">
+                <?= htmlspecialchars($flashMsg) ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+            </div>
         </div>
-    </div>
 
-    <script>
-    (function() {
-        var el = document.getElementById('app-flash');
-        if (!el) return;
+        <script>
+        (function() {
+            var el = document.getElementById('app-flash');
+            if (!el) return;
 
-        // fecha visualmente ~9.8s (para dar tempo da transição)
-        setTimeout(function() {
-            try {
-                if (window.bootstrap && bootstrap.Alert) {
-                    bootstrap.Alert.getOrCreateInstance(el).close();
-                } else {
-                    el.classList.remove('show'); // some a classe de exibição
-                }
-            } catch (e) {}
-        }, 9800);
+            // fecha visualmente ~9.8s (para dar tempo da transição)
+            setTimeout(function() {
+                try {
+                    if (window.bootstrap && bootstrap.Alert) {
+                        bootstrap.Alert.getOrCreateInstance(el).close();
+                    } else {
+                        el.classList.remove('show'); // some a classe de exibição
+                    }
+                } catch (e) {}
+            }, 9800);
 
-        // remove do DOM em 10s (garantia)
-        setTimeout(function() {
-            if (el && el.parentNode) el.parentNode.removeChild(el);
-        }, 5000);
-    })();
-    </script>
-    <?php endif; ?>
+            // remove do DOM em 10s (garantia)
+            setTimeout(function() {
+                if (el && el.parentNode) el.parentNode.removeChild(el);
+            }, 5000);
+        })();
+        </script>
+        <?php endif; ?>
 
-    <div class="modal fade" id="globalModal">
-        <div class="modal-dialog  modal-lg modal-dialog-centered modal-xl">
-            <div class="modal-content">
-                <div style="padding-left:20px;padding-top:20px;">
-                    <h4>Paciente</h4>
-                    <p class="page-description">Informações
-                        do paciente</p>
-                </div>
-                <div class="modal-body">
-                    <div id="global-content-php"></div>
+        <div class="modal fade" id="globalModal">
+            <div class="modal-dialog  modal-lg modal-dialog-centered modal-xl">
+                <div class="modal-content">
+                    <div style="padding-left:20px;padding-top:20px;">
+                        <h4>Paciente</h4>
+                        <p class="page-description">Informações
+                            do paciente</p>
+                    </div>
+                    <div class="modal-body">
+                        <div id="global-content-php"></div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
 </body>
 <script src="js/fix-header.js"></script>

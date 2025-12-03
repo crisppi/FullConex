@@ -712,7 +712,7 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                                     ?>
                             <li class="page-item">
                                 <a class="page-link" id="blocoNovo" href="<?= htmlspecialchars($firstPageUrl) ?>"
-                                    onclick="return paginateInternacao('<?= htmlspecialchars($firstPageUrl, ENT_QUOTES) ?>');">
+                                    >
                                     <i class="fa-solid fa-angles-left"></i>
                                 </a>
                             </li>
@@ -729,7 +729,7 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                                     ?>
                             <li class="page-item">
                                 <a class="page-link" href="<?= htmlspecialchars($prevUrl) ?>"
-                                    onclick="return paginateInternacao('<?= htmlspecialchars($prevUrl, ENT_QUOTES) ?>');">
+                                    >
                                     <i class="fa-solid fa-angle-left"></i>
                                 </a>
                             </li>
@@ -744,7 +744,7 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                                     ?>
                             <li class="page-item <?= ($_GET['pag'] ?? 1) == $i ? "active" : "" ?>">
                                 <a class="page-link" href="<?= htmlspecialchars($pageUrl) ?>"
-                                    onclick="return paginateInternacao('<?= htmlspecialchars($pageUrl, ENT_QUOTES) ?>');">
+                                    >
                                     <?= $i ?>
                                 </a>
                             </li>
@@ -761,7 +761,7 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                                     ?>
                             <li class="page-item">
                                 <a class="page-link" id="blocoNovo" href="<?= htmlspecialchars($nextUrl) ?>"
-                                    onclick="return paginateInternacao('<?= htmlspecialchars($nextUrl, ENT_QUOTES) ?>');">
+                                    >
                                     <i class="fa-solid fa-angle-right"></i>
                                 </a>
                             </li>
@@ -776,7 +776,7 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                                     ?>
                             <li class="page-item">
                                 <a class="page-link" id="blocoNovo" href="<?= htmlspecialchars($lastUrl) ?>"
-                                    onclick="return paginateInternacao('<?= htmlspecialchars($lastUrl, ENT_QUOTES) ?>');">
+                                    >
                                     <i class="fa-solid fa-angles-right"></i>
                                 </a>
                             </li>
