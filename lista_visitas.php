@@ -602,10 +602,10 @@ $fieldIcons = [
                     <div class="fw-semibold fs-5">Selecione as visitas e confirme o faturamento.</div>
                 </div>
                 <div class="ms-auto d-flex flex-wrap gap-3 align-items-center">
-                    <div class="form-check form-switch m-0">
-                        <input class="form-check-input" type="checkbox" id="chkSelectAllVisitas">
-                        <label class="form-check-label" for="chkSelectAllVisitas">Selecionar todos</label>
-                    </div>
+            <div class="form-check form-switch m-0 d-flex align-items-center gap-2">
+                <input class="form-check-input" type="checkbox" id="chkSelectAllVisitas">
+                <label class="form-check-label" for="chkSelectAllVisitas">Selecionar todos</label>
+            </div>
                     <button class="btn btn-primary" id="btnFaturarVisitas" type="button" disabled>
                         <i class="bi bi-currency-dollar me-1"></i>Faturar selecionados
                         <span class="badge bg-light text-dark ms-2" id="badgeSelVisitas">0</span>
@@ -626,14 +626,14 @@ $fieldIcons = [
                                 <i class="bi bi-check2-square"></i>
                             </th>
                         <?php endif; ?>
-        <?php foreach ($selected as $k):
+                        <?php foreach ($selected as $k):
                             $label = $fieldsMap[$k]['label'];
                             $sortable = isset($sortableColumns[$k]);
                             $ascActive = $sortable && $sortField === $k && $sortDir === 'asc';
                             $descActive = $sortable && $sortField === $k && $sortDir === 'desc';
                             ?>
-                            <th class="col-<?= h($k) ?>">
-                                <div class="<?= $sortable ? 'th-sortable' : '' ?>">
+                            <th class="col-<?= h($k) ?> text-center">
+                                <div class="<?= $sortable ? 'th-sortable justify-content-center' : '' ?>">
                                     <span><?= h($label) ?></span>
                                     <?php if ($sortable): ?>
                                         <span class="sort-icons">

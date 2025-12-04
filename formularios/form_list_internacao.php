@@ -41,6 +41,9 @@ $gestaoDao   = new gestaoDAO($conn, $BASE_URL);
 
 $limite  = filter_input(INPUT_GET, 'limite_pag') ? filter_input(INPUT_GET, 'limite_pag') : 10;
 $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : 1;
+$sortField = trim($_GET['sort_field'] ?? '');
+$sortDir   = strtolower($_GET['sort_dir'] ?? 'desc');
+$sortDir   = $sortDir === 'asc' ? 'asc' : 'desc';
 
 $hospital_geral = new HospitalDAO($conn, $BASE_URL);
 $patologiaDao   = new patologiaDAO($conn, $BASE_URL);
@@ -90,6 +93,24 @@ $internacao     = new internacaoDAO($conn, $BASE_URL);
 /* Ícones roxos quando a pill está desativada */
 .export-pill.inactive i {
     color: #5e2363;
+}
+
+.th-sortable {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+.th-sortable .sort-icons a {
+    text-decoration: none;
+    font-size: 0.85rem;
+    color: #ffffff;
+    margin-left: 2px;
+    opacity: 0.7;
+}
+.th-sortable .sort-icons a.active {
+    color: #ffd966;
+    opacity: 1;
+    font-weight: bold;
 }
 
 
@@ -287,6 +308,8 @@ if (typeof jQuery !== 'undefined') {
                 </div>
 
                 <input type="hidden" name="pesqInternado" value="<?= htmlspecialchars((string)$pesqInternado) ?>">
+                <input type="hidden" name="sort_field" value="<?= htmlspecialchars((string)$sortField) ?>">
+                <input type="hidden" name="sort_dir" value="<?= htmlspecialchars((string)$sortDir) ?>">
             </form>
         </div>
 
@@ -327,11 +350,32 @@ if (typeof jQuery !== 'undefined') {
         $condicoes = array_filter($condicoes);
         $where     = implode(' AND ', $condicoes);
 
+        $sortableColumns = [
+            'id_internacao'   => 'ac.id_internacao',
+            'nome_hosp'       => 'ho.nome_hosp',
+            'nome_pac'        => 'pa.nome_pac',
+            'data_intern_int' => 'ac.data_intern_int'
+        ];
+        $dropdownOrders = [
+            'nome_pac'        => 'pa.nome_pac ASC',
+            'nome_hosp'       => 'ho.nome_hosp ASC',
+            'id_internacao'   => 'ac.id_internacao DESC',
+            'data_intern_int' => 'ac.data_intern_int DESC'
+        ];
+
+        if ($sortField && isset($sortableColumns[$sortField])) {
+            $order = $sortableColumns[$sortField] . ' ' . strtoupper($sortDir);
+        } elseif ($ordenar && isset($dropdownOrders[$ordenar])) {
+            $order = $dropdownOrders[$ordenar];
+            $sortField = '';
+        } else {
+            $order = 'ac.id_internacao DESC';
+        }
+
         $qtdIntItens1 = $QtdTotalInt->selectAllInternacaoList($where, $order, $obLimite);
         $qtdIntItens  = count($qtdIntItens1);
         $totalcasos   = ceil($qtdIntItens / $limite);
 
-        $order        = $ordenar;
         $obPagination = new pagination($qtdIntItens, $_GET['pag'] ?? 1, $limite ?? 10);
         $obLimite     = $obPagination->getLimit();
 
@@ -367,6 +411,8 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
             'pesqInternado'       => $pesqInternado,
             'limite_pag'          => $limite,
             'ordenar'             => $ordenar,
+            'sort_field'          => $sortField,
+            'sort_dir'            => $sortDir,
         ];
 
         if (!function_exists('buildInternacaoPaginationUrl')) {
@@ -392,10 +438,29 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                 <table class="table table-sm table-striped table-hover table-condensed">
                     <thead>
                         <tr>
-                            <th scope="col" style="min-width: 50px;">Id-Int</th>
-                            <th scope="col" style="min-width: 150px;">Hospital</th>
-                            <th scope="col" style="min-width: 150px;">Paciente</th>
-                            <th scope="col" style="min-width: 100px;">Data Int</th>
+                            <?php
+                            $sortableHeaders = [
+                                'id_internacao'   => ['label' => 'Id-Int',   'style' => 'min-width: 50px;'],
+                                'nome_hosp'       => ['label' => 'Hospital', 'style' => 'min-width: 150px;'],
+                                'nome_pac'        => ['label' => 'Paciente', 'style' => 'min-width: 150px;'],
+                                'data_intern_int' => ['label' => 'Data Int', 'style' => 'min-width: 100px;'],
+                            ];
+                            foreach ($sortableHeaders as $key => $meta):
+                                $ascActive = ($sortField === $key && $sortDir === 'asc');
+                                $descActive = ($sortField === $key && $sortDir === 'desc');
+                                $ascUrl = buildInternacaoPaginationUrl($paginationBaseParams, ['sort_field' => $key, 'sort_dir' => 'asc', 'pag' => 1]);
+                                $descUrl = buildInternacaoPaginationUrl($paginationBaseParams, ['sort_field' => $key, 'sort_dir' => 'desc', 'pag' => 1]);
+                            ?>
+                                <th scope="col" style="<?= $meta['style'] ?>" class="text-center">
+                                    <div class="th-sortable justify-content-center">
+                                        <span><?= htmlspecialchars($meta['label'], ENT_QUOTES, 'UTF-8') ?></span>
+                                        <span class="sort-icons">
+                                            <a href="<?= htmlspecialchars($ascUrl, ENT_QUOTES, 'UTF-8') ?>" class="<?= $ascActive ? 'active' : '' ?>" title="Ordenar crescente">↑</a>
+                                            <a href="<?= htmlspecialchars($descUrl, ENT_QUOTES, 'UTF-8') ?>" class="<?= $descActive ? 'active' : '' ?>" title="Ordenar decrescente">↓</a>
+                                        </span>
+                                    </div>
+                                </th>
+                            <?php endforeach; ?>
                             <th scope="col" style="min-width: 80px;">Senha</th>
                             <th scope="col" style="min-width: 80px;">Dias Int</th>
                             <th scope="col" style="min-width: 80px;">Últ Visita</th>
@@ -428,10 +493,10 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                             </td>
 
                             <td scope="row" style="font-weight:bolder;">
-                                <?= $intern["nome_hosp"] ?>
+                                <?= htmlspecialchars($intern["nome_hosp"], ENT_QUOTES, 'UTF-8') ?>
                             </td>
                             <td scope="row">
-                                <?= $intern["nome_pac"] ?>
+                                <?= htmlspecialchars($intern["nome_pac"], ENT_QUOTES, 'UTF-8') ?>
                             </td>
                             <td scope="row">
                                 <?= date('d/m/Y', strtotime($intern["data_intern_int"])) ?>
@@ -1009,6 +1074,10 @@ function callProcessPdf(id_internacao) {
 <script>
 // ajax para submit do formulario de pesquisa + modal de exportação
 $(document).ready(function() {
+    $('#ordenar').on('change', function() {
+        $('input[name="sort_field"]').val('');
+        $('input[name="sort_dir"]').val('');
+    });
 
     // ============================
     // 1) SUBMIT AJAX – FILTRO

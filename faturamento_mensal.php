@@ -94,8 +94,8 @@ if ($stmtHosp) $hospitais = $stmtHosp->fetchAll(PDO::FETCH_ASSOC);
 include_once __DIR__ . '/templates/header.php';
 ?>
 <?php
-$brandColor = '#f0731a';
-$brandSoftColor = '#ffe5cd';
+$brandColor = '#d45a10';
+$brandSoftColor = '#ffd5b3';
 $fieldIcons = [
     'id_internacao' => 'bi-hash',
     'id_visita'     => 'bi-hash',
@@ -215,7 +215,7 @@ $fieldIcons = [
 
     <div class="card p-3">
         <div class="d-flex align-items-center gap-3 mb-3">
-            <div class="form-check form-switch">
+            <div class="form-check form-switch d-flex align-items-center gap-2">
                 <input class="form-check-input" type="checkbox" id="chkMensalSelectAll">
                 <label class="form-check-label" for="chkMensalSelectAll">Selecionar todos</label>
             </div>
