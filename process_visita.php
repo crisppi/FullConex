@@ -468,6 +468,7 @@ if ($type === "create") {
             'fk_usuario_vis'          => $fk_usuario_vis,
             'data_visita_vis'         => $data_visita_vis ?: ($visitaEmEdicao['data_visita_vis'] ?? null),
             'data_lancamento_vis'     => $data_lancamento_vis_input ?: ($visitaEmEdicao['data_lancamento_vis'] ?? null),
+            'data_faturamento_vis'    => $visitaEmEdicao['data_faturamento_vis'] ?? null,
             'faturado_vis'            => $visitaEmEdicao['faturado_vis'] ?? 'n',
             'exames_enf'              => $exames_enf,
             'oportunidades_enf'       => $oportunidades_enf,
@@ -511,6 +512,7 @@ if ($type === "create") {
     $visita->acoes_int_vis            = $acoes_int_vis;
     $visita->data_visita_vis          = $data_visita_vis;
     $visita->data_lancamento_vis      = $data_lancamento_vis;
+    $visita->data_faturamento_vis     = null;
     $visita->visita_no_vis            = $visita_no_vis;
     $visita->visita_enf_vis           = $visita_enf_vis;
     $visita->visita_med_vis           = $visita_med_vis;

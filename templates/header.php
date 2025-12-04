@@ -387,15 +387,22 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                 Faturamento
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
-                                <li><a class="dropdown-item"
-                                        href="<?= $BASE_URL ?>lista_visitas.php?context=faturamento"><i
-                                            class="bi bi-clipboard-check"
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>lista_visitas.php"><i
+                                            class="bi bi-list-check"
                                             style="font-size: 1rem;margin-right:5px; color:#5e2363;"></i>
-                                        Visitas</a></li>
+                                        Lista Visitas</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>faturamento_visitas.php"><i
+                                            class="bi bi-clipboard-check"
+                                            style="font-size: 1rem;margin-right:5px; color:#0a4fa3;"></i>
+                                        Faturamento Visitas</a></li>
                                 <li><a class="dropdown-item" href="<?= $BASE_URL ?>list_internacao_cap_fin.php"><i
                                             class="bi bi-card-checklist"
                                             style="font-size: 1rem;margin-right:5px; color:rgb(28, 118, 175);"></i>
                                         Contas</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>list_internacao_cap_jornada.php"><i
+                                            class="bi bi-diagram-3"
+                                            style="font-size: 1rem;margin-right:5px; color:#c0392b;"></i>
+                                        Faturamento Contas</a></li>
                             </ul>
                         </li>
                         <?php }; ?>

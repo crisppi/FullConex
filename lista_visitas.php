@@ -47,6 +47,8 @@ $T_PAT = 'tb_patologia';
 $T_CID = 'tb_cid';
 $T_USR = 'tb_user';
 
+$currentPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: '/lista_visitas.php';
+
 $pageContext = strtolower(trim($_GET['context'] ?? ''));
 $isFaturamentoView = $pageContext === 'faturamento';
 $pageTitle = $isFaturamentoView ? 'Faturamento - Visitas' : 'Lista de Visitas';
@@ -65,6 +67,10 @@ if ($dtIni !== '' && $dtFim !== '' && $dtIni > $dtFim) {
     [$dtIni, $dtFim] = [$dtFim, $dtIni];
 }
 
+$sortField = trim($_GET['sort_field'] ?? '');
+$sortDir = strtolower($_GET['sort_dir'] ?? 'desc');
+$sortDir = $sortDir === 'asc' ? 'asc' : 'desc';
+
 $limite = isset($_GET['limite']) && ctype_digit($_GET['limite']) ? (int)$_GET['limite'] : 20;
 $pag    = isset($_GET['pag'])    && ctype_digit($_GET['pag'])    ? (int)$_GET['pag']    : 1;
 $limite = max(1, min(1000, $limite));
@@ -75,7 +81,8 @@ $isExport = isset($_GET['export']) && $_GET['export'] == '1';
 
 /* ==== Campos exibíveis ==== */
 $fieldsMap = [
-    'id_visita'       => ['label' => 'ID da visita',     'sql' => "v1.id_visita AS id_visita"],
+    'id_internacao'   => ['label' => 'ID Int',      'sql' => "i.id_internacao AS id_internacao"],
+    'id_visita'       => ['label' => 'Id Visita',   'sql' => "v1.id_visita AS id_visita"],
     'senha'           => ['label' => 'Senha',            'sql' => "i.senha_int AS senha"],
     'hospital'        => ['label' => 'Hospital',         'sql' => "ho.nome_hosp AS hospital"],
     'cnpj_hospital'   => ['label' => 'CNPJ do hospital', 'sql' => "ho.cnpj_hosp AS cnpj_hospital"],
@@ -99,12 +106,9 @@ $fieldsMap = [
     'data_alta'       => ['label' => 'Data alta',        'sql' => "a1.data_alta_alt AS data_alta"],
     'cid'             => ['label' => 'CID',              'sql' => "pc.cid AS cid"],
     'faturado_vis'    => ['label' => 'Faturado?',        'sql' => "IFNULL(NULLIF(v1.faturado_vis,''), 'n') AS faturado_vis"],
-    'rel_visita_vis'  => ['label' => 'Relatório Visita', 'sql' => "v1.rel_visita_vis AS rel_visita_vis"],
 ];
 
-if ($isFaturamentoView) {
-    unset($fieldsMap['rel_visita_vis']);
-} else {
+if (!$isFaturamentoView) {
     unset($fieldsMap['periodo_faturamento']);
 }
 
@@ -113,6 +117,16 @@ $selected = isset($_GET['fields']) && is_array($_GET['fields'])
     ? array_values(array_intersect(array_keys($fieldsMap), $_GET['fields']))
     : array_keys($fieldsMap);
 if (!$selected) $selected = array_keys($fieldsMap);
+$queryFields = $selected;
+if ($isFaturamentoView) {
+    if (!in_array('id_visita', $queryFields, true)) {
+        $queryFields[] = 'id_visita';
+    }
+    if (!in_array('faturado_vis', $queryFields, true)) {
+        $queryFields[] = 'faturado_vis';
+    }
+}
+$queryFields = array_values(array_unique($queryFields));
 
 /* ==== Período para escolher visita correspondente ==== */
 $params = [];
@@ -222,14 +236,29 @@ $whereConditions
 ";
 
 /* ==== Ordenação ==== */
-$sqlOrder = "
-ORDER BY
+$defaultOrderExpr = "
   COALESCE(STR_TO_DATE(v.data_visita_fmt,'%d/%m/%Y'), STR_TO_DATE(i.data_intern_int,'%Y-%m-%d %H:%i:%s'), STR_TO_DATE(i.data_intern_int,'%Y-%m-%d'), STR_TO_DATE(i.data_intern_int,'%d/%m/%Y')) DESC,
   pa.nome_pac ASC
 ";
 
+$sortableColumns = [
+    'id_internacao'   => "CAST(i.id_internacao AS UNSIGNED)",
+    'id_visita'       => "CAST(v1.id_visita AS UNSIGNED)",
+    'senha'           => "i.senha_int",
+    'hospital'        => "ho.nome_hosp",
+    'nome_paciente'   => "pa.nome_pac",
+    'data_internacao' => "COALESCE(STR_TO_DATE(i.data_intern_int,'%Y-%m-%d %H:%i:%s'), STR_TO_DATE(i.data_intern_int,'%Y-%m-%d'), STR_TO_DATE(i.data_intern_int,'%d/%m/%Y'), i.data_intern_int)",
+    'data_lancamento' => "v1.data_lancamento_vis"
+];
+$sqlOrder = "ORDER BY " . $defaultOrderExpr;
+if (isset($sortableColumns[$sortField])) {
+    $orderExpr = $sortableColumns[$sortField];
+    $orderDirSQL = strtoupper($sortDir) === 'ASC' ? 'ASC' : 'DESC';
+    $sqlOrder = "ORDER BY $orderExpr $orderDirSQL, $defaultOrderExpr";
+}
+
 /* ==== SELECT final ==== */
-$sqlData = "SELECT " . implode(", ", array_map(fn($k) => $fieldsMap[$k]['sql'], $selected)) . " $sqlBase $sqlOrder LIMIT $limite OFFSET $offset";
+$sqlData = "SELECT " . implode(", ", array_map(fn($k) => $fieldsMap[$k]['sql'], $queryFields)) . " $sqlBase $sqlOrder LIMIT $limite OFFSET $offset";
 
 /* ==== Contagem ==== */
 $total = 0;
@@ -343,8 +372,8 @@ if ($isExport) {
 /* ==== Render ==== */
 include_once __DIR__ . "/templates/header.php";
 
-$brandColor = $isFaturamentoView ? '#0a4fa3' : '#5e2363';
-$brandSoftColor = $isFaturamentoView ? '#d6e4ff' : '#f3e9f8';
+$brandColor = $isFaturamentoView ? '#0a4fa3' : '#0b3d91';
+$brandSoftColor = $isFaturamentoView ? '#d6e4ff' : '#dfe6ff';
 ?>
 <style>
     :root {
@@ -396,14 +425,38 @@ $brandSoftColor = $isFaturamentoView ? '#d6e4ff' : '#f3e9f8';
         background: #fff;
     }
 
-    .report-truncate {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: normal;
-        line-height: 1.4;
+    .faturamento-actions h6 {
+        letter-spacing: .08em;
+    }
+    .faturamento-actions .badge {
+        font-size: .85rem;
+    }
+    .table .col-select {
+        width: 60px;
+    }
+    .table .col-id_internacao,
+    .table .col-id_visita {
+        width: 95px;
+    }
+    .th-sortable {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        white-space: nowrap;
+    }
+    .th-sortable .sort-icons a {
+        text-decoration: none;
+        font-size: 0.85rem;
+        color: #ffffff;
+        display: inline-flex;
+        line-height: 1;
+        margin-left: 2px;
+        opacity: 0.7;
+    }
+    .th-sortable .sort-icons a.active {
+        color: #ffd966;
+        font-weight: bold;
+        opacity: 1;
     }
 </style>
 
@@ -440,7 +493,6 @@ $fieldIcons = [
         'faturado_vis'    => 'bi-clipboard-check',
         'alta_flag'       => 'bi-box-arrow-up-right',
         'data_alta'       => 'bi-calendar2-check',
-        'rel_visita_vis'  => 'bi-file-earmark-text',
     ];
     ?>
 
@@ -469,49 +521,70 @@ $fieldIcons = [
         <div class="mb-2"><label class="form-label fw-semibold m-0">Filtros</label></div>
 
         <div class="row g-3">
-            <div class="col-12 col-lg-3">
-                <div class="input-group"><span class="input-group-text"><i class="bi bi-search"></i></span><input
-                        type="text" name="nome" class="form-control" placeholder="Nome do paciente"
-                        value="<?= h($nomePaciente) ?>"></div>
+            <div class="col-12 col-xl-3">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" name="nome" class="form-control" placeholder="Nome do paciente"
+                        value="<?= h($nomePaciente) ?>">
+                </div>
             </div>
-            <div class="col-12 col-lg-3">
-                <div class="input-group"><span class="input-group-text"><i class="bi bi-hospital"></i></span>
+            <div class="col-12 col-xl-3">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-hospital"></i></span>
                     <select name="hospital_id" class="form-select">
                         <option value="">— Hospital —</option>
-                        <?php foreach ($hospitais as $h): ?><option value="<?= $h['id_hospital'] ?>"
-                                <?= $hospitalId == $h['id_hospital'] ? 'selected' : '' ?>><?= h($h['nome_hosp']) ?></option>
+                        <?php foreach ($hospitais as $h): ?>
+                            <option value="<?= $h['id_hospital'] ?>" <?= $hospitalId == $h['id_hospital'] ? 'selected' : '' ?>>
+                                <?= h($h['nome_hosp']) ?>
+                            </option>
                         <?php endforeach; ?>
                     </select>
                 </div>
             </div>
-            <div class="col-6 col-lg-2">
-                <div class="input-group"><span class="input-group-text"><i class="bi bi-calendar2"></i></span><input
-                        type="date" name="dt_ini" class="form-control" value="<?= h($dtIni) ?>" title="De"></div>
-            </div>
-            <div class="col-6 col-lg-2">
-                <div class="input-group"><span class="input-group-text"><i
-                            class="bi bi-calendar2-check"></i></span><input type="date" name="dt_fim"
-                        class="form-control" value="<?= h($dtFim) ?>" title="Até"></div>
-            </div>
-            <div class="col-12 col-sm-6 col-lg-2">
-                <div class="input-group"><span class="input-group-text"><i class="bi bi-list-ol"></i></span>
-                    <select name="limite" class="form-select" onchange="this.form.submit()">
-                        <?php foreach ([10, 20, 50, 100] as $opt): ?><option value="<?= $opt ?>"
-                                <?= $limite == $opt ? 'selected' : '' ?>><?= $opt ?> por página</option><?php endforeach; ?>
-                    </select>
+            <div class="col-12 col-xl-3">
+                <div class="row g-2">
+                    <div class="col-6">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-calendar2"></i></span>
+                            <input type="date" name="dt_ini" class="form-control" value="<?= h($dtIni) ?>" title="De">
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-calendar2-check"></i></span>
+                            <input type="date" name="dt_fim" class="form-control" value="<?= h($dtFim) ?>" title="Até">
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="col-12 col-sm-6 col-lg-2">
-                <div class="input-group"><span class="input-group-text"><i class="bi bi-cash-stack"></i></span>
-                    <select name="faturado" class="form-select">
-                        <option value="" <?= $faturadoVis === '' ? 'selected' : '' ?>>Todos</option>
-                        <option value="s" <?= $faturadoVis === 's' ? 'selected' : '' ?>>Faturado</option>
-                        <option value="n" <?= $faturadoVis === 'n' ? 'selected' : '' ?>>Não faturado</option>
-                    </select>
+            <div class="col-12 col-xl-3">
+                <div class="row g-2">
+                    <div class="col-12 col-sm-6">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-list-ol"></i></span>
+                            <select name="limite" class="form-select" onchange="this.form.submit()">
+                                <?php foreach ([10, 20, 50, 100] as $opt): ?>
+                                    <option value="<?= $opt ?>" <?= $limite == $opt ? 'selected' : '' ?>><?= $opt ?> por página</option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-cash-stack"></i></span>
+                            <select name="faturado" class="form-select">
+                                <option value="" <?= $faturadoVis === '' ? 'selected' : '' ?>>Todos</option>
+                                <option value="s" <?= $faturadoVis === 's' ? 'selected' : '' ?>>Faturado</option>
+                                <option value="n" <?= $faturadoVis === 'n' ? 'selected' : '' ?>>Não faturado</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
+        <input type="hidden" name="sort_field" value="<?= h($sortField) ?>">
+        <input type="hidden" name="sort_dir" value="<?= h($sortDir) ?>">
         <div class="sticky-actions mt-3 d-flex flex-wrap gap-2 justify-content-end">
             <button class="btn btn-primary" type="submit"><i class="bi bi-funnel me-1"></i>Aplicar</button>
             <button class="btn btn-success" type="submit" name="export" value="1">
@@ -521,16 +594,74 @@ $fieldIcons = [
         </div>
     </form>
 
+    <?php if ($isFaturamentoView): ?>
+        <div class="card p-3 mb-3 shadow-sm border-0" id="faturamentoActionBox">
+            <div class="d-flex flex-wrap gap-3 align-items-center faturamento-actions">
+                <div>
+                    <h6 class="text-uppercase text-muted mb-1 small">Ações para faturar</h6>
+                    <div class="fw-semibold fs-5">Selecione as visitas e confirme o faturamento.</div>
+                </div>
+                <div class="ms-auto d-flex flex-wrap gap-3 align-items-center">
+                    <div class="form-check form-switch m-0">
+                        <input class="form-check-input" type="checkbox" id="chkSelectAllVisitas">
+                        <label class="form-check-label" for="chkSelectAllVisitas">Selecionar todos</label>
+                    </div>
+                    <button class="btn btn-primary" id="btnFaturarVisitas" type="button" disabled>
+                        <i class="bi bi-currency-dollar me-1"></i>Faturar selecionados
+                        <span class="badge bg-light text-dark ms-2" id="badgeSelVisitas">0</span>
+                    </button>
+                </div>
+            </div>
+            <div class="mt-2" id="faturamentoActionFeedback"></div>
+        </div>
+    <?php endif; ?>
+
     <div class="card p-3">
         <div class="table-responsive">
             <table class="table table-striped table-hover align-middle">
                 <thead>
-                    <tr><?php foreach ($selected as $k): ?><th class="col-<?= h($k) ?>">
-                                <?= h($fieldsMap[$k]['label']) ?></th><?php endforeach; ?></tr>
+                    <tr>
+                        <?php if ($isFaturamentoView): ?>
+                            <th class="text-center col-select">
+                                <i class="bi bi-check2-square"></i>
+                            </th>
+                        <?php endif; ?>
+                        <?php foreach ($selected as $k):
+                            $label = $fieldsMap[$k]['label'];
+                            $sortable = isset($sortableColumns[$k]);
+                            $ascActive = $sortable && $sortField === $k && $sortDir === 'asc';
+                            $descActive = $sortable && $sortField === $k && $sortDir === 'desc';
+                            ?>
+                            <th class="col-<?= h($k) ?>">
+                                <div class="<?= $sortable ? 'th-sortable' : '' ?>">
+                                    <span><?= h($label) ?></span>
+                                    <?php if ($sortable): ?>
+                                        <span class="sort-icons">
+                                            <a href="<?= h($currentPath) ?>?<?= qs_keep(['sort_field' => $k, 'sort_dir' => 'asc', 'pag' => 1]) ?>"
+                                                class="<?= $ascActive ? 'active' : '' ?>" title="Ordenar crescente">↑</a>
+                                            <a href="<?= h($currentPath) ?>?<?= qs_keep(['sort_field' => $k, 'sort_dir' => 'desc', 'pag' => 1]) ?>"
+                                                class="<?= $descActive ? 'active' : '' ?>" title="Ordenar decrescente">↓</a>
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
+                            </th>
+                        <?php endforeach; ?></tr>
                 </thead>
                 <tbody>
                     <?php if ($rows): foreach ($rows as $r): ?>
                             <tr>
+                                <?php if ($isFaturamentoView):
+                                    $visitId = (int)($r['id_visita'] ?? 0);
+                                    $isFaturado = strtolower((string)($r['faturado_vis'] ?? 'n')) === 's';
+                                    ?>
+                                    <td class="text-center col-select">
+                                        <?php if ($visitId > 0): ?>
+                                            <input type="checkbox" class="form-check-input chk-visita"
+                                                value="<?= $visitId ?>"
+                                                <?= $isFaturado ? 'disabled title="Visita já faturada"' : '' ?>>
+                                        <?php endif; ?>
+                                    </td>
+                                <?php endif; ?>
                                 <?php foreach ($selected as $k):
                                     $val = $r[$k] ?? '';
                                     if (in_array($k, ['data_internacao', 'data_visita', 'data_alta', 'data_lancamento'], true)) {
@@ -541,19 +672,13 @@ $fieldIcons = [
                                         $val = fmt_cnpj($val);
                                     }
                                 ?>
-                                    <td class="col-<?= h($k) ?>">
-                                        <?php if ($k === 'rel_visita_vis'): ?>
-                                            <div class="report-truncate" title="<?= h($val) ?>"><?= h($val) ?></div>
-                                        <?php else: ?>
-                                            <?= h($val) ?>
-                                        <?php endif; ?>
-                                    </td>
+                                    <td class="col-<?= h($k) ?>"><?= h($val) ?></td>
                                 <?php endforeach; ?>
                             </tr>
                         <?php endforeach;
                     else: ?>
                         <tr>
-                            <td colspan="<?= count($selected) ?>">Nada encontrado para os filtros aplicados.</td>
+                            <td colspan="<?= count($selected) + ($isFaturamentoView ? 1 : 0) ?>">Nada encontrado para os filtros aplicados.</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
@@ -566,15 +691,15 @@ $fieldIcons = [
             <nav>
                 <ul class="pagination m-0">
                     <li class="page-item <?= $pag <= 1 ? 'disabled' : '' ?>"><a class="page-link"
-                            href="?<?= qs_keep(['pag' => 1]) ?>">&laquo;</a></li>
+                            href="<?= h($currentPath) ?>?<?= qs_keep(['pag' => 1]) ?>">&laquo;</a></li>
                     <li class="page-item <?= $pag <= 1 ? 'disabled' : '' ?>"><a class="page-link"
-                            href="?<?= qs_keep(['pag' => max(1, $pag - 1)]) ?>">&lsaquo;</a></li>
+                            href="<?= h($currentPath) ?>?<?= qs_keep(['pag' => max(1, $pag - 1)]) ?>">&lsaquo;</a></li>
                     <li class="page-item disabled"><span class="page-link">Página <?= $pag ?> de
                             <?= $totalPages ?></span></li>
                     <li class="page-item <?= $pag >= $totalPages ? 'disabled' : '' ?>"><a class="page-link"
-                            href="?<?= qs_keep(['pag' => min($totalPages, $pag + 1)]) ?>">&rsaquo;</a></li>
+                            href="<?= h($currentPath) ?>?<?= qs_keep(['pag' => min($totalPages, $pag + 1)]) ?>">&rsaquo;</a></li>
                     <li class="page-item <?= $pag >= $totalPages ? 'disabled' : '' ?>"><a class="page-link"
-                            href="?<?= qs_keep(['pag' => $totalPages]) ?>">&raquo;</a></li>
+                            href="<?= h($currentPath) ?>?<?= qs_keep(['pag' => $totalPages]) ?>">&raquo;</a></li>
                 </ul>
             </nav>
         </div>
@@ -620,6 +745,79 @@ $fieldIcons = [
                 }
             });
         });
+
+        const actionBox = document.getElementById('faturamentoActionBox');
+        if (actionBox) {
+            const badge = document.getElementById('badgeSelVisitas');
+            const btnFaturar = document.getElementById('btnFaturarVisitas');
+            const feedback = document.getElementById('faturamentoActionFeedback');
+            const selectAll = document.getElementById('chkSelectAllVisitas');
+
+            const enabledCheckboxes = () => Array.from(document.querySelectorAll('.chk-visita:not(:disabled)'));
+            const checkedCheckboxes = () => Array.from(document.querySelectorAll('.chk-visita:checked'));
+
+            function updateBadge() {
+                const total = checkedCheckboxes().length;
+                if (badge) badge.textContent = total.toString();
+                if (btnFaturar) btnFaturar.disabled = total === 0;
+            }
+
+            if (selectAll) {
+                selectAll.addEventListener('change', () => {
+                    enabledCheckboxes().forEach(chk => {
+                        chk.checked = selectAll.checked;
+                    });
+                    updateBadge();
+                });
+            }
+
+            document.addEventListener('change', (ev) => {
+                if (ev.target.classList.contains('chk-visita')) {
+                    if (selectAll && ev.target.checked === false) {
+                        selectAll.checked = false;
+                    }
+                    updateBadge();
+                }
+            });
+
+            btnFaturar?.addEventListener('click', () => {
+                const ids = checkedCheckboxes().map(chk => parseInt(chk.value, 10)).filter(id => id > 0);
+                if (!ids.length) {
+                    return;
+                }
+                btnFaturar.disabled = true;
+                btnFaturar.classList.add('disabled');
+                if (feedback) feedback.innerHTML = '';
+                fetch('processa_faturamento_visitas.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ids })
+                }).then(resp => resp.json())
+                    .then(data => {
+                        if (feedback) {
+                            const cls = data.success ? 'alert-success' : 'alert-danger';
+                            feedback.innerHTML = `<div class="alert ${cls} my-2 py-2">${data.message || 'Operação concluída.'}</div>`;
+                        }
+                        if (data.success) {
+                            setTimeout(() => window.location.reload(), 1200);
+                        } else {
+                            btnFaturar.disabled = false;
+                            btnFaturar.classList.remove('disabled');
+                        }
+                    })
+                    .catch(() => {
+                        if (feedback) {
+                            feedback.innerHTML = '<div class="alert alert-danger my-2 py-2">Não foi possível concluir o faturamento. Tente novamente.</div>';
+                        }
+                        btnFaturar.disabled = false;
+                        btnFaturar.classList.remove('disabled');
+                    });
+            });
+
+            updateBadge();
+        }
     });
 </script>
 <?php

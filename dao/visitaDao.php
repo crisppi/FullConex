@@ -11,6 +11,7 @@ class visitaDAO
     private string $url;
     public Message $message;
     private bool $lancamentoColumnEnsured = false;
+    private bool $faturamentoColumnEnsured = false;
     private bool $logTableEnsured = false;
 
     private const TABLE = 'tb_visita';
@@ -22,6 +23,7 @@ class visitaDAO
         $this->url     = $url;
         $this->message = new Message($url);
         $this->ensureLancamentoColumn();
+        $this->ensureDataFaturamentoColumn();
         $this->ensureLogTable();
     }
 
@@ -48,6 +50,7 @@ class visitaDAO
         $v->oportunidades_enf       = $data["oportunidades_enf"]       ?? null;
         $v->programacao_enf         = $data["programacao_enf"]         ?? null;
         $v->data_lancamento_vis     = $data["data_lancamento_vis"]     ?? null;
+        $v->data_faturamento_vis    = $data["data_faturamento_vis"]    ?? null;
         $v->faturado_vis            = $data["faturado_vis"]            ?? 'n';
         $v->retificou               = $data["retificou"]               ?? null;
         $v->retificado              = $data["retificado"]              ?? null;
@@ -109,6 +112,33 @@ class visitaDAO
     }
 
 
+    private function ensureDataFaturamentoColumn(): void
+    {
+        if ($this->faturamentoColumnEnsured) {
+            return;
+        }
+        try {
+            $stmt = $this->conn->query("
+                SELECT COUNT(*)
+                  FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE()
+                   AND TABLE_NAME   = '" . self::TABLE . "'
+                   AND COLUMN_NAME  = 'data_faturamento_vis'
+            ");
+            $exists = (int)$stmt->fetchColumn() > 0;
+            if (!$exists) {
+                $this->conn->exec("
+                    ALTER TABLE " . self::TABLE . "
+                    ADD COLUMN data_faturamento_vis DATE NULL AFTER faturado_vis
+                ");
+            }
+        } catch (Throwable $e) {
+            error_log('Falha ao garantir coluna data_faturamento_vis: ' . $e->getMessage());
+        } finally {
+            $this->faturamentoColumnEnsured = true;
+        }
+    }
+
     private function ensureLogTable(): void
     {
         if ($this->logTableEnsured) {
@@ -151,6 +181,7 @@ class visitaDAO
             fk_usuario_vis,
             data_visita_vis,
             data_lancamento_vis,
+            data_faturamento_vis,
             faturado_vis,
             exames_enf,
             oportunidades_enf,
@@ -169,6 +200,7 @@ class visitaDAO
             :fk_usuario_vis,
             :data_visita_vis,
             :data_lancamento_vis,
+            :data_faturamento_vis,
             :faturado_vis,
             :exames_enf,
             :oportunidades_enf,
@@ -199,6 +231,7 @@ class visitaDAO
         // DATAS
         $stmt->bindValue(":data_visita_vis", $visita->data_visita_vis ?: $this->now());
         $stmt->bindValue(":data_lancamento_vis", $visita->data_lancamento_vis ?: $this->now());
+        $stmt->bindValue(":data_faturamento_vis", $visita->data_faturamento_vis ?? null);
         $stmt->bindValue(":faturado_vis", $this->sn($visita->faturado_vis ?? 'n', 'n'));
 
         // ENF
@@ -243,6 +276,7 @@ class visitaDAO
             fk_usuario_vis          = :fk_usuario_vis,
             data_visita_vis         = :data_visita_vis,
             data_lancamento_vis     = :data_lancamento_vis,
+            data_faturamento_vis    = :data_faturamento_vis,
             faturado_vis            = :faturado_vis,
             exames_enf              = :exames_enf,
             oportunidades_enf       = :oportunidades_enf,
@@ -271,6 +305,7 @@ class visitaDAO
         // DATAS
         $stmt->bindValue(":data_visita_vis", $data['data_visita_vis'] ?? $this->now());
         $stmt->bindValue(":data_lancamento_vis", $data['data_lancamento_vis'] ?? null);
+        $stmt->bindValue(":data_faturamento_vis", $data['data_faturamento_vis'] ?? null);
         $stmt->bindValue(":faturado_vis", $this->sn($data['faturado_vis'] ?? 'n', 'n'));
 
         // ENF
@@ -304,6 +339,7 @@ class visitaDAO
             fk_usuario_vis          = :fk_usuario_vis,
             data_visita_vis         = :data_visita_vis,
             data_lancamento_vis     = :data_lancamento_vis,
+            data_faturamento_vis    = :data_faturamento_vis,
             faturado_vis            = :faturado_vis,
             exames_enf              = :exames_enf,
             oportunidades_enf       = :oportunidades_enf,
@@ -324,6 +360,7 @@ class visitaDAO
         $this->bindIntOrNull($stmt, ":fk_usuario_vis", $data['fk_usuario_vis'] ?? null);
         $stmt->bindValue(":data_visita_vis", $data['data_visita_vis'] ?? $this->now());
         $stmt->bindValue(":data_lancamento_vis", $data['data_lancamento_vis'] ?? null);
+        $stmt->bindValue(":data_faturamento_vis", $data['data_faturamento_vis'] ?? null);
         $stmt->bindValue(":faturado_vis", $this->sn($data['faturado_vis'] ?? 'n', 'n'));
         $stmt->bindValue(":exames_enf",        $data['exames_enf']        ?? null);
         $stmt->bindValue(":oportunidades_enf", $data['oportunidades_enf'] ?? null);
