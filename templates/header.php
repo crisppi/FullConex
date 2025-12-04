@@ -395,6 +395,10 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                             class="bi bi-clipboard-check"
                                             style="font-size: 1rem;margin-right:5px; color:#0a4fa3;"></i>
                                         Faturamento Visitas</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>faturamento_mensal.php"><i
+                                            class="bi bi-calendar-range"
+                                            style="font-size: 1rem;margin-right:5px; color:#0a6840;"></i>
+                                        Faturamento Mensal</a></li>
                                 <li><a class="dropdown-item" href="<?= $BASE_URL ?>list_internacao_cap_fin.php"><i
                                             class="bi bi-card-checklist"
                                             style="font-size: 1rem;margin-right:5px; color:rgb(28, 118, 175);"></i>

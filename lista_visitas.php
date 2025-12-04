@@ -626,7 +626,7 @@ $fieldIcons = [
                                 <i class="bi bi-check2-square"></i>
                             </th>
                         <?php endif; ?>
-                        <?php foreach ($selected as $k):
+        <?php foreach ($selected as $k):
                             $label = $fieldsMap[$k]['label'];
                             $sortable = isset($sortableColumns[$k]);
                             $ascActive = $sortable && $sortField === $k && $sortDir === 'asc';
