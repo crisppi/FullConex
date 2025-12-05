@@ -318,13 +318,14 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="form-group col-sm-2">
                 <label class="control-label" for="especialidade_int">Especialidade</label>
-                <select class="form-control-sm form-control" id="especialidade_int" name="especialidade_int">
-                    <option value="">Selecione</option>
+                <input list="especialidade-options" class="form-control-sm form-control" id="especialidade_int"
+                    name="especialidade_int" placeholder="Selecione ou digite">
+                <datalist id="especialidade-options">
                     <?php sort($dados_especialidade, SORT_ASC);
                     foreach ($dados_especialidade as $especial): ?>
-                    <option value="<?= htmlspecialchars($especial) ?>"><?= htmlspecialchars($especial) ?></option>
+                    <option value="<?= htmlspecialchars($especial) ?>"></option>
                     <?php endforeach; ?>
-                </select>
+                </datalist>
             </div>
             <div class="form-group col-sm-3">
                 <label for="titular_int">Médico</label>

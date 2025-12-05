@@ -353,17 +353,17 @@
 
                     <div class="form-group col-sm-2">
                         <label class="control-label" for="especialidade_int">Especialidade</label>
-                        <select class="form-control-sm form-control" id="especialidade_int" name="especialidade_int">
-                            <option value="">Selecione</option>
+                        <input list="especialidade-options" class="form-control-sm form-control" id="especialidade_int"
+                            name="especialidade_int" value="<?= htmlspecialchars($intern['especialidade_int'] ?? '') ?>"
+                            placeholder="Selecione ou digite">
+                        <datalist id="especialidade-options">
                             <?php
                             sort($dados_especialidade, SORT_ASC);
                             foreach ($dados_especialidade as $especial) {
-                                // Verificar se o valor atual é o que veio do banco
-                                $selected = ($especial == $intern['especialidade_int']) ? 'selected' : '';
+                                echo '<option value="' . htmlspecialchars($especial) . '"></option>';
+                            }
                             ?>
-                            <option value="<?= $especial; ?>" <?= $selected; ?>><?= $especial; ?></option>
-                            <?php } ?>
-                        </select>
+                        </datalist>
                     </div>
 
                     <div class="form-group col-sm-3">
