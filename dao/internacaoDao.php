@@ -2890,11 +2890,13 @@ class internacaoDAO implements internacaoDAOInterface
                 ho.nome_hosp,
                 al.data_alta_alt,
                 {$horaAltaSelect},
-                count(pr.fk_internacao_pror) as prorrogacoes
+                COUNT(DISTINCT pr.id_prorrogacao) as prorrogacoes,
+                COUNT(DISTINCT vi.id_visita) as visitas_total
             FROM tb_internacao ac
             LEFT JOIN tb_hospital ho ON ho.id_hospital = ac.fk_hospital_int
             LEFT JOIN tb_alta al ON al.fk_id_int_alt = ac.id_internacao
             LEFT JOIN tb_prorrogacao pr ON pr.fk_internacao_pror = ac.id_internacao
+            LEFT JOIN tb_visita vi ON vi.fk_internacao_vis = ac.id_internacao
             WHERE ac.fk_paciente_int = :pacId
             GROUP BY ac.id_internacao
             ORDER BY {$orderBy} {$dir}

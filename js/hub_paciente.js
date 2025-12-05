@@ -160,9 +160,10 @@
             <th>Senha</th>
             <th>Admissão</th>
             <th>Alta</th>
-            <th>Unidade / Leito</th>
+            <th>Unidade</th>
             <th>Médico</th>
             <th>Status</th>
+            <th>Visitas</th>
             <th>Prorrog.</th>
             <th>Ações</th>`;
         }
@@ -191,8 +192,7 @@
       const alta = row.alta ?? row.data_alta_alt ?? row.data_alta ?? '';
       const admDisplay = formatDateTimeBr(adm, row.hora_admissao ?? row.hora_intern_int ?? row.hora ?? null);
       const altaDisplay = formatDateTimeBr(alta, row.hora_alta ?? row.hora_alta_alt ?? null);
-      const unidade = row.unidade ?? row.nome_hosp ?? row.hospital ?? row.estabelecimento ?? '—';
-      const leito = row.leito ?? row.acomodacao_int ?? row.acomodacao ?? '';
+      const unidade = row.unidade ?? row.nome_hosp ?? row.hospital ?? row.estabelecimento ?? row.acomodacao_int ?? '—';
       const medico = row.medico ?? row.medico_responsavel ?? row.crm_int ?? row.crm ?? '—';
       const status =
         row.status ??
@@ -200,6 +200,7 @@
           ? 'Alta'
           : (String(row.internado_int).toLowerCase() === 's' ? 'Internado' : '—'));
       const pror = Number(row.prorrogacoes ?? row.qtd_prorrog ?? 0) || 0;
+      const visitas = Number(row.visitas ?? row.visitas_total ?? row.num_visitas ?? row.qtd_visitas ?? 0) || 0;
       const isAlta = String(status).toLowerCase() === 'alta' ||
         String(row.internado_int).toLowerCase() === 'n';
 
@@ -213,9 +214,10 @@
         <td>${esc(senha || '—')}</td>
         <td>${admDisplay}</td>
         <td>${altaDisplay}</td>
-        <td>${esc(unidade)}${leito ? ' / ' + esc(leito) : ''}</td>
+        <td>${esc(unidade)}</td>
         <td>${esc(medico)}</td>
         <td>${esc(status)}</td>
+        <td>${visitas}</td>
         <td>${pror}</td>
         <td class="text-center">
           <button class="btn btn-sm btn-outline-primary" data-action="ver-int" data-id-int="${esc(iid)}">Ver</button>

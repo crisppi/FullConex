@@ -123,6 +123,22 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
         flex: 0 0 auto;
     }
 
+    #search-results-dropdown .dropdown-item {
+        white-space: normal;
+        line-height: 1.2;
+    }
+
+    #search-results-dropdown .dropdown-item.active,
+    #search-results-dropdown .dropdown-item:focus,
+    #search-results-dropdown .dropdown-item:hover {
+        background: #f2f6ff;
+        color: #1f1f1f;
+    }
+
+    #search-results-dropdown .dropdown-item small {
+        color: #5c5c5c;
+    }
+
     @media (max-width: 575.98px) {
         .header-actions {
             width: 100%;

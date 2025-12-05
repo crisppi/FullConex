@@ -228,9 +228,10 @@ if ($nome_str) {
                   <th>Senha</th> <!-- NOVA COLUNA -->
                   <th>Admissão</th>
                   <th>Alta</th>
-                  <th>Unidade / Leito</th>
+                  <th>Unidade</th>
                   <th>Médico</th>
                   <th>Status</th>
+                  <th>Visitas</th>
                   <th>Prorrog.</th>
                   <th>Ações</th>
                 </tr>
