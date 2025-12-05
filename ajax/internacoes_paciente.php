@@ -44,7 +44,9 @@ try {
         return [
             'id_internacao' => (int) ($r['id_internacao'] ?? 0),
             'admissao' => $fmtDate($r['data_intern_int'] ?? null),
-            'alta' => $fmtDate($r['data_alta_alt'] ?? null), // TODO: traga da tb_alta se quiser
+            'alta' => $fmtDate($r['data_alta_alt'] ?? null),
+            'hora_admissao' => $r['hora_intern_int'] ?? null,
+            'hora_alta' => $r['hora_alta_alt'] ?? null,
             'unidade' => trim(($r['nome_hosp'] ?? '') . ' / ' . ($r['acomodacao_int'] ?? '')),
             'medico' => '', // TODO: incluir no SELECT se precisar
             'status' => (isset($r['internado_int']) && $r['internado_int'] === 's') ? 'Internado' : 'Alta',

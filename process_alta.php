@@ -32,12 +32,14 @@ $id_internacao = filter_input(INPUT_POST, "id_internacao");
 $internado_int = filter_input(INPUT_POST, "internado_int");
 $internado_alt = "n";
 $data_alta_alt = filter_input(INPUT_POST, "data_alta_alt");
+$hora_alta_alt = filter_input(INPUT_POST, "hora_alta_alt");
 $tipo_alta_alt = filter_input(INPUT_POST, "tipo_alta_alt");
 $data_create_alt = filter_input(INPUT_POST, "data_create_alt");
 $usuario_alt = filter_input(INPUT_POST, "usuario_alt");
 $fk_usuario_alt = filter_input(INPUT_POST, "fk_usuario_alt");
 
 $alta->data_alta_alt = $data_alta_alt;
+$alta->hora_alta_alt = $hora_alta_alt;
 $alta->tipo_alta_alt = $tipo_alta_alt;
 $alta->usuario_alt = $usuario_alt;
 $alta->data_create_alt = $data_create_alt;

@@ -2868,6 +2868,7 @@ class internacaoDAO implements internacaoDAOInterface
                 ac.grupo_patologia_int,
                 ho.nome_hosp,
                 al.data_alta_alt,
+                al.hora_alta_alt,
                 count(pr.fk_internacao_pror) as prorrogacoes
             FROM tb_internacao ac
             LEFT JOIN tb_hospital ho ON ho.id_hospital = ac.fk_hospital_int

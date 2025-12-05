@@ -27,6 +27,7 @@
             $alta->fk_id_int_alt = $data["fk_id_int_alt"];
             $alta->tipo_alta_alt = $data["tipo_alta_alt"];
             $alta->data_alta_alt = $data["data_alta_alt"];
+            $alta->hora_alta_alt = $data["hora_alta_alt"] ?? null;
             $alta->internado_alt = $data["internado_alt"];
             $alta->usuario_alt = $data["usuario_alt"];
             $alta->data_create_alt = $data["data_create_alt"];
@@ -62,6 +63,7 @@
         usuario_alt,
         data_create_alt,
         data_alta_alt,
+        hora_alta_alt,
         fk_usuario_alt
         
       ) VALUES (
@@ -71,6 +73,7 @@
         :usuario_alt,
         :data_create_alt,
         :data_alta_alt,
+        :hora_alta_alt,
         :fk_usuario_alt
 
      )");
@@ -79,6 +82,7 @@
             $stmt->bindParam(":tipo_alta_alt", $alta->tipo_alta_alt);
             $stmt->bindParam(":internado_alt", $alta->internado_alt);
             $stmt->bindParam(":data_alta_alt", $alta->data_alta_alt);
+            $stmt->bindParam(":hora_alta_alt", $alta->hora_alta_alt);
             $stmt->bindParam(":usuario_alt", $alta->usuario_alt);
             $stmt->bindParam(":data_create_alt", $alta->data_create_alt);
             $stmt->bindParam(":fk_usuario_alt", $alta->fk_usuario_alt);

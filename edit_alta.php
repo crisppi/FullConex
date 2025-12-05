@@ -70,6 +70,11 @@ $dataAtual = date('Y-m-d');
                     Data inválida !
                 </div>
             </div>
+            <div class="form-group col-sm-2">
+                <label class="control-label" for="hora_alta_alt">Hora Alta</label>
+                <input type="time" class="form-control" value='<?= date('H:i') ?>' id="hora_alta_alt"
+                    name="hora_alta_alt" required>
+            </div>
             <div class="form-group col-sm-3">
                 <label class="control-label" for="tipo_alta_alt">Tipo de alta</label>
                 <select class="form-control" id="tipo_alta_alt" name="tipo_alta_alt" required>
