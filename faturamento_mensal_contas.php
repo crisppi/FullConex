@@ -20,16 +20,20 @@ $pag          = max(1, $pag);
 $offset       = max(0, ($pag - 1) * $limite);
 
 $fieldsMap = [
+    'id_capeante'   => ['label' => 'ID Conta', 'field' => 'id_capeante'],
     'id_internacao' => ['label' => 'ID Int', 'field' => 'id_internacao'],
-    'id_visita'     => ['label' => 'Id Visita', 'field' => 'id_visita'],
     'senha'         => ['label' => 'Senha', 'field' => 'senha_int'],
-    'nome_paciente' => ['label' => 'Nome do paciente', 'field' => 'paciente'],
     'hospital'      => ['label' => 'Hospital', 'field' => 'hospital'],
     'cnpj_hospital' => ['label' => 'CNPJ do hospital', 'field' => 'cnpj_hospital'],
+    'nome_paciente' => ['label' => 'Nome do paciente', 'field' => 'paciente'],
     'matricula'     => ['label' => 'Matrícula', 'field' => 'matricula'],
-    'data_visita'   => ['label' => 'Data visita', 'field' => 'data_visita_vis_fmt'],
-    'data_lancamento' => ['label' => 'Data lançamento', 'field' => 'data_lancamento_vis_fmt'],
-    'faturado_vis'  => ['label' => 'Faturado?', 'field' => 'faturado_vis'],
+    'parcial_num'   => ['label' => 'Parcial', 'field' => 'parcial_num'],
+    'data_inicial'  => ['label' => 'Data inicial', 'field' => 'data_inicial_fmt'],
+    'data_final'    => ['label' => 'Data final', 'field' => 'data_final_fmt'],
+    'data_digitacao'=> ['label' => 'Data digitação', 'field' => 'data_digit_fmt'],
+    'valor_apresentado' => ['label' => 'Valor apresentado', 'field' => 'valor_apresentado_capeante'],
+    'valor_final'   => ['label' => 'Valor final', 'field' => 'valor_final_capeante'],
+    'conta_faturada_cap' => ['label' => 'Faturado?', 'field' => 'conta_faturada_cap'],
 ];
 
 $selected = isset($_GET['fields']) && is_array($_GET['fields'])
@@ -45,7 +49,9 @@ $params = [
     ':fim' => $periodoFim . ' 23:59:59'
 ];
 
-$where = "WHERE v.data_lancamento_vis BETWEEN :ini AND :fim AND (v.faturado_vis IS NULL OR v.faturado_vis = '' OR v.faturado_vis <> 's')";
+$where = "WHERE COALESCE(ca.data_final_capeante, ca.data_fech_capeante, ca.data_digit_capeante) BETWEEN :ini AND :fim
+    AND (ca.conta_faturada_cap IS NULL OR ca.conta_faturada_cap = '' OR LOWER(ca.conta_faturada_cap) <> 's')
+    AND (ca.encerrado_cap = 's')";
 if ($nomePaciente !== '') {
     $where .= " AND pa.nome_pac LIKE :nome ";
     $params[':nome'] = "%{$nomePaciente}%";
@@ -56,8 +62,8 @@ if ($hospitalId !== '') {
 }
 
 $sqlBase = "
-FROM tb_visita v
-JOIN tb_internacao i ON i.id_internacao = v.fk_internacao_vis
+FROM tb_capeante ca
+JOIN tb_internacao i ON i.id_internacao = ca.fk_int_capeante
 JOIN tb_paciente pa ON pa.id_paciente = i.fk_paciente_int
 LEFT JOIN tb_hospital ho ON ho.id_hospital = i.fk_hospital_int
 $where
@@ -71,19 +77,22 @@ $total = (int)$stmtCount->fetchColumn();
 
 $dataSql = "
 SELECT
-    v.id_visita AS id_visita,
-    i.id_internacao AS id_internacao,
-    i.senha_int AS senha_int,
-    pa.nome_pac AS paciente,
-    pa.matricula_pac AS matricula,
+    ca.id_capeante,
+    i.id_internacao,
+    i.senha_int,
     ho.nome_hosp AS hospital,
     ho.cnpj_hosp AS cnpj_hospital,
-    DATE_FORMAT(v.data_visita_vis, '%d/%m/%Y') AS data_visita_vis_fmt,
-    DATE_FORMAT(v.data_lancamento_vis, '%d/%m/%Y') AS data_lancamento_vis_fmt,
-    v.faturado_vis,
-    v.data_faturamento_vis
+    pa.nome_pac AS paciente,
+    pa.matricula_pac AS matricula,
+    ca.parcial_num,
+    DATE_FORMAT(ca.data_inicial_capeante, '%d/%m/%Y') AS data_inicial_fmt,
+    DATE_FORMAT(ca.data_final_capeante, '%d/%m/%Y') AS data_final_fmt,
+    DATE_FORMAT(ca.data_digit_capeante, '%d/%m/%Y') AS data_digit_fmt,
+    ca.valor_apresentado_capeante,
+    ca.valor_final_capeante,
+    ca.conta_faturada_cap
 $sqlBase
-ORDER BY i.id_internacao DESC, v.data_lancamento_vis DESC
+ORDER BY i.id_internacao DESC, ca.data_final_capeante DESC, ca.id_capeante DESC
 LIMIT $limite OFFSET $offset
 ";
 $stmt = $conn->prepare($dataSql);
@@ -93,29 +102,14 @@ $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 if (isset($_GET['export']) && $_GET['export'] == '1') {
     require_once __DIR__ . '/vendor/autoload.php';
-    $exportSql = "
-SELECT
-    v.id_visita AS id_visita,
-    i.id_internacao AS id_internacao,
-    i.senha_int AS senha_int,
-    pa.nome_pac AS paciente,
-    pa.matricula_pac AS matricula,
-    ho.nome_hosp AS hospital,
-    ho.cnpj_hosp AS cnpj_hospital,
-        DATE_FORMAT(v.data_visita_vis, '%d/%m/%Y') AS data_visita_vis_fmt,
-        DATE_FORMAT(v.data_lancamento_vis, '%d/%m/%Y') AS data_lancamento_vis_fmt,
-        v.faturado_vis
-    $sqlBase
-    ORDER BY i.id_internacao DESC, v.data_lancamento_vis DESC
-    ";
-    $stmtExport = $conn->prepare($exportSql);
+    $stmtExport = $conn->prepare(str_replace("LIMIT $limite OFFSET $offset", '', $dataSql));
     foreach ($params as $k => $v) $stmtExport->bindValue($k, $v);
     $stmtExport->execute();
     $rowsExp = $stmtExport->fetchAll(PDO::FETCH_ASSOC);
 
     $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
     $sheet = $spreadsheet->getActiveSheet();
-    $sheet->setTitle('Faturamento Mensal Visitas');
+    $sheet->setTitle('Faturamento Mensal Contas');
 
     $col = 1;
     foreach ($selected as $key) {
@@ -129,8 +123,10 @@ SELECT
         foreach ($selected as $key) {
             $field = $fieldsMap[$key]['field'] ?? $key;
             $val = $r[$field] ?? '';
-            if ($key === 'faturado_vis') {
-                $val = strtolower($r['faturado_vis'] ?? 'n') === 's' ? 'Sim' : 'Não';
+            if (in_array($key, ['valor_apresentado', 'valor_final'], true)) {
+                $val = number_format((float)$val, 2, ',', '.');
+            } elseif ($key === 'conta_faturada_cap') {
+                $val = strtolower($r['conta_faturada_cap'] ?? 'n') === 's' ? 'Sim' : 'Não';
             }
             $sheet->setCellValueExplicitByColumnAndRow(
                 $col,
@@ -148,7 +144,7 @@ SELECT
         $sheet->getColumnDimensionByColumn($c)->setAutoSize(true);
     }
 
-    $fname = "faturamento_mensal_" . date("Ymd_His") . ".xlsx";
+    $fname = "faturamento_mensal_contas_" . date("Ymd_His") . ".xlsx";
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; charset=UTF-8');
     header('Content-Disposition: attachment; filename="' . $fname . '"');
     header('Cache-Control: max-age=0');
@@ -165,21 +161,23 @@ $stmtHosp = $conn->query("SELECT id_hospital, nome_hosp FROM tb_hospital ORDER B
 if ($stmtHosp) $hospitais = $stmtHosp->fetchAll(PDO::FETCH_ASSOC);
 
 include_once __DIR__ . '/templates/header.php';
-?>
-<?php
-$brandColor = '#d45a10';
-$brandSoftColor = '#ffd5b3';
+$brandColor = '#3a6d3a';
+$brandSoftColor = '#e2f2e2';
 $fieldIcons = [
+    'id_capeante'   => 'bi-briefcase',
     'id_internacao' => 'bi-hash',
-    'id_visita'     => 'bi-hash',
     'senha'         => 'bi-shield-lock',
-    'nome_paciente' => 'bi-person',
     'hospital'      => 'bi-hospital',
     'cnpj_hospital' => 'bi-building',
+    'nome_paciente' => 'bi-person',
     'matricula'     => 'bi-123',
-    'data_visita'   => 'bi-calendar-event',
-    'data_lancamento' => 'bi-calendar2-week',
-    'faturado_vis'  => 'bi-cash-coin',
+    'parcial_num'   => 'bi-collection',
+    'data_inicial'  => 'bi-calendar-event',
+    'data_final'    => 'bi-calendar-check',
+    'data_digitacao'=> 'bi-calendar2-week',
+    'valor_apresentado' => 'bi-currency-dollar',
+    'valor_final'   => 'bi-cash-stack',
+    'conta_faturada_cap' => 'bi-clipboard-check',
 ];
 ?>
 <style>
@@ -206,33 +204,30 @@ $fieldIcons = [
     }
     .btn-primary:hover,
     .btn-primary:focus {
-        background: #c25c10;
-        border-color: #c25c10;
-    }
-    .field-chips {
-        gap: .5rem;
+        background: #2b4e2a;
+        border-color: #2b4e2a;
     }
 </style>
 
 <div class="container-fluid" style="margin-top:-10px;">
-    <h4 class="page-title mt-0 mb-2">Faturamento Mensal Visitas</h4>
+    <h4 class="page-title mt-0 mb-2">Faturamento Mensal Contas</h4>
     <hr class="mt-1 mb-3">
 
-    <form method="get" class="card p-3 mb-3 shadow-sm border-0">
+    <form method="get" class="card p-3 mb-3 shadow-sm border-0" id="form-faturamento-mensal">
         <div class="mb-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
             <label class="form-label fw-semibold m-0 fs-5">Campos a exibir</label>
             <div class="d-flex gap-2">
-                <button type="button" class="btn btn-light btn-sm" id="btn-mensal-check-all"><i class="bi bi-check2-all me-1"></i>Selecionar todos</button>
-                <button type="button" class="btn btn-light btn-sm" id="btn-mensal-uncheck-all"><i class="bi bi-x-lg me-1"></i>Limpar</button>
+                <button type="button" class="btn btn-light btn-sm" id="btn-contas-check-all"><i class="bi bi-check2-all me-1"></i>Selecionar todos</button>
+                <button type="button" class="btn btn-light btn-sm" id="btn-contas-uncheck-all"><i class="bi bi-x-lg me-1"></i>Limpar</button>
             </div>
         </div>
-        <div class="field-chips d-flex flex-wrap mb-3">
+        <div class="field-chips d-flex flex-wrap gap-2 mb-3">
             <?php foreach ($fieldsMap as $key => $meta):
                 $checked = in_array($key, $selected, true);
                 $icon = $fieldIcons[$key] ?? 'bi-check'; ?>
-                <input type="checkbox" class="btn-check field-check" id="fm_<?= h($key) ?>" name="fields[]"
+                <input type="checkbox" class="btn-check field-check" id="fc_<?= h($key) ?>" name="fields[]"
                     value="<?= h($key) ?>" <?= $checked ? 'checked' : '' ?>>
-                <label class="btn btn-outline-brand btn-sm rounded-pill px-3" for="fm_<?= h($key) ?>"><i
+                <label class="btn btn-outline-brand btn-sm rounded-pill px-3" for="fc_<?= h($key) ?>"><i
                         class="bi <?= $icon ?> me-1"></i><?= h($meta['label']) ?></label>
             <?php endforeach; ?>
         </div>
@@ -283,6 +278,7 @@ $fieldIcons = [
                 </div>
             </div>
         </div>
+
         <input type="hidden" name="sort_field" value="">
         <input type="hidden" name="sort_dir" value="">
         <div class="d-flex justify-content-end gap-2 mt-3">
@@ -296,17 +292,17 @@ $fieldIcons = [
     <div class="card p-3">
         <div class="d-flex align-items-center gap-3 mb-3">
             <div class="form-check form-switch d-flex align-items-center gap-2">
-                <input class="form-check-input" type="checkbox" id="chkMensalSelectAll">
-                <label class="form-check-label" for="chkMensalSelectAll">Selecionar todos</label>
+                <input class="form-check-input" type="checkbox" id="chkContasSelectAll">
+                <label class="form-check-label" for="chkContasSelectAll">Selecionar todos</label>
             </div>
-            <button class="btn btn-primary" id="btnFaturarMensal" type="button" disabled>
+            <button class="btn btn-primary" id="btnFaturarContas" type="button" disabled>
                 <i class="bi bi-currency-dollar me-1"></i>Faturar selecionados
-                <span class="badge bg-light text-dark ms-2" id="badgeMensalSel">0</span>
+                <span class="badge bg-light text-dark ms-2" id="badgeContasSel">0</span>
             </button>
-            <div id="mensalFeedback" class="flex-grow-1"></div>
+            <div id="contasFeedback" class="flex-grow-1"></div>
         </div>
         <div class="table-responsive">
-            <table class="table table-striped align-middle" id="tabelaMensal">
+            <table class="table table-striped align-middle" id="tabelaContas">
                 <thead>
                     <tr>
                         <th class="text-center" style="width:70px"><i class="bi bi-check2-square"></i></th>
@@ -319,30 +315,32 @@ $fieldIcons = [
                     <?php if ($rows): foreach ($rows as $r): ?>
                         <tr>
                             <td class="text-center">
-                                <?php $isFaturado = strtolower($r['faturado_vis'] ?? 'n') === 's'; ?>
-                                <input type="checkbox" class="form-check-input chk-mensal"
+                                <?php $isFaturado = strtolower($r['conta_faturada_cap'] ?? 'n') === 's'; ?>
+                                <input type="checkbox" class="form-check-input chk-conta"
                                     style="transform: scale(1.2);"
-                                    value="<?= (int)$r['id_visita'] ?>" <?= $isFaturado ? 'disabled' : '' ?>>
+                                    value="<?= (int)$r['id_capeante'] ?>" <?= $isFaturado ? 'disabled' : '' ?>>
                             </td>
                             <?php foreach ($selected as $k):
                                 $fieldName = $fieldsMap[$k]['field'] ?? $k;
                                 $val = $r[$fieldName] ?? '';
-                                if ($k === 'faturado_vis') {
-                                    $val = strtolower($r['faturado_vis'] ?? 'n') === 's' ? 'Sim' : 'Não';
+                                if (in_array($k, ['valor_apresentado', 'valor_final'], true)) {
+                                    $val = number_format((float)$val, 2, ',', '.');
+                                } elseif ($k === 'conta_faturada_cap') {
+                                    $val = strtolower($r['conta_faturada_cap'] ?? 'n') === 's' ? 'Sim' : 'Não';
                                 }
                             ?>
                                 <td class="col-<?= h($k) ?>"><?= h($val) ?></td>
                             <?php endforeach; ?>
                         </tr>
                     <?php endforeach; else: ?>
-                        <tr><td colspan="<?= count($selected) + 1 ?>">Nenhuma visita encontrada no período.</td></tr>
+                        <tr><td colspan="<?= count($selected) + 1 ?>">Nenhuma conta encontrada no período.</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>
         </div>
         <?php $totalPages = max(1, (int)ceil($total / max(1, $limite))); ?>
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div class="text-muted small">Total: <?= $total ?> visita(s)</div>
+            <div class="text-muted small">Total: <?= $total ?> conta(s)</div>
             <nav>
                 <ul class="pagination m-0">
                     <li class="page-item <?= $pag <= 1 ? 'disabled' : '' ?>"><a class="page-link" href="?<?= http_build_query(array_merge($_GET, ['pag' => 1])) ?>">&laquo;</a></li>
@@ -364,7 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateColumnVisibility = (checkbox) => {
         const k = checkbox.value;
         const isChecked = checkbox.checked;
-        const cells = document.querySelectorAll('#tabelaMensal th.col-' + k + ', #tabelaMensal td.col-' + k);
+        const cells = document.querySelectorAll('#tabelaContas th.col-' + k + ', #tabelaContas td.col-' + k);
         if (isChecked && cells.length === 0 && formEl) {
             formEl.submit();
             return;
@@ -378,7 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateColumnVisibility(e.target);
         }
     });
-    document.getElementById('btn-mensal-check-all')?.addEventListener('click', () => {
+    document.getElementById('btn-contas-check-all')?.addEventListener('click', () => {
         fieldCheckboxes.forEach(chk => {
             if (!chk.checked) {
                 chk.checked = true;
@@ -386,7 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
-    document.getElementById('btn-mensal-uncheck-all')?.addEventListener('click', () => {
+    document.getElementById('btn-contas-uncheck-all')?.addEventListener('click', () => {
         fieldCheckboxes.forEach(chk => {
             if (chk.checked) {
                 chk.checked = false;
@@ -395,12 +393,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    const selectAll = document.getElementById('chkMensalSelectAll');
-    const checkboxes = () => Array.from(document.querySelectorAll('.chk-mensal:not(:disabled)'));
-    const checked = () => Array.from(document.querySelectorAll('.chk-mensal:checked'));
-    const badge = document.getElementById('badgeMensalSel');
-    const btnFaturar = document.getElementById('btnFaturarMensal');
-    const feedback = document.getElementById('mensalFeedback');
+    const selectAll = document.getElementById('chkContasSelectAll');
+    const checkboxes = () => Array.from(document.querySelectorAll('.chk-conta:not(:disabled)'));
+    const checked = () => Array.from(document.querySelectorAll('.chk-conta:checked'));
+    const badge = document.getElementById('badgeContasSel');
+    const btnFaturar = document.getElementById('btnFaturarContas');
+    const feedback = document.getElementById('contasFeedback');
 
     function updateBadge() {
         const total = checked().length;
@@ -416,7 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.addEventListener('change', (ev) => {
-        if (ev.target.classList.contains('chk-mensal')) {
+        if (ev.target.classList.contains('chk-conta')) {
             if (selectAll && !ev.target.checked) selectAll.checked = false;
             updateBadge();
         }
@@ -428,7 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnFaturar.disabled = true;
         btnFaturar.classList.add('disabled');
         if (feedback) feedback.innerHTML = '';
-        fetch('processa_faturamento_mensal.php', {
+        fetch('processa_faturamento_mensal_contas.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ids })
@@ -457,4 +455,3 @@ document.addEventListener('DOMContentLoaded', () => {
     updateBadge();
 });
 </script>
-    <form method="post" class="card p-3 mb-3 shadow-sm border-0" id="form-faturamento-mensal">

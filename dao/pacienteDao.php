@@ -652,25 +652,37 @@ class PacienteDAO implements PacienteDAOInterface
             pa.nome_pac,
             pa.matricula_pac,
             pa.data_nasc_pac,
-            pa.recem_nascido_pac,
-            pa.numero_rn_pac
+            (
+                SELECT i2.senha_int
+                FROM tb_internacao i2
+                WHERE i2.fk_paciente_int = pa.id_paciente
+                ORDER BY i2.data_intern_int DESC, i2.id_internacao DESC
+                LIMIT 1
+            ) AS ultima_senha
         FROM tb_paciente pa
         WHERE
-            pa.deletado_pac <> 's' AND ( -- Adicionado filtro de deletado aqui também
-                pa.nome_pac LIKE :like1
+            pa.deletado_pac <> 's' AND (
+                pa.nome_pac LIKE :like_nome
                 OR CONCAT(
                     pa.matricula_pac,
                     CASE WHEN pa.recem_nascido_pac = 's' THEN 'RN' ELSE '' END,
                     IFNULL(pa.numero_rn_pac, '')
-                ) LIKE :like2
+                ) LIKE :like_matricula
+                OR EXISTS (
+                    SELECT 1
+                    FROM tb_internacao i
+                    WHERE i.fk_paciente_int = pa.id_paciente
+                    AND i.senha_int LIKE :like_senha
+                )
             )
         ORDER BY pa.nome_pac ASC
         LIMIT {$limit}
     ";
 
         $stmt = $this->conn->prepare($sql);
-        $stmt->bindValue(':like1', $like, PDO::PARAM_STR);
-        $stmt->bindValue(':like2', $like, PDO::PARAM_STR);
+        $stmt->bindValue(':like_nome', $like, PDO::PARAM_STR);
+        $stmt->bindValue(':like_matricula', $like, PDO::PARAM_STR);
+        $stmt->bindValue(':like_senha', $like, PDO::PARAM_STR);
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

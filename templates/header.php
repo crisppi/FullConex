@@ -119,7 +119,19 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
     }
 
     .header-actions #global-patient-search {
-        min-width: 220px;
+        min-width: 300px;
+        flex: 0 0 auto;
+    }
+
+    @media (max-width: 575.98px) {
+        .header-actions {
+            width: 100%;
+        }
+
+        .header-actions #global-patient-search {
+            min-width: 0;
+            width: 100%;
+        }
     }
     </style>
 </head>
@@ -398,7 +410,11 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                 <li><a class="dropdown-item" href="<?= $BASE_URL ?>faturamento_mensal.php"><i
                                             class="bi bi-calendar-range"
                                             style="font-size: 1rem;margin-right:5px; color:#0a6840;"></i>
-                                        Faturamento Mensal</a></li>
+                                        Faturamento Mensal Visitas</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>faturamento_mensal_contas.php"><i
+                                            class="bi bi-calendar3"
+                                            style="font-size: 1rem;margin-right:5px; color:#b35400;"></i>
+                                        Faturamento Mensal Contas</a></li>
                                 <li><a class="dropdown-item" href="<?= $BASE_URL ?>list_internacao_cap_fin.php"><i
                                             class="bi bi-card-checklist"
                                             style="font-size: 1rem;margin-right:5px; color:rgb(28, 118, 175);"></i>
@@ -468,7 +484,8 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
                         <input type="text" class="form-control" id="inp-search-paciente"
-                            placeholder="Pesquisar paciente" aria-label="Buscar paciente" />
+                            placeholder="Pesquisar por senha, matrícula ou nome"
+                            aria-label="Buscar por senha, matrícula ou nome" />
                     </div>
 
                     <div id="search-results-dropdown" class="dropdown-menu show"
@@ -693,7 +710,7 @@ function renderResults(items) {
     if (!items || !items.length) {
         const termo = $input.val().trim();
         $menu.html(`
-        <div class="dropdown-item text-muted">Nada encontrado</div>
+        <div class="dropdown-item text-muted">Nada encontrado. Tente outra senha, matrícula ou nome.</div>
         <a href="#" id="create-new-pac" class="dropdown-item d-flex justify-content-between align-items-center">
             <div>
                 <div><strong>Cadastrar novo paciente</strong></div>
@@ -705,17 +722,26 @@ function renderResults(items) {
         return;
     }
 
-    const html = items.map((p, idx) => `
+    const html = items.map((p, idx) => {
+        const metaParts = [];
+        if (p.senha) metaParts.push(`Senha: ${p.senha}`);
+        if (p.matricula) metaParts.push(`Matrícula: ${p.matricula}`);
+        if (p.nascimento_fmt) metaParts.push(`Nasc.: ${p.nascimento_fmt}`);
+        const meta = metaParts.length ? `<small class="text-muted">${metaParts.join(' • ')}</small>` : '';
+        const nome = p.nome || 'Paciente sem nome';
+
+        return `
         <a href="hub_paciente/paciente${encodeURIComponent(p.id_paciente)}"
             class="dropdown-item d-flex justify-content-between align-items-center ${idx === 0 ? 'active' : ''}"
             data-id="${p.id_paciente}">
             <div>
-                <div><strong>${p.matricula || '—'}</strong> — ${p.nome || ''}</div>
-                ${p.nascimento_fmt ? `<small class="text-muted">Nasc.: ${p.nascimento_fmt}</small>` : ''}
+                <div><strong>${nome}</strong></div>
+                ${meta}
             </div>
             <i class="bi bi-arrow-return-right"></i>
         </a>
-        `).join('');
+        `;
+    }).join('');
     $menu.html(html).show();
 }
 

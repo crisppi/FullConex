@@ -212,7 +212,7 @@ $condicoes = [
     strlen($pesquisa_nome) ? 'ho.nome_hosp LIKE "%' . $pesquisa_nome . '%"' : NULL,
     strlen($pesquisa_pac) ? 'pa.nome_pac LIKE "%' . $pesquisa_pac . '%"' : NULL,
     strlen($senha_int) ? 'senha_int LIKE "%' . $senha_int . '%"' : NULL,
-    strlen($senha_fin) ? 'encerrado_cap = "' . $encerrado_cap . '"' : NULL,
+    'encerrado_cap = "s"',
     strlen($med_check) ? 'med_check = "' . $med_check . '"' : NULL,
     strlen($enf_check) ? 'enfer_check = "' . $enf_check . '"' : NULL,
     strlen($adm_check) ? 'adm_check = "' . $adm_check . '"' : NULL,
@@ -269,7 +269,7 @@ if ($qtdIntItens > $limite) {
         <table class="table table-sm table-striped  table-hover table-condensed">
             <thead>
                 <tr>
-                    <th scope="col" style="width:4%">Reg</th>
+                    <th scope="col" style="width:4%">ID Conta</th>
                     <th scope="col" style="width:6%">Conta No.</th>
                     <th scope="col" style="width:23%">Hospital</th>
                     <th scope="col" style="width:23%">Paciente</th>
@@ -287,7 +287,7 @@ if ($qtdIntItens > $limite) {
                 ?>
                 <tr style="font-size:13px">
                     <td scope="row" class="col-id">
-                        <?= $intern["id_internacao"]; ?>
+                        <?= $intern["id_capeante"]; ?>
                     </td>
                     <td scope="row" class="col-id">
                         <?= $intern["id_capeante"]; ?>
