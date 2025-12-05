@@ -3,7 +3,7 @@ var idleTime = 0;
 
 function timerIncrement() {
     idleTime += 1;
-    if (idleTime >= 10) { // 10 minutos
+    if (idleTime >= 60) { // 60 minutos
         window.location.href = "index.php";
     }
 }
