@@ -11,12 +11,29 @@ class internacaoDAO implements internacaoDAOInterface
     private $conn;
     private $url;
     public $message;
+    private $hasHoraAltaColumn = null;
 
     public function __construct(PDO $conn, $url)
     {
         $this->conn = $conn;
         $this->url = $url;
         $this->message = new Message($url);
+    }
+
+    private function tbAltaHasHoraColumn()
+    {
+        if ($this->hasHoraAltaColumn !== null) {
+            return $this->hasHoraAltaColumn;
+        }
+
+        try {
+            $stmt = $this->conn->query("SHOW COLUMNS FROM tb_alta LIKE 'hora_alta_alt'");
+            $this->hasHoraAltaColumn = $stmt && $stmt->fetch() ? true : false;
+        } catch (Throwable $th) {
+            $this->hasHoraAltaColumn = false;
+        }
+
+        return $this->hasHoraAltaColumn;
     }
 
     public function buildinternacao($data)
@@ -2853,6 +2870,10 @@ class internacaoDAO implements internacaoDAOInterface
         $dir = strtoupper($dir) === 'ASC' ? 'ASC' : 'DESC';
 
         // Campos essenciais para a lista (ajuste conforme seu front precisa)
+        $horaAltaSelect = $this->tbAltaHasHoraColumn()
+            ? 'al.hora_alta_alt AS hora_alta_alt'
+            : 'NULL AS hora_alta_alt';
+
         $sql = "SELECT
                 ac.id_internacao,
                 ac.senha_int,
@@ -2868,7 +2889,7 @@ class internacaoDAO implements internacaoDAOInterface
                 ac.grupo_patologia_int,
                 ho.nome_hosp,
                 al.data_alta_alt,
-                al.hora_alta_alt,
+                {$horaAltaSelect},
                 count(pr.fk_internacao_pror) as prorrogacoes
             FROM tb_internacao ac
             LEFT JOIN tb_hospital ho ON ho.id_hospital = ac.fk_hospital_int

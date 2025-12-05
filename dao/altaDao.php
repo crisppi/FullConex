@@ -11,12 +11,29 @@
         private $conn;
         private $url;
         public $message;
+        private $hasHoraAltaColumn = null;
 
         public function __construct(PDO $conn, $url)
         {
             $this->conn = $conn;
             $this->url = $url;
             $this->message = new Message($url);
+        }
+
+        private function ensureHoraAltaColumn()
+        {
+            if ($this->hasHoraAltaColumn !== null) {
+                return $this->hasHoraAltaColumn;
+            }
+
+            try {
+                $stmt = $this->conn->query("SHOW COLUMNS FROM tb_alta LIKE 'hora_alta_alt'");
+                $this->hasHoraAltaColumn = $stmt && $stmt->fetch() ? true : false;
+            } catch (Throwable $th) {
+                $this->hasHoraAltaColumn = false;
+            }
+
+            return $this->hasHoraAltaColumn;
         }
 
         public function buildalta($data)
@@ -56,14 +73,14 @@
         // METODO PARA CRIAR NOVA INTERNACAO EM ALTA ********** concluir *******
         public function create(alta $alta)
         {
-            $stmt = $this->conn->prepare("INSERT INTO tb_alta (
+            $hasHora = $this->ensureHoraAltaColumn();
+            $sql = "INSERT INTO tb_alta (
         fk_id_int_alt,
         tipo_alta_alt, 
         internado_alt,
         usuario_alt,
         data_create_alt,
-        data_alta_alt,
-        hora_alta_alt,
+        data_alta_alt" . ($hasHora ? ",\n        hora_alta_alt" : "") . ",
         fk_usuario_alt
         
       ) VALUES (
@@ -72,17 +89,20 @@
         :internado_alt,
         :usuario_alt,
         :data_create_alt,
-        :data_alta_alt,
-        :hora_alta_alt,
+        :data_alta_alt" . ($hasHora ? ",\n        :hora_alta_alt" : "") . ",
         :fk_usuario_alt
 
-     )");
+     )";
+
+            $stmt = $this->conn->prepare($sql);
 
             $stmt->bindParam(":fk_id_int_alt", $alta->fk_id_int_alt);
             $stmt->bindParam(":tipo_alta_alt", $alta->tipo_alta_alt);
             $stmt->bindParam(":internado_alt", $alta->internado_alt);
             $stmt->bindParam(":data_alta_alt", $alta->data_alta_alt);
-            $stmt->bindParam(":hora_alta_alt", $alta->hora_alta_alt);
+            if ($hasHora) {
+                $stmt->bindParam(":hora_alta_alt", $alta->hora_alta_alt);
+            }
             $stmt->bindParam(":usuario_alt", $alta->usuario_alt);
             $stmt->bindParam(":data_create_alt", $alta->data_create_alt);
             $stmt->bindParam(":fk_usuario_alt", $alta->fk_usuario_alt);

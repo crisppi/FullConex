@@ -47,7 +47,59 @@
     return null;
   };
 
-  const fmtDateBr = (d) => (d && d !== '0000-00-00' ? d : '—');
+  const pad2 = (v) => String(v).padStart(2, '0');
+  const normalizeDatePart = (val) => {
+    if (!val) return null;
+    if (val instanceof Date) {
+      return `${pad2(val.getDate())}/${pad2(val.getMonth() + 1)}/${val.getFullYear()}`;
+    }
+    const str = String(val).trim();
+    if (!str || str === '0000-00-00') return null;
+    const iso = str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (iso) return `${iso[3]}/${iso[2]}/${iso[1]}`;
+    const isoDt = str.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+    if (isoDt) return `${isoDt[3]}/${isoDt[2]}/${isoDt[1]}`;
+    const br = str.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (br) return `${br[1]}/${br[2]}/${br[3]}`;
+    const parsed = new Date(str.replace(' ', 'T'));
+    if (!Number.isNaN(parsed.getTime())) return `${pad2(parsed.getDate())}/${pad2(parsed.getMonth() + 1)}/${parsed.getFullYear()}`;
+    return str; // fallback: devolve como veio
+  };
+
+  const normalizeTimePart = (val) => {
+    if (!val) return '';
+    if (val instanceof Date) return `${pad2(val.getHours())}:${pad2(val.getMinutes())}`;
+    const str = String(val).trim();
+    if (!str || str === '00:00:00') return '';
+    const m = str.match(/(\d{1,2}):(\d{2})/);
+    if (m) return `${pad2(m[1])}:${m[2]}`;
+    return '';
+  };
+
+  const formatDateTimeBr = (dateVal, timeVal = null) => {
+    if (!dateVal) return '—';
+    let datePart = dateVal;
+    let timePart = timeVal;
+
+    if (typeof dateVal === 'string') {
+      const trimmed = dateVal.trim();
+      if (!trimmed) return '—';
+      if (!timePart && trimmed.includes(' ')) {
+        const [d, t] = trimmed.replace('T', ' ').split(/\s+/, 2);
+        datePart = d;
+        timePart = timePart ?? t;
+      } else {
+        datePart = trimmed.replace(/T.+$/, '');
+      }
+    }
+
+    const dateStr = normalizeDatePart(datePart);
+    if (!dateStr) return '—';
+    const timeStr = normalizeTimePart(timePart);
+    return `${dateStr}${timeStr ? ` ${timeStr}` : ''}`;
+  };
+
+  const fmtDateBr = (d) => formatDateTimeBr(d);
   const parseIsoDate = (iso) => {
     if (!iso) return null;
     const dt = new Date(`${iso}T00:00:00Z`);
@@ -137,6 +189,8 @@
 
       const adm = row.admissao ?? row.data_intern_int ?? row.data_admissao ?? row.data ?? '';
       const alta = row.alta ?? row.data_alta_alt ?? row.data_alta ?? '';
+      const admDisplay = formatDateTimeBr(adm, row.hora_admissao ?? row.hora_intern_int ?? row.hora ?? null);
+      const altaDisplay = formatDateTimeBr(alta, row.hora_alta ?? row.hora_alta_alt ?? null);
       const unidade = row.unidade ?? row.nome_hosp ?? row.hospital ?? row.estabelecimento ?? '—';
       const leito = row.leito ?? row.acomodacao_int ?? row.acomodacao ?? '';
       const medico = row.medico ?? row.medico_responsavel ?? row.crm_int ?? row.crm ?? '—';
@@ -157,8 +211,8 @@
       tr.innerHTML = `
         <td>${esc(iid)}</td>
         <td>${esc(senha || '—')}</td>
-        <td>${fmtDateBr(adm)}</td>
-        <td>${fmtDateBr(alta)}</td>
+        <td>${admDisplay}</td>
+        <td>${altaDisplay}</td>
         <td>${esc(unidade)}${leito ? ' / ' + esc(leito) : ''}</td>
         <td>${esc(medico)}</td>
         <td>${esc(status)}</td>
@@ -342,11 +396,14 @@
     const int = data.internacao_atual;
     const isAlta = String(int?.status || '').toLowerCase() === 'alta';
 
+    const admResumo = int ? formatDateTimeBr(int.data || int.data_admissao || int.data_intern_int, int.hora ?? null) : null;
+    const altaResumo = int?.alta ? formatDateTimeBr(int.alta, int.hora_alta ?? null) : null;
+
     const intBody = int ? `
       <div class="small text-secondary mb-1">ID: ${esc(int.id_internacao)}</div>
       <div class="mb-1"><span class="badge badge-soft ${isAlta ? 'text-success' : 'text-warning'}">${esc(int.status || '—')}</span></div>
-      <div>Admissão: ${fmtDateBr(int.data || int.data_admissao || int.data_intern_int)} ${int.hora ? ('às ' + esc(int.hora)) : ''}</div>
-      ${int.alta ? `<div>Alta: ${fmtDateBr(int.alta)} ${int.hora_alta ? ('às ' + esc(int.hora_alta)) : ''}</div>` : ''}
+      <div>Admissão: ${admResumo || '—'}</div>
+      ${altaResumo ? `<div>Alta: ${altaResumo}</div>` : ''}
       <div>Acomodação: ${esc(int.acomodacao || int.acomodacao_int || '—')}</div>
       <div>Especialidade: ${esc(int.especialidade || int.especialidade_int || '—')}</div>
     ` : `
