@@ -61,7 +61,7 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
                         onchange="handleRecemNascidoChange()">
                         <option value="">Selecione</option>
                         <option value="s">Sim</option>
-                        <option value="n">Não</option>
+                        <option value="n" selected>Não</option>
                     </select>
                 </div>
                 <!-- <div class="invalid-feedback" id="validar_matricula_rn" style="display: none;">

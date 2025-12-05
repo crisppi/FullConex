@@ -16,4 +16,19 @@ $(document).ready(function () {
     $inputs.on('focus blur input change', function () {
         atualizarEstilos();
     });
+
+    const $allSelects = $('select');
+
+    function togglePlaceholderClass(el) {
+        const hasValue = $(el).val() && $(el).val().toString().trim() !== '';
+        $(el).toggleClass('select-placeholder-empty', !hasValue);
+    }
+
+    $allSelects.each(function () {
+        togglePlaceholderClass(this);
+    });
+
+    $allSelects.on('change input', function () {
+        togglePlaceholderClass(this);
+    });
 });

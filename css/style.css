@@ -922,3 +922,32 @@ form#form-capeante-rah {
         grid-template-columns: minmax(280px, 2fr) 120px 180px 180px 180px 1.2fr;
     }
 }
+/* Placeholder e option padrão "Selecione" */
+select option[value=""],
+select option[disabled],
+input::placeholder,
+textarea::placeholder {
+    color: #b3b3b3 !important;
+    opacity: 1;
+}
+
+select.select-placeholder-empty {
+    color: #9c9c9c !important;
+    font-size: 0.9em !important;
+    font-style: italic;
+}
+
+select.select-placeholder-empty option {
+    color: #333 !important;
+    font-style: normal;
+}
+
+select.select-placeholder-empty option[value=""] {
+    color: #9c9c9c !important;
+    font-style: italic;
+}
+
+select:invalid,
+input:invalid {
+    color: #555;
+}
