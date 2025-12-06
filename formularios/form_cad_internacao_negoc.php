@@ -39,30 +39,33 @@
 }
 
 #container-negoc .adicional-card {
-    background:#fff;
-    border-radius:22px;
-    border:1px solid #ebe1f5;
-    box-shadow:0 12px 28px rgba(45,18,70,.08);
-    padding:22px 24px;
+    background: #fff;
+    border-radius: 22px;
+    border: 1px solid #ebe1f5;
+    box-shadow: 0 12px 28px rgba(45, 18, 70, .08);
+    padding: 22px 24px;
 }
+
 #container-negoc .adicional-card__header {
-    display:flex;
-    align-items:center;
-    margin-bottom:18px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 18px;
 }
+
 #container-negoc .adicional-card__title {
-    display:flex;
-    align-items:center;
-    margin:0;
-    color:#2f1846;
-    font-weight:600;
+    display: flex;
+    align-items: center;
+    margin: 0;
+    color: #2f1846;
+    font-weight: 600;
 }
+
 #container-negoc .adicional-card__marker {
-    width:6px;
-    height:26px;
-    border-radius:10px;
-    margin-right:12px;
-    background:linear-gradient(180deg,#b169d9,#d199ff);
+    width: 6px;
+    height: 26px;
+    border-radius: 10px;
+    margin-right: 12px;
+    background: linear-gradient(180deg, #b169d9, #d199ff);
 }
 </style>
 
@@ -76,7 +79,8 @@
         </div>
 
         <input type="hidden" readonly class="form-control" id="fk_id_int" value="<?= $ultimoReg ?>" name="fk_id_int">
-        <input type="hidden" class="form-control" value="<?= $_SESSION["id_usuario"] ?>" id="fk_usuario_neg"
+        <input type="hidden" class="form-control"
+            value="<?= htmlspecialchars($_SESSION["id_usuario"] ?? '', ENT_QUOTES, 'UTF-8') ?>" id="fk_usuario_neg"
             name="fk_usuario_neg">
 
         <div id="negotiationFieldsContainer" style="margin:5px;">
@@ -118,7 +122,7 @@
                     <select onchange="generateNegotiationsJSON()" name="troca_de" class="form-control">
                         <option value=""> </option>
                         <?php sort($dados_acomodacao, SORT_ASC);
-          foreach ($dados_acomodacao as $acomd) { ?>
+                        foreach ($dados_acomodacao as $acomd) { ?>
                         <option value="<?= $acomd; ?>"><?= $acomd; ?></option>
                         <?php } ?>
                     </select>
@@ -129,7 +133,7 @@
                     <select onchange="generateNegotiationsJSON()" name="troca_para" class="form-control">
                         <option value=""> </option>
                         <?php sort($dados_acomodacao, SORT_ASC);
-          foreach ($dados_acomodacao as $acomd) { ?>
+                        foreach ($dados_acomodacao as $acomd) { ?>
                         <option value="<?= $acomd; ?>"><?= $acomd; ?></option>
                         <?php } ?>
                     </select>
@@ -294,7 +298,7 @@ function addNegotiationField() {
         <select onchange="generateNegotiationsJSON()" name="troca_de" class="form-control">
           <option value=""> </option>
           <?php sort($dados_acomodacao, SORT_ASC);
-          foreach ($dados_acomodacao as $acomd) { ?>
+            foreach ($dados_acomodacao as $acomd) { ?>
             <option value="<?= $acomd; ?>"><?= $acomd; ?></option>
           <?php } ?>
         </select>
@@ -305,7 +309,7 @@ function addNegotiationField() {
         <select onchange="generateNegotiationsJSON()" name="troca_para" class="form-control">
           <option value=""> </option>
           <?php sort($dados_acomodacao, SORT_ASC);
-          foreach ($dados_acomodacao as $acomd) { ?>
+            foreach ($dados_acomodacao as $acomd) { ?>
             <option value="<?= $acomd; ?>"><?= $acomd; ?></option>
           <?php } ?>
         </select>
@@ -360,7 +364,7 @@ function generateNegotiationsJSON() {
         const dataInicio = dataInicioNegoc?.value || null;
         const dataFim = dataFimNegoc?.value || null;
 
-        if (!valorTrocaDe || !valorTrocaPara || !qtd || !tipo || !dataInicio || !dataFim) return null;
+        if (!tipo || !dataInicio || !dataFim || !qtd) return null;
 
         return {
             fk_id_int: fkIdInt,
@@ -423,6 +427,13 @@ document.addEventListener('DOMContentLoaded', function() {
     if (first) {
         const minus = first.querySelector('.btn-remove');
         if (minus) minus.remove();
+    }
+
+    const formInternacao = document.getElementById('myForm');
+    if (formInternacao) {
+        formInternacao.addEventListener('submit', () => {
+            generateNegotiationsJSON();
+        });
     }
 
     // Delegação: toda vez que mudar o tipo_negociacao, aplicamos a regra de TROCA
