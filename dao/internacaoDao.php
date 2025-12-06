@@ -2772,6 +2772,29 @@ class internacaoDAO implements internacaoDAOInterface
         return $findMaxGesInt;
     }
 
+    public function senhaExists($senha, $ignoreId = null)
+    {
+        if ($senha === null || $senha === '') {
+            return false;
+        }
+
+        $sql = "SELECT id_internacao FROM tb_internacao WHERE senha_int = :senha";
+        if ($ignoreId) {
+            $sql .= " AND id_internacao <> :ignore";
+        }
+        $sql .= " LIMIT 1";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(":senha", $senha, PDO::PARAM_STR);
+        if ($ignoreId) {
+            $stmt->bindValue(":ignore", $ignoreId, PDO::PARAM_INT);
+        }
+        $stmt->execute();
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ? true : false;
+    }
+
     public function checkInternAtiva($id_paciente)
     {
 

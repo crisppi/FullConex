@@ -977,6 +977,29 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
         </div>
     </div>
 </div>
+<!-- Modal senha duplicada -->
+<div class="modal fade" id="modalSenhaDuplicada" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                    Senha já cadastrada
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <p id="modalSenhaDuplicadaTexto" class="mb-0">
+                    Esta senha já está vinculada a outra internação. Informe uma senha diferente.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Ok</button>
+            </div>
+        </div>
+    </div>
+</div>
 <?php if (!empty($id_paciente_get)): ?>
 <script>
 (function preselectPaciente() {
@@ -1401,6 +1424,13 @@ $("#myForm").submit(function(event) {
         $("#hospital_selected").css("border", "2px solid green"); // Muda para verde se estava vermelha
     }
 
+    if (typeof window.isSenhaDuplicada === 'function' && window.isSenhaDuplicada()) {
+        $('#alert').removeClass("alert-success").addClass("alert-danger");
+        $('#alert').fadeIn().html("Esta senha já está cadastrada para outra internação.");
+        setTimeout(function() { $('#alert').fadeOut('Slow'); }, 3500);
+        return;
+    }
+
     const cadCentralObrig = document.getElementById('cad_central_obrigatorio')?.value === '1';
     if (cadCentralObrig) {
         const respTipoEl = document.getElementById('resp_tipo');
@@ -1452,6 +1482,12 @@ $("#myForm").submit(function(event) {
             if (resposta === 'retroativa_sem_alta') {
                 $('#alert').removeClass("alert-success").addClass("alert-danger");
                 $('#alert').fadeIn().html("Para retroativa, marque 'Internado = Não' e informe a data/motivo da alta.");
+                setTimeout(function() { $('#alert').fadeOut('Slow'); }, 3500);
+                return;
+            }
+            if (resposta === 'senha_duplicada') {
+                $('#alert').removeClass("alert-success").addClass("alert-danger");
+                $('#alert').fadeIn().html("Esta senha já está cadastrada para outra internação.");
                 setTimeout(function() { $('#alert').fadeOut('Slow'); }, 3500);
                 return;
             }
@@ -1784,6 +1820,52 @@ document.addEventListener('DOMContentLoaded', function() {
         if (pacienteSelect) {
             consultarInternacaoAtiva(pacienteSelect.value, false);
         }
+    };
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    var senhaInput = document.getElementById('senha_int');
+    var senhaModalEl = document.getElementById('modalSenhaDuplicada');
+    var senhaModal = senhaModalEl ? new bootstrap.Modal(senhaModalEl) : null;
+    var senhaTexto = document.getElementById('modalSenhaDuplicadaTexto');
+    var senhaDuplicadaFlag = false;
+
+    function verificarSenhaDuplicada(valor) {
+        if (!valor) {
+            senhaDuplicadaFlag = false;
+            return;
+        }
+        fetch('ajax/check_senha_internacao.php?senha=' + encodeURIComponent(valor))
+            .then(function(resp) { return resp.json(); })
+            .then(function(data) {
+                if (data && data.success && data.exists) {
+                    senhaDuplicadaFlag = true;
+                    if (senhaTexto) {
+                        senhaTexto.textContent = 'A senha "' + valor +
+                            '" já está vinculada a outra internação. Informe uma senha diferente.';
+                    }
+                    if (senhaModal) senhaModal.show();
+                } else {
+                    senhaDuplicadaFlag = false;
+                }
+            })
+            .catch(function(err) {
+                console.error('Erro ao verificar senha:', err);
+            });
+    }
+
+    if (senhaInput) {
+        senhaInput.addEventListener('blur', function() {
+            var valor = (this.value || '').trim();
+            if (valor) verificarSenhaDuplicada(valor);
+        });
+        senhaInput.addEventListener('input', function() {
+            senhaDuplicadaFlag = false;
+        });
+    }
+
+    window.isSenhaDuplicada = function() {
+        return senhaDuplicadaFlag;
     };
 });
 

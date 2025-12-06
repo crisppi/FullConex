@@ -146,6 +146,14 @@ if ($type === "create") {
     $programacao_int = substr($programacao_int, 0, 5000);
 
     $senha_int = filter_input(INPUT_POST, "senha_int");
+    if ($senha_int && $internacaoDao->senhaExists($senha_int, $id_internacao)) {
+        echo "senha_duplicada";
+        exit;
+    }
+    if ($senha_int && $internacaoDao->senhaExists($senha_int)) {
+        echo "senha_duplicada";
+        exit;
+    }
 
     $usuario_create_int = filter_input(INPUT_POST, "usuario_create_int");
     $data_create_int = filter_input(INPUT_POST, "data_create_int") ?: null;

@@ -44,6 +44,8 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar
 $sortField = trim($_GET['sort_field'] ?? '');
 $sortDir   = strtolower($_GET['sort_dir'] ?? 'desc');
 $sortDir   = $sortDir === 'asc' ? 'asc' : 'desc';
+$onlySemSenhaParam = filter_input(INPUT_GET, 'sem_senha', FILTER_SANITIZE_SPECIAL_CHARS);
+$onlySemSenha = in_array($onlySemSenhaParam, ['1', 1, 'true', 'on'], true);
 
 $hospital_geral = new HospitalDAO($conn, $BASE_URL);
 $patologiaDao   = new patologiaDAO($conn, $BASE_URL);
@@ -197,7 +199,9 @@ if (typeof jQuery !== 'undefined') {
 <div class="container-fluid" id='main-container'>
 
     <div class="d-flex justify-content-between align-items-center" style="margin-bottom: 10px;">
-        <h4 class="page-title" style="color: #3A3A3A;">Listagem - Internação</h4>
+        <h4 class="page-title" style="color: #3A3A3A;">
+            <?= $onlySemSenha ? 'Internações com senha pendente' : 'Listagem - Internação' ?>
+        </h4>
 
         <?php
         // valores default para montagem de URL / filtros
@@ -308,6 +312,7 @@ if (typeof jQuery !== 'undefined') {
                 </div>
 
                 <input type="hidden" name="pesqInternado" value="<?= htmlspecialchars((string)$pesqInternado) ?>">
+                <input type="hidden" name="sem_senha" value="<?= $onlySemSenha ? '1' : '0' ?>">
                 <input type="hidden" name="sort_field" value="<?= htmlspecialchars((string)$sortField) ?>">
                 <input type="hidden" name="sort_dir" value="<?= htmlspecialchars((string)$sortDir) ?>">
             </form>
@@ -343,8 +348,9 @@ if (typeof jQuery !== 'undefined') {
             strlen($pesquisa_pac)        ? 'pa.nome_pac LIKE "%' . $pesquisa_pac . '%"'                    : null,
             strlen($pesqInternado)       ? 'internado_int = "' . $pesqInternado . '"'                      : null,
             strlen($data_intern_int)     ? 'data_intern_int BETWEEN "' . $data_intern_int . '" AND "' . $data_intern_int_max . '"' : null,
-            strlen($senha_int)           ? 'senha_int LIKE "%' . $senha_int . '%"'                         : null,
+            strlen($senha_int)           ? 'ac.senha_int LIKE "%' . $senha_int . '%"'                         : null,
             strlen($auditor)             ? 'hos.fk_usuario_hosp = "' . $auditor . '"'                      : null,
+            $onlySemSenha ? '(ac.senha_int IS NULL OR TRIM(ac.senha_int) = "")' : null,
         ];
 
         $condicoes = array_filter($condicoes);
@@ -413,6 +419,7 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
             'ordenar'             => $ordenar,
             'sort_field'          => $sortField,
             'sort_dir'            => $sortDir,
+            'sem_senha'           => $onlySemSenha ? '1' : null,
         ];
 
         if (!function_exists('buildInternacaoPaginationUrl')) {

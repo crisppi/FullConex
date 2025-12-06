@@ -398,10 +398,14 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                             class="bi bi-postcard-heart"
                                             style="font-size:  1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
                                         Ciclo do Paciente</a></li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>lista_visitas.php"><i
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>lista_visitas.php"><i
                                             class="bi bi-postcard-heart"
                                             style="font-size:  1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
                                         Lista de Visitas</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>list_internacao_sem_senha.php?sem_senha=1"><i
+                                            class="bi bi-shield-exclamation"
+                                            style="font-size:  1rem;margin-right:5px; color:#d63384;"></i>
+                                        Internações sem senha</a></li>
 
                             </ul>
                         </li>
