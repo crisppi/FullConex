@@ -123,6 +123,10 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
         flex: 0 0 auto;
     }
 
+    #search-results-dropdown {
+        z-index: 2000;
+    }
+
     #search-results-dropdown .dropdown-item {
         white-space: normal;
         line-height: 1.2;
@@ -329,7 +333,12 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                 <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_alta.php"><span
                                             id="boot-icon3" class="bi bi-postcard-heart"
                                             style="font-size: 1rem; margin-right:5px; color: rgb(16, 15, 155);"></span>
-                                        Altas</a>
+                                        Reverter altas</a>
+                                </li>
+                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_gerar_alta.php"><span
+                                            class="bi bi-clipboard-check"
+                                            style="font-size: 1rem; margin-right:5px; color: rgb(9, 132, 227);"></span>
+                                        Gerar altas</a>
                                 </li>
                             </ul>
                         </li>
@@ -390,7 +399,11 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                 <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_alta.php"><i
                                             class="bi bi-postcard-heart"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
-                                        Altas</a></li>
+                                        Reverter altas</a></li>
+                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_gerar_alta.php"><i
+                                            class="bi bi-clipboard-check"
+                                            style="font-size: 1rem;margin-right:5px; color: rgb(9,132,227);"></i>
+                                        Gerar altas</a></li>
                                 <li>
                                     <hr class="dropdown-divider">
                                 </li>
@@ -619,15 +632,15 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
 </body>
 <script src="js/fix-header.js"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous">
-</script>
 <!-- Jquery JS-->
 <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
 
 <!-- Bootstrap JS-->
 <script src="./diversos/CoolAdmin-master/vendor/bootstrap-4.1/popper.min.js"></script>
 <script src="./diversos/CoolAdmin-master/vendor/bootstrap-4.1/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4"
+    crossorigin="anonymous"></script>
 <!-- Vendor JS       -->
 <script src="./diversos/CoolAdmin-master/vendor/slick/slick.min.js">
 </script>
