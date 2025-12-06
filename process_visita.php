@@ -370,6 +370,61 @@ function processProrrogacoesEntries(
 // ======================================================================
 $type = filter_input(INPUT_POST, "type"); // create | update | delete (delete pode vir por GET no seu fluxo)
 
+if ($type === "delete") {
+    if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+    $idVisitaDelete = toIntOrNull($_POST['id_visita'] ?? $_GET['id_visita'] ?? null);
+    $redirectRaw    = strOrNull($_POST['redirect'] ?? $_GET['redirect'] ?? '');
+    $redirectUrl    = $redirectRaw ?: ($BASE_URL . "internacoes/lista");
+    $isAjax         = strtolower($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'xmlhttprequest' || isset($_POST['ajax']) || isset($_GET['ajax']);
+
+    $respond = function (array $payload, bool $ajax) use ($redirectUrl) {
+        if ($ajax) {
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode($payload);
+        } else {
+            header("Location: " . ($payload['redirect'] ?? $redirectUrl));
+        }
+        exit;
+    };
+
+    if (!$idVisitaDelete) {
+        $respond(['success' => false, 'message' => 'Visita inválida.'], $isAjax);
+    }
+
+    $visitaAtualObj = $visitaDao->findById($idVisitaDelete);
+    if (!$visitaAtualObj) {
+        $respond(['success' => false, 'message' => 'Visita não localizada.'], $isAjax);
+    }
+    $visitaAtual = get_object_vars($visitaAtualObj);
+    if (!empty($visitaAtual['retificado'])) {
+        $respond(['success' => false, 'message' => 'Visita já está desativada.'], $isAjax);
+    }
+
+    try {
+        $ok = $visitaDao->marcarRetificadoPorId($idVisitaDelete);
+        if (!$ok) {
+            throw new RuntimeException('Falha ao desativar visita.');
+        }
+        $novoEstado = $visitaAtual;
+        $novoEstado['retificado'] = 1;
+        $usuarioId = $_SESSION['id_usuario'] ?? null;
+        $usuarioNome = $_SESSION['nome_user'] ?? ($_SESSION['email_user'] ?? null);
+        $visitaDao->logAlteracao($visitaAtual, $novoEstado, $usuarioId ? (int)$usuarioId : null, $usuarioNome);
+
+        $_SESSION['mensagem'] = "Visita removida com sucesso.";
+        $_SESSION['mensagem_tipo'] = "success";
+
+        $respond([
+            'success'  => true,
+            'redirect' => $redirectUrl,
+            'message'  => 'Visita removida com sucesso.'
+        ], $isAjax);
+    } catch (Throwable $e) {
+        error_log("Erro ao remover visita {$idVisitaDelete}: " . $e->getMessage());
+        $respond(['success' => false, 'message' => 'Não foi possível remover a visita.'], $isAjax);
+    }
+}
+
 // ----------------------------------------------------------------------
 // CREATE
 // ----------------------------------------------------------------------

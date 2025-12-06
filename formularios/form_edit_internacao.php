@@ -205,9 +205,16 @@
 
     $tuss_int = new tussDAO($conn, $BASE_URL);
 
-    $id_internacao = filter_input(INPUT_GET, 'id_internacao') ? filter_input(INPUT_GET, 'id_internacao') : 1;
+$id_internacao = filter_input(INPUT_GET, 'id_internacao') ? filter_input(INPUT_GET, 'id_internacao') : 1;
 
-    $intern = $internacaoDao->findByIdArray($id_internacao)[0];
+$intern = $internacaoDao->findByIdArray($id_internacao)[0];
+$dataLancamentoAtual = '';
+if (!empty($intern['data_lancamento_int']) && $intern['data_lancamento_int'] !== '0000-00-00 00:00:00') {
+    $tsLanc = strtotime($intern['data_lancamento_int']);
+    if ($tsLanc) {
+        $dataLancamentoAtual = date('Y-m-d\TH:i', $tsLanc);
+    }
+}
     $int_paciente = $pacienteDao->findById($intern['fk_paciente_int']);
     $int_patologia = $patologiaDao->findById($intern['fk_patologia_int']);
     $int_antecedente = $patologiaDao->findById($intern['fk_patologia2']);
@@ -292,6 +299,12 @@
                         <label class="control-label" for="hora_intern_int">Hora</label>
                         <input type="time" class="form-control form-control-sm" id="hora_intern_int"
                             name="hora_intern_int" value="<?= date('H:i', strtotime($intern['hora_intern_int'])); ?>">
+                    </div>
+
+                    <div class="form-group col-sm-2 mb-2">
+                        <label class="control-label" for="data_lancamento_int">Data lançamento</label>
+                        <input type="datetime-local" class="form-control form-control-sm" id="data_lancamento_int"
+                            name="data_lancamento_int" value="<?= $dataLancamentoAtual ?>">
                     </div>
 
                     <!-- Data Visita -->

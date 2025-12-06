@@ -289,19 +289,27 @@ $nextUrl     = "{$baseUrlSelf}?{$queryBase}&vpage=" . min($pages, $vpage + 1); /
                 <!-- Timeline -->
                 <div class="tab-pane fade" id="tab-timeline" role="tabpanel">
                     <?php if ($timeline && count($timeline) > 0): ?>
-                        <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
                             <div class="small text-secondary">
                                 Mostrando
                                 <strong><?= $offset + 1 ?></strong>–<strong><?= min($offset + $pageSize, $total_intern) ?></strong>
                                 de <strong><?= $total_intern ?></strong> visitas desta internação
                             </div>
-                            <div class="btn-group btn-group-sm" role="group" aria-label="pager">
-                                <a class="btn btn-outline-secondary <?= $vpage <= 1 ? 'disabled' : '' ?>"
-                                    href="<?= safe($prevUrl) ?>">‹ Mais antigas</a>
-                                <span class="btn btn-outline-secondary disabled">Página
-                                    <?= (int)$vpage ?>/<?= (int)$pages ?></span>
-                                <a class="btn btn-outline-secondary <?= $vpage >= $pages ? 'disabled' : '' ?>"
-                                    href="<?= safe($nextUrl) ?>">Mais recentes ›</a>
+                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                                <?php if (empty($v['retificado']) && $total_intern > 1): ?>
+                                    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal"
+                                        data-bs-target="#modalDeleteVisita" data-delete-visita="<?= (int) $id_visita_row ?>">
+                                        <i class="fa-solid fa-trash-can me-1"></i>Remover visita
+                                    </button>
+                                <?php endif; ?>
+                                <div class="btn-group btn-group-sm" role="group" aria-label="pager">
+                                    <a class="btn btn-outline-secondary <?= $vpage <= 1 ? 'disabled' : '' ?>"
+                                        href="<?= safe($prevUrl) ?>">‹ Mais antigas</a>
+                                    <span class="btn btn-outline-secondary disabled">Página
+                                        <?= (int)$vpage ?>/<?= (int)$pages ?></span>
+                                    <a class="btn btn-outline-secondary <?= $vpage >= $pages ? 'disabled' : '' ?>"
+                                        href="<?= safe($nextUrl) ?>">Mais recentes ›</a>
+                                </div>
                             </div>
                         </div>
 
@@ -333,10 +341,12 @@ $nextUrl     = "{$baseUrlSelf}?{$queryBase}&vpage=" . min($pages, $vpage + 1); /
                                     $hosp        = $t['nome_hosp'] ?? '';
                                     $isCurrent   = ((int)$id_visita_row === $idv);
                                     $rel_html    = safe($t['rel_visita_vis'] ?? '');
+                                    $retificadoFlag = !empty($t['retificado']);
                                 ?>
                                     <a class="ht-marker <?= $isCurrent ? 'active' : '' ?><?= $edgeCls ?>" href="#"
                                         style="left: <?= $pos ?>%;" data-id="<?= $idv ?>" data-date="<?= safe($label) ?>"
                                         data-user="<?= safe($responsavel) ?>" data-hosp="<?= safe($hosp) ?>"
+                                        data-retificado="<?= $retificadoFlag ? '1' : '0' ?>"
                                         data-rel="<?= $rel_html ?>">
                                         <span class="ht-label"><?= safe($label) ?></span>
                                         <span class="ht-dot"></span>
@@ -361,15 +371,22 @@ $nextUrl     = "{$baseUrlSelf}?{$queryBase}&vpage=" . min($pages, $vpage + 1); /
                                         <i class="fa-regular fa-clipboard me-2"></i>
                                         Relatório da visita <span id="tl-id" class="badge bg-secondary"></span>
                                     </h6>
-                                    <div class="small text-secondary">
-                                        <i class="fa-regular fa-calendar me-1"></i><span id="tl-date"></span>
-                                        <span id="tl-sep1" style="display:none;"> • </span>
-                                        <i class="fa-solid fa-user-nurse ms-2 me-1"></i><span id="tl-user"></span>
-                                        <span id="tl-sep2" style="display:none;"> • </span>
-                                        <i class="fa-solid fa-hospital ms-2 me-1"></i><span id="tl-hosp"></span>
-                                        <span id="tl-sep3" style="display:none;"> • </span>
-                                        <span id="tl-total-wrap" style="display:none;">Total visitas: <span
-                                                id="tl-total"></span></span>
+                                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                                        <div class="small text-secondary">
+                                            <i class="fa-regular fa-calendar me-1"></i><span id="tl-date"></span>
+                                            <span id="tl-sep1" style="display:none;"> • </span>
+                                            <i class="fa-solid fa-user-nurse ms-2 me-1"></i><span id="tl-user"></span>
+                                            <span id="tl-sep2" style="display:none;"> • </span>
+                                            <i class="fa-solid fa-hospital ms-2 me-1"></i><span id="tl-hosp"></span>
+                                            <span id="tl-sep3" style="display:none;"> • </span>
+                                            <span id="tl-total-wrap" style="display:none;">Total visitas: <span
+                                                    id="tl-total"></span></span>
+                                        </div>
+                                        <button type="button" id="tl-delete-btn" class="btn btn-outline-danger btn-sm d-none"
+                                            data-bs-toggle="modal" data-bs-target="#modalDeleteVisita"
+                                            data-delete-visita="<?= (int) $id_visita_row ?>">
+                                            <i class="fa-solid fa-trash-can me-1"></i>Remover
+                                        </button>
                                     </div>
                                 </div>
                                 <div id="tl-rel" class="text-body" style="white-space: pre-line;"></div>
@@ -402,6 +419,26 @@ $nextUrl     = "{$baseUrlSelf}?{$queryBase}&vpage=" . min($pages, $vpage + 1); /
                         Voltar
                     </a>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalDeleteVisita" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger"><i class="fa-solid fa-triangle-exclamation me-2"></i>Remover visita</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza de que deseja remover esta visita? Essa ação não exclui os dados do banco,
+                    mas a visita deixará de aparecer nas listas e relatórios.</p>
+                <div class="alert alert-danger d-none js-delete-feedback" role="alert"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" data-action="confirm-delete">Remover visita</button>
             </div>
         </div>
     </div>
@@ -672,6 +709,7 @@ $nextUrl     = "{$baseUrlSelf}?{$queryBase}&vpage=" . min($pages, $vpage + 1); /
 
     // total para detalhes
     window.TOTAL_VISITAS = <?= (int)$TOTAL_VISITAS_EXIBIR ?>;
+    window.TOTAL_VISITAS_INTERNACAO = <?= (int)$total_intern ?>;
 
     function updateTimelineDetailsFromMarker(marker) {
         if (!marker) return;
@@ -692,6 +730,17 @@ $nextUrl     = "{$baseUrlSelf}?{$queryBase}&vpage=" . min($pages, $vpage + 1); /
         if (user) user.textContent = marker.dataset.user || '';
         if (hosp) hosp.textContent = marker.dataset.hosp || '';
         if (rel) rel.innerHTML = marker.dataset.rel || '';
+        var tlDeleteBtn = document.getElementById('tl-delete-btn');
+        if (tlDeleteBtn) {
+            if (marker.dataset.id) {
+                tlDeleteBtn.setAttribute('data-delete-visita', marker.dataset.id);
+            }
+            var isRetificado = marker.dataset.retificado === '1';
+            var totalIntern = Number(window.TOTAL_VISITAS_INTERNACAO || 0);
+            var preventDelete = isRetificado || totalIntern <= 1;
+            tlDeleteBtn.classList.toggle('d-none', preventDelete);
+            tlDeleteBtn.disabled = preventDelete;
+        }
 
         if (sep1) sep1.style.display = (user && user.textContent) ? '' : 'none';
         if (sep2) sep2.style.display = (hosp && hosp.textContent) ? '' : 'none';
@@ -736,6 +785,71 @@ $nextUrl     = "{$baseUrlSelf}?{$queryBase}&vpage=" . min($pages, $vpage + 1); /
         if (container) {
             container.scrollLeft = container.scrollWidth;
         }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var modalDelete = document.getElementById('modalDeleteVisita');
+        if (!modalDelete) return;
+        var confirmBtn = modalDelete.querySelector('[data-action="confirm-delete"]');
+        var feedback = modalDelete.querySelector('.js-delete-feedback');
+        var redirectUrl = <?= json_encode($BASE_URL . 'show_internacao.php?id_internacao=' . (int)$id_internacao . '#tab-visitas') ?>;
+        var defaultVisitaId = <?= (int)$id_visita_row ?>;
+        var selectedVisitaId = defaultVisitaId;
+
+        if (!confirmBtn) return;
+
+        modalDelete.addEventListener('show.bs.modal', function(event) {
+            var trigger = event.relatedTarget;
+            var btnId = trigger ? parseInt(trigger.getAttribute('data-delete-visita'), 10) : NaN;
+            selectedVisitaId = Number.isFinite(btnId) && btnId > 0 ? btnId : defaultVisitaId;
+        });
+
+        confirmBtn.addEventListener('click', function() {
+            confirmBtn.disabled = true;
+            if (feedback) {
+                feedback.classList.add('d-none');
+                feedback.textContent = '';
+            }
+
+            var formData = new FormData();
+            formData.append('type', 'delete');
+            formData.append('id_visita', selectedVisitaId);
+            formData.append('redirect', redirectUrl);
+            formData.append('ajax', '1');
+
+            fetch('process_visita.php', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(function(resp) { return resp.json(); })
+                .then(function(res) {
+                    if (res && res.success) {
+                        window.location.href = res.redirect || redirectUrl;
+                        return;
+                    }
+                    var msg = (res && res.message) ? res.message : 'Não foi possível remover a visita.';
+                    if (feedback) {
+                        feedback.textContent = msg;
+                        feedback.classList.remove('d-none');
+                    } else {
+                        alert(msg);
+                    }
+                })
+                .catch(function() {
+                    if (feedback) {
+                        feedback.textContent = 'Falha inesperada ao remover a visita.';
+                        feedback.classList.remove('d-none');
+                    } else {
+                        alert('Falha inesperada ao remover a visita.');
+                    }
+                })
+                .finally(function() {
+                    confirmBtn.disabled = false;
+                });
+        });
     });
 </script>
 

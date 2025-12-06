@@ -121,6 +121,8 @@ p {
 
 .page-title {
     color: #000;
+    margin-top: 1.25rem;
+    margin-bottom: 0.75rem;
 }
 
 .nav-item li {

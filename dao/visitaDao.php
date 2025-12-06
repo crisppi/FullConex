@@ -409,6 +409,17 @@ class visitaDAO
         return $data ? $this->buildvisita($data) : null;
     }
 
+    public function marcarRetificadoPorId(int $id_visita): bool
+    {
+        $stmt = $this->conn->prepare("
+            UPDATE " . self::TABLE . "
+               SET retificado = 1
+             WHERE id_visita = :id_visita
+        ");
+        $stmt->bindValue(':id_visita', $id_visita, PDO::PARAM_INT);
+        return $stmt->execute();
+    }
+
     /** Busca uma visita específica por internação + número (considera inclusive retificadas) */
     public function findByInternacaoNumero(int $fkInternacao, int $visitaNo): ?array
     {

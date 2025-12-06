@@ -55,6 +55,7 @@ $mostrarCadastroCentral = $cadastroCentralObrigatorio || !$isMedOuEnf;
 
 $dataAtual = date('Y-m-d');
 $agora = date('Y-m-d');
+$agoraLanc = date('Y-m-d\TH:i');
 
 /* ==========================================================
    CONTROLE DE ACESSO POR CARGO
@@ -292,6 +293,12 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
                 <label class="control-label" for="hora_intern_int">Hora</label>
                 <input type="time" class="form-control form-control-sm" id="hora_intern_int" value=""
                     name="hora_intern_int">
+            </div>
+
+            <div class="form-group col-sm-2">
+                <label class="control-label" for="data_lancamento_int">Data lançamento</label>
+                <input type="datetime-local" class="form-control form-control-sm" id="data_lancamento_int"
+                    name="data_lancamento_int" value="<?= $agoraLanc ?>">
             </div>
 
             <div class="form-group col-sm-1">

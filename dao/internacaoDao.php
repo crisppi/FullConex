@@ -12,12 +12,14 @@ class internacaoDAO implements internacaoDAOInterface
     private $url;
     public $message;
     private $hasHoraAltaColumn = null;
+    private $hasDataLancamentoColumn = null;
 
     public function __construct(PDO $conn, $url)
     {
         $this->conn = $conn;
         $this->url = $url;
         $this->message = new Message($url);
+        $this->ensureDataLancamentoColumn();
     }
 
     private function tbAltaHasHoraColumn()
@@ -36,6 +38,27 @@ class internacaoDAO implements internacaoDAOInterface
         return $this->hasHoraAltaColumn;
     }
 
+    private function ensureDataLancamentoColumn()
+    {
+        if ($this->hasDataLancamentoColumn !== null) {
+            return $this->hasDataLancamentoColumn;
+        }
+
+        try {
+            $stmt = $this->conn->query("SHOW COLUMNS FROM tb_internacao LIKE 'data_lancamento_int'");
+            $exists = $stmt && $stmt->fetch() ? true : false;
+            if (!$exists) {
+                $this->conn->exec("ALTER TABLE tb_internacao ADD COLUMN data_lancamento_int DATETIME NULL AFTER data_intern_int");
+            }
+            $this->hasDataLancamentoColumn = true;
+        } catch (Throwable $th) {
+            $this->hasDataLancamentoColumn = false;
+            error_log('Falha ao garantir coluna data_lancamento_int: ' . $th->getMessage());
+        }
+
+        return $this->hasDataLancamentoColumn;
+    }
+
     public function buildinternacao($data)
     {
         $internacao = new internacao();
@@ -50,6 +73,7 @@ class internacaoDAO implements internacaoDAOInterface
         $internacao->modo_internacao_int = $data["modo_internacao_int"];
         $internacao->tipo_admissao_int = $data["tipo_admissao_int"];
         $internacao->data_intern_int = $data["data_intern_int"];
+        $internacao->data_lancamento_int = $data["data_lancamento_int"] ?? null;
         $internacao->data_visita_int = $data["data_visita_int"];
         $internacao->data_create_int = $data["data_create_int"];
         $internacao->usuario_create_int = $data["usuario_create_int"];
@@ -155,6 +179,7 @@ class internacaoDAO implements internacaoDAOInterface
             fk_cid_int,
             fk_patologia2, 
             data_intern_int, 
+            data_lancamento_int,
             acoes_int,
             internado_int, 
             modo_internacao_int, 
@@ -192,6 +217,7 @@ class internacaoDAO implements internacaoDAOInterface
            :fk_cid_int,
            :fk_patologia2, 
            :data_intern_int, 
+           :data_lancamento_int,
            :acoes_int, 
            :internado_int, 
            :modo_internacao_int, 
@@ -229,6 +255,7 @@ class internacaoDAO implements internacaoDAOInterface
         $stmt->bindParam(":fk_cid_int", $internacao->fk_cid_int);
         $stmt->bindParam(":fk_patologia2", $internacao->fk_patologia2);
         $stmt->bindParam(":data_intern_int", $internacao->data_intern_int);
+        $stmt->bindParam(":data_lancamento_int", $internacao->data_lancamento_int);
         $stmt->bindParam(":internado_int", $internacao->internado_int);
         $stmt->bindParam(":acoes_int", $internacao->acoes_int, PDO::PARAM_STR);
         $stmt->bindParam(":modo_internacao_int", $internacao->modo_internacao_int);
@@ -277,6 +304,7 @@ class internacaoDAO implements internacaoDAOInterface
         fk_cid_int = :fk_cid_int,
         fk_patologia2 = :fk_patologia2,
         data_intern_int = :data_intern_int,
+        data_lancamento_int = :data_lancamento_int,
         acoes_int = :acoes_int,
         internado_int = :internado_int,
         modo_internacao_int = :modo_internacao_int,
@@ -316,6 +344,7 @@ class internacaoDAO implements internacaoDAOInterface
         $stmt->bindParam(":fk_cid_int", $internacao->fk_cid_int);
         $stmt->bindParam(":fk_patologia2", $internacao->fk_patologia2);
         $stmt->bindParam(":data_intern_int", $internacao->data_intern_int);
+        $stmt->bindParam(":data_lancamento_int", $internacao->data_lancamento_int);
         $stmt->bindParam(":acoes_int", $internacao->acoes_int, PDO::PARAM_STR);
         $stmt->bindParam(":internado_int", $internacao->internado_int);
         $stmt->bindParam(":modo_internacao_int", $internacao->modo_internacao_int);
@@ -368,6 +397,7 @@ class internacaoDAO implements internacaoDAOInterface
         modo_internacao_int = :modo_internacao_int,
         tipo_admissao_int = :tipo_admissao_int,
         data_intern_int = :data_intern_int,
+        data_lancamento_int = :data_lancamento_int,
         data_visita_int = :data_visita_int,
         usuario_create_int = :usuario_create_int,
         data_create_int = :data_create_int,
@@ -403,6 +433,7 @@ class internacaoDAO implements internacaoDAOInterface
         $stmt->bindParam(":modo_internacao_int", $internacao->modo_internacao_int);
         $stmt->bindParam(":tipo_admissao_int", $internacao->tipo_admissao_int);
         $stmt->bindParam(":data_intern_int", $internacao->data_intern_int);
+        $stmt->bindParam(":data_lancamento_int", $internacao->data_lancamento_int);
         $stmt->bindParam(":data_visita_int", $internacao->data_visita_int);
         $stmt->bindParam(":usuario_create_int", $internacao->usuario_create_int);
         $stmt->bindParam(":data_create_int", $internacao->data_create_int);
@@ -2897,6 +2928,7 @@ class internacaoDAO implements internacaoDAOInterface
             LEFT JOIN tb_alta al ON al.fk_id_int_alt = ac.id_internacao
             LEFT JOIN tb_prorrogacao pr ON pr.fk_internacao_pror = ac.id_internacao
             LEFT JOIN tb_visita vi ON vi.fk_internacao_vis = ac.id_internacao
+                AND (vi.retificado IS NULL OR vi.retificado IN (0, '0', '', 'n', 'N'))
             WHERE ac.fk_paciente_int = :pacId
             GROUP BY ac.id_internacao
             ORDER BY {$orderBy} {$dir}

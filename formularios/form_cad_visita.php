@@ -642,6 +642,7 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
                             <th scope="col" style="width:15%">Relatório</th>
                             <th scope="col" style="width:2%">Visualizar</th>
                             <th scope="col" style="width:2%">Editar</th>
+                            <th scope="col" style="width:2%">Remover</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -679,7 +680,17 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
                                     <i class="fas fa-pen"></i>
                                 </button>
                             </td>
-
+                            <td class="text-center">
+                                <?php if (empty($intern['retificado'])): ?>
+                                <button type="button" class="btn btn-link p-0 text-danger"
+                                    data-bs-toggle="modal" data-bs-target="#modalDeleteVisitaList"
+                                    data-visita-id="<?= (int) $intern['id_visita'] ?>" title="Remover esta visita">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                                <?php else: ?>
+                                <span class="text-muted">—</span>
+                                <?php endif; ?>
+                            </td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -687,6 +698,24 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
                 <?php }; ?>
             </div>
 
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="modalDeleteVisitaList" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Remover visita</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <p>Deseja realmente deletar esta visita?</p>
+                <div class="alert alert-danger d-none js-delete-feedback" role="alert"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" data-action="confirm-delete-row">Remover</button>
+            </div>
         </div>
     </div>
 </div>
@@ -784,6 +813,71 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
         applySelection(opt.value, 'enf');
     });
 })();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var modal = document.getElementById('modalDeleteVisitaList');
+    if (!modal) return;
+    var confirmBtn = modal.querySelector('[data-action=\"confirm-delete-row\"]');
+    var feedback = modal.querySelector('.js-delete-feedback');
+    var currentId = null;
+
+    modal.addEventListener('show.bs.modal', function(event) {
+        var trigger = event.relatedTarget;
+        currentId = trigger ? parseInt(trigger.getAttribute('data-visita-id'), 10) : null;
+        if (feedback) {
+            feedback.classList.add('d-none');
+            feedback.textContent = '';
+        }
+        if (confirmBtn) confirmBtn.disabled = false;
+    });
+
+    if (!confirmBtn) return;
+
+    confirmBtn.addEventListener('click', function() {
+        if (!currentId) return;
+        confirmBtn.disabled = true;
+
+        var formData = new FormData();
+        formData.append('type', 'delete');
+        formData.append('id_visita', currentId);
+        formData.append('redirect', window.location.href);
+        formData.append('ajax', '1');
+
+        fetch('process_visita.php', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+            .then(function(resp) { return resp.json(); })
+            .then(function(res) {
+                if (res && res.success) {
+                    window.location.reload();
+                    return;
+                }
+                var msg = (res && res.message) ? res.message : 'Não foi possível remover a visita.';
+                if (feedback) {
+                    feedback.textContent = msg;
+                    feedback.classList.remove('d-none');
+                } else {
+                    alert(msg);
+                }
+            })
+            .catch(function() {
+                if (feedback) {
+                    feedback.textContent = 'Falha inesperada ao remover a visita.';
+                    feedback.classList.remove('d-none');
+                } else {
+                    alert('Falha inesperada ao remover a visita.');
+                }
+            })
+            .finally(function() {
+                confirmBtn.disabled = false;
+            });
+    });
+});
 </script>
 <script>
 // Função para popular os selects "troca_de" e "troca_para" com as acomodações recebidas

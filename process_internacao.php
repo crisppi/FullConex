@@ -44,6 +44,36 @@ require_once("dao/internacaoAntecedenteDao.php");
 require_once("models/alta.php");
 require_once("dao/altaDao.php");
 
+if (!function_exists('normalizeDateTimeInput')) {
+    function normalizeDateTimeInput($value)
+    {
+        if ($value === null) return null;
+        $value = trim((string)$value);
+        if ($value === '') return null;
+        $formats = [
+            ['fmt' => 'Y-m-d\\TH:i:s', 'has_time' => true],
+            ['fmt' => 'Y-m-d\\TH:i',   'has_time' => true],
+            ['fmt' => 'Y-m-d H:i:s',   'has_time' => true],
+            ['fmt' => 'Y-m-d H:i',     'has_time' => true],
+            ['fmt' => 'd/m/Y H:i:s',   'has_time' => true],
+            ['fmt' => 'd/m/Y H:i',     'has_time' => true],
+            ['fmt' => 'Y-m-d',         'has_time' => false],
+            ['fmt' => 'd/m/Y',         'has_time' => false],
+        ];
+        foreach ($formats as $conf) {
+            $dt = DateTime::createFromFormat($conf['fmt'], $value);
+            if ($dt instanceof DateTime) {
+                if (!$conf['has_time']) {
+                    $dt->setTime(0, 0, 0);
+                }
+                return $dt->format('Y-m-d H:i:s');
+            }
+        }
+        $ts = strtotime($value);
+        return $ts ? date('Y-m-d H:i:s', $ts) : null;
+    }
+}
+
 // Depurar dados enviados via POST
 error_log("Dados recebidos para salvar internação:");
 error_log(print_r($_POST, true));
@@ -95,6 +125,8 @@ if ($type === "create") {
     $tipo_admissao_int = filter_input(INPUT_POST, "tipo_admissao_int");
     $data_visita_int = filter_input(INPUT_POST, "data_visita_int") ?: null;
     $data_intern_int = filter_input(INPUT_POST, "data_intern_int") ?: null;
+    $data_lancamento_int_input = $_POST['data_lancamento_int'] ?? null;
+    $data_lancamento_int = normalizeDateTimeInput($data_lancamento_int_input) ?: date('Y-m-d H:i:s');
     $especialidade_int = filter_input(INPUT_POST, "especialidade_int");
     $titular_int = filter_input(INPUT_POST, "titular_int");
 
@@ -263,6 +295,7 @@ if ($type === "create") {
     $internacao->grupo_patologia_int = $grupo_patologia_int;
     $internacao->data_visita_int = $data_visita_int;
     $internacao->data_intern_int = $data_intern_int;
+    $internacao->data_lancamento_int = $data_lancamento_int;
     $internacao->especialidade_int = $especialidade_int;
     $internacao->titular_int = $titular_int;
     $internacao->crm_int = $crm_int;
@@ -573,6 +606,8 @@ if ($type == "update") {
     $tipo_admissao_int = filter_input(INPUT_POST, "tipo_admissao_int");
     $data_visita_int = filter_input(INPUT_POST, "data_visita_int") ?: null;
     $data_intern_int = filter_input(INPUT_POST, "data_intern_int") ?: null;
+    $data_lancamento_int_input = $_POST['data_lancamento_int'] ?? null;
+    $data_lancamento_int = normalizeDateTimeInput($data_lancamento_int_input);
     $especialidade_int = filter_input(INPUT_POST, "especialidade_int");
     $titular_int = filter_input(INPUT_POST, "titular_int");
     $crm_int = filter_input(INPUT_POST, "crm_int");
@@ -658,6 +693,7 @@ if ($type == "update") {
     $internacao->grupo_patologia_int = $grupo_patologia_int;
     $internacao->data_visita_int = $data_visita_int;
     $internacao->data_intern_int = $data_intern_int;
+    $internacao->data_lancamento_int = $data_lancamento_int;
     $internacao->especialidade_int = $especialidade_int;
     $internacao->titular_int = $titular_int;
     $internacao->crm_int = $crm_int;

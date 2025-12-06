@@ -212,6 +212,7 @@ foreach (($visitas ?? []) as $v) {
         '_text'    => pick_visit_text($v),
         'acomodacao' => pick_visit_acomodacao($v),
         '_auditor' => $nomeExibicao,
+        'retificado' => !empty($v['retificado']) ? 1 : 0,
         '_raw'     => $v,
     ];
 }
@@ -247,6 +248,8 @@ if ($vid_req) {
     }
 }
 if (!$activeVisit && $visitas_norm) $activeVisit = $visitas_norm[count($visitas_norm) - 1];
+
+$activeVisitRet = $activeVisit && !empty($activeVisit['retificado']);
 
 $initDateLabel = '—';
 $initTime = '';
@@ -596,7 +599,8 @@ usort($neg_filtered, function ($a, $b) {
                                             style="left: <?= $pctPosition ?>%;" data-dateraw="<?= e($v['_date']) ?>"
                                             data-id="<?= (int)$v['_id'] ?>" data-date="<?= e($dataLabel) ?>"
                                             data-time="<?= e($hora) ?>" data-text="<?= e($texto) ?>"
-                                            data-auditor="<?= e($auditorNome) ?>" onclick="(function(m){
+                                            data-auditor="<?= e($auditorNome) ?>" data-retificado="<?= !empty($v['retificado']) ? '1' : '0' ?>"
+                                            onclick="(function(m){
                                               document.querySelectorAll('#visitas .ht-marker.active').forEach(function(x){x.classList.remove('active');});
                                               m.classList.add('active');
                                               var d=m.dataset.date||'—', t=m.dataset.time||'', x=m.dataset.text||'—', i=m.dataset.id||'', aud=m.dataset.auditor||'';
@@ -618,6 +622,7 @@ usort($neg_filtered, function ($a, $b) {
                                               
                                               if(audEl) audEl.textContent = aud;
                                               if(audWrap) audWrap.style.display = aud ? 'block' : 'none';
+                                              if(window.updateVisitaDeleteTarget){ window.updateVisitaDeleteTarget(i, m.dataset.retificado); }
                                               var pdfBtn=document.getElementById('btn-visita-pdf');
                                               if(pdfBtn){
                                                 var base=pdfBtn.getAttribute('data-pdf-base')||'';
@@ -701,6 +706,19 @@ usort($neg_filtered, function ($a, $b) {
                                                 </span>
                                             </a>
                                         </div>
+                                        <?php if (!empty($visitas_norm)): ?>
+                                        <?php
+                                            $disableDeleteBtn = ($countVis <= 1) || !$initId || $activeVisitRet;
+                                            ?>
+                                        <button type="button" id="btn-visita-delete-main"
+                                            class="btn btn-sm btn-outline-danger mt-2<?= $disableDeleteBtn ? ' disabled' : '' ?>"
+                                            data-bs-toggle="modal" data-bs-target="#modalDeleteVisitaInternacao"
+                                            data-delete-visita="<?= $initId ? e($initId) : '' ?>"
+                                            aria-disabled="<?= $disableDeleteBtn ? 'true' : 'false' ?>"
+                                            <?= $disableDeleteBtn ? 'disabled' : '' ?>>
+                                            <i class="fa-solid fa-trash-can me-1"></i> Remover visita selecionada
+                                        </button>
+                                        <?php endif; ?>
                                     </div>
                                     <div class="p-3 rounded border" style="border-color:#eee">
                                         <div class="v2-relatorio" id="v-rel-text" style="white-space:pre-wrap">
@@ -721,6 +739,26 @@ usort($neg_filtered, function ($a, $b) {
                                         <div class="small"><span class="legend-dot"></span> Clique nas datas para
                                             visualizar o
                                             relatório</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+                        <?php if (!empty($visitas_norm)): ?>
+                        <div class="modal fade" id="modalDeleteVisitaInternacao" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title text-danger"><i class="fa-solid fa-triangle-exclamation me-2"></i>Remover visita</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Deseja realmente deletar esta visita? Essa ação apenas desativa o registro.</p>
+                                        <div class="alert alert-danger d-none js-delete-feedback" role="alert"></div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                                        <button type="button" class="btn btn-danger" data-action="confirm-delete">Remover</button>
                                     </div>
                                 </div>
                             </div>
@@ -1028,7 +1066,111 @@ usort($neg_filtered, function ($a, $b) {
     if (window.setupVisitasFilter) window.setupVisitasFilter();
     </script>
 
-    <style>
+<?php if (!empty($visitas_norm)): ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var totalVisitas = <?= (int)$countVis ?>;
+    var deleteBtn = document.getElementById('btn-visita-delete-main');
+    var modal = document.getElementById('modalDeleteVisitaInternacao');
+    var confirmBtn = modal ? modal.querySelector('[data-action="confirm-delete"]') : null;
+    var feedback = modal ? modal.querySelector('.js-delete-feedback') : null;
+    var currentId = <?= $initId ? (int)$initId : 'null' ?>;
+    var currentRet = <?= $activeVisitRet ? 'true' : 'false' ?>;
+    var redirectUrl = <?= json_encode($BASE_URL . 'show_internacao.php?id_internacao=' . (int)$id_internacao . '#visitas') ?>;
+
+    function updateDeleteBtn() {
+        if (!deleteBtn) return;
+        var disabled = !currentId || totalVisitas <= 1 || currentRet;
+        deleteBtn.disabled = disabled;
+        deleteBtn.classList.toggle('disabled', disabled);
+        deleteBtn.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+        if (currentId) {
+            deleteBtn.setAttribute('data-delete-visita', currentId);
+        }
+    }
+
+    window.updateVisitaDeleteTarget = function(id, retFlag) {
+        currentId = id ? parseInt(id, 10) : null;
+        currentRet = (retFlag === true || retFlag === '1' || retFlag === 1);
+        updateDeleteBtn();
+    };
+
+    updateDeleteBtn();
+
+    if (!modal || !confirmBtn) return;
+
+    modal.addEventListener('show.bs.modal', function(event) {
+        if (!deleteBtn || deleteBtn.disabled) {
+            event.preventDefault();
+            return;
+        }
+        if (feedback) {
+            feedback.classList.add('d-none');
+            feedback.textContent = '';
+        }
+    });
+
+    confirmBtn.addEventListener('click', function() {
+        if (!currentId) return;
+        confirmBtn.disabled = true;
+        if (feedback) {
+            feedback.classList.add('d-none');
+            feedback.textContent = '';
+        }
+
+        var formData = new FormData();
+        formData.append('type', 'delete');
+        formData.append('id_visita', currentId);
+        formData.append('redirect', redirectUrl);
+        formData.append('ajax', '1');
+
+        fetch('process_visita.php', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+            .then(function(resp) { return resp.json(); })
+            .then(function(res) {
+                if (res && res.success) {
+                    var target = res.redirect || redirectUrl || window.location.href;
+                    try {
+                        var absolute = new URL(target, window.location.origin).href;
+                        if (absolute === window.location.href) {
+                            window.location.reload();
+                        } else {
+                            window.location.href = target;
+                        }
+                    } catch (err) {
+                        window.location.reload();
+                    }
+                    return;
+                }
+                var msg = (res && res.message) ? res.message : 'Não foi possível remover a visita.';
+                if (feedback) {
+                    feedback.textContent = msg;
+                    feedback.classList.remove('d-none');
+                } else {
+                    alert(msg);
+                }
+            })
+            .catch(function() {
+                if (feedback) {
+                    feedback.textContent = 'Falha inesperada ao remover a visita.';
+                    feedback.classList.remove('d-none');
+                } else {
+                    alert('Falha inesperada ao remover a visita.');
+                }
+            })
+            .finally(function() {
+                confirmBtn.disabled = false;
+            });
+    });
+});
+</script>
+<?php endif; ?>
+<style>
     :root {
         --brand: #5e2363;
         --brand-700: #4b1c50;
