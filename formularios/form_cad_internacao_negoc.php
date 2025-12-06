@@ -69,6 +69,12 @@
 }
 </style>
 
+<?php
+if (!isset($dados_acomodacao) || !is_array($dados_acomodacao)) {
+    $dados_acomodacao = [];
+}
+?>
+
 <div id="container-negoc" style="display:none; margin:5px">
     <div class="adicional-card">
         <div class="adicional-card__header">

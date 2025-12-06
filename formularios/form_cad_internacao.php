@@ -901,11 +901,43 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
             </div>
         </div>
 
-        <h4 class="text-center w-100"
-            style="margin:-15px 10px 0px 0px;background-color:#5e2363;color:#fff;padding:13px 0;border-radius:.25rem;">
-            Tabelas Adicionais
-        </h4>
-        <hr>
+        <style>
+        .tabelas-adicionais-card {
+            background:#fff;
+            border-radius:22px;
+            border:1px solid #ebe1f5;
+            box-shadow:0 12px 28px rgba(45,18,70,.08);
+            padding:22px 24px;
+            margin-top:25px;
+        }
+        .tabelas-adicionais-card__header {
+            display:flex;
+            align-items:center;
+            margin-bottom:18px;
+        }
+        .tabelas-adicionais-card__title {
+            display:flex;
+            align-items:center;
+            margin:0;
+            color:#3a184f;
+            font-weight:600;
+        }
+        .tabelas-adicionais-card__marker {
+            width:6px;
+            height:26px;
+            border-radius:10px;
+            margin-right:12px;
+            background:linear-gradient(180deg,#7b3f99,#b279d0);
+        }
+        </style>
+
+        <div class="tabelas-adicionais-card">
+            <div class="tabelas-adicionais-card__header">
+                <h4 class="tabelas-adicionais-card__title">
+                    <span class="tabelas-adicionais-card__marker"></span>
+                    Tabelas Adicionais
+                </h4>
+            </div>
 
         <div class="form-group row d-flex justify-content-center align-items-end" style="gap: 15px;">
             <?php if ($cargoSessao === 'Med_auditor' || $cargoSessao === 'Diretoria') { ?>
@@ -955,6 +987,7 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
                 </select>
             </div>
             <?php } ?>
+        </div>
         </div>
 
         <input type="hidden" class="form-control" value="<?= ($ultimoReg + 1) ?>" id="fk_int_capeante"
@@ -1317,17 +1350,20 @@ function mirrorVisitMedFromFk() {
     const fk = document.getElementById('fk_usuario_int')?.value || '';
     const tipo = document.getElementById('resp_tipo')?.value || '';
     const medHidden = document.getElementById('visita_auditor_prof_med');
-    const fkNeg = document.getElementById('fk_usuario_neg');
-    const fkTuss = document.getElementById('fk_usuario_tuss');
-    const fkPror = document.getElementById('fk_usuario_pror');
-    const fkUti = document.getElementById('fk_user_uti');
+    const updateGroup = (selector) => {
+        document.querySelectorAll(selector).forEach(el => {
+            if (el) el.value = fk;
+        });
+    };
     if (medHidden) {
         medHidden.value = (tipo === 'enf') ? '' : fk;
     }
-    if (fkNeg) fkNeg.value = fk;
-    if (fkTuss) fkTuss.value = fk;
-    if (fkPror) fkPror.value = fk;
-    if (fkUti) fkUti.value = fk;
+    updateGroup('#fk_usuario_neg');
+    updateGroup('#fk_usuario_tuss');
+    updateGroup('input[name="fk_usuario_tuss"]');
+    updateGroup('#fk_usuario_pror');
+    updateGroup('input[name="fk_usuario_pror"]');
+    updateGroup('#fk_user_uti');
 }
 document.addEventListener('DOMContentLoaded', mirrorVisitMedFromFk);
 document.addEventListener('DOMContentLoaded', function() {
