@@ -309,17 +309,17 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                     <hr class="dropdown-divider">
                                 </li>
 
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>internacoes/lista"> <i
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>internacoes/lista"> <i
                                             class="bi bi-calendar2-date"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
 
                                         Internação</a></li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_uti.php"> <i
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>internacoes/uti"> <i
                                             class="bi bi-clipboard-heart"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
                                         Internação UTI</a>
                                 </li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_gestao.php"><i
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>gestao"><i
                                             class="bi bi-postcard-heart"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(144, 17, 194);"></i>
                                         Gestão</a></li>
@@ -330,12 +330,12 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                             id="boot-icon3" class="bi bi-box-arrow-left"
                                             style="font-size: 1rem; margin-right:5px; color: rgb(167, 25, 55);"></span>
                                         Alta UTI</a></li> -->
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_alta.php"><span
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>internacoes/reverter"><span
                                             id="boot-icon3" class="bi bi-postcard-heart"
                                             style="font-size: 1rem; margin-right:5px; color: rgb(16, 15, 155);"></span>
                                         Reverter altas</a>
                                 </li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_gerar_alta.php"><span
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>internacoes/gerar-alta"><span
                                             class="bi bi-clipboard-check"
                                             style="font-size: 1rem; margin-right:5px; color: rgb(9, 132, 227);"></span>
                                         Gerar altas</a>
@@ -380,42 +380,42 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
 
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>censo/lista"><i class="bi bi-book"
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>censo/lista"><i class="bi bi-book"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(222, 156, 55);"></i>
                                         Censo</a></li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>internacoes/lista"> <i
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>internacoes/lista"> <i
                                             class="bi bi-calendar2-date"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
                                         Internação</a></li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_uti.php"> <i
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>internacoes/uti"> <i
                                             class="bi bi-clipboard-heart"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
                                         Internação UTI</a>
                                 </li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_gestao.php"><i
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>gestao"><i
                                             class="bi bi-postcard-heart"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(144, 17, 194);"></i>
                                         Gestão</a></li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_alta.php"><i
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>internacoes/reverter"><i
                                             class="bi bi-postcard-heart"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
                                         Reverter altas</a></li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_gerar_alta.php"><i
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>internacoes/gerar-alta"><i
                                             class="bi bi-clipboard-check"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(9,132,227);"></i>
                                         Gerar altas</a></li>
                                 <li>
                                     <hr class="dropdown-divider">
                                 </li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_internacao_ciclo.php"><i
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>internacoes/ciclo"><i
                                             class="bi bi-postcard-heart"
                                             style="font-size:  1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
                                         Ciclo do Paciente</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>lista_visitas.php"><i
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>visitas/lista"><i
                                             class="bi bi-postcard-heart"
                                             style="font-size:  1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
                                         Lista de Visitas</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>list_internacao_sem_senha.php?sem_senha=1"><i
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>internacoes/sem-senha"><i
                                             class="bi bi-shield-exclamation"
                                             style="font-size:  1rem;margin-right:5px; color:#d63384;"></i>
                                         Internações sem senha</a></li>
@@ -432,7 +432,7 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                 Faturamento
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>lista_visitas.php"><i
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>visitas/lista"><i
                                             class="bi bi-list-check"
                                             style="font-size: 1rem;margin-right:5px; color:#5e2363;"></i>
                                         Lista Visitas</a></li>

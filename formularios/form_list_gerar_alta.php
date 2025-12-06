@@ -257,14 +257,7 @@ sort($dadosAlta);
             <ul class="pagination justify-content-center mb-0">
                 <?php for ($i = 1; $i <= $totalPages; $i++): ?>
                 <li class="page-item <?= $i == $pagAtual ? 'active' : '' ?>">
-                    <a class="page-link"
-                        href="<?= 'list_internacao_gerar_alta.php?' . http_build_query([
-                            'pesquisa_hosp' => $pesquisa_hosp,
-                            'pesquisa_pac'  => $pesquisa_pac,
-                            'limite'        => $limite,
-                            'ordenar'       => $ordenar,
-                            'pag'           => $i
-                        ]) ?>">
+                    <a class="page-link" href="<?= 'internacoes/gerar-alta/pagina/' . $i ?>">
                         <?= $i ?>
                     </a>
                 </li>
