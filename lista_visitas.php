@@ -55,7 +55,20 @@ $pageTitle = $isFaturamentoView ? 'Faturamento - Visitas' : 'Lista de Visitas';
 
 /* ==== Entrada ==== */
 $nomePaciente = trim($_GET['nome'] ?? '');
-$hospitalId   = trim($_GET['hospital_id'] ?? '');
+$hospitalIdsRaw = $_GET['hospital_id'] ?? [];
+if ($hospitalIdsRaw === '' || $hospitalIdsRaw === null) {
+    $hospitalIdsRaw = [];
+} elseif (!is_array($hospitalIdsRaw)) {
+    $hospitalIdsRaw = [$hospitalIdsRaw];
+}
+$hospitalIds = [];
+foreach ($hospitalIdsRaw as $hid) {
+    $hid = (int)preg_replace('/\D+/', '', (string)$hid);
+    if ($hid > 0) {
+        $hospitalIds[] = $hid;
+    }
+}
+$hospitalIds = array_values(array_unique($hospitalIds));
 $dtIni        = trim($_GET['dt_ini'] ?? ''); // YYYY-MM-DD
 $dtFim        = trim($_GET['dt_fim'] ?? ''); // YYYY-MM-DD
 $faturadoVis  = strtolower(trim($_GET['faturado'] ?? 'n'));
@@ -207,9 +220,14 @@ if ($nomePaciente !== '') {
     $whereConditions .= " AND pa.nome_pac LIKE :nome ";
     $paramsBase[':nome'] = "%$nomePaciente%";
 }
-if ($hospitalId !== '') {
-    $whereConditions .= " AND i.fk_hospital_int = :hid ";
-    $paramsBase[':hid'] = $hospitalId;
+if (!empty($hospitalIds)) {
+    $placeholders = [];
+    foreach ($hospitalIds as $idx => $hid) {
+        $ph = ":hid{$idx}";
+        $placeholders[] = $ph;
+        $paramsBase[$ph] = $hid;
+    }
+    $whereConditions .= " AND i.fk_hospital_int IN (" . implode(', ', $placeholders) . ") ";
 }
 
 // Se período definido, garante que só traga internações com visita escolhida
@@ -375,6 +393,7 @@ include_once __DIR__ . "/templates/header.php";
 $brandColor = $isFaturamentoView ? '#0a4fa3' : '#0b3d91';
 $brandSoftColor = $isFaturamentoView ? '#d6e4ff' : '#dfe6ff';
 ?>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
 <style>
     :root {
         --brand: <?= htmlspecialchars($brandColor, ENT_QUOTES, 'UTF-8') ?>;
@@ -420,9 +439,35 @@ $brandSoftColor = $isFaturamentoView ? '#d6e4ff' : '#dfe6ff';
     .input-group>.form-control {
         border-left: 0;
     }
+    .input-group .select2-container {
+        flex: 1;
+    }
+
+    .select2-container--default .select2-selection--multiple {
+        min-height: 2.75rem;
+        border: 1px solid #ced4da;
+        border-radius: .375rem;
+        padding: 0.25rem 0.35rem;
+    }
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        background-color: var(--brand-100, #f1f1ff);
+        border: none;
+        color: #333;
+        padding: 0.15rem 0.35rem;
+        margin-top: 0.15rem;
+    }
+    .select2-container--default .select2-selection--multiple .select2-selection__rendered {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.2rem;
+    }
+    .select2-container--default .select2-selection--multiple .select2-search__field {
+        margin-top: 0.15rem;
+    }
 
     .input-group-text {
         background: #fff;
+        border-right: 0;
     }
 
     .faturamento-actions h6 {
@@ -531,10 +576,10 @@ $fieldIcons = [
             <div class="col-12 col-xl-3">
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-hospital"></i></span>
-                    <select name="hospital_id" class="form-select">
-                        <option value="">— Hospital —</option>
+                    <select name="hospital_id[]" id="filtro-hospital" class="form-select" multiple>
                         <?php foreach ($hospitais as $h): ?>
-                            <option value="<?= $h['id_hospital'] ?>" <?= $hospitalId == $h['id_hospital'] ? 'selected' : '' ?>>
+                            <?php $isSelected = in_array((int)$h['id_hospital'], $hospitalIds, true); ?>
+                            <option value="<?= $h['id_hospital'] ?>" <?= $isSelected ? 'selected' : '' ?>>
                                 <?= h($h['nome_hosp']) ?>
                             </option>
                         <?php endforeach; ?>
@@ -707,8 +752,17 @@ $fieldIcons = [
 </div>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        if (window.jQuery && typeof jQuery.fn.select2 === 'function') {
+            jQuery('#filtro-hospital').select2({
+                placeholder: 'Hospitais',
+                allowClear: true,
+                width: '100%',
+                closeOnSelect: false
+            });
+        }
         const formEl = document.getElementById('form-visitas');
         const updateColumnVisibility = (checkbox) => {
             const k = checkbox.value;
