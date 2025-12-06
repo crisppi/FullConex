@@ -26,6 +26,8 @@ include_once("dao/altaDao.php");
 
 include_once("models/pagination.php");
 
+$somenteListaAltas = isset($somenteListaAltas) ? (bool)$somenteListaAltas : false;
+
 $altaDao    = new altaDAO($conn, $BASE_URL);
 $internacao = new internacaoDAO($conn, $BASE_URL);
 
@@ -100,6 +102,25 @@ if ($qtdIntItens > $limite) {
     $paginas = [];
     $block_pages = [];
 }
+
+$paginationParams = [
+    'pesquisa_nome' => $pesquisa_nome,
+    'pesquisa_pac' => $pesquisa_pac,
+    'pesqInternado' => $pesqInternado,
+    'limite' => $limite,
+    'ordenar' => $ordenar,
+    'data_alta' => $data_alta,
+    'data_alta_max' => $data_alta_max
+];
+
+$buildListaAltaLink = function($pagina, $bloco) use ($paginationParams, $BASE_URL, $somenteListaAltas) {
+    $params = $paginationParams;
+    $params['pag'] = $pagina;
+    $params['bl'] = $bloco;
+    $query = http_build_query($params);
+    $path = $somenteListaAltas ? $BASE_URL . 'listas/altas' : $BASE_URL . 'internacoes/reverter-alta';
+    return $path . ($query ? '?' . $query : '');
+};
 
 ?>
 <style>
@@ -240,7 +261,9 @@ if ($qtdIntItens > $limite) {
                             <th scope="col" width="14%">Paciente</th>
                             <th scope="col" width="7%">Tipo Alta</th>
                             <th scope="col" width="8%">Data Alta</th>
+                            <?php if (!$somenteListaAltas): ?>
                             <th scope="col" width="4%">Remover</th>
+                            <?php endif; ?>
                         </tr>
                     </thead>
                     <tbody>
@@ -264,9 +287,11 @@ if ($qtdIntItens > $limite) {
                                 <td scope="row">
                                     <?= htmlspecialchars(date('d/m/Y', strtotime((string)$intern["data_alta_alt"]))) ?>
                                 </td>
+                                <?php if (!$somenteListaAltas): ?>
                                 <td>
                                     <input type="checkbox" class="ckAlta" value="<?= (int)$intern['id_alta'] ?>">
                                 </td>
+                                <?php endif; ?>
                             </tr>
                         <?php endforeach; ?>
 
@@ -295,23 +320,20 @@ if ($qtdIntItens > $limite) {
                                 ?>
                                 <?php if ($current_block > $first_block): ?>
                                     <li class="page-item">
-                                        <a class="page-link" id="blocoNovo" href="#"
-                                            onclick="loadContent('list_internacao_alta.php?pesquisa_nome=<?= urlencode((string)$pesquisa_nome) ?>&pesquisa_pac=<?= urlencode((string)$pesquisa_pac) ?>&pesqInternado=<?= urlencode((string)$pesqInternado) ?>&limite=<?= (int)$limite ?>&ordenar=<?= urlencode((string)$ordenar) ?>&data_alta=<?= urlencode((string)$data_alta) ?>&data_alta_max=<?= urlencode((string)$data_alta_max) ?>&pag=1&bl=0')">
+                                        <a class="page-link" href="<?= $buildListaAltaLink(1, 0) ?>">
                                             <i class="fa-solid fa-angles-left"></i></a>
                                     </li>
                                 <?php endif; ?>
                                 <?php if ($current_block <= $last_block && $last_block > 1 && $current_block != 1): ?>
                                     <li class="page-item">
-                                        <a class="page-link" href="#"
-                                            onclick="loadContent('list_internacao_alta.php?pesquisa_nome=<?= urlencode((string)$pesquisa_nome) ?>&pesquisa_pac=<?= urlencode((string)$pesquisa_pac) ?>&pesqInternado=<?= urlencode((string)$pesqInternado) ?>&limite=<?= (int)$limite ?>&ordenar=<?= urlencode((string)$ordenar) ?>&data_alta=<?= urlencode((string)$data_alta) ?>&data_alta_max=<?= urlencode((string)$data_alta_max) ?>&pag=<?= $paginaAtual - 1 ?>&bl=<?= $blocoAtual - 5 ?>')">
+                                        <a class="page-link" href="<?= $buildListaAltaLink($paginaAtual - 1, $blocoAtual - 5) ?>">
                                             <i class="fa-solid fa-angle-left"></i> </a>
                                     </li>
                                 <?php endif; ?>
 
                                 <?php for ($i = $first_page_in_block; $i <= $last_page_in_block; $i++): ?>
                                     <li class="page-item <?= ($_GET['pag'] ?? 1) == $i ? "active" : "" ?>">
-                                        <a class="page-link" href="#"
-                                            onclick="loadContent('list_internacao_alta.php?pesquisa_nome=<?= urlencode((string)$pesquisa_nome) ?>&pesquisa_pac=<?= urlencode((string)$pesquisa_pac) ?>&pesqInternado=<?= urlencode((string)$pesqInternado) ?>&limite=<?= (int)$limite ?>&ordenar=<?= urlencode((string)$ordenar) ?>&data_alta=<?= urlencode((string)$data_alta) ?>&data_alta_max=<?= urlencode((string)$data_alta_max) ?>&pag=<?= $i ?>&bl=<?= $blocoAtual ?>')">
+                                        <a class="page-link" href="<?= $buildListaAltaLink($i, $blocoAtual) ?>">
                                             <?= $i ?>
                                         </a>
                                     </li>
@@ -319,15 +341,13 @@ if ($qtdIntItens > $limite) {
 
                                 <?php if ($current_block < $last_block): ?>
                                     <li class="page-item">
-                                        <a class="page-link" id="blocoNovo" href="#"
-                                            onclick="loadContent('list_internacao_alta.php?pesquisa_nome=<?= urlencode((string)$pesquisa_nome) ?>&pesquisa_pac=<?= urlencode((string)$pesquisa_pac) ?>&pesqInternado=<?= urlencode((string)$pesqInternado) ?>&limite=<?= (int)$limite ?>&ordenar=<?= urlencode((string)$ordenar) ?>&data_alta=<?= urlencode((string)$data_alta) ?>&data_alta_max=<?= urlencode((string)$data_alta_max) ?>&pag=<?= $paginaAtual + 1 ?>&bl=<?= $blocoAtual + 5 ?>')">
+                                        <a class="page-link" href="<?= $buildListaAltaLink($paginaAtual + 1, $blocoAtual + 5) ?>">
                                             <i class="fa-solid fa-angle-right"></i></a>
                                     </li>
                                 <?php endif; ?>
                                 <?php if ($current_block < $last_block): ?>
                                     <li class="page-item">
-                                        <a class="page-link" id="blocoNovo" href="#"
-                                            onclick="loadContent('list_internacao_alta.php?pesquisa_nome=<?= urlencode((string)$pesquisa_nome) ?>&pesquisa_pac=<?= urlencode((string)$pesquisa_pac) ?>&pesqInternado=<?= urlencode((string)$pesqInternado) ?>&limite=<?= (int)$limite ?>&ordenar=<?= urlencode((string)$ordenar) ?>&data_alta=<?= urlencode((string)$data_alta) ?>&data_alta_max=<?= urlencode((string)$data_alta_max) ?>&pag=<?= count($paginas) ?>&bl=<?= ($last_block - 1) * 5 ?>')">
+                                        <a class="page-link" href="<?= $buildListaAltaLink(count($paginas), ($last_block - 1) * 5) ?>">
                                             <i class="fa-solid fa-angles-right"></i></a>
                                     </li>
                                 <?php endif; ?>
@@ -335,12 +355,13 @@ if ($qtdIntItens > $limite) {
                         <?php endif; ?>
                     </div>
 
-                    <!-- Botão remover altas -->
+                    <?php if (!$somenteListaAltas): ?>
                     <div class="col-sm-3">
                         <button id="btnRemoveAltas" class="btn btn-outline-danger">
                             <i class="fa-solid fa-trash-can me-1"></i> Remover alta(s) selecionada(s)
                         </button>
                     </div>
+                    <?php endif; ?>
 
                     <div class="table-counter">
                         <p style="margin-bottom:25px;font-size:1em;font-weight:600;
@@ -354,7 +375,7 @@ if ($qtdIntItens > $limite) {
     </div>
 </div>
 
-<!-- Modal: Confirmar reversão -->
+<?php if (!$somenteListaAltas): ?>
 <div class="modal fade" id="modalReverterAlta" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius:1rem;">
@@ -371,7 +392,7 @@ if ($qtdIntItens > $limite) {
             </div>
         </div>
     </div>
-</div>
+<?php endif; ?>
 
 <!-- Modal: Mensagem (info/erro) -->
 <div class="modal fade" id="modalMsg" tabindex="-1" aria-hidden="true">
@@ -502,6 +523,7 @@ if ($qtdIntItens > $limite) {
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
 
 <script>
+    const SOMENTE_LISTA_ALTAS = <?= $somenteListaAltas ? 'true' : 'false' ?>;
     (function($) {
         function showMsg(title, body) {
             $('#modalMsgTitle').text(title || 'Aviso');
@@ -603,55 +625,55 @@ if ($qtdIntItens > $limite) {
                 });
             });
 
-        let idsSelecionados = [];
+        if (!SOMENTE_LISTA_ALTAS) {
+            let idsSelecionados = [];
 
-        // Abrir modal de reversão
-        $(document)
-            .off('click.alta', '#btnRemoveAltas')
-            .on('click.alta', '#btnRemoveAltas', function(e) {
-                e.preventDefault();
-                idsSelecionados = $('.ckAlta:checked').map(function() {
-                    return $(this).val();
-                }).get();
-                if (!idsSelecionados.length) {
-                    showMsg('Seleção necessária', 'Selecione pelo menos uma alta para reverter.');
-                    return;
-                }
-                $('#qtdAltasSel').text(idsSelecionados.length);
-                new bootstrap.Modal(document.getElementById('modalReverterAlta')).show();
-            });
-
-        // Confirmar reversão
-        $(document)
-            .off('click.alta', '#btnConfirmReverter')
-            .on('click.alta', '#btnConfirmReverter', function() {
-                var $btn = $(this);
-                $btn.prop('disabled', true);
-
-                $.ajax({
-                    url: 'alta_reverter.php',
-                    type: 'POST',
-                    data: {
-                        ids: idsSelecionados
-                    },
-                    success: function(resp) {
-                        const j = (typeof resp === 'string') ? JSON.parse(resp) : resp;
-                        if (j && j.ok) {
-                            bootstrap.Modal.getInstance(document.getElementById('modalReverterAlta'))
-                                .hide();
-                            location.reload();
-                        } else {
-                            showMsg('Falha', (j && j.msg) ? j.msg : 'Falha ao reverter.');
-                        }
-                    },
-                    error: function() {
-                        showMsg('Erro de comunicação', 'Não foi possível contatar o servidor.');
-                    },
-                    complete: function() {
-                        $btn.prop('disabled', false);
+            $(document)
+                .off('click.alta', '#btnRemoveAltas')
+                .on('click.alta', '#btnRemoveAltas', function(e) {
+                    e.preventDefault();
+                    idsSelecionados = $('.ckAlta:checked').map(function() {
+                        return $(this).val();
+                    }).get();
+                    if (!idsSelecionados.length) {
+                        showMsg('Seleção necessária', 'Selecione pelo menos uma alta para reverter.');
+                        return;
                     }
+                    $('#qtdAltasSel').text(idsSelecionados.length);
+                    new bootstrap.Modal(document.getElementById('modalReverterAlta')).show();
                 });
-            });
+
+            $(document)
+                .off('click.alta', '#btnConfirmReverter')
+                .on('click.alta', '#btnConfirmReverter', function() {
+                    var $btn = $(this);
+                    $btn.prop('disabled', true);
+
+                    $.ajax({
+                        url: 'alta_reverter.php',
+                        type: 'POST',
+                        data: {
+                            ids: idsSelecionados
+                        },
+                        success: function(resp) {
+                            const j = (typeof resp === 'string') ? JSON.parse(resp) : resp;
+                            if (j && j.ok) {
+                                bootstrap.Modal.getInstance(document.getElementById('modalReverterAlta'))
+                                    .hide();
+                                location.reload();
+                            } else {
+                                showMsg('Falha', (j && j.msg) ? j.msg : 'Falha ao reverter.');
+                            }
+                        },
+                        error: function() {
+                            showMsg('Erro de comunicação', 'Não foi possível contatar o servidor.');
+                        },
+                        complete: function() {
+                            $btn.prop('disabled', false);
+                        }
+                    });
+                });
+        }
 
     })(jQuery);
 </script>

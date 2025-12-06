@@ -330,7 +330,7 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                             id="boot-icon3" class="bi bi-box-arrow-left"
                                             style="font-size: 1rem; margin-right:5px; color: rgb(167, 25, 55);"></span>
                                         Alta UTI</a></li> -->
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>internacoes/reverter"><span
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>internacoes/reverter-alta"><span
                                             id="boot-icon3" class="bi bi-postcard-heart"
                                             style="font-size: 1rem; margin-right:5px; color: rgb(16, 15, 155);"></span>
                                         Reverter altas</a>
@@ -396,14 +396,10 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                             class="bi bi-postcard-heart"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(144, 17, 194);"></i>
                                         Gestão</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>internacoes/reverter"><i
-                                            class="bi bi-postcard-heart"
-                                            style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
-                                        Reverter altas</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>internacoes/gerar-alta"><i
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>listas/altas"><i
                                             class="bi bi-clipboard-check"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(9,132,227);"></i>
-                                        Gerar altas</a></li>
+                                        Lista de altas</a></li>
                                 <li>
                                     <hr class="dropdown-divider">
                                 </li>
