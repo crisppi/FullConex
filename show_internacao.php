@@ -663,17 +663,6 @@ usort($neg_filtered, function ($a, $b) {
 
                                 <div class="mt-3">
                                     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-                                        <h6 class="mb-0">
-                                            Relatório da visita: <span id="v-rel-date"><?= e($initDateLabel) ?></span>
-                                            <span id="v-rel-time-wrap" class="text-muted"
-                                                style="<?= $initTime ? '' : 'display:none' ?>">
-                                                • <span id="v-rel-time"><?= e($initTime) ?></span>
-                                            </span>
-                                            <span id="v-rel-id-wrap"
-                                                class="badge rounded-pill text-bg-secondary ms-2<?= $initId ? '' : ' d-none' ?>">
-                                                ID <span id="v-rel-id"><?= e($initId ?: '') ?></span>
-                                            </span>
-                                        </h6>
                                         <div class="d-flex flex-wrap gap-2 align-items-stretch">
                                             <?php if (!empty($visitas_norm)): ?>
                                             <button type="button" class="btn btn-sm btn-outline-danger btn-ultimas-visitas"
@@ -706,24 +695,40 @@ usort($neg_filtered, function ($a, $b) {
                                                 </span>
                                             </a>
                                         </div>
-                                        <?php if (!empty($visitas_norm)): ?>
-                                        <?php
-                                            $disableDeleteBtn = ($countVis <= 1) || !$initId || $activeVisitRet;
-                                            ?>
+                                        </div>
+                                    </div>
+                                    <?php if (!empty($visitas_norm)): ?>
+                                    <?php $disableDeleteBtn = ($countVis <= 1) || !$initId || $activeVisitRet; ?>
+                                    <div class="d-flex justify-content-end">
                                         <button type="button" id="btn-visita-delete-main"
-                                            class="btn btn-sm btn-outline-danger mt-2<?= $disableDeleteBtn ? ' disabled' : '' ?>"
+                                            class="btn btn-sm btn-outline-danger<?= $disableDeleteBtn ? ' disabled' : '' ?>"
                                             data-bs-toggle="modal" data-bs-target="#modalDeleteVisitaInternacao"
                                             data-delete-visita="<?= $initId ? e($initId) : '' ?>"
                                             aria-disabled="<?= $disableDeleteBtn ? 'true' : 'false' ?>"
                                             <?= $disableDeleteBtn ? 'disabled' : '' ?>>
                                             <i class="fa-solid fa-trash-can me-1"></i> Remover visita selecionada
                                         </button>
-                                        <?php endif; ?>
                                     </div>
-                                    <div class="p-3 rounded border" style="border-color:#eee">
-                                        <div class="v2-relatorio" id="v-rel-text" style="white-space:pre-wrap">
-                                            <?= e($initText) ?></div>
+                                    <?php endif; ?>
+                                    <div class="border-top mt-3 mb-3"></div>
+                                    <div class="p-3 rounded-4 shadow-sm" style="background:#f9f9fb;border:1px solid #e0e3ea;">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0 text-secondary fw-semibold">Relatório da visita:
+                            <span id="v-rel-date" class="text-dark"><?= e($initDateLabel) ?></span>
+                            <span id="v-rel-time-wrap" class="text-muted" style="<?= $initTime ? '' : 'display:none' ?>">
+                                • <span id="v-rel-time"><?= e($initTime) ?></span>
+                            </span>
+                        </h6>
+                        <span id="v-rel-id-wrap"
+                            class="badge bg-secondary-subtle text-secondary-emphasis<?= $initId ? '' : ' d-none' ?>">
+                            ID <span id="v-rel-id"><?= e($initId ?: '') ?></span>
+                        </span>
+                    </div>
+                    <div class="mt-3 p-3 rounded bg-white border" style="border-color:#e0e3ea;">
+                        <div class="v2-relatorio" id="v-rel-text" style="white-space:pre-wrap">
+                                                <?= e($initText) ?></div>
                                     </div>
+                </div>
 
                                     <div id="v-rel-auditor-wrap"
                                         style="font-size: 0.85rem; color: #5e2363; font-weight: 600; margin-top: 10px; display: <?= !empty($initAuditor) ? 'block' : 'none' ?>;">

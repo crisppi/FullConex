@@ -50,7 +50,8 @@ $cargoSessaoLower = mb_strtolower((string) $cargoSessao, 'UTF-8');
 $isDiretorSessao = (mb_stripos($cargoSessaoLower, 'diretor') !== false)
     || (mb_stripos($cargoSessaoLower, 'diretoria') !== false)
     || in_array($nivelSessaoRaw, ['1', '-1'], true);
-$cadastroCentralObrigatorio = $isDiretorSessao;
+$isCadastroCentralUser = (mb_stripos($cargoSessaoLower, 'analista') !== false);
+$cadastroCentralObrigatorio = $isDiretorSessao || $isCadastroCentralUser;
 $mostrarCadastroCentral = $cadastroCentralObrigatorio || !$isMedOuEnf;
 
 $dataAtual = date('Y-m-d');

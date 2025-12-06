@@ -164,59 +164,6 @@ function renderVisitaSection(
     $pdf->Line(15, $yLinhaVis, 195, $yLinhaVis);
     $pdf->Ln(2);
 
-    $dadosVisita = [
-        'Id Visita'      => $visita['id_visita'] ?? '',
-        'Data da Visita' => formatDate($visita['data_visita_vis'] ?? ''),
-        'Hospital'       => $visita['nome_hosp'] ?? '',
-        'Titular'        => $visita['titular_int'] ?? '',
-        'Acomodação'     => $visita['acomodacao_int'] ?? '',
-    ];
-
-    $itensVis = [];
-    foreach ($dadosVisita as $campo => $valor) {
-        $itensVis[] = ['label' => $campo, 'valor' => $valor];
-    }
-
-    $colsPerRowV = 3;
-    $colWidthV   = 60;
-    $totalItensV = count($itensVis);
-    $totalRowsV  = (int) ceil($totalItensV / $colsPerRowV);
-
-    $pdf->SetFillColor(...$corCinza);
-    $pdf->SetDrawColor(180, 180, 180);
-    $startXv = $pdf->GetX();
-    for ($row = 0; $row < $totalRowsV; $row++) {
-        $currentYv = $pdf->GetY();
-        for ($col = 0; $col < $colsPerRowV; $col++) {
-            $idxV  = $row * $colsPerRowV + $col;
-            $htmlV = '';
-
-            if (isset($itensVis[$idxV])) {
-                $labelV = htmlspecialchars($itensVis[$idxV]['label'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-                $valorV = htmlspecialchars((string)$itensVis[$idxV]['valor'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-                $htmlV  = '<b>' . $labelV . ':</b> ' . $valorV;
-            }
-
-            $xv = $startXv + $col * $colWidthV;
-            $pdf->writeHTMLCell(
-                $colWidthV,
-                6,
-                $xv,
-                $currentYv,
-                $htmlV,
-                1,
-                0,
-                1,
-                false,
-                'L',
-                true
-            );
-        }
-        $pdf->SetY($currentYv + 6);
-        $pdf->SetX($startXv);
-    }
-    $pdf->Ln(3);
-
     $pdf->SetFillColor(...$corCinza);
     $pdf->SetFont('helvetica', 'B', 7);
     $pdf->MultiCell(0, 6, 'Relatório da Visita:', 1, 'L', true);
@@ -224,35 +171,6 @@ function renderVisitaSection(
     $pdf->MultiCell(0, 6, $visita['rel_visita_vis'] ?? '', 1, 'L');
     $pdf->Ln(1);
 
-    $pdf->SetFillColor(...$corCinza);
-    $pdf->SetFont('helvetica', 'B', 7);
-    $pdf->MultiCell(0, 6, 'Ações da Visita:', 1, 'L', true);
-    $pdf->SetFont('helvetica', '', 7);
-    $pdf->MultiCell(0, 6, $visita['acoes_int_vis'] ?? '', 1, 'L');
-    $pdf->Ln(1);
-
-    $profissionalNome     = trim((string)($visita['auditor_nome'] ?? ''));
-    $profissionalRegistro = trim((string)($visita['auditor_registro'] ?? ''));
-    $profissionalValor    = trim($profissionalNome . ($profissionalRegistro ? ' - ' . $profissionalRegistro : ''));
-
-    $pdf->SetFillColor(...$corCinza);
-    $pdf->SetFont('helvetica', 'B', 7);
-    $pdf->MultiCell(0, 6, 'Profissional:', 1, 'L', true);
-    $pdf->SetFont('helvetica', '', 7);
-    $pdf->MultiCell(0, 6, $profissionalValor, 1, 'L');
-
-    if ($profissionalNome !== '') {
-        $pdf->Ln(0.8);
-        $pdf->SetFont($signatureFont, '', 14);
-        $pdf->Cell(0, 5, $profissionalNome, 0, 1, 'C');
-        $pdf->SetY($pdf->GetY() - 2.5);
-        $pdf->SetFont('helvetica', '', 7);
-        $pdf->Cell(0, 3.5, str_repeat('_', 55), 0, 1, 'C');
-        if ($profissionalRegistro !== '') {
-            $pdf->SetFont('helvetica', '', 8);
-            $pdf->Cell(0, 5, $profissionalRegistro, 0, 1, 'C');
-        }
-    }
     $pdf->Ln(3);
 }
 
