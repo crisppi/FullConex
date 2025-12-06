@@ -334,11 +334,11 @@ class negociacaoDAO implements negociacaoDAOInterface
     }
 
     // dao/negociacaoDao.php
-public function selectAllnegociacao($where = null, $order = null, $limit = null)
-{
-    $where = strlen($where) ? 'WHERE ' . $where : '';
-    $order = strlen($order) ? 'ORDER BY ' . $order : '';
-    $limit = strlen($limit) ? 'LIMIT ' . $limit : '';
+    public function selectAllnegociacao($where = null, $order = null, $limit = null)
+    {
+        $where = strlen($where) ? 'WHERE ' . $where : '';
+        $order = strlen($order) ? 'ORDER BY ' . $order : '';
+        $limit = strlen($limit) ? 'LIMIT ' . $limit : '';
 
     $sql = "
         SELECT
@@ -361,9 +361,68 @@ public function selectAllnegociacao($where = null, $order = null, $limit = null)
         $limit
     ";
 
-    $stmt = $this->conn->query($sql);
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
+        $stmt = $this->conn->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function selectNegociacoesDetalhes($where = null, $order = null, $limit = null)
+    {
+        $where = strlen($where) ? 'WHERE ' . $where : '';
+        $order = strlen($order) ? 'ORDER BY ' . $order : 'ORDER BY ng.data_inicio_neg DESC';
+        $limit = strlen($limit) ? 'LIMIT ' . $limit : '';
+
+        $sql = "
+            SELECT
+                ng.id_negociacao,
+                ng.fk_id_int,
+                ng.troca_de,
+                ng.troca_para,
+                ng.qtd,
+                ng.saving,
+                ng.data_inicio_neg,
+                ng.data_fim_neg,
+                ng.tipo_negociacao,
+                ng.fk_usuario_neg,
+                ng.fk_visita_neg,
+                ng.deletado_neg,
+                ng.updated_at,
+                ac.senha_int,
+                ac.data_intern_int,
+                ho.nome_hosp,
+                pa.nome_pac,
+            us.usuario_user AS nome_usuario,
+            pa.matricula_pac
+            FROM tb_negociacao AS ng
+            LEFT JOIN tb_internacao ac ON ng.fk_id_int = ac.id_internacao
+            LEFT JOIN tb_hospital ho ON ac.fk_hospital_int = ho.id_hospital
+            LEFT JOIN tb_paciente pa ON ac.fk_paciente_int = pa.id_paciente
+            LEFT JOIN tb_user us ON ng.fk_usuario_neg = us.id_usuario
+            $where
+            $order
+            $limit
+        ";
+
+        $stmt = $this->conn->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function countNegociacoesDetalhes($where = null)
+    {
+        $where = strlen($where) ? 'WHERE ' . $where : '';
+
+        $sql = "
+            SELECT COUNT(*) AS total
+            FROM tb_negociacao AS ng
+            LEFT JOIN tb_internacao ac ON ng.fk_id_int = ac.id_internacao
+            LEFT JOIN tb_hospital ho ON ac.fk_hospital_int = ho.id_hospital
+            LEFT JOIN tb_paciente pa ON ac.fk_paciente_int = pa.id_paciente
+            $where
+        ";
+
+        $stmt = $this->conn->query($sql);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int) ($row['total'] ?? 0);
+    }
 
     public function findMaxVis()
     {

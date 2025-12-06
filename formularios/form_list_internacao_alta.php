@@ -115,10 +115,17 @@ $paginationParams = [
 
 $buildListaAltaLink = function($pagina, $bloco) use ($paginationParams, $BASE_URL, $somenteListaAltas) {
     $params = $paginationParams;
-    $params['pag'] = $pagina;
     $params['bl'] = $bloco;
+
+    $params = array_filter($params, function($value) {
+        return $value !== null && $value !== '' && $value !== false;
+    });
+
+    $pathBase = $somenteListaAltas ? 'listas/altas' : 'internacoes/reverter-alta';
+    $pagina = max(1, (int)$pagina);
+    $path = rtrim($BASE_URL, '/') . '/' . $pathBase . '/pagina/' . $pagina;
+
     $query = http_build_query($params);
-    $path = $somenteListaAltas ? $BASE_URL . 'listas/altas' : $BASE_URL . 'internacoes/reverter-alta';
     return $path . ($query ? '?' . $query : '');
 };
 
@@ -162,6 +169,18 @@ $buildListaAltaLink = function($pagina, $bloco) use ($paginationParams, $BASE_UR
         font-size: 0.8rem;
         padding: 2px 10px;
         border-radius: 999px;
+    }
+
+    .tabela-altas thead th {
+        padding: 0.8rem 0.95rem;
+        font-size: 0.82rem;
+    }
+
+    .tabela-altas tbody td,
+    .tabela-altas tbody th {
+        padding: 0.78rem 0.95rem;
+        font-size: 0.82rem;
+        vertical-align: middle;
     }
 </style>
 
@@ -252,7 +271,7 @@ $buildListaAltaLink = function($pagina, $bloco) use ($paginationParams, $BASE_UR
         <div>
             <div id="table-content">
 
-                <table class="table table-sm table-striped table-hover table-condensed">
+                <table class="table table-sm table-striped table-hover table-condensed tabela-altas">
                     <thead>
                         <tr>
                             <th scope="col" width="3%">Id-Int</th>
