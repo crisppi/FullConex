@@ -1384,6 +1384,19 @@ document.addEventListener('DOMContentLoaded', mirrorVisitMedFromFk);
         mirrorVisitMedFromFk();
     });
 })();
+// Prorrogação: mostra container quando "s"
+document.addEventListener("DOMContentLoaded", function() {
+    const selectProrrog = document.getElementById("select_prorrog");
+    const containerProrrog = document.getElementById("container-prorrog");
+    if (selectProrrog && containerProrrog) {
+        function toggleProrrog() {
+            containerProrrog.style.display = (selectProrrog.value === "s") ? "block" : "none";
+        }
+        selectProrrog.addEventListener("change", toggleProrrog);
+        toggleProrrog();
+    }
+});
+
 
 // SUBMIT AJAX
 // formulario ajax para envio form sem refresh
@@ -1428,7 +1441,9 @@ $("#myForm").submit(function(event) {
     if (typeof window.isSenhaDuplicada === 'function' && window.isSenhaDuplicada()) {
         $('#alert').removeClass("alert-success").addClass("alert-danger");
         $('#alert').fadeIn().html("Esta senha já está cadastrada para outra internação.");
-        setTimeout(function() { $('#alert').fadeOut('Slow'); }, 3500);
+        setTimeout(function() {
+            $('#alert').fadeOut('Slow');
+        }, 3500);
         return;
     }
 
@@ -1476,27 +1491,38 @@ $("#myForm").submit(function(event) {
             const resposta = String(result || '').trim();
             if (resposta === 'paciente_internado') {
                 $('#alert').removeClass("alert-success").addClass("alert-danger");
-                $('#alert').fadeIn().html("Paciente possui internação ativa e precisa confirmar retroativa.");
-                setTimeout(function() { $('#alert').fadeOut('Slow'); }, 3000);
+                $('#alert').fadeIn().html(
+                    "Paciente possui internação ativa e precisa confirmar retroativa.");
+                setTimeout(function() {
+                    $('#alert').fadeOut('Slow');
+                }, 3000);
                 return;
             }
             if (resposta === 'retroativa_sem_alta') {
                 $('#alert').removeClass("alert-success").addClass("alert-danger");
-                $('#alert').fadeIn().html("Para retroativa, marque 'Internado = Não' e informe a data/motivo da alta.");
-                setTimeout(function() { $('#alert').fadeOut('Slow'); }, 3500);
+                $('#alert').fadeIn().html(
+                    "Para retroativa, marque 'Internado = Não' e informe a data/motivo da alta."
+                );
+                setTimeout(function() {
+                    $('#alert').fadeOut('Slow');
+                }, 3500);
                 return;
             }
             if (resposta === 'senha_duplicada') {
                 $('#alert').removeClass("alert-success").addClass("alert-danger");
                 $('#alert').fadeIn().html("Esta senha já está cadastrada para outra internação.");
-                setTimeout(function() { $('#alert').fadeOut('Slow'); }, 3500);
+                setTimeout(function() {
+                    $('#alert').fadeOut('Slow');
+                }, 3500);
                 return;
             }
 
             if (resposta === '0') {
                 $('#alert').removeClass("alert-success").addClass("alert-danger");
                 $('#alert').fadeIn().html("Paciente possui internação ativa");
-                setTimeout(function() { $('#alert').fadeOut('Slow'); }, 2000);
+                setTimeout(function() {
+                    $('#alert').fadeOut('Slow');
+                }, 2000);
                 return;
             }
 
@@ -1626,6 +1652,92 @@ document.addEventListener("DOMContentLoaded", function() {
         toggleProrrog();
     }
 });
+
+// Mostrar UTI se acomodação == UTI
+document.getElementById("acomodacao_int").addEventListener("change", function() {
+    const divUti = document.querySelector("#container-uti");
+    if (divUti) divUti.style.display = (this.value === "UTI") ? "block" : "none";
+});
+
+// Tabelas adicionais (Tuss, Gestão, UTI, Prorrogação, Negociações)
+document.addEventListener('DOMContentLoaded', function() {
+
+    function setupToggle(selectId, containerId) {
+        const selectEl = document.getElementById(selectId);
+        const containerEl = document.getElementById(containerId);
+
+        if (!selectEl || !containerEl) return;
+
+        function aplicar() {
+            if (selectEl.value === 's') {
+                containerEl.style.display = 'block';
+            } else {
+                containerEl.style.display = 'none';
+            }
+        }
+
+        // garante estado inicial
+        aplicar();
+        // atualiza ao mudar
+        selectEl.addEventListener('change', aplicar);
+    }
+
+    // Tuss
+    setupToggle('select_tuss', 'container-tuss');
+
+    // Prorrogação
+    setupToggle('select_prorrog', 'container-prorrog');
+
+    // Gestão
+    setupToggle('select_gestao', 'container-gestao');
+
+    // Negociações
+    setupToggle('select_negoc', 'container-negoc');
+
+    // UTI: depende do select_uti e da acomodação
+    (function() {
+        const selectUti = document.getElementById('select_uti');
+        const acomEl = document.getElementById('acomodacao_int');
+        const containerUti = document.getElementById('container-uti');
+
+        if (!containerUti) return;
+
+        function aplicarUti() {
+            const viaSelect = selectUti && selectUti.value === 's';
+            const viaAcomod = acomEl && acomEl.value === 'UTI';
+            containerUti.style.display = (viaSelect || viaAcomod) ? 'block' : 'none';
+        }
+
+        aplicarUti();
+
+        if (selectUti) {
+            selectUti.addEventListener('change', aplicarUti);
+        }
+        if (acomEl) {
+            acomEl.addEventListener('change', aplicarUti);
+        }
+    })();
+});
+
+// Relatório Detalhado
+(function() {
+    const selectDet = document.getElementById('relatorio-detalhado');
+    const divDet = document.getElementById('div-detalhado');
+
+    if (!selectDet || !divDet) return;
+
+    function aplicar() {
+        if (selectDet.value === 's') {
+            divDet.style.display = 'block';
+        } else {
+            divDet.style.display = 'none';
+        }
+    }
+
+    aplicar();
+    selectDet.addEventListener('change', aplicar);
+})();
+
 
 // Carregar acomodações via hospital (para negociações/savings)
 $(document).ready(function() {
@@ -1766,7 +1878,9 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         fetch('ajax/check_internacao_ativa.php?id_paciente=' + encodeURIComponent(pacienteId))
-            .then(function(resp) { return resp.json(); })
+            .then(function(resp) {
+                return resp.json();
+            })
             .then(function(data) {
                 if (!data || !data.success) {
                     throw new Error(data?.error || 'Erro ao consultar internação ativa.');
@@ -1810,7 +1924,8 @@ document.addEventListener('DOMContentLoaded', function() {
             activeInfo = null;
             if (pacienteSelect) {
                 pacienteSelect.value = '';
-                if (window.jQuery && jQuery.fn.selectpicker && jQuery(pacienteSelect).hasClass('selectpicker')) {
+                if (window.jQuery && jQuery.fn.selectpicker && jQuery(pacienteSelect).hasClass(
+                        'selectpicker')) {
                     jQuery(pacienteSelect).selectpicker('refresh');
                 }
             }
@@ -1837,7 +1952,9 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         fetch('ajax/check_senha_internacao.php?senha=' + encodeURIComponent(valor))
-            .then(function(resp) { return resp.json(); })
+            .then(function(resp) {
+                return resp.json();
+            })
             .then(function(data) {
                 if (data && data.success && data.exists) {
                     senhaDuplicadaFlag = true;
@@ -1869,8 +1986,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return senhaDuplicadaFlag;
     };
 });
-
- </script>
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous">
