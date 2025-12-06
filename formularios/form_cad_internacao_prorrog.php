@@ -44,18 +44,43 @@
     padding: 10px;
     font-size: 1rem;
 }
+.adicional-card {
+    background:#fff;
+    border-radius:22px;
+    border:1px solid #ebe1f5;
+    box-shadow:0 12px 28px rgba(45,18,70,.08);
+    padding:22px 24px;
+}
+.adicional-card__header {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:.75rem;
+    margin-bottom:18px;
+}
+.adicional-card__title {
+    display:flex;
+    align-items:center;
+    margin:0;
+    color:#3a184f;
+    font-weight:600;
+}
+.adicional-card__marker {
+    width:6px;
+    height:26px;
+    border-radius:10px;
+    margin-right:12px;
+    background:linear-gradient(180deg,#8f5ff3,#b995ff);
+}
 </style>
 
 <div class="prorrogacao-container" id="container-prorrog" style="display:none;">
-    <div id="fieldsContainer">
-        <div class="titulo-abas d-flex align-items-center justify-content-between flex-wrap" style="gap:.5rem">
-            <h4 class="text-center w-100" style="
-                margin: -7px;
-                background-color: #5e2363;
-                color: #fff;
-                padding: 10px 0;
-                border-radius: 0.25rem;
-            ">Prorrogação</h4>
+    <div class="adicional-card">
+        <div class="adicional-card__header">
+            <h4 class="adicional-card__title">
+                <span class="adicional-card__marker"></span>
+                Prorrogação
+            </h4>
 
             <?php if (!empty($prorrogIntern) && count($prorrogIntern) > 0): ?>
             <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalProrrog"
@@ -64,6 +89,7 @@
             </button>
             <?php endif; ?>
         </div>
+    <div id="fieldsContainer">
 
         <!-- Linha inicial (sem botão "-") -->
         <div class="field-container form-group row">
@@ -119,6 +145,7 @@
     </div>
 
     <input type="hidden" id="prorrogacoes-json" name="prorrogacoes-json">
+    </div>
 </div>
 
 <div class="modal fade" id="modalProrrog">

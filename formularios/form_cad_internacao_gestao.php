@@ -1,15 +1,43 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-maskmoney/3.0.2/jquery.maskMoney.min.js"></script>
 
+<style>
+.adicional-card {
+    background:#fff;
+    border-radius:22px;
+    border:1px solid #ebe1f5;
+    box-shadow:0 12px 28px rgba(45,18,70,.08);
+    padding:22px 24px;
+    margin-top:10px;
+}
+.adicional-card__header {
+    display:flex;
+    align-items:center;
+    margin-bottom:18px;
+}
+.adicional-card__title {
+    display:flex;
+    align-items:center;
+    margin:0;
+    color:#2f1846;
+    font-weight:600;
+}
+.adicional-card__marker {
+    width:6px;
+    height:26px;
+    border-radius:10px;
+    margin-right:12px;
+    background:linear-gradient(180deg,#4b9fa4,#7ad0c8);
+}
+</style>
+
 <div id="container-gestao" style="display:none; margin:5px">
-    <div class="titulo-abas">
-        <h4 class="text-center w-100" style="
-    margin: -7px ;
-    background-color: #5e2363;
-    color: #fff;
-    padding: 10px 0;
-    border-radius: 0.25rem;
-  ">Gestão</h4>
-    </div>
+    <div class="adicional-card">
+        <div class="adicional-card__header">
+            <h4 class="adicional-card__title">
+                <span class="adicional-card__marker"></span>
+                Gestão
+            </h4>
+        </div>
     <input type="hidden" name="type" value="create">
 
     <?php
@@ -210,9 +238,8 @@
 
             </div>
         </div>
-
+        </div>
     </div>
-    <br>
 </div>
 
 

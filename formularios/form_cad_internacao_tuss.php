@@ -1,57 +1,61 @@
 <style>
 .form-group.row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    align-items: flex-start;
+    display:flex;
+    flex-wrap:wrap;
+    gap:15px;
+    align-items:flex-start;
 }
+.form-group {margin-bottom:15px;}
+.form-group label {margin-bottom:5px;font-weight:bold;}
+.form-control {width:100%;padding:5px;}
+.btn {padding:5px 10px;font-size:.9rem;border:none;border-radius:5px;cursor:pointer;}
+.btn-add {background-color:#007bff;color:#fff;}
+.btn-remove {background-color:#dc3545;color:#fff;}
 
-.form-group {
-    margin-bottom: 15px;
+.adicional-card {
+    background:#fff;
+    border-radius:22px;
+    border:1px solid #ebe1f5;
+    box-shadow:0 12px 28px rgba(45,18,70,.08);
+    padding:22px 24px;
 }
-
-.form-group label {
-    margin-bottom: 5px;
-    font-weight: bold;
+.adicional-card__header {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:1rem;
+    margin-bottom:18px;
 }
-
-.form-control {
-    width: 100%;
-    padding: 5px;
+.adicional-card__title {
+    display:flex;
+    align-items:center;
+    font-weight:600;
+    margin:0;
+    color:#3a184f;
 }
-
-.btn {
-    padding: 5px 10px;
-    font-size: 0.9rem;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.btn-add {
-    background-color: #007bff;
-    color: white;
-}
-
-.btn-remove {
-    background-color: #dc3545;
-    color: white;
+.adicional-card__marker {
+    width:6px;
+    height:26px;
+    border-radius:10px;
+    margin-right:12px;
+    background:linear-gradient(180deg,#9654c8,#b983f1);
 }
 </style>
 
 <div id="container-tuss" style="display:none; margin:5px;">
-    <div class="titulo-abas">
-        <h4 class="text-center w-100"
-            style="margin:-7px;background-color:#5e2363;color:#fff;padding:10px 0;border-radius:0.25rem;">
-            Tuss
-        </h4>
-
-        <?php if (!empty($tussIntern) && count($tussIntern) > 0): ?>
-        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalTUSS" id="openmodal">
-            <i class="fas fa-eye"></i> TUSS Liberados
-        </button>
-        <?php endif; ?>
-    </div>
+    <div class="adicional-card">
+        <div class="adicional-card__header">
+            <h4 class="adicional-card__title">
+                <span class="adicional-card__marker"></span>
+                TUSS
+            </h4>
+            <?php if (!empty($tussIntern) && count($tussIntern) > 0): ?>
+            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalTUSS"
+                id="openmodal">
+                <i class="fas fa-eye"></i> TUSS Liberados
+            </button>
+            <?php endif; ?>
+        </div>
 
     <div id="tussFieldsContainer">
         <!-- ===== Linha inicial (sem botão "-") ===== -->
@@ -109,8 +113,9 @@
         </div>
     </div>
 
-    <div id="success-message" class="alert alert-success" style="display:none; margin-top:10px;">
-        TUSS gravados com sucesso!
+        <div id="success-message" class="alert alert-success" style="display:none; margin-top:10px;">
+            TUSS gravados com sucesso!
+        </div>
     </div>
 </div>
 

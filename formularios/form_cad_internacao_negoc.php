@@ -38,106 +38,127 @@
     color: white;
 }
 
-.form-group label,
-.form-group .form-control,
-.form-group select {
-    font-size: 1em;
+#container-negoc .adicional-card {
+    background:#fff;
+    border-radius:22px;
+    border:1px solid #ebe1f5;
+    box-shadow:0 12px 28px rgba(45,18,70,.08);
+    padding:22px 24px;
+}
+#container-negoc .adicional-card__header {
+    display:flex;
+    align-items:center;
+    margin-bottom:18px;
+}
+#container-negoc .adicional-card__title {
+    display:flex;
+    align-items:center;
+    margin:0;
+    color:#2f1846;
+    font-weight:600;
+}
+#container-negoc .adicional-card__marker {
+    width:6px;
+    height:26px;
+    border-radius:10px;
+    margin-right:12px;
+    background:linear-gradient(180deg,#b169d9,#d199ff);
 }
 </style>
 
 <div id="container-negoc" style="display:none; margin:5px">
-    <div class="titulo-abas">
-        <h4 class="text-center w-100"
-            style="margin:-7px;background-color:#5e2363;color:#fff;padding:10px 0;border-radius:.25rem;">
-            Negociações
-        </h4>
-    </div>
+    <div class="adicional-card">
+        <div class="adicional-card__header">
+            <h4 class="adicional-card__title">
+                <span class="adicional-card__marker"></span>
+                Negociações
+            </h4>
+        </div>
 
-    <input type="hidden" readonly class="form-control" id="fk_id_int" value="<?= $ultimoReg ?>" name="fk_id_int">
-    <input type="hidden" class="form-control" value="<?= $_SESSION["id_usuario"] ?>" id="fk_usuario_neg"
-        name="fk_usuario_neg">
+        <input type="hidden" readonly class="form-control" id="fk_id_int" value="<?= $ultimoReg ?>" name="fk_id_int">
+        <input type="hidden" class="form-control" value="<?= $_SESSION["id_usuario"] ?>" id="fk_usuario_neg"
+            name="fk_usuario_neg">
 
-    <div id="negotiationFieldsContainer" style="margin:5px;">
-        <input type="hidden" id="negociacoes_json" name="negociacoes_json" value="">
+        <div id="negotiationFieldsContainer" style="margin:5px;">
+            <input type="hidden" id="negociacoes_json" name="negociacoes_json" value="">
 
-        <!-- Primeira linha (SEM botão "-") -->
-        <div class="negotiation-field-container form-group row" data-initial="true">
-            <div class="form-group col-sm-2">
-                <label for="tipo_negociacao">Tipo Negociação</label>
-                <select name="tipo_negociacao" id="tipo_negociacao" class="form-control">
-                    <option value="">Selecione</option>
-                    <option value="TROCA UTI/APTO">TROCA UTI/APTO</option>
-                    <option value="TROCA UTI/SEMI">TROCA UTI/SEMI</option>
-                    <option value="TROCA SEMI/APTO">TROCA SEMI/APTO</option>
-                    <option value="VESPERA">VESPERA</option>
-                    <option value="GLOSA UTI">GLOSA UTI</option>
-                    <option value="GLOSA APTO">GLOSA APTO</option>
-                    <option value="GLOSA SEMI">GLOSA SEMI</option>
-                    <option value="1/2 DIARIA APTO">1/2 DIARIA APTO</option>
-                    <option value="TARDIA APTO">TARDIA APTO</option>
-                    <option value="TARDIA UTI">TARDIA UTI</option>
-                    <option value="DIARIA ADM">DIARIA ADM</option>
-                </select>
-            </div>
+            <!-- Primeira linha (SEM botão "-") -->
+            <div class="negotiation-field-container form-group row" data-initial="true">
+                <div class="form-group col-sm-2">
+                    <label for="tipo_negociacao">Tipo Negociação</label>
+                    <select name="tipo_negociacao" id="tipo_negociacao" class="form-control">
+                        <option value="">Selecione</option>
+                        <option value="TROCA UTI/APTO">TROCA UTI/APTO</option>
+                        <option value="TROCA UTI/SEMI">TROCA UTI/SEMI</option>
+                        <option value="TROCA SEMI/APTO">TROCA SEMI/APTO</option>
+                        <option value="VESPERA">VESPERA</option>
+                        <option value="GLOSA UTI">GLOSA UTI</option>
+                        <option value="GLOSA APTO">GLOSA APTO</option>
+                        <option value="GLOSA SEMI">GLOSA SEMI</option>
+                        <option value="1/2 DIARIA APTO">1/2 DIARIA APTO</option>
+                        <option value="TARDIA APTO">TARDIA APTO</option>
+                        <option value="TARDIA UTI">TARDIA UTI</option>
+                        <option value="DIARIA ADM">DIARIA ADM</option>
+                    </select>
+                </div>
 
-            <div class="form-group col-sm-1">
-                <label class="control-label" for="data_inicio_negoc">Data inicial</label>
-                <input onchange="generateNegotiationsJSON()" type="date" class="form-control-sm form-control"
-                    id="data_inicio_negoc" name="data_inicio_negoc">
-            </div>
-            <div class="form-group col-sm-1">
-                <label class="control-label" for="data_fim_negoc">Data final</label>
-                <input onchange="generateNegotiationsJSON()" type="date" class="form-control-sm form-control"
-                    id="data_fim_negoc" name="data_fim_negoc">
-            </div>
+                <div class="form-group col-sm-1">
+                    <label class="control-label" for="data_inicio_negoc">Data inicial</label>
+                    <input onchange="generateNegotiationsJSON()" type="date" class="form-control-sm form-control"
+                        id="data_inicio_negoc" name="data_inicio_negoc">
+                </div>
+                <div class="form-group col-sm-1">
+                    <label class="control-label" for="data_fim_negoc">Data final</label>
+                    <input onchange="generateNegotiationsJSON()" type="date" class="form-control-sm form-control"
+                        id="data_fim_negoc" name="data_fim_negoc">
+                </div>
 
-            <div class="form-group col-sm-2">
-                <label for="troca_de">Acomodação Solicitada</label>
-                <select onchange="generateNegotiationsJSON()" name="troca_de" class="form-control">
-                    <option value=""> </option>
-                    <?php sort($dados_acomodacao, SORT_ASC);
+                <div class="form-group col-sm-2">
+                    <label for="troca_de">Acomodação Solicitada</label>
+                    <select onchange="generateNegotiationsJSON()" name="troca_de" class="form-control">
+                        <option value=""> </option>
+                        <?php sort($dados_acomodacao, SORT_ASC);
           foreach ($dados_acomodacao as $acomd) { ?>
-                    <option value="<?= $acomd; ?>"><?= $acomd; ?></option>
-                    <?php } ?>
-                </select>
-            </div>
+                        <option value="<?= $acomd; ?>"><?= $acomd; ?></option>
+                        <?php } ?>
+                    </select>
+                </div>
 
-            <div class="form-group col-sm-2">
-                <label for="troca_para">Acomodação Liberada</label>
-                <select onchange="generateNegotiationsJSON()" name="troca_para" class="form-control">
-                    <option value=""> </option>
-                    <?php sort($dados_acomodacao, SORT_ASC);
+                <div class="form-group col-sm-2">
+                    <label for="troca_para">Acomodação Liberada</label>
+                    <select onchange="generateNegotiationsJSON()" name="troca_para" class="form-control">
+                        <option value=""> </option>
+                        <?php sort($dados_acomodacao, SORT_ASC);
           foreach ($dados_acomodacao as $acomd) { ?>
-                    <option value="<?= $acomd; ?>"><?= $acomd; ?></option>
-                    <?php } ?>
-                </select>
-            </div>
+                        <option value="<?= $acomd; ?>"><?= $acomd; ?></option>
+                        <?php } ?>
+                    </select>
+                </div>
 
-            <div class="form-group col-sm-1">
-                <label for="qtd">Quantidade</label>
-                <input onchange="generateNegotiationsJSON()" type="number" name="qtd" class="form-control" min="1"
-                    max="30">
-            </div>
+                <div class="form-group col-sm-1">
+                    <label for="qtd">Quantidade</label>
+                    <input onchange="generateNegotiationsJSON()" type="number" name="qtd" class="form-control" min="1"
+                        max="30">
+                </div>
 
-            <div class="form-group col-sm-1">
-                <label for="saving_show">Saving</label>
-                <input type="text" name="saving_show" class="form-control" readonly>
-                <input type="hidden" name="saving" class="form-control">
-            </div>
+                <div class="form-group col-sm-1">
+                    <label for="saving_show">Saving</label>
+                    <input type="text" name="saving_show" class="form-control" readonly>
+                    <input type="hidden" name="saving" class="form-control">
+                </div>
 
-            <div class="form-group col-sm-1" style="margin-top:25px;">
-                <!-- SOMENTE "+" na primeira linha -->
-                <button type="button" class="btn btn-add" onclick="addNegotiationField()">+</button>
+                <div class="form-group col-sm-1" style="margin-top:25px;">
+                    <!-- SOMENTE "+" na primeira linha -->
+                    <button type="button" class="btn btn-add" onclick="addNegotiationField()">+</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div id="mensagemAlerta"
-        style="display:none;background:#f8d7da;color:#721c24;padding:10px;margin:10px 0;border:1px solid #f5c6cb;border-radius:4px;">
+        <div id="mensagemAlerta"
+            style="display:none;background:#f8d7da;color:#721c24;padding:10px;margin:10px 0;border:1px solid #f5c6cb;border-radius:4px;">
+        </div>
     </div>
 </div>
-
-<hr>
 
 <script>
 // ========= Helpers (JS) =========
