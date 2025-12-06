@@ -419,6 +419,10 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                             class="bi bi-currency-dollar"
                                             style="font-size: 1rem;margin-right:5px; color:#0d6efd;"></i>
                                         Negociações</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>negociacoes/graficos"><i
+                                            class="bi bi-bar-chart"
+                                            style="font-size: 1rem;margin-right:5px; color:#20c997;"></i>
+                                        Gráfico Negociações</a></li>
 
                             </ul>
                         </li>
