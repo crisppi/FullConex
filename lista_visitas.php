@@ -450,28 +450,30 @@ $brandSoftColor = $isFaturamentoView ? '#d6e4ff' : '#dfe6ff';
     }
     .input-group .select2-container {
         flex: 1;
-        display: flex;
-        align-items: center;
+        min-width: 0;
     }
     .input-group .select2-container--default .select2-selection--multiple {
         border-left: 0;
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
-        min-height: calc(2.75rem + 2px);
-        height: calc(2.75rem + 2px) !important;
-        min-width: 320px;
+        min-height: 2.55rem;
+        height: 2.55rem !important;
+        width: 100%;
+        padding: 0.25rem 0.45rem;
         display: flex;
         align-items: center;
-        padding: 0.15rem 0.5rem;
-        margin-right: -1px;
+        margin-right: 0;
     }
 
+    .select2.select2-container {
+        width: 100% !important;
+    }
     .select2-container--default .select2-selection--multiple {
         border: 1px solid #ced4da;
         border-radius: .375rem;
-        min-height: calc(2.75rem + 2px);
-        height: calc(2.75rem + 2px);
-        padding: 0.25rem 0.35rem;
+        min-height: 2.55rem;
+        height: 2.55rem !important;
+        padding: 0.25rem 0.45rem;
         display: flex;
         align-items: center;
         flex-wrap: wrap;
