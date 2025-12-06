@@ -218,13 +218,18 @@ foreach (($visitas ?? []) as $v) {
 }
 usort($visitas_norm, fn($a, $b) => strcmp($a['_date'], $b['_date']));
 
+$recentLimitInput = filter_input(INPUT_GET, 'recent_limit', FILTER_VALIDATE_INT);
+$recentLimit = ($recentLimitInput && $recentLimitInput > 0) ? min($recentLimitInput, 20) : 5;
+$recentOrderInput = filter_input(INPUT_GET, 'recent_order', FILTER_SANITIZE_SPECIAL_CHARS);
+$recentOrder = in_array($recentOrderInput, ['asc', 'desc'], true) ? $recentOrderInput : 'desc';
+
 $visitas_recent = $visitas_norm;
-usort($visitas_recent, function ($a, $b) {
+usort($visitas_recent, function ($a, $b) use ($recentOrder) {
     $ta = strtotime(($a['_date'] ?? '1970-01-01') . ' ' . ($a['_time'] ?? '00:00')) ?: 0;
     $tb = strtotime(($b['_date'] ?? '1970-01-01') . ' ' . ($b['_time'] ?? '00:00')) ?: 0;
-    return $tb <=> $ta;
+    return $recentOrder === 'asc' ? ($ta <=> $tb) : ($tb <=> $ta);
 });
-$visitas_recent = array_slice($visitas_recent, 0, 5);
+$visitas_recent = array_slice($visitas_recent, 0, $recentLimit);
 
 $minD = $visitas_norm ? $visitas_norm[0]['_date'] : null;
 $maxD = $visitas_norm ? $visitas_norm[count($visitas_norm) - 1]['_date'] : null;
@@ -715,9 +720,6 @@ usort($neg_filtered, function ($a, $b) {
                                         <div class="d-flex justify-content-between align-items-center mb-2">
                         <h6 class="mb-0 text-secondary fw-semibold">Relatório da visita:
                             <span id="v-rel-date" class="text-dark"><?= e($initDateLabel) ?></span>
-                            <span id="v-rel-time-wrap" class="text-muted" style="<?= $initTime ? '' : 'display:none' ?>">
-                                • <span id="v-rel-time"><?= e($initTime) ?></span>
-                            </span>
                         </h6>
                         <span id="v-rel-id-wrap"
                             class="badge bg-secondary-subtle text-secondary-emphasis<?= $initId ? '' : ' d-none' ?>">
@@ -728,7 +730,7 @@ usort($neg_filtered, function ($a, $b) {
                         <div class="v2-relatorio" id="v-rel-text" style="white-space:pre-wrap">
                                                 <?= e($initText) ?></div>
                                     </div>
-                </div>
+                                    </div>
 
                                     <div id="v-rel-auditor-wrap"
                                         style="font-size: 0.85rem; color: #5e2363; font-weight: 600; margin-top: 10px; display: <?= !empty($initAuditor) ? 'block' : 'none' ?>;">
@@ -747,10 +749,81 @@ usort($neg_filtered, function ($a, $b) {
                                     </div>
                                 </div>
                             </div>
+
+                            <?php if (!empty($visitas_recent)): ?>
+                            <div class="mt-4 p-3 rounded-4 shadow-sm border" style="border-color:#e0e3ea;background:#f9f9fb;">
+                                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                                    <h6 class="text-uppercase small fw-semibold text-muted mb-0">
+                                        Últimas <?= e($recentLimit) ?> visitas registradas
+                                    </h6>
+                                    <form class="d-flex flex-wrap align-items-center gap-2" method="get">
+                                        <input type="hidden" name="id_internacao" value="<?= (int)$id_internacao ?>">
+                                        <input type="hidden" name="aba" value="visitas">
+                                        <?php if (!empty($vid_req)): ?>
+                                        <input type="hidden" name="vid" value="<?= e($vid_req) ?>">
+                                        <?php endif; ?>
+                                        <label class="small text-muted mb-0">Qtd
+                                            <select name="recent_limit" class="form-select form-select-sm d-inline-block"
+                                                style="width:auto;">
+                                                <?php foreach ([3,5,10,15,20] as $opt): ?>
+                                                <option value="<?= $opt ?>" <?= $recentLimit == $opt ? 'selected' : '' ?>>
+                                                    <?= $opt ?>
+                                                </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </label>
+                                        <label class="small text-muted mb-0">Ordem
+                                            <select name="recent_order" class="form-select form-select-sm d-inline-block"
+                                                style="width:auto;">
+                                                <option value="desc" <?= $recentOrder === 'desc' ? 'selected' : '' ?>>Recente
+                                                </option>
+                                                <option value="asc" <?= $recentOrder === 'asc' ? 'selected' : '' ?>>Antiga
+                                                </option>
+                                            </select>
+                                        </label>
+                                        <button class="btn btn-sm btn-outline-secondary" type="submit">Aplicar</button>
+                                    </form>
+                                </div>
+                                <div class="d-flex flex-column gap-3">
+                                    <?php foreach ($visitas_recent as $recent):
+                                        $recentDate = $recent['_date'] ? date('d/m/Y', strtotime($recent['_date'])) : '—';
+                                        $recentTime = trim((string)($recent['_time'] ?? ''));
+                                        $recentText = trim((string)($recent['_text'] ?? ''));
+                                        $recentAud  = trim((string)($recent['_auditor'] ?? ''));
+                                        $recentId   = $recent['_id'] ?? ($recent['_raw']['id_visita'] ?? null);
+                                        ?>
+                                    <div class="p-3 rounded-3 bg-white border" style="border-color:#e0e3ea;">
+                                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                            <div class="text-secondary fw-semibold">
+                                                Relatório da visita:
+                                                <span class="text-dark"><?= e($recentDate) ?></span>
+                                            </div>
+                                            <?php if ($recentId): ?>
+                                            <span class="badge bg-secondary-subtle text-secondary-emphasis">
+                                                ID <?= e($recentId) ?>
+                                            </span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <?php if ($recentAud): ?>
+                                        <div class="mt-2 small text-muted">
+                                            <i class="fa-solid fa-user-doctor me-1"></i>
+                                            <?= e($recentAud) ?>
+                                        </div>
+                                        <?php endif; ?>
+                                        <div class="mt-3 p-3 rounded bg-light border" style="border-color:#e0e3ea;">
+                                            <div class="small text-muted text-uppercase mb-1">Evolução</div>
+                                            <p class="mb-0"><?= nl2br(e($recentText !== '' ? $recentText : '-')) ?></p>
+                                        </div>
+                                    </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+
                         </div>
                         <?php endif; ?>
-                        <?php if (!empty($visitas_norm)): ?>
-                        <div class="modal fade" id="modalDeleteVisitaInternacao" tabindex="-1" aria-hidden="true">
+<?php if (!empty($visitas_norm)): ?>
+<div class="modal fade" id="modalDeleteVisitaInternacao" tabindex="-1" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered">
                                 <div class="modal-content">
                                     <div class="modal-header">
@@ -768,8 +841,17 @@ usort($neg_filtered, function ($a, $b) {
                                 </div>
                             </div>
                         </div>
-                        <?php endif; ?>
-                    </div>
+<?php endif; ?>
+</div>
+<?php if (!empty($_GET['recent_limit']) || !empty($_GET['recent_order'])): ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.location.hash !== '#visitas') {
+        window.location.hash = 'visitas';
+    }
+});
+</script>
+<?php endif; ?>
                     <?php if (!empty($visitas_recent)): ?>
                     <div class="modal fade modal-ultimas-visitas" id="modalUltimasVisitas" tabindex="-1"
                         aria-labelledby="modalUltimasVisitasLabel" aria-hidden="true">
@@ -791,22 +873,30 @@ usort($neg_filtered, function ($a, $b) {
                                     <div class="visita-list">
                                         <?php foreach ($visitas_recent as $vis):
                                             $d = $vis['_date'] ? date('d/m/Y', strtotime($vis['_date'])) : '-';
+                                            $hora = $vis['_time'] ?: '';
                                             $relatorio = trim((string)($vis['_text'] ?? ''));
+                                            $idVis = $vis['id_visita'] ?? ($vis['_raw']['id_visita'] ?? null);
                                             ?>
-                                        <div class="visita-item">
-                                            <div class="visita-item-header">
-                                                <div class="visita-item-date">
-                                                    <span class="visita-label">Data</span>
-                                                    <strong><?= e($d) ?></strong>
+                                        <div class="visita-item rounded-4 shadow-sm mb-3 p-3"
+                                            style="border:1px solid #e0e3ea;background:#f9f9fb;">
+                                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                                <div class="text-secondary fw-semibold">
+                                                    Relatório da visita:
+                                                    <span class="text-dark"><?= e($d) ?></span>
                                                 </div>
-                                                <div class="visita-item-prof">
-                                                    <span class="visita-label">Profissional</span>
-                                                    <strong><?= e($vis['_auditor'] ?: '-') ?></strong>
-                                                </div>
+                                                <?php if ($idVis): ?>
+                                                <span class="badge bg-secondary-subtle text-secondary-emphasis">
+                                                    ID <?= e($idVis) ?>
+                                                </span>
+                                                <?php endif; ?>
                                             </div>
-                                            <div class="visita-item-body">
-                                                <span class="visita-label">Evolução</span>
-                                                <p><?= nl2br(e($relatorio !== '' ? $relatorio : '-')) ?></p>
+                                            <div class="mt-2">
+                                                <span class="small text-muted">Profissional:</span>
+                                                <strong><?= e($vis['_auditor'] ?: '-') ?></strong>
+                                            </div>
+                                            <div class="mt-3 p-3 rounded bg-white border" style="border-color:#e0e3ea;">
+                                                <span class="small text-muted d-block mb-1">Evolução</span>
+                                                <p class="mb-0"><?= nl2br(e($relatorio !== '' ? $relatorio : '-')) ?></p>
                                             </div>
                                         </div>
                                         <?php endforeach; ?>
