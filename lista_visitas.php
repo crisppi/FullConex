@@ -439,15 +439,42 @@ $brandSoftColor = $isFaturamentoView ? '#d6e4ff' : '#dfe6ff';
     .input-group>.form-control {
         border-left: 0;
     }
+    .input-group {
+        align-items: stretch;
+    }
+    .input-group-text {
+        background: #fff;
+        border-right: 0;
+        display: flex;
+        align-items: center;
+    }
     .input-group .select2-container {
         flex: 1;
+        display: flex;
+        align-items: center;
+    }
+    .input-group .select2-container--default .select2-selection--multiple {
+        border-left: 0;
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        min-height: calc(2.75rem + 2px);
+        height: calc(2.75rem + 2px) !important;
+        min-width: 320px;
+        display: flex;
+        align-items: center;
+        padding: 0.15rem 0.5rem;
+        margin-right: -1px;
     }
 
     .select2-container--default .select2-selection--multiple {
-        min-height: 2.75rem;
         border: 1px solid #ced4da;
         border-radius: .375rem;
+        min-height: calc(2.75rem + 2px);
+        height: calc(2.75rem + 2px);
         padding: 0.25rem 0.35rem;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
     }
     .select2-container--default .select2-selection--multiple .select2-selection__choice {
         background-color: var(--brand-100, #f1f1ff);
@@ -468,6 +495,8 @@ $brandSoftColor = $isFaturamentoView ? '#d6e4ff' : '#dfe6ff';
     .input-group-text {
         background: #fff;
         border-right: 0;
+        display: flex;
+        align-items: center;
     }
 
     .faturamento-actions h6 {
