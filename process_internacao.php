@@ -107,6 +107,8 @@ if ($type === "create") {
     $fk_patologia_int = filter_input(INPUT_POST, "fk_patologia_int") ?: 1;
     $fk_cid_int = filter_input(INPUT_POST, "fk_cid_int") ?: 1;
     $fk_patologia2 = filter_input(INPUT_POST, "fk_patologia2") ?: 1;
+    $retroativa_confirmada = filter_input(INPUT_POST, "retroativa_confirmada");
+    $isRetroativa = in_array(strtolower((string) $retroativa_confirmada), ['1', 'true', 's'], true);
 
     $jsonAntec = filter_input(INPUT_POST, 'json-antec', FILTER_DEFAULT);
     if ($jsonAntec) {
@@ -274,7 +276,21 @@ if ($type === "create") {
     $data_realizacao_tuss = filter_input(INPUT_POST, "data_realizacao_tuss");
 
     // Alta derivada
-    $data_alta_alt = filter_input(INPUT_POST, "data_alta_alt") ?: date('Y-m-d');
+    $data_alta_alt_input = $_POST['data_alta_alt'] ?? null;
+    $hora_alta_alt = null;
+    if ($data_alta_alt_input) {
+        $dataAltaNormalizada = normalizeDateTimeInput($data_alta_alt_input);
+        if ($dataAltaNormalizada) {
+            $data_alta_alt = substr($dataAltaNormalizada, 0, 10);
+            $hora_alta_alt = substr($dataAltaNormalizada, 11, 8);
+        } else {
+            $data_alta_alt = date('Y-m-d');
+            $hora_alta_alt = date('H:i:s');
+        }
+    } else {
+        $data_alta_alt = date('Y-m-d');
+        $hora_alta_alt = date('H:i:s');
+    }
     $tipo_alta_alt = filter_input(INPUT_POST, "tipo_alta_alt") ?: "Alta médica";
     $data_create_alt = date('Y-m-d');
     $usuario_alt = filter_input(INPUT_POST, "usuario_create_int") ?: ($_SESSION['email_user'] ?? 'sistema');
@@ -319,41 +335,49 @@ if ($type === "create") {
     $internacao->int_pertinente_int = $int_pertinente_int;
     $internacao->hora_intern_int = $hora_intern_int;
 
-    if ($internacaoDao->checkInternAtiva($internacao->fk_paciente_int) > 0) {
-        echo "0";
+    $idInternacaoAtiva = $internacaoDao->checkInternAtiva($internacao->fk_paciente_int);
+    if ($idInternacaoAtiva && !$isRetroativa) {
+        echo "paciente_internado";
+        exit;
+    }
+    if ($isRetroativa && $internado_int !== 'n') {
+        echo "retroativa_sem_alta";
+        exit;
+    }
+
+    error_log("Salvando internação com os seguintes dados: " . print_r($internacao, true));
+    $lastIntern = $internacaoDao->create($internacao);
+    if ($lastIntern) {
+        error_log("Internação salva com sucesso. Último ID: " . $internacaoDao->findLastId()['0']['id_intern']);
     } else {
-        error_log("Salvando internação com os seguintes dados: " . print_r($internacao, true));
-        $lastIntern = $internacaoDao->create($internacao);
-        if ($lastIntern) {
-            error_log("Internação salva com sucesso. Último ID: " . $internacaoDao->findLastId()['0']['id_intern']);
+        error_log("Erro ao salvar internação.");
+    }
+
+    // SEMPRE usar o $lastId para os filhos
+    $lastId = $internacaoDao->findLastId()['0']['id_intern']; // <— base para todas as FKs
+
+    // Alta automática se internado = 'n'
+    if ($internado_int === 'n') {
+        $alta = new alta();
+        $alta->data_alta_alt = $data_alta_alt;
+        $alta->hora_alta_alt = $hora_alta_alt;
+        $alta->tipo_alta_alt = $tipo_alta_alt;
+        $alta->usuario_alt = $usuario_alt;
+        $alta->data_create_alt = $data_create_alt;
+        $alta->fk_id_int_alt = $lastId; // [FK:$lastId]
+        $alta->internado_alt = 'n';
+        $alta->fk_usuario_alt = $fk_usuario_alt;
+        $altaDao->create($alta);
+
+        $internacaoData = new Internacao();
+        $internacaoData->id_internacao = $lastId;
+        $internacaoData->internado_int = 'n';
+        if (method_exists($internacaoDao, 'updateAlta')) {
+            $internacaoDao->updateAlta($internacaoData);
         } else {
-            error_log("Erro ao salvar internação.");
+            $internacaoDao->update($internacaoData);
         }
-
-        // SEMPRE usar o $lastId para os filhos
-        $lastId = $internacaoDao->findLastId()['0']['id_intern']; // <— base para todas as FKs
-
-        // Alta automática se internado = 'n'
-        if ($internado_int === 'n') {
-            $alta = new alta();
-            $alta->data_alta_alt = $data_alta_alt;
-            $alta->tipo_alta_alt = $tipo_alta_alt;
-            $alta->usuario_alt = $usuario_alt;
-            $alta->data_create_alt = $data_create_alt;
-            $alta->fk_id_int_alt = $lastId; // [FK:$lastId]
-            $alta->internado_alt = 'n';
-            $alta->fk_usuario_alt = $fk_usuario_alt;
-            $altaDao->create($alta);
-
-            $internacaoData = new Internacao();
-            $internacaoData->id_internacao = $lastId;
-            $internacaoData->internado_int = 'n';
-            if (method_exists($internacaoDao, 'updateAlta')) {
-                $internacaoDao->updateAlta($internacaoData);
-            } else {
-                $internacaoDao->update($internacaoData);
-            }
-        }
+    }
 
         // Capeante
         $capeante = new capeante;
@@ -591,7 +615,6 @@ if ($type === "create") {
 
         echo "lancado internacao";
     }
-}
 
 // UPDATE
 if ($type == "update") {

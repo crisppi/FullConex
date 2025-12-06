@@ -147,6 +147,25 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
 .is-invalid {
     border-color: #dc3545 !important;
 }
+
+.retroativa-banner {
+    width: 100%;
+    margin-top: 6px;
+    padding: 14px 18px;
+    border-radius: 8px;
+    border: 1px solid #f5c2c7;
+    background: #f8d7da;
+    color: #842029;
+    font-size: .95rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.retroativa-banner i {
+    font-size: 1.15rem;
+}
 </style>
 
 <!-- Shim BS4 -> BS5 (data-toggle -> data-bs-*) -->
@@ -257,7 +276,7 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
 
             <div class="form-group col-sm-3" style="margin-bottom:-5px">
                 <label class="control-label" for="fk_paciente_int"><span style="color:red;">*</span> Paciente </label>
-                <select onchange="teste()" data-size="5" data-live-search="true"
+                <select data-size="5" data-live-search="true"
                     class="form-control form-control-sm selectpicker show-tick" id="fk_paciente_int"
                     name="fk_paciente_int" required>
                     <option value="">Selecione</option>
@@ -276,9 +295,8 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
                         href="<?= $BASE_URL ?>pacientes?id_paciente=<?= $id_paciente ?? 0 ?>">
                         <i style="color:blue;margin-bottom:7px;" class="far fa-edit edit-icon"></i> Novo Paciente
                     </a>
-                    <div id="alert_intern" style="font-size:1em;margin-left:7px;color:red;display:none">Paciente já
-                        internado</div>
                 </div>
+
             </div>
 
             <div class="form-group col-sm-2">
@@ -316,9 +334,10 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
                 </select>
             </div>
 
-            <div class="form-group col-sm-1" id="div-data-alta" style="display:none">
-                <label class="control-label" for="data_alta_alt"> Data Alta</label>
-                <input type="date" class="form-control form-control-sm" id="data_alta_alt" name="data_alta_alt">
+            <div class="form-group col-sm-2" id="div-data-alta" style="display:none">
+                <label class="control-label" for="data_alta_alt"> Data/Hora Alta</label>
+                <input type="datetime-local" class="form-control form-control-sm" id="data_alta_alt"
+                    name="data_alta_alt" step="60">
             </div>
 
             <div class="form-group col-sm-2" id="div-motivo-alta" style="display:none">
@@ -335,6 +354,15 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
                     <?php endforeach; ?>
                 </select>
             </div>
+
+            <div class="form-group col-12 d-none" id="retroativa-container">
+                <div id="retroativa-alert" class="retroativa-banner d-none">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span id="retroativa-alert-text"></span>
+                </div>
+            </div>
+
+            <input type="hidden" id="retroativa_confirmada" name="retroativa_confirmada" value="0">
 
             <input type="hidden" id="id_internacao" readonly class="form-control" name="id_internacao"
                 value="<?= $ultimoReg ?>">
@@ -922,6 +950,33 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
         </div>
     </form>
 </div>
+<!-- Modal retroativa -->
+<div class="modal fade" id="modalInternacaoAtiva" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-warning">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                    Paciente já internado
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    Paciente internado no <strong id="modalInternacaoHospital">—</strong> desde
+                    <strong id="modalInternacaoData">—</strong>.
+                </p>
+                <p class="mb-0">
+                    Deseja registrar uma nova internação retroativa? Ela deve ser salva já com a alta informada.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-action="cancel-retroativa">Cancelar</button>
+                <button type="button" class="btn btn-primary" data-action="confirm-retroativa">Continuar</button>
+            </div>
+        </div>
+    </div>
+</div>
 <?php if (!empty($id_paciente_get)): ?>
 <script>
 (function preselectPaciente() {
@@ -941,11 +996,11 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
         }
 
         // dispara sua verificação de internação ativa
-        if (typeof teste === 'function') {
+        if (typeof window.triggerInternacaoCheck === 'function') {
             try {
-                teste();
+                window.triggerInternacaoCheck();
             } catch (e) {
-                console.warn('teste() falhou:', e);
+                console.warn('triggerInternacaoCheck falhou:', e);
             }
         }
         return true;
@@ -1002,32 +1057,6 @@ $(function() {
     }
 });
 
-function teste(evt) {
-    if (evt && typeof evt.preventDefault === 'function') evt.preventDefault();
-
-    $.ajax({
-        url: "check_internacao.php",
-        type: "POST",
-        data: {
-            id_paciente: $('#fk_paciente_int').val()
-        },
-        success: function(result) {
-            const alert_div = document.getElementById('alert_intern');
-            // garante comparação segura
-            const ativo = String(result).trim() === '1';
-            alert_div.style.display = ativo ? "block" : "none";
-        },
-        error: function(xhr, status, err) {
-            console.error("Erro ao checar internação:", status, err, xhr.responseText);
-        }
-    });
-}
-</script>
-
-<script src="<?= $BASE_URL ?>js/text_cad_internacao.js"></script>
-<script src="js/select_internacao.js"></script>
-
-<script>
 // Hospital selecionado -> mostra nome e grava hidden
 function myFunctionSelected() {
     const select = document.getElementById("hospital_selected");
@@ -1102,22 +1131,6 @@ document.getElementById("acomodacao_int").addEventListener("change", function() 
     const divUti = document.querySelector("#container-uti");
     if (divUti) divUti.style.display = (this.value === "UTI") ? "block" : "none";
 });
-
-// Checar se paciente já está internado
-function teste() {
-    event.preventDefault();
-    $.ajax({
-        url: "check_internacao.php",
-        type: "POST",
-        data: {
-            id_paciente: $('#fk_paciente_int').val()
-        },
-        success: function(result) {
-            const alert_div = document.getElementById('alert_intern');
-            (String(result) == '1') ? alert_div.style.display = "block": alert_div.style.display = "none";
-        }
-    });
-}
 
 // Validação de datas
 document.getElementById("data_intern_int").addEventListener("blur", function() {
@@ -1429,9 +1442,29 @@ $("#myForm").submit(function(event) {
         contentType: false, // Impede o jQuery de definir o contentType
         data: form_data,
         success: function(result) {
+            const resposta = String(result || '').trim();
+            if (resposta === 'paciente_internado') {
+                $('#alert').removeClass("alert-success").addClass("alert-danger");
+                $('#alert').fadeIn().html("Paciente possui internação ativa e precisa confirmar retroativa.");
+                setTimeout(function() { $('#alert').fadeOut('Slow'); }, 3000);
+                return;
+            }
+            if (resposta === 'retroativa_sem_alta') {
+                $('#alert').removeClass("alert-success").addClass("alert-danger");
+                $('#alert').fadeIn().html("Para retroativa, marque 'Internado = Não' e informe a data/motivo da alta.");
+                setTimeout(function() { $('#alert').fadeOut('Slow'); }, 3500);
+                return;
+            }
 
-            if (3 < 4) { // Assumindo que esta condição é para sucesso (ajuste se necessário)
+            if (resposta === '0') {
+                $('#alert').removeClass("alert-success").addClass("alert-danger");
+                $('#alert').fadeIn().html("Paciente possui internação ativa");
+                setTimeout(function() { $('#alert').fadeOut('Slow'); }, 2000);
+                return;
+            }
 
+            // Sucesso (resposta vazia ou texto padrão)
+            {
                 // Increment the reg_int value
                 const regIntInput = $("#RegInt");
                 const currentRegInt = parseInt(regIntInput.val());
@@ -1526,13 +1559,9 @@ $("#myForm").submit(function(event) {
                 // $('#alert').removeClass("alert-danger").addClass("alert-success"); ...
 
 
-            } else if (result == '0') {
-
-                $('#alert').removeClass("alert-success").addClass("alert-danger");
-                $('#alert').fadeIn().html("Paciente possui internação ativa");
-                setTimeout(function() {
-                    $('#alert').fadeOut('Slow');
-                }, 2000);
+                $('#retroativa_confirmada').val('0');
+                $('#retroativa-alert').addClass('d-none');
+                $('#retroativa-container').addClass('d-none');
             }
 
             // Clear additional fields
@@ -1644,27 +1673,121 @@ $(document).ready(function() {
     });
 })();
 
-function teste(evt) {
-    if (evt && typeof evt.preventDefault === 'function') evt.preventDefault();
+document.addEventListener('DOMContentLoaded', function() {
+    window.triggerInternacaoCheck = window.triggerInternacaoCheck || function() {};
+    var pacienteSelect = document.getElementById('fk_paciente_int');
+    var retroInput = document.getElementById('retroativa_confirmada');
+    var retroContainer = document.getElementById('retroativa-container');
+    var retroBanner = document.getElementById('retroativa-alert');
+    var retroText = document.getElementById('retroativa-alert-text');
+    var internadoSelect = document.getElementById('internado_int');
+    var dataAltaField = document.getElementById('data_alta_alt');
+    var modalEl = document.getElementById('modalInternacaoAtiva');
+    var modalInstance = modalEl ? new bootstrap.Modal(modalEl) : null;
+    var modalHospital = document.getElementById('modalInternacaoHospital');
+    var modalData = document.getElementById('modalInternacaoData');
+    var confirmBtn = modalEl ? modalEl.querySelector('[data-action="confirm-retroativa"]') : null;
+    var cancelBtn = modalEl ? modalEl.querySelector('[data-action="cancel-retroativa"]') : null;
+    var activeInfo = null;
 
-    $.ajax({
-        url: "check_internacao.php",
-        type: "POST",
-        data: {
-            id_paciente: $('#fk_paciente_int').val()
-        },
-        success: function(result) {
-            const alert_div = document.getElementById('alert_intern');
-            // garante comparação segura
-            const ativo = String(result).trim() === '1';
-            alert_div.style.display = ativo ? "block" : "none";
-        },
-        error: function(xhr, status, err) {
-            console.error("Erro ao checar internação:", status, err, xhr.responseText);
+    function hideRetroBanner() {
+        if (retroContainer) retroContainer.classList.add('d-none');
+        if (retroBanner) retroBanner.classList.add('d-none');
+        if (retroInput) retroInput.value = '0';
+    }
+
+    function showRetroBanner(info) {
+        if (!retroBanner || !retroText) return;
+        var hosp = info?.hospital || 'hospital não informado';
+        var data = info?.data_formatada || 'data não informada';
+        retroText.textContent = "Paciente internado no " + hosp + " desde " + data +
+            ". Informe a alta ao lançar esta internação retroativa.";
+        if (retroContainer) retroContainer.classList.remove('d-none');
+        retroBanner.classList.remove('d-none');
+    }
+
+    function formatDateTimeLocal(dateObj) {
+        if (!(dateObj instanceof Date)) return '';
+        var local = new Date(dateObj.getTime() - dateObj.getTimezoneOffset() * 60000);
+        return local.toISOString().slice(0, 16);
+    }
+
+    function forcarAltaCampos() {
+        if (internadoSelect && internadoSelect.value !== 'n') {
+            internadoSelect.value = 'n';
+            internadoSelect.dispatchEvent(new Event('change'));
         }
-    });
-}
-</script>
+        if (dataAltaField && !dataAltaField.value) {
+            dataAltaField.value = formatDateTimeLocal(new Date());
+        }
+    }
+
+    function consultarInternacaoAtiva(pacienteId, skipModal) {
+        if (!pacienteId) {
+            hideRetroBanner();
+            activeInfo = null;
+            return;
+        }
+        fetch('ajax/check_internacao_ativa.php?id_paciente=' + encodeURIComponent(pacienteId))
+            .then(function(resp) { return resp.json(); })
+            .then(function(data) {
+                if (!data || !data.success) {
+                    throw new Error(data?.error || 'Erro ao consultar internação ativa.');
+                }
+                if (data.hasActive) {
+                    activeInfo = data.active;
+                    if (modalHospital) modalHospital.textContent = data.active.hospital || '—';
+                    if (modalData) modalData.textContent = data.active.data_formatada || '—';
+                    if (!skipModal && modalInstance) {
+                        modalInstance.show();
+                    }
+                } else {
+                    activeInfo = null;
+                    hideRetroBanner();
+                }
+            })
+            .catch(function(err) {
+                console.error('Falha ao verificar internação ativa:', err);
+            });
+    }
+
+    if (pacienteSelect) {
+        pacienteSelect.addEventListener('change', function() {
+            hideRetroBanner();
+            consultarInternacaoAtiva(this.value, false);
+        });
+    }
+
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', function() {
+            if (retroInput) retroInput.value = '1';
+            if (activeInfo) showRetroBanner(activeInfo);
+            forcarAltaCampos();
+            modalInstance && modalInstance.hide();
+        });
+    }
+
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function() {
+            modalInstance && modalInstance.hide();
+            activeInfo = null;
+            if (pacienteSelect) {
+                pacienteSelect.value = '';
+                if (window.jQuery && jQuery.fn.selectpicker && jQuery(pacienteSelect).hasClass('selectpicker')) {
+                    jQuery(pacienteSelect).selectpicker('refresh');
+                }
+            }
+        });
+    }
+
+    window.triggerInternacaoCheck = function() {
+        if (pacienteSelect) {
+            consultarInternacaoAtiva(pacienteSelect.value, false);
+        }
+    };
+});
+
+ </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous">
