@@ -223,6 +223,16 @@ $recentLimit = ($recentLimitInput && $recentLimitInput > 0) ? min($recentLimitIn
 $recentOrderInput = filter_input(INPUT_GET, 'recent_order', FILTER_SANITIZE_SPECIAL_CHARS);
 $recentOrder = in_array($recentOrderInput, ['asc', 'desc'], true) ? $recentOrderInput : 'desc';
 
+$abaParam = filter_input(INPUT_GET, 'aba', FILTER_SANITIZE_SPECIAL_CHARS);
+$abaAtual = $abaParam ?: 'resumo';
+$abasValidas = ['resumo', 'visitas', 'prorrog', 'tuss', 'neg'];
+if (!in_array($abaAtual, $abasValidas, true)) {
+    $abaAtual = 'resumo';
+}
+if (!$abaParam && (!empty($_GET['recent_limit']) || !empty($_GET['recent_order']))) {
+    $abaAtual = 'visitas';
+}
+
 $visitas_recent = $visitas_norm;
 usort($visitas_recent, function ($a, $b) use ($recentOrder) {
     $ta = strtotime(($a['_date'] ?? '1970-01-01') . ' ' . ($a['_time'] ?? '00:00')) ?: 0;
@@ -405,39 +415,40 @@ usort($neg_filtered, function ($a, $b) {
                 <ul class="nav nav-pills mb-3" id="internTabs" role="tablist"
                     style="--bs-nav-pills-link-active-bg:#5e2363; --bs-nav-pills-link-active-color:#fff; --bs-nav-link-color:#5e2363; --bs-nav-link-hover-color:#5e2363;">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="resumo-tab" data-bs-toggle="pill" data-bs-target="#resumo"
-                            type="button" role="tab">
+                        <button class="nav-link<?= $abaAtual === 'resumo' ? ' active' : '' ?>" id="resumo-tab"
+                            data-bs-toggle="pill" data-bs-target="#resumo" type="button" role="tab">
                             <i class="fa-solid fa-bars me-2"></i>Resumo
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="visitas-tab" data-bs-toggle="pill" data-bs-target="#visitas"
-                            type="button" role="tab">
+                        <button class="nav-link<?= $abaAtual === 'visitas' ? ' active' : '' ?>" id="visitas-tab"
+                            data-bs-toggle="pill" data-bs-target="#visitas" type="button" role="tab">
                             <i class="fa-solid fa-stethoscope me-2"></i>Visitas
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="prorrog-tab" data-bs-toggle="pill" data-bs-target="#prorrog"
-                            type="button" role="tab">
+                        <button class="nav-link<?= $abaAtual === 'prorrog' ? ' active' : '' ?>" id="prorrog-tab"
+                            data-bs-toggle="pill" data-bs-target="#prorrog" type="button" role="tab">
                             <i class="fa-solid fa-clock-rotate-left me-2"></i>Prorrogações
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="tuss-tab" data-bs-toggle="pill" data-bs-target="#tuss"
-                            type="button" role="tab">
+                        <button class="nav-link<?= $abaAtual === 'tuss' ? ' active' : '' ?>" id="tuss-tab"
+                            data-bs-toggle="pill" data-bs-target="#tuss" type="button" role="tab">
                             <i class="fa-solid fa-list-check me-2"></i>TUSS
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="neg-tab" data-bs-toggle="pill" data-bs-target="#neg" type="button"
-                            role="tab">
+                        <button class="nav-link<?= $abaAtual === 'neg' ? ' active' : '' ?>" id="neg-tab"
+                            data-bs-toggle="pill" data-bs-target="#neg" type="button" role="tab">
                             <i class="fa-solid fa-handshake me-2"></i>Negociações
                         </button>
                     </li>
                 </ul>
 
                 <div class="tab-content" id="internTabsContent">
-                    <div class="tab-pane fade show active" id="resumo" role="tabpanel" aria-labelledby="resumo-tab">
+                    <div class="tab-pane fade<?= $abaAtual === 'resumo' ? ' show active' : '' ?>" id="resumo"
+                        role="tabpanel" aria-labelledby="resumo-tab">
                         <div class="row g-3">
                             <div class="col-12 col-lg-6">
                                 <div class="card ov-card ov-int"
@@ -495,7 +506,8 @@ usort($neg_filtered, function ($a, $b) {
                         </div>
                     </div>
 
-                    <div class="tab-pane fade" id="visitas" role="tabpanel" aria-labelledby="visitas-tab">
+                    <div class="tab-pane fade<?= $abaAtual === 'visitas' ? ' show active' : '' ?>" id="visitas"
+                        role="tabpanel" aria-labelledby="visitas-tab">
                         <?php if (!$visitas_norm): ?>
                         <p class="text-muted mb-0">Nenhuma visita registrada para esta internação.</p>
                         <?php else: ?>
@@ -756,11 +768,12 @@ usort($neg_filtered, function ($a, $b) {
                                     <h6 class="text-uppercase small fw-semibold text-muted mb-0">
                                         Últimas <?= e($recentLimit) ?> visitas registradas
                                     </h6>
-                                    <form class="d-flex flex-wrap align-items-center gap-2" method="get">
-                                        <input type="hidden" name="id_internacao" value="<?= (int)$id_internacao ?>">
+                                    <form class="d-flex flex-wrap align-items-center gap-2" method="get"
+                                        action="<?= e($_SERVER['PHP_SELF']) ?>#visitas">
+                                        <input type="hidden" name="id_internacao" value="<?= (int) $id_internacao ?>">
                                         <input type="hidden" name="aba" value="visitas">
                                         <?php if (!empty($vid_req)): ?>
-                                        <input type="hidden" name="vid" value="<?= e($vid_req) ?>">
+                                        <input type="hidden" name="vid" value="<?= (int) $vid_req ?>">
                                         <?php endif; ?>
                                         <label class="small text-muted mb-0">Qtd
                                             <select name="recent_limit" class="form-select form-select-sm d-inline-block"
@@ -910,7 +923,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <?php endif; ?>
 
-                    <div class="tab-pane fade" id="prorrog" role="tabpanel" aria-labelledby="prorrog-tab">
+                    <div class="tab-pane fade<?= $abaAtual === 'prorrog' ? ' show active' : '' ?>" id="prorrog"
+                        role="tabpanel" aria-labelledby="prorrog-tab">
                         <div class="card ov-card ov-int"
                             style="border-radius:14px;background:#fff;box-shadow:0 8px 24px rgba(0,0,0,.06);background-image:linear-gradient(to right, var(--ov, #5e2363) 6px, #fff 6px);">
                             <div class="card-body">
@@ -978,7 +992,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                     </div>
 
-                    <div class="tab-pane fade" id="tuss" role="tabpanel" aria-labelledby="tuss-tab">
+                    <div class="tab-pane fade<?= $abaAtual === 'tuss' ? ' show active' : '' ?>" id="tuss"
+                        role="tabpanel" aria-labelledby="tuss-tab">
                         <div class="card ov-card ov-int"
                             style="border-radius:14px;background:#fff;box-shadow:0 8px 24px rgba(0,0,0,.06);background-image:linear-gradient(to right, var(--ov, #5e2363) 6px, #fff 6px);">
                             <div class="card-body">
@@ -1058,7 +1073,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                     </div>
 
-                    <div class="tab-pane fade" id="neg" role="tabpanel" aria-labelledby="neg-tab">
+                    <div class="tab-pane fade<?= $abaAtual === 'neg' ? ' show active' : '' ?>" id="neg"
+                        role="tabpanel" aria-labelledby="neg-tab">
                         <div class="card ov-card ov-int"
                             style="border-radius:14px;background:#fff;box-shadow:0 8px 24px rgba(0,0,0,.06);background-image:linear-gradient(to right, var(--ov, #5e2363) 6px, #fff 6px);">
                             <div class="card-body">
