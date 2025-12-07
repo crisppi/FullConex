@@ -181,6 +181,11 @@ foreach ($typeAudAuditors as $index => $aud) {
             <h2 class="mb-1" style="color:#5e2363;">Painel de Negociações</h2>
             <p class="text-muted mb-0">Visão consolidada de savings e volumes de negociações registrados.</p>
         </div>
+        <div class="mt-3 mt-md-0">
+            <a href="<?= $BASE_URL ?>export_negociacoes_graficos.php" class="btn btn-outline-primary">
+                <i class="bi bi-file-earmark-spreadsheet me-1"></i>Exportar XLSX
+            </a>
+        </div>
     </div>
 
     <div class="row g-4">
