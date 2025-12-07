@@ -223,72 +223,32 @@ $porInternacao = consolidarCiclosPorInternacao($linhas);
 // Paginação (por internação)
 $itens = array_values($porInternacao);
 $total = count($itens);
+$limite = max(1, $limite);
+$totalPaginas = max(1, (int)ceil($total / $limite));
+$paginaAtual = max(1, min($paginaAtual, $totalPaginas));
+$offset = ($paginaAtual - 1) * $limite;
+$paginaItens = array_slice($itens, $offset, $limite);
 
-$obPagination = new pagination($total, $paginaAtual, $limite);
-$limiteSql    = $obPagination->getLimit(); // "offset,qtde"
-list($offset, $qtde) = array_map('intval', explode(',', $limiteSql));
-$paginaItens  = array_slice($itens, $offset, $qtde);
-
-// ---------------------
-// preparar blocos de páginas (robusto)
-// ---------------------
-$paginas       = $obPagination->getPages();
-$blocoAtual    = isset($_GET['bl']) ? (int)$_GET['bl'] : 0;
-$paginasBloco  = [];
-$primeiraPag   = 0;
-$ultimaPag     = 0;
-$primeiroBloco = 0;
-$ultimoBloco   = 0;
-$blocoCorrente = 0;
-
-// cria páginas manualmente se vier vazio
-if (empty($paginas) && $limite > 0) {
-    $numPages = (int)ceil($total / max(1, $limite));
-    for ($k = 1; $k <= $numPages; $k++) {
-        $paginas[] = ['pg' => $k, 'bloco' => 1];
+$window = 3;
+$paginaInicio = max(1, $paginaAtual - $window);
+$paginaFim = min($totalPaginas, $paginaAtual + $window);
+if ($paginaFim - $paginaInicio < 2 * $window) {
+    if ($paginaInicio == 1) {
+        $paginaFim = min($totalPaginas, $paginaInicio + 2 * $window);
+    } elseif ($paginaFim == $totalPaginas) {
+        $paginaInicio = max(1, $paginaFim - 2 * $window);
     }
 }
-
-if (!empty($paginas)) {
-    // normaliza: garante 'bloco' e 'pg'
-    if (!isset($paginas[0]['bloco'])) {
-        foreach ($paginas as &$p) {
-            if (is_array($p)) {
-                if (!isset($p['bloco'])) $p['bloco'] = 1;
-                if (!isset($p['pg']) && isset($p[0])) $p['pg'] = (int)$p[0];
-            }
-        }
-        unset($p);
-    }
-
-    // blocos de 5 páginas
-    $blocoCorrente = (int)floor($blocoAtual / 5) + 1;
-
-    foreach ($paginas as $p) {
-        $pg    = (int)($p['pg'] ?? 0);
-        $bloco = (int)($p['bloco'] ?? 1);
-        if ($bloco === $blocoCorrente) {
-            $p['current'] = ($pg === $paginaAtual);
-            $paginasBloco[] = $p;
-        }
-    }
-    if (empty($paginasBloco)) {
-        foreach ($paginas as $p) {
-            $pg = (int)($p['pg'] ?? 0);
-            $p['current'] = ($pg === $paginaAtual);
-            $paginasBloco[] = $p;
-        }
-        $blocoCorrente = 1;
-    }
-
-    if (!empty($paginasBloco)) {
-        $primeiraPag = (int)reset($paginasBloco)['pg'];
-        $ultimaPag   = (int)end($paginasBloco)['pg'];
-    }
-
-    $primeiroBloco = isset($paginas[0]['bloco']) ? (int)$paginas[0]['bloco'] : 1;
-    $ultimoBloco   = isset($paginas[count($paginas) - 1]['bloco']) ? (int)$paginas[count($paginas) - 1]['bloco'] : 1;
+$paginasSimples = [];
+for ($i = $paginaInicio; $i <= $paginaFim; $i++) {
+    $paginasSimples[] = [
+        'pg' => $i,
+        'current' => ($i === $paginaAtual)
+    ];
 }
+
+$temPagAnterior = $paginaAtual > 1;
+$temPagProxima = $paginaAtual < $totalPaginas;
 
 // URL base
 $self      = basename($_SERVER['PHP_SELF']);
@@ -307,7 +267,7 @@ $urlBase = $self . '?' . $urlParams;
 
 <head>
     <meta charset="utf-8">
-    <title>Internações - Ciclo (Prorrogação)</title>
+    <title>Internações - Rota do Paciente</title>
     <style>
         .ciclos-wrap {
             display: flex;
@@ -417,8 +377,7 @@ $urlBase = $self . '?' . $urlParams;
 <body>
 
     <div class="container-fluid" style="margin-top:12px;">
-        <h4 class="page-title m-0 mb-3 text-center" style="color:#3A3A3A;">Internações - Ciclo de Acomodação
-            (Prorrogação)</h4>
+        <h4 class="page-title m-0 mb-3 text-center" style="color:#3A3A3A;">Internações - Rota do Paciente</h4>
 
         <form action="<?= e($actionUrl) ?>" id="filtros-form" method="GET">
             <div class="filters-row pb-1">
@@ -567,45 +526,34 @@ $urlBase = $self . '?' . $urlParams;
 
             <!-- Paginação CENTRAL -->
             <div class="d-flex justify-content-center align-items-center mt-3 position-relative">
-                <?php if ($total > $limite) : ?>
+                <?php if ($totalPaginas > 1) : ?>
                     <nav aria-label="Navegação das páginas">
                         <ul class="pagination m-0">
-                            <?php if ($blocoCorrente > $primeiroBloco): ?>
-                                <?php
-                                $pagAnterior   = max(1, $primeiraPag - 1);
-                                $blocoAnterior = max(0, $blocoAtual - 5);
-                                ?>
-                                <li class="page-item"><a class="page-link ajax-link" href="<?= $urlBase ?>&pag=1&bl=0"
-                                        aria-label="Primeira">&laquo;</a></li>
-                                <li class="page-item"><a class="page-link ajax-link"
-                                        href="<?= $urlBase ?>&pag=<?= $pagAnterior ?>&bl=<?= $blocoAnterior ?>"
-                                        aria-label="Anterior">&lsaquo;</a></li>
-                            <?php endif; ?>
+                            <li class="page-item <?= !$temPagAnterior ? 'disabled' : '' ?>">
+                                <a class="page-link ajax-link" href="<?= $urlBase ?>&pag=1" aria-label="Primeira">&laquo;</a>
+                            </li>
+                            <li class="page-item <?= !$temPagAnterior ? 'disabled' : '' ?>">
+                                <a class="page-link ajax-link" href="<?= $urlBase ?>&pag=<?= max(1, $paginaAtual - 1) ?>"
+                                    aria-label="Anterior">&lsaquo;</a>
+                            </li>
 
-                            <?php foreach ($paginasBloco as $p): ?>
-                                <?php
-                                $pg = (int)($p['pg'] ?? 0);
-                                $isCurrent = (bool)($p['current'] ?? ($pg === $paginaAtual));
-                                ?>
-                                <li class="page-item <?= $isCurrent ? 'active' : '' ?><?= $isCurrent ? ' aria-current="page"' : '' ?>>
-                                <a class=" page-link ajax-link"
-                                    href="<?= $urlBase ?>&pag=<?= $pg ?>&bl=<?= $blocoAtual ?>"><?= $pg ?></a>
+                            <?php foreach ($paginasSimples as $p): ?>
+                                <li class="page-item <?= $p['current'] ? 'active' : '' ?>">
+                                    <a class="page-link ajax-link" href="<?= $urlBase ?>&pag=<?= $p['pg'] ?>">
+                                        <?= $p['pg'] ?>
+                                    </a>
                                 </li>
                             <?php endforeach; ?>
 
-                            <?php if ($blocoCorrente < $ultimoBloco): ?>
-                                <?php
-                                $pagProxima   = $ultimaPag + 1;
-                                $blocoProximo = $blocoAtual + 5;
-                                $blocoUltima  = ($ultimoBloco - 1) * 5;
-                                ?>
-                                <li class="page-item"><a class="page-link ajax-link"
-                                        href="<?= $urlBase ?>&pag=<?= $pagProxima ?>&bl=<?= $blocoProximo ?>"
-                                        aria-label="Próxima">&rsaquo;</a></li>
-                                <li class="page-item"><a class="page-link ajax-link"
-                                        href="<?= $urlBase ?>&pag=<?= count($paginas) ?>&bl=<?= $blocoUltima ?>"
-                                        aria-label="Última">&raquo;</a></li>
-                            <?php endif; ?>
+                            <li class="page-item <?= !$temPagProxima ? 'disabled' : '' ?>">
+                                <a class="page-link ajax-link"
+                                    href="<?= $urlBase ?>&pag=<?= min($totalPaginas, $paginaAtual + 1) ?>"
+                                    aria-label="Próxima">&rsaquo;</a>
+                            </li>
+                            <li class="page-item <?= !$temPagProxima ? 'disabled' : '' ?>">
+                                <a class="page-link ajax-link" href="<?= $urlBase ?>&pag=<?= $totalPaginas ?>"
+                                    aria-label="Última">&raquo;</a>
+                            </li>
                         </ul>
                     </nav>
                 <?php endif; ?>

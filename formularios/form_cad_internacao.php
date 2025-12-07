@@ -269,7 +269,7 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
         <input type="hidden" value="n" id="censo_int" name="censo_int">
 
         <!-- fk_usuario_int: padrão = usuário logado; Cadastro Central pode sobrescrever -->
-        <input type="text" value="<?= htmlspecialchars($idSessao) ?>" id="fk_usuario_int" name="fk_usuario_int">
+        <input type="hidden" value="<?= htmlspecialchars($idSessao) ?>" id="fk_usuario_int" name="fk_usuario_int">
 
         <div class="form-group row">
             <input type="hidden" value="" name="fk_hospital_int" id="fk_hospital_int">
@@ -903,31 +903,34 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
 
         <style>
         .tabelas-adicionais-card {
-            background:#fff;
-            border-radius:22px;
-            border:1px solid #ebe1f5;
-            box-shadow:0 12px 28px rgba(45,18,70,.08);
-            padding:22px 24px;
-            margin-top:25px;
+            background: #fff;
+            border-radius: 22px;
+            border: 1px solid #ebe1f5;
+            box-shadow: 0 12px 28px rgba(45, 18, 70, .08);
+            padding: 22px 24px;
+            margin-top: 25px;
         }
+
         .tabelas-adicionais-card__header {
-            display:flex;
-            align-items:center;
-            margin-bottom:18px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 18px;
         }
+
         .tabelas-adicionais-card__title {
-            display:flex;
-            align-items:center;
-            margin:0;
-            color:#3a184f;
-            font-weight:600;
+            display: flex;
+            align-items: center;
+            margin: 0;
+            color: #3a184f;
+            font-weight: 600;
         }
+
         .tabelas-adicionais-card__marker {
-            width:6px;
-            height:26px;
-            border-radius:10px;
-            margin-right:12px;
-            background:linear-gradient(180deg,#7b3f99,#b279d0);
+            width: 6px;
+            height: 26px;
+            border-radius: 10px;
+            margin-right: 12px;
+            background: linear-gradient(180deg, #7b3f99, #b279d0);
         }
         </style>
 
@@ -939,55 +942,56 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
                 </h4>
             </div>
 
-        <div class="form-group row d-flex justify-content-center align-items-end" style="gap: 15px;">
-            <?php if ($cargoSessao === 'Med_auditor' || $cargoSessao === 'Diretoria') { ?>
-            <div class="form-group col-sm-2">
-                <label class="control-label" style="font-weight: bold;" for="select_tuss">Tuss</label>
-                <select class="form-control-sm form-control select-purple" id="select_tuss" name="select_tuss">
-                    <option value="">Selecione</option>
-                    <option value="s">Sim</option>
-                    <option value="n">Não</option>
-                </select>
-            </div>
-            <div class="form-group col-sm-2">
-                <label class="control-label" style="font-weight: bold;" for="select_prorrog">Prorrogação</label>
-                <select class="form-control-sm form-control select-purple" id="select_prorrog" name="select_prorrog">
-                    <option value="">Selecione</option>
-                    <option value="s">Sim</option>
-                    <option value="n">Não</option>
-                </select>
-            </div>
-            <?php } ?>
+            <div class="form-group row d-flex justify-content-center align-items-end" style="gap: 15px;">
+                <?php if ($cargoSessao === 'Med_auditor' || $cargoSessao === 'Diretoria') { ?>
+                <div class="form-group col-sm-2">
+                    <label class="control-label" style="font-weight: bold;" for="select_tuss">Tuss</label>
+                    <select class="form-control-sm form-control select-purple" id="select_tuss" name="select_tuss">
+                        <option value="">Selecione</option>
+                        <option value="s">Sim</option>
+                        <option value="n">Não</option>
+                    </select>
+                </div>
+                <div class="form-group col-sm-2">
+                    <label class="control-label" style="font-weight: bold;" for="select_prorrog">Prorrogação</label>
+                    <select class="form-control-sm form-control select-purple" id="select_prorrog"
+                        name="select_prorrog">
+                        <option value="">Selecione</option>
+                        <option value="s">Sim</option>
+                        <option value="n">Não</option>
+                    </select>
+                </div>
+                <?php } ?>
 
-            <div class="form-group col-sm-2">
-                <label class="control-label" style="font-weight: bold;" for="select_gestao">Gestão</label>
-                <select class="form-control-sm form-control select-purple" id="select_gestao" name="select_gestao">
-                    <option value="">Selecione</option>
-                    <option value="s">Sim</option>
-                    <option value="n">Não</option>
-                </select>
-            </div>
+                <div class="form-group col-sm-2">
+                    <label class="control-label" style="font-weight: bold;" for="select_gestao">Gestão</label>
+                    <select class="form-control-sm form-control select-purple" id="select_gestao" name="select_gestao">
+                        <option value="">Selecione</option>
+                        <option value="s">Sim</option>
+                        <option value="n">Não</option>
+                    </select>
+                </div>
 
-            <div class="form-group col-sm-2">
-                <label class="control-label" style="font-weight: bold;" for="select_uti">UTI</label>
-                <select class="form-control-sm form-control select-purple" id="select_uti" name="select_uti">
-                    <option value="">Selecione</option>
-                    <option value="s">Sim</option>
-                    <option value="n">Não</option>
-                </select>
-            </div>
+                <div class="form-group col-sm-2">
+                    <label class="control-label" style="font-weight: bold;" for="select_uti">UTI</label>
+                    <select class="form-control-sm form-control select-purple" id="select_uti" name="select_uti">
+                        <option value="">Selecione</option>
+                        <option value="s">Sim</option>
+                        <option value="n">Não</option>
+                    </select>
+                </div>
 
-            <?php if ($cargoSessao === 'Med_auditor' || $cargoSessao === 'Diretoria') { ?>
-            <div class="form-group col-sm-2">
-                <label class="control-label" style="font-weight: bold;" for="select_negoc">Negociações</label>
-                <select class="form-control-sm form-control select-purple" id="select_negoc" name="select_negoc">
-                    <option value="">Selecione</option>
-                    <option value="s">Sim</option>
-                    <option value="n">Não</option>
-                </select>
+                <?php if ($cargoSessao === 'Med_auditor' || $cargoSessao === 'Diretoria') { ?>
+                <div class="form-group col-sm-2">
+                    <label class="control-label" style="font-weight: bold;" for="select_negoc">Negociações</label>
+                    <select class="form-control-sm form-control select-purple" id="select_negoc" name="select_negoc">
+                        <option value="">Selecione</option>
+                        <option value="s">Sim</option>
+                        <option value="n">Não</option>
+                    </select>
+                </div>
+                <?php } ?>
             </div>
-            <?php } ?>
-        </div>
         </div>
 
         <input type="hidden" class="form-control" value="<?= ($ultimoReg + 1) ?>" id="fk_int_capeante"

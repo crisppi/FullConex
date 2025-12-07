@@ -31,6 +31,7 @@ $fieldsMap = [
     'data_inicial'  => ['label' => 'Data inicial', 'field' => 'data_inicial_fmt'],
     'data_final'    => ['label' => 'Data final', 'field' => 'data_final_fmt'],
     'data_digitacao'=> ['label' => 'Data digitação', 'field' => 'data_digit_fmt'],
+    'ciclo'         => ['label' => 'Ciclo (30 dias)', 'field' => 'ciclo_label'],
     'valor_apresentado' => ['label' => 'Valor apresentado', 'field' => 'valor_apresentado_capeante'],
     'valor_final'   => ['label' => 'Valor final', 'field' => 'valor_final_capeante'],
     'conta_faturada_cap' => ['label' => 'Faturado?', 'field' => 'conta_faturada_cap'],
@@ -41,8 +42,11 @@ $selected = isset($_GET['fields']) && is_array($_GET['fields'])
     : array_keys($fieldsMap);
 if (!$selected) $selected = array_keys($fieldsMap);
 
-$periodoFim = $dtBase !== '' ? $dtBase : date('Y-m-d');
-$periodoIni = date('Y-m-d', strtotime($periodoFim . ' -30 days'));
+$periodoInicioFiltro = trim($_GET['dt_inicio'] ?? '');
+$periodoFimFiltro     = trim($_GET['dt_fim'] ?? '');
+
+$periodoFim = $periodoFimFiltro !== '' ? $periodoFimFiltro : ($dtBase !== '' ? $dtBase : date('Y-m-d'));
+$periodoIni = $periodoInicioFiltro !== '' ? $periodoInicioFiltro : date('Y-m-d', strtotime($periodoFim . ' -30 days'));
 
 $params = [
     ':ini' => $periodoIni . ' 00:00:00',
@@ -80,6 +84,15 @@ SELECT
     ca.id_capeante,
     i.id_internacao,
     i.senha_int,
+    i.data_intern_int AS data_intern_raw,
+    ca.data_inicial_capeante AS data_inicial_raw,
+    ca.data_digit_capeante AS data_digit_raw,
+    (
+        SELECT MIN(ca2.data_digit_capeante)
+        FROM tb_capeante ca2
+        WHERE ca2.fk_int_capeante = ca.fk_int_capeante
+          AND ca2.data_digit_capeante IS NOT NULL
+    ) AS primeira_digitacao_raw,
     ho.nome_hosp AS hospital,
     ho.cnpj_hosp AS cnpj_hospital,
     pa.nome_pac AS paciente,
@@ -99,6 +112,46 @@ $stmt = $conn->prepare($dataSql);
 foreach ($params as $k => $v) $stmt->bindValue($k, $v);
 $stmt->execute();
 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$parseDate = function ($value) {
+    if (!$value || $value === '0000-00-00') {
+        return null;
+    }
+    try {
+        return new DateTime($value);
+    } catch (Throwable $e) {
+        return null;
+    }
+};
+
+foreach ($rows as &$row) {
+    $adm = $parseDate($row['data_intern_raw'] ?? null);
+    $digit = $parseDate($row['data_digit_raw'] ?? null);
+    $baseDigit = $parseDate($row['primeira_digitacao_raw'] ?? null);
+
+    if (!$baseDigit && $digit) {
+        $baseDigit = clone $digit;
+    }
+    if (!$baseDigit) {
+        $row['ciclo_label'] = '—';
+        continue;
+    }
+
+    $cycleIndex = (int)($row['parcial_num'] ?? 1);
+    if ($cycleIndex <= 0) $cycleIndex = 1;
+
+    $cycleStart = clone $baseDigit;
+    if ($cycleIndex > 1) {
+        $cycleStart->modify('+' . ($cycleIndex - 1) . ' month');
+    }
+    if ($adm && $cycleStart < $adm) {
+        $cycleStart = clone $adm;
+    }
+
+    $cycleEnd = (clone $cycleStart)->modify('+1 month');
+    $row['ciclo_label'] = $cycleStart->format('d/m/Y') . ' a ' . $cycleEnd->format('d/m/Y');
+}
+unset($row);
 
 if (isset($_GET['export']) && $_GET['export'] == '1') {
     require_once __DIR__ . '/vendor/autoload.php';
@@ -175,6 +228,7 @@ $fieldIcons = [
     'data_inicial'  => 'bi-calendar-event',
     'data_final'    => 'bi-calendar-check',
     'data_digitacao'=> 'bi-calendar2-week',
+    'ciclo'         => 'bi-calendar-range',
     'valor_apresentado' => 'bi-currency-dollar',
     'valor_final'   => 'bi-cash-stack',
     'conta_faturada_cap' => 'bi-clipboard-check',
@@ -271,10 +325,11 @@ $fieldIcons = [
                     </select>
                 </div>
             </div>
-            <div class="col-12 col-sm-6 col-lg-2">
+            <div class="col-12 col-sm-6 col-lg-4">
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-calendar-range"></i></span>
-                    <input type="text" class="form-control" value="<?= h(date('d/m/Y', strtotime($periodoIni))) ?> - <?= h(date('d/m/Y', strtotime($periodoFim))) ?>" readonly>
+                    <input type="date" name="dt_inicio" class="form-control" value="<?= h($periodoIni) ?>" placeholder="Início">
+                    <input type="date" name="dt_fim" class="form-control" value="<?= h($periodoFim) ?>" placeholder="Fim">
                 </div>
             </div>
         </div>

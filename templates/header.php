@@ -406,7 +406,7 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                 <li><a class="dropdown-item" href="<?= $BASE_URL ?>internacoes/ciclo"><i
                                             class="bi bi-postcard-heart"
                                             style="font-size:  1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
-                                        Ciclo do Paciente</a></li>
+                                        Rota do Paciente</a></li>
                                 <li><a class="dropdown-item" href="<?= $BASE_URL ?>visitas/lista"><i
                                             class="bi bi-postcard-heart"
                                             style="font-size:  1rem;margin-right:5px; color: rgb(27,156, 55);"></i>

@@ -112,7 +112,53 @@ try {
         return $dt ? $dt->format('d/m/Y') : null;
     };
 
-    $payload = array_map(function ($r) use ($fmtDate) {
+    $parseDate = function ($d) {
+        if (!$d || $d === '0000-00-00') return null;
+        try {
+            return new DateTime($d);
+        } catch (Throwable $e) {
+            return null;
+        }
+    };
+
+    $earliestDigitByIntern = [];
+    foreach ($rows as $tmp) {
+        $idInt = (int)($tmp['id_internacao'] ?? 0);
+        if ($idInt <= 0) continue;
+        $digit = $parseDate($tmp['data_digit_capeante'] ?? null);
+        if (!$digit) continue;
+        if (!isset($earliestDigitByIntern[$idInt]) || $digit < $earliestDigitByIntern[$idInt]) {
+            $earliestDigitByIntern[$idInt] = $digit;
+        }
+    }
+
+    $calcCycle = function (array $row) use ($parseDate, $earliestDigitByIntern) {
+        $idInt = (int)($row['id_internacao'] ?? 0);
+        $baseDigit = $idInt && isset($earliestDigitByIntern[$idInt])
+            ? clone $earliestDigitByIntern[$idInt]
+            : $parseDate($row['data_digit_capeante'] ?? null);
+        if (!$baseDigit) {
+            return [null, null, null];
+        }
+
+        $admissao = $parseDate($row['data_intern_int'] ?? null);
+
+        $cycleIndex = (int)($row['parcial_num'] ?? 1);
+        if ($cycleIndex <= 0) $cycleIndex = 1;
+
+        $cycleStart = clone $baseDigit;
+        if ($cycleIndex > 1) {
+            $cycleStart->modify('+' . ($cycleIndex - 1) . ' month');
+        }
+        if ($admissao && $cycleStart < $admissao) {
+            $cycleStart = clone $admissao;
+        }
+
+        $cycleEnd = (clone $cycleStart)->modify('+1 month');
+        return [$cycleIndex, $cycleStart, $cycleEnd];
+    };
+
+    $payload = array_map(function ($r) use ($fmtDate, $calcCycle) {
         // flags/valores vêm como strings ou ints do banco
         $status = '—';
         if (isset($r['encerrado_cap']) && (int)$r['encerrado_cap'] === 1)       $status = 'Encerrado';
@@ -133,6 +179,13 @@ try {
         $fimIso = ($fimRaw && $fimRaw !== '0000-00-00') ? $fimRaw : null;
         $isPeriodoAberto = $fimIso === null;
 
+        [$cycleIndex, $cycleStartDt, $cycleEndDt] = $calcCycle($r);
+        $cycleStartIso = $cycleStartDt ? $cycleStartDt->format('Y-m-d') : null;
+        $cycleEndIso = $cycleEndDt ? $cycleEndDt->format('Y-m-d') : null;
+        $cycleLabel = ($cycleStartDt && $cycleEndDt)
+            ? $cycleStartDt->format('d/m/Y') . ' a ' . $cycleEndDt->format('d/m/Y')
+            : null;
+
         return [
             'id_internacao'      => (int)($r['id_internacao'] ?? 0),
             'id_capeante'        => (int)($r['id_capeante'] ?? 0),
@@ -141,6 +194,10 @@ try {
             'periodo_inicio_raw' => $inicioIso,
             'periodo_fim_raw'    => $fimIso,
             'periodo_em_aberto'  => $isPeriodoAberto,
+            'cycle_num'          => $cycleIndex,
+            'cycle_inicio_raw'   => $cycleStartIso,
+            'cycle_fim_raw'      => $cycleEndIso,
+            'cycle_label'        => $cycleLabel,
             'valor_apresentado'  => (float)($r['valor_apresentado_capeante'] ?? 0),
             'valor_final'        => (float)($r['valor_final_capeante'] ?? 0),
             'glosa_total'        => (float)($r['valor_glosa_total'] ?? 0),
