@@ -22,7 +22,42 @@ function fetchChartData(PDO $conn, string $sql): array
 
 $baseCondition = "(ng.deletado_neg IS NULL OR ng.deletado_neg != 's')";
 
-$monthlySaving = fetchChartData(
+function expandMonthlySeries(array $rows, string $valueKey = 'total'): array
+{
+    if (!$rows) {
+        $year = (int)date('Y');
+        $start = new DateTime("$year-01-01");
+        $end = new DateTime("$year-12-01");
+    } else {
+        $periods = array_column($rows, 'periodo_ordenacao');
+        sort($periods);
+        $start = DateTime::createFromFormat('Y-m', $periods[0]) ?: new DateTime();
+        $start->setDate((int)$start->format('Y'), 1, 1);
+        $lastKey = end($periods);
+        $end = DateTime::createFromFormat('Y-m', $lastKey) ?: new DateTime();
+        $end->setDate((int)$end->format('Y'), 12, 1);
+    }
+
+    $map = [];
+    foreach ($rows as $row) {
+        $map[$row['periodo_ordenacao']] = $row[$valueKey] ?? 0;
+    }
+
+    $series = [];
+    $cursor = clone $start;
+    while ($cursor <= $end) {
+        $key = $cursor->format('Y-m');
+        $series[] = [
+            'periodo_label' => $cursor->format('m/Y'),
+            'value' => (float)($map[$key] ?? 0)
+        ];
+        $cursor->modify('+1 month');
+    }
+
+    return $series;
+}
+
+$monthlySavingRaw = fetchChartData(
     $conn,
     "
         SELECT 
@@ -36,7 +71,7 @@ $monthlySaving = fetchChartData(
     "
 );
 
-$monthlyCount = fetchChartData(
+$monthlyCountRaw = fetchChartData(
     $conn,
     "
         SELECT 
@@ -147,22 +182,25 @@ $addSheet = function (Spreadsheet $spreadsheet, string $title, array $headers, a
     }
 };
 
+$monthlySavingSeries = expandMonthlySeries($monthlySavingRaw, 'total');
+$monthlyCountSeries = expandMonthlySeries($monthlyCountRaw, 'total');
+
 $spreadsheet->addSheet(new \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet($spreadsheet, 'tmp'), 0);
 $spreadsheet->setActiveSheetIndex(0);
 $spreadsheet->getActiveSheet()->setTitle('Saving mensal');
 $spreadsheet->getActiveSheet()->setCellValue('A1', 'Período');
 $spreadsheet->getActiveSheet()->setCellValue('B1', 'Saving (R$)');
 $row = 2;
-foreach ($monthlySaving as $item) {
-    $spreadsheet->getActiveSheet()->setCellValue("A{$row}", $item['referencia']);
-    $spreadsheet->getActiveSheet()->setCellValue("B{$row}", (float)$item['total']);
+foreach ($monthlySavingSeries as $item) {
+    $spreadsheet->getActiveSheet()->setCellValue("A{$row}", $item['periodo_label']);
+    $spreadsheet->getActiveSheet()->setCellValue("B{$row}", (float)$item['value']);
     $row++;
 }
 $spreadsheet->getActiveSheet()->getStyle("A1:B1")->getFont()->setBold(true);
 $spreadsheet->getActiveSheet()->getColumnDimension('A')->setAutoSize(true);
 $spreadsheet->getActiveSheet()->getColumnDimension('B')->setAutoSize(true);
 
-$addSheet($spreadsheet, 'Negociações mensais', ['Período', 'Qtd'], array_map(fn($r) => [$r['referencia'], $r['total']], $monthlyCount));
+$addSheet($spreadsheet, 'Negociações mensais', ['Período', 'Qtd'], array_map(fn($r) => [$r['periodo_label'], $r['value']], $monthlyCountSeries));
 $addSheet($spreadsheet, 'Saving x Auditor', ['Auditor', 'Saving (R$)'], array_map(fn($r) => [$r['auditor'], $r['total']], $savingByAuditor));
 $addSheet($spreadsheet, 'Quantidade x Auditor', ['Auditor', 'Negociações'], array_map(fn($r) => [$r['auditor'], $r['total']], $countByAuditor));
 $addSheet($spreadsheet, 'Saving x Tipo', ['Tipo', 'Saving (R$)'], array_map(fn($r) => [$r['tipo'], $r['total']], $savingByType));

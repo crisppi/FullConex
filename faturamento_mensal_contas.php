@@ -13,6 +13,8 @@ if (!function_exists('h')) {
 $nomePaciente = trim($_GET['nome'] ?? '');
 $hospitalId   = trim($_GET['hospital_id'] ?? '');
 $dtBase       = trim($_GET['dt_base'] ?? date('Y-m-d'));
+$monthRef     = trim($_GET['mes_ref'] ?? '');
+$quinzenaSel  = trim($_GET['quinzena'] ?? '');
 $limite       = isset($_GET['limite']) && ctype_digit($_GET['limite']) ? (int)$_GET['limite'] : 20;
 $pag          = isset($_GET['pag'])    && ctype_digit($_GET['pag'])    ? (int)$_GET['pag']    : 1;
 $limite       = max(1, min(500, $limite));
@@ -42,11 +44,41 @@ $selected = isset($_GET['fields']) && is_array($_GET['fields'])
     : array_keys($fieldsMap);
 if (!$selected) $selected = array_keys($fieldsMap);
 
+$fixedFields = ['cnpj_hospital', 'valor_final', 'conta_faturada_cap'];
+foreach ($fixedFields as $fixedField) {
+    if (!in_array($fixedField, $selected, true)) {
+        $selected[] = $fixedField;
+    }
+}
+$visibleFields = array_values(array_diff($selected, $fixedFields));
+if (!$visibleFields) {
+    $visibleFields = array_values(array_diff(array_keys($fieldsMap), $fixedFields));
+}
+
 $periodoInicioFiltro = trim($_GET['dt_inicio'] ?? '');
 $periodoFimFiltro     = trim($_GET['dt_fim'] ?? '');
 
 $periodoFim = $periodoFimFiltro !== '' ? $periodoFimFiltro : ($dtBase !== '' ? $dtBase : date('Y-m-d'));
 $periodoIni = $periodoInicioFiltro !== '' ? $periodoInicioFiltro : date('Y-m-d', strtotime($periodoFim . ' -30 days'));
+
+if ($monthRef !== '' && preg_match('/^\d{4}\-\d{2}$/', $monthRef)) {
+    $dtBase = $monthRef . '-01';
+}
+
+if ($quinzenaSel !== '') {
+    $baseDate = DateTime::createFromFormat('Y-m-d', $dtBase) ?: new DateTime();
+    $firstDay = (clone $baseDate)->modify('first day of this month');
+    $midDay   = (clone $firstDay)->modify('+14 days'); // day 15
+    $secondStart = (clone $firstDay)->modify('+15 days'); // day 16
+    $lastDay  = (clone $firstDay)->modify('last day of this month');
+    if ($quinzenaSel === '1') {
+        $periodoIni = $firstDay->format('Y-m-d');
+        $periodoFim = $midDay->format('Y-m-d');
+    } elseif ($quinzenaSel === '2') {
+        $periodoIni = $secondStart->format('Y-m-d');
+        $periodoFim = $lastDay->format('Y-m-d');
+    }
+}
 
 $params = [
     ':ini' => $periodoIni . ' 00:00:00',
@@ -165,7 +197,7 @@ if (isset($_GET['export']) && $_GET['export'] == '1') {
     $sheet->setTitle('Faturamento Mensal Contas');
 
     $col = 1;
-    foreach ($selected as $key) {
+    foreach ($visibleFields as $key) {
         $sheet->setCellValueByColumnAndRow($col, 1, $fieldsMap[$key]['label']);
         $col++;
     }
@@ -173,7 +205,7 @@ if (isset($_GET['export']) && $_GET['export'] == '1') {
     $rowIndex = 2;
     foreach ($rowsExp as $r) {
         $col = 1;
-        foreach ($selected as $key) {
+        foreach ($visibleFields as $key) {
             $field = $fieldsMap[$key]['field'] ?? $key;
             $val = $r[$field] ?? '';
             if (in_array($key, ['valor_apresentado', 'valor_final'], true)) {
@@ -192,8 +224,8 @@ if (isset($_GET['export']) && $_GET['export'] == '1') {
         $rowIndex++;
     }
 
-    $sheet->getStyleByColumnAndRow(1, 1, count($selected), 1)->getFont()->setBold(true);
-    for ($c = 1; $c <= count($selected); $c++) {
+    $sheet->getStyleByColumnAndRow(1, 1, count($visibleFields), 1)->getFont()->setBold(true);
+    for ($c = 1; $c <= count($visibleFields); $c++) {
         $sheet->getColumnDimensionByColumn($c)->setAutoSize(true);
     }
 
@@ -212,6 +244,16 @@ if (isset($_GET['export']) && $_GET['export'] == '1') {
 $hospitais = [];
 $stmtHosp = $conn->query("SELECT id_hospital, nome_hosp FROM tb_hospital ORDER BY nome_hosp");
 if ($stmtHosp) $hospitais = $stmtHosp->fetchAll(PDO::FETCH_ASSOC);
+
+$monthOptions = [];
+$monthBase = DateTime::createFromFormat('Y-m-d', $dtBase) ?: new DateTime();
+$monthStart = (clone $monthBase)->modify('-5 months')->modify('first day of this month');
+for ($m = 0; $m < 12; $m++) {
+    $label = $monthStart->format('m/Y');
+    $value = $monthStart->format('Y-m');
+    $monthOptions[] = ['value' => $value, 'label' => $label];
+    $monthStart->modify('+1 month');
+}
 
 include_once __DIR__ . '/templates/header.php';
 $brandColor = '#3a6d3a';
@@ -277,7 +319,8 @@ $fieldIcons = [
         </div>
         <div class="field-chips d-flex flex-wrap gap-2 mb-3">
             <?php foreach ($fieldsMap as $key => $meta):
-                $checked = in_array($key, $selected, true);
+                if (in_array($key, $fixedFields, true)) continue;
+                $checked = in_array($key, $visibleFields, true);
                 $icon = $fieldIcons[$key] ?? 'bi-check'; ?>
                 <input type="checkbox" class="btn-check field-check" id="fc_<?= h($key) ?>" name="fields[]"
                     value="<?= h($key) ?>" <?= $checked ? 'checked' : '' ?>>
@@ -311,8 +354,24 @@ $fieldIcons = [
             </div>
             <div class="col-12 col-sm-6 col-lg-2">
                 <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-calendar-week"></i></span>
-                    <input type="date" name="dt_base" class="form-control" value="<?= h($dtBase) ?>">
+                    <span class="input-group-text"><i class="bi bi-calendar4-range"></i></span>
+                    <select name="mes_ref" class="form-select" onchange="this.form.submit()">
+                        <?php foreach ($monthOptions as $opt): ?>
+                            <option value="<?= h($opt['value']) ?>" <?= substr($dtBase, 0, 7) === $opt['value'] ? 'selected' : '' ?>>
+                                <?= h($opt['label']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-2">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-calendar2-check"></i></span>
+                    <select name="quinzena" class="form-select" onchange="this.form.submit()">
+                        <option value="">Período livre</option>
+                        <option value="1" <?= $quinzenaSel === '1' ? 'selected' : '' ?>>1ª quinzena (01 a 15)</option>
+                        <option value="2" <?= $quinzenaSel === '2' ? 'selected' : '' ?>>2ª quinzena (16 ao fim)</option>
+                    </select>
                 </div>
             </div>
             <div class="col-12 col-sm-6 col-lg-2">
@@ -333,6 +392,7 @@ $fieldIcons = [
                 </div>
             </div>
         </div>
+        <input type="hidden" name="dt_base" value="<?= h($dtBase) ?>">
 
         <input type="hidden" name="sort_field" value="">
         <input type="hidden" name="sort_dir" value="">
@@ -361,7 +421,7 @@ $fieldIcons = [
                 <thead>
                     <tr>
                         <th class="text-center" style="width:70px"><i class="bi bi-check2-square"></i></th>
-                        <?php foreach ($selected as $k): ?>
+                        <?php foreach ($visibleFields as $k): ?>
                             <th class="col-<?= h($k) ?>"><?= h($fieldsMap[$k]['label']) ?></th>
                         <?php endforeach; ?>
                     </tr>
@@ -375,7 +435,7 @@ $fieldIcons = [
                                     style="transform: scale(1.2);"
                                     value="<?= (int)$r['id_capeante'] ?>" <?= $isFaturado ? 'disabled' : '' ?>>
                             </td>
-                            <?php foreach ($selected as $k):
+                            <?php foreach ($visibleFields as $k):
                                 $fieldName = $fieldsMap[$k]['field'] ?? $k;
                                 $val = $r[$fieldName] ?? '';
                                 if (in_array($k, ['valor_apresentado', 'valor_final'], true)) {
@@ -388,7 +448,7 @@ $fieldIcons = [
                             <?php endforeach; ?>
                         </tr>
                     <?php endforeach; else: ?>
-                        <tr><td colspan="<?= count($selected) + 1 ?>">Nenhuma conta encontrada no período.</td></tr>
+                        <tr><td colspan="<?= count($visibleFields) + 1 ?>">Nenhuma conta encontrada no período.</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>

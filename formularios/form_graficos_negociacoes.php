@@ -11,6 +11,41 @@ function fetchChartRows(PDO $conn, string $sql): array
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+function expandMonthlySeries(array $rows, string $valueKey = 'total'): array
+{
+    if (!$rows) {
+        $year = (int)date('Y');
+        $start = new DateTime("$year-01-01");
+        $end = new DateTime("$year-12-01");
+    } else {
+        $periods = array_column($rows, 'periodo_ord');
+        sort($periods);
+        $start = DateTime::createFromFormat('Y-m', $periods[0]) ?: new DateTime();
+        $start->setDate((int)$start->format('Y'), 1, 1);
+        $lastKey = end($periods);
+        $end = DateTime::createFromFormat('Y-m', $lastKey) ?: new DateTime();
+        $end->setDate((int)$end->format('Y'), 12, 1);
+    }
+
+    $map = [];
+    foreach ($rows as $row) {
+        $map[$row['periodo_ord']] = $row[$valueKey] ?? 0;
+    }
+
+    $series = [];
+    $cursor = clone $start;
+    while ($cursor <= $end) {
+        $key = $cursor->format('Y-m');
+        $series[] = [
+            'periodo_label' => $cursor->format('m/Y'),
+            'value' => (float)($map[$key] ?? 0)
+        ];
+        $cursor->modify('+1 month');
+    }
+
+    return $series;
+}
+
 $monthlySaving = fetchChartRows(
     $conn,
     "
@@ -111,11 +146,14 @@ $savingByHospital = fetchChartRows(
     "
 );
 
-$msLabels = array_column($monthlySaving, 'periodo_label');
-$msValues = array_map(fn($row) => (float)$row['total'], $monthlySaving);
+$monthlySavingSeries = expandMonthlySeries($monthlySaving, 'total');
+$monthlyCountSeries = expandMonthlySeries($monthlyCount, 'total');
 
-$mcLabels = array_column($monthlyCount, 'periodo_label');
-$mcValues = array_map(fn($row) => (int)$row['total'], $monthlyCount);
+$msLabels = array_column($monthlySavingSeries, 'periodo_label');
+$msValues = array_map(fn($row) => (float)$row['value'], $monthlySavingSeries);
+
+$mcLabels = array_column($monthlyCountSeries, 'periodo_label');
+$mcValues = array_map(fn($row) => (int)$row['value'], $monthlyCountSeries);
 
 $auditorSavingLabels = array_column($savingByAuditor, 'auditor');
 $auditorSavingValues = array_map(fn($row) => (float)$row['total'], $savingByAuditor);
