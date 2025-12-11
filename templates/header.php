@@ -452,14 +452,10 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                             class="bi bi-calendar3"
                                             style="font-size: 1rem;margin-right:5px; color:#b35400;"></i>
                                         Faturamento Mensal Contas</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>list_internacao_cap_fin.php"><i
+                                <!-- <li><a class="dropdown-item" href="<?= $BASE_URL ?>list_internacao_cap_fin.php"><i
                                             class="bi bi-card-checklist"
                                             style="font-size: 1rem;margin-right:5px; color:rgb(28, 118, 175);"></i>
-                                        Contas</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>list_internacao_cap_jornada.php"><i
-                                            class="bi bi-diagram-3"
-                                            style="font-size: 1rem;margin-right:5px; color:#c0392b;"></i>
-                                        Faturamento Contas</a></li>
+                                        Contas</a></li> -->
                             </ul>
                         </li>
                         <?php }; ?>
@@ -643,8 +639,8 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
 <script src="./diversos/CoolAdmin-master/vendor/bootstrap-4.1/popper.min.js"></script>
 <script src="./diversos/CoolAdmin-master/vendor/bootstrap-4.1/bootstrap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4"
-    crossorigin="anonymous"></script>
+    integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous">
+</script>
 <!-- Vendor JS       -->
 <script src="./diversos/CoolAdmin-master/vendor/slick/slick.min.js">
 </script>

@@ -61,7 +61,9 @@ $periodoFimFiltro     = trim($_GET['dt_fim'] ?? '');
 $periodoFim = $periodoFimFiltro !== '' ? $periodoFimFiltro : ($dtBase !== '' ? $dtBase : date('Y-m-d'));
 $periodoIni = $periodoInicioFiltro !== '' ? $periodoInicioFiltro : date('Y-m-d', strtotime($periodoFim . ' -30 days'));
 
+$selectedMonthValue = '';
 if ($monthRef !== '' && preg_match('/^\d{4}\-\d{2}$/', $monthRef)) {
+    $selectedMonthValue = $monthRef;
     $dtBase = $monthRef . '-01';
 }
 
@@ -78,6 +80,12 @@ if ($quinzenaSel !== '') {
         $periodoIni = $secondStart->format('Y-m-d');
         $periodoFim = $lastDay->format('Y-m-d');
     }
+} elseif ($selectedMonthValue !== '' && $periodoInicioFiltro === '' && $periodoFimFiltro === '') {
+    $baseDate = DateTime::createFromFormat('Y-m-d', $dtBase) ?: new DateTime();
+    $inicioMes = (clone $baseDate)->modify('first day of this month');
+    $fimMes = (clone $baseDate)->modify('last day of this month');
+    $periodoIni = $inicioMes->format('Y-m-d');
+    $periodoFim = $fimMes->format('Y-m-d');
 }
 
 $params = [
@@ -85,7 +93,12 @@ $params = [
     ':fim' => $periodoFim . ' 23:59:59'
 ];
 
-$where = "WHERE COALESCE(ca.data_final_capeante, ca.data_fech_capeante, ca.data_digit_capeante) BETWEEN :ini AND :fim
+$filtroCampo = 'ca.data_digit_capeante';
+if (isset($_GET['filtro_data']) && $_GET['filtro_data'] === 'final') {
+    $filtroCampo = 'COALESCE(ca.data_final_capeante, ca.data_fech_capeante, ca.data_digit_capeante)';
+}
+
+$where = "WHERE {$filtroCampo} BETWEEN :ini AND :fim
     AND (ca.conta_faturada_cap IS NULL OR ca.conta_faturada_cap = '' OR LOWER(ca.conta_faturada_cap) <> 's')
     AND (ca.encerrado_cap = 's')";
 if ($nomePaciente !== '') {
@@ -118,6 +131,7 @@ SELECT
     i.senha_int,
     i.data_intern_int AS data_intern_raw,
     ca.data_inicial_capeante AS data_inicial_raw,
+    ca.data_final_capeante AS data_final_raw,
     ca.data_digit_capeante AS data_digit_raw,
     (
         SELECT MIN(ca2.data_digit_capeante)
@@ -157,30 +171,17 @@ $parseDate = function ($value) {
 };
 
 foreach ($rows as &$row) {
-    $adm = $parseDate($row['data_intern_raw'] ?? null);
     $digit = $parseDate($row['data_digit_raw'] ?? null);
     $baseDigit = $parseDate($row['primeira_digitacao_raw'] ?? null);
+    $final = $parseDate($row['data_final_raw'] ?? null);
 
-    if (!$baseDigit && $digit) {
-        $baseDigit = clone $digit;
-    }
-    if (!$baseDigit) {
+    $cycleStart = $digit ?: ($baseDigit ?: $final);
+    if (!$cycleStart) {
         $row['ciclo_label'] = '—';
         continue;
     }
 
-    $cycleIndex = (int)($row['parcial_num'] ?? 1);
-    if ($cycleIndex <= 0) $cycleIndex = 1;
-
-    $cycleStart = clone $baseDigit;
-    if ($cycleIndex > 1) {
-        $cycleStart->modify('+' . ($cycleIndex - 1) . ' month');
-    }
-    if ($adm && $cycleStart < $adm) {
-        $cycleStart = clone $adm;
-    }
-
-    $cycleEnd = (clone $cycleStart)->modify('+1 month');
+    $cycleEnd = (clone $cycleStart)->modify('+30 days');
     $row['ciclo_label'] = $cycleStart->format('d/m/Y') . ' a ' . $cycleEnd->format('d/m/Y');
 }
 unset($row);
@@ -356,8 +357,9 @@ $fieldIcons = [
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-calendar4-range"></i></span>
                     <select name="mes_ref" class="form-select" onchange="this.form.submit()">
+                        <option value="" <?= $selectedMonthValue === '' ? 'selected' : '' ?>>Mês do período</option>
                         <?php foreach ($monthOptions as $opt): ?>
-                            <option value="<?= h($opt['value']) ?>" <?= substr($dtBase, 0, 7) === $opt['value'] ? 'selected' : '' ?>>
+                            <option value="<?= h($opt['value']) ?>" <?= $selectedMonthValue === $opt['value'] ? 'selected' : '' ?>>
                                 <?= h($opt['label']) ?>
                             </option>
                         <?php endforeach; ?>
@@ -381,6 +383,15 @@ $fieldIcons = [
                         <?php foreach ([10, 20, 50, 100] as $opt): ?>
                             <option value="<?= $opt ?>" <?= $limite == $opt ? 'selected' : '' ?>><?= $opt ?> por página</option>
                         <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-2">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-funnel"></i></span>
+                    <select name="filtro_data" class="form-select" onchange="this.form.submit()">
+                        <option value="digitacao" <?= (!isset($_GET['filtro_data']) || $_GET['filtro_data'] !== 'final') ? 'selected' : '' ?>>Data de digitação</option>
+                        <option value="final" <?= (isset($_GET['filtro_data']) && $_GET['filtro_data'] === 'final') ? 'selected' : '' ?>>Data final</option>
                     </select>
                 </div>
             </div>

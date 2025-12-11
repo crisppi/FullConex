@@ -229,15 +229,35 @@
                     <strong>Negociações</strong>
                     <p>Acordos, descontos e aprovações.</p>
                 </a>
+                <a class="link-card" href="#faturamento">
+                    <span>Financeiro</span>
+                    <strong>Faturamento</strong>
+                    <p>Fluxo mensal de visitas e contas, filtros por quinzena e exportações.</p>
+                </a>
                 <a class="link-card" href="manual_eventos.html">
                     <span>Qualidade</span>
                     <strong>Eventos adversos</strong>
                     <p>Registro de intercorrências e integrações.</p>
                 </a>
-                <a class="link-card" href="manual_contas.html">
+                <a class="link-card" href="#contas-ciclo">
                     <span>Financeiro</span>
                     <strong>Contas / RAH</strong>
                     <p>Workflow de auditoria, PDFs e travas.</p>
+                </a>
+                <a class="link-card" href="#visitas">
+                    <span>Produção</span>
+                    <strong>Visitas</strong>
+                    <p>Lista única, contexto Faturamento e filtros inteligentes.</p>
+                </a>
+                <a class="link-card" href="#listas-operacionais">
+                    <span>Operação</span>
+                    <strong>Listas &amp; Rota</strong>
+                    <p>Gráficos de negociações, internações sem senha e rota consolidada.</p>
+                </a>
+                <a class="link-card" href="#menu-principal">
+                    <span>Navegação</span>
+                    <strong>Menu principal</strong>
+                    <p>Acesso ao painel mensal e ao formulário de customização em PDF.</p>
                 </a>
             </div>
         </section>
@@ -267,6 +287,199 @@
                         <li>5 tentativas inválidas bloqueiam acesso por 15 minutos.</li>
                         <li>Usuário sem hospital padrão não consegue editar cadastros até regularização.</li>
                         <li>Mensagens do sistema (flash) expiram após 5 segundos e ficam registradas no log.</li>
+                    </ul>
+                </article>
+            </div>
+        </section>
+
+        <section id="faturamento">
+            <h2>Faturamento</h2>
+            <div class="cards-grid">
+                <article class="card">
+                    <h3>Visitas e contexto dedicado</h3>
+                    <ul class="list">
+                        <li>Menu Faturamento &gt; Lista Visitas força o contexto <code>?context=faturamento</code> com colunas extras (período de 30 dias, auditor, status).</li>
+                        <li>Filtros aceitam múltiplos hospitais, intervalo de datas e o flag “Faturado? Sim/Não”.</li>
+                        <li>Parâmetros ficam na URL, facilitando compartilhar consultas ou reaplicar filtros.</li>
+                    </ul>
+                </article>
+                <article class="card">
+                    <h3>Marcações em massa</h3>
+                    <ul class="list">
+                        <li>Bloco “Ações para faturar” traz seleção geral, badge com quantidade e feedback embutido.</li>
+                        <li>Botão Faturar envia os IDs via <code>processa_faturamento_mensal.php</code> e recarrega ao concluir.</li>
+                        <li>Visitas já faturadas ficam com checkbox desabilitado para evitar duplicidade.</li>
+                    </ul>
+                </article>
+            </div>
+            <div class="cards-grid">
+                <article class="card">
+                    <h3>Mensal — Visitas</h3>
+                    <ul class="list">
+                        <li>Chips permitem ligar/desligar colunas; botões “Selecionar todos” e “Limpar” agilizam layouts.</li>
+                        <li>Período calculado automaticamente (data-base -30 dias / data-base) e exibido em campo readonly.</li>
+                        <li>Exportação XLSX respeita colunas visíveis e converte o status para Sim/Não.</li>
+                    </ul>
+                </article>
+                <article class="card">
+                    <h3>Mensal — Contas</h3>
+                    <ul class="list">
+                        <li>Seletores de mês e quinzena montam o intervalo sem digitar datas.</li>
+                        <li>Filtro “Data de digitação” x “Data final” ajusta o marco de análise.</li>
+                        <li>Coluna <strong>Ciclo (30 dias)</strong> evidencia contas abertas além do previsto.</li>
+                    </ul>
+                </article>
+            </div>
+            <div class="cards-grid">
+                <article class="card">
+                    <h3>Exportação e logs</h3>
+                    <ul class="list">
+                        <li>Arquivos seguem o padrão <code>faturamento_mensal[_contas]_AAAAMMDD_HHMMSS.xlsx</code> com cabeçalho em negrito.</li>
+                        <li>Só os registros filtrados são exportados, garantindo coerência com a tela.</li>
+                        <li>Feedback verde/vermelho mostra sucesso ou erro e todas as ações ficam no log.</li>
+                    </ul>
+                </article>
+                <article class="card">
+                    <h3>Boas práticas</h3>
+                    <ul class="list">
+                        <li>Use o limite de linhas (10/20/50/100) para equilibrar performance e profundidade.</li>
+                        <li>Sempre aplique filtros por hospital/seguradora antes de exportar para BI.</li>
+                        <li>Após faturamentos em lote, aguarde o reload automático antes de nova seleção.</li>
+                    </ul>
+                </article>
+            </div>
+        </section>
+
+        <section id="contas-ciclo">
+            <h2>Contas / RAH • Ciclo e período</h2>
+            <div class="cards-grid">
+                <article class="card">
+                    <h3>Ciclo de 30 dias</h3>
+                    <ul class="list">
+                        <li>Nova coluna calcula o intervalo a partir da primeira digitação (ou data final, se não houver).</li>
+                        <li>Quando a parcial permanece aberta, o fim do ciclo fica vazio para destacar valores pendentes.</li>
+                        <li>Parciais consecutivas na mesma acomodação são agrupadas, facilitando leitura do histórico.</li>
+                    </ul>
+                </article>
+                <article class="card">
+                    <h3>Período flexível</h3>
+                    <ul class="list">
+                        <li>Seletores de mês e quinzena definem o intervalo com um clique.</li>
+                        <li>Alternar entre “Data de digitação” e “Data final” compara produção x encerramento.</li>
+                        <li>Datas livres continuam disponíveis para auditorias retroativas.</li>
+                    </ul>
+                </article>
+            </div>
+            <p class="card" style="margin-top:12px;">Para etapas completas de auditoria (glosas, PDFs, travas), consulte também o módulo dedicado em <a href="manual_contas.html">manual_contas.html</a>.</p>
+        </section>
+
+        <section id="visitas">
+            <h2>Visitas</h2>
+            <div class="cards-grid">
+                <article class="card">
+                    <h3>Listagem principal</h3>
+                    <ul class="list">
+                        <li>Filtro por paciente, múltiplos hospitais e intervalo de visita (corrigindo datas invertidas automaticamente).</li>
+                        <li>Campo “Faturado?” com opções Todos, Sim ou Não.</li>
+                        <li>Limite de resultados ajustável sem perder filtros aplicados.</li>
+                    </ul>
+                </article>
+                <article class="card">
+                    <h3>Campos dinâmicos</h3>
+                    <ul class="list">
+                        <li>Chips controlam quais colunas aparecem e serão exportadas.</li>
+                        <li>Ícones ↑/↓ nas colunas ordenáveis mudam rapidamente entre ascendente e descendente.</li>
+                        <li>Configuração é preservada na query string.</li>
+                    </ul>
+                </article>
+            </div>
+            <div class="cards-grid">
+                <article class="card">
+                    <h3>Contexto faturamento</h3>
+                    <ul class="list">
+                        <li>Atalho do menu ativa bloco com seleção geral e botão Faturar selecionados.</li>
+                        <li>Badge indica quantos registros estão marcados.</li>
+                        <li>Feedback mostra o resultado e o sistema recarrega ao concluir.</li>
+                    </ul>
+                </article>
+                <article class="card">
+                    <h3>Indicadores clínicos</h3>
+                    <ul class="list">
+                        <li>Colunas opcionais exibem auditor médico, flag/data de alta e CID.</li>
+                        <li>Período de 30 dias usa o último lançamento válido da visita.</li>
+                        <li>Visitas sem texto seguem na fila para revisão.</li>
+                    </ul>
+                </article>
+            </div>
+            <div class="cards-grid">
+                <article class="card">
+                    <h3>Exportação</h3>
+                    <ul class="list">
+                        <li>Botão “Exportar XLSX” gera arquivo idêntico ao layout visível.</li>
+                        <li>Status de faturamento é convertido para Sim/Não.</li>
+                        <li>Todos os filtros aplicados são refletidos no arquivo.</li>
+                    </ul>
+                </article>
+            </div>
+        </section>
+
+        <section id="listas-operacionais">
+            <h2>Listas operacionais</h2>
+            <div class="cards-grid">
+                <article class="card">
+                    <h3>Gráficos de negociações</h3>
+                    <ul class="list">
+                        <li>Painel com Chart.js exibindo saving e volume por mês, além de ranking por auditor/hospital.</li>
+                        <li>Séries padronizadas (jan-dez) para comparação mesmo sem registros recentes.</li>
+                        <li>Indicadores prontos para reuniões rápidas sem precisar exportar.</li>
+                    </ul>
+                </article>
+                <article class="card">
+                    <h3>Internações sem senha</h3>
+                    <ul class="list">
+                        <li>Atalho liga o filtro <code>sem_senha=1</code> automaticamente.</li>
+                        <li>Demais filtros permanecem disponíveis (hospital, período, status).</li>
+                        <li>Após registrar a senha, o caso sai da lista ao recarregar.</li>
+                    </ul>
+                </article>
+            </div>
+            <div class="cards-grid">
+                <article class="card">
+                    <h3>Planilha de negociações</h3>
+                    <ul class="list">
+                        <li>Exportação chama <code>exportar_excel_negociacoes.php</code> respeitando todos os filtros da tela.</li>
+                        <li>Planilha com 13 colunas cobre hospital, paciente, tipo, trocas, quantidades, saving e auditor.</li>
+                        <li>Números exportados como texto evitam perda de zeros ou formatação.</li>
+                    </ul>
+                </article>
+                <article class="card">
+                    <h3>Rota do paciente</h3>
+                    <ul class="list">
+                        <li>Consolida prorrogações por internação agrupando faixas da mesma acomodação.</li>
+                        <li>Cada bloco mostra acomodação, datas inicial/final e total de dias (considerando hoje se em aberto).</li>
+                        <li>Classes visuais destacam UTI, enfermaria, PS etc., facilitando a leitura.</li>
+                    </ul>
+                </article>
+            </div>
+        </section>
+
+        <section id="menu-principal">
+            <h2>Menu principal</h2>
+            <div class="cards-grid">
+                <article class="card">
+                    <h3>Painel mensal</h3>
+                    <ul class="list">
+                        <li>Link direto abre <code>dashboard_mensal.php</code> (nível ≥ 1) com filtros hospital, seguradora e janela (6/12/24 meses).</li>
+                        <li>Mostra internações por mês, valor apresentado x final, diárias e MP global.</li>
+                        <li>Ranking dos 5 hospitais com mais internações ajuda a direcionar equipes.</li>
+                    </ul>
+                </article>
+                <article class="card">
+                    <h3>Formulário PDF</h3>
+                    <ul class="list">
+                        <li>Menu inclui “Solicitação de Customização (PDF)” abrindo arquivo interativo.</li>
+                        <li>Campos preenchíveis: solicitante, módulo, tipo de demanda, impacto, prioridade e anexos.</li>
+                        <li>Área final permite a equipe FullCare responder com prazo, custo e aprovação.</li>
                     </ul>
                 </article>
             </div>

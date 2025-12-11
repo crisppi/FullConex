@@ -25,8 +25,10 @@ $capValoresDao = new CapValoresDAO($conn);
 
 $type = filter_input(INPUT_POST, "type") ?: 'update';
 
+$rahDebugFormLog = false;
+
 /* ---------- Log do POST para depuração ---------- */
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($rahDebugFormLog && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $formPayload = $_POST;
     foreach ($formPayload as $key => $value) {
         if (is_string($value) && strlen($value) > 500) {
@@ -104,8 +106,9 @@ $id_valor       = intPOST("id_valor");
 $isCreate       = ($type === 'create');
 
 $pacote         = strPOST("pacote") ?: 'n';
-$parcial        = strPOST("parcial_capeante") ?: 'n';
-$parcial_num    = intPOST("parcial_num");
+$parcial        = strPOST("parcial_capeante") ?: (filter_input(INPUT_POST, 'nova_parcial') ? 's' : 'n');
+$parcial_num    = filter_input(INPUT_POST, 'parcial_num', FILTER_VALIDATE_INT);
+$novaParcialFlag = filter_input(INPUT_POST, 'nova_parcial') ? true : false;
 $senha_finalizada = flagPOST('senha_finalizada', 'n');
 
 $data_inicial   = datePOST("data_inicial_capeante");
@@ -121,7 +124,7 @@ if ($data_inicial && $data_final) {
     }
 }
 
-if ($parcial === 's' && $fk_internacao && $data_inicial && $data_final) {
+if ($parcial === 's' && $fk_internacao && $data_inicial && $data_final && !$novaParcialFlag) {
     $sql = "SELECT id_capeante, parcial_num, data_inicial_capeante, data_final_capeante
             FROM tb_capeante
             WHERE fk_int_capeante = :fk";

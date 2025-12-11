@@ -238,6 +238,9 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
 
 <!-- ========================= FORM ========================= -->
 <form id="form-capeante-rah" action="<?= $h($BASE_URL) ?>process_rah.php" method="POST" enctype="multipart/form-data">
+    <?php if ($novaParcial): ?>
+    <input type="hidden" name="nova_parcial" value="1">
+    <?php endif; ?>
     <input type="hidden" name="type" value="<?= $h($type) ?>">
     <input type="hidden" name="id_capeante" value="<?= $type === 'create' ? '' : $hi($fv('id_capeante')) ?>">
     <input type="hidden" name="fk_int_capeante" value="<?= $hi($fv('id_internacao') ?: $fv('fk_int_capeante')) ?>">
