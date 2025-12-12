@@ -67,6 +67,11 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ?: ''; // campo para ORDER BY
 $pesquisa_nome = filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS);
 $pesquisa_pac = filter_input(INPUT_GET, 'pesquisa_pac', FILTER_SANITIZE_SPECIAL_CHARS);
 $senha_fin = filter_input(INPUT_GET, 'senha_fin') ?: NULL;
+$status_conta = filter_input(INPUT_GET, 'status_conta', FILTER_SANITIZE_SPECIAL_CHARS);
+$statusOptions = ['todos', 'aberto', 'encerrado', 'auditoria'];
+if (!$status_conta || !in_array($status_conta, $statusOptions, true)) {
+    $status_conta = 'todos'; // padrão passa a mostrar todas as contas
+}
 $idcapeante = filter_input(INPUT_GET, 'idcapeante') ?: NULL;
 $med_check = filter_input(INPUT_GET, 'med_check') ?: NULL;
 $enf_check = filter_input(INPUT_GET, 'enf_check') ?: NULL;
@@ -120,7 +125,6 @@ $condicoes = [
     strlen($idcapeante) ? 'ca.id_capeante LIKE "%' . $idcapeante . '%"' : NULL,
 
     strlen($senha_fin) ? 'ca.senha_finalizada = "' . $senha_fin . '"' : NULL,
-    'ca.encerrado_cap = "n"',
     strlen($med_check) ? 'ca.med_check = "' . $med_check . '"' : NULL,
     strlen($enf_check) ? 'ca.enfer_check = "' . $enf_check . '"' : NULL,
     strlen($adm_check) ? 'ca.adm_check = "' . $adm_check . '"' : NULL,
@@ -130,6 +134,23 @@ $condicoes = [
     (!$isDiretor && strlen((string) $userId)) ? 'hos.fk_usuario_hosp = "' . $userId . '"' : NULL
 ];
 $condicoes = array_filter($condicoes);
+
+switch ($status_conta) {
+    case 'encerrado':
+        $condicoes[] = 'ca.encerrado_cap = "s"';
+        break;
+    case 'auditoria':
+        $condicoes[] = 'ca.em_auditoria_cap = "s"';
+        break;
+    case 'aberto':
+        $condicoes[] = '(ca.encerrado_cap IS NULL OR ca.encerrado_cap = "" OR ca.encerrado_cap = "n")';
+        break;
+    case 'todos':
+    default:
+        // sem condição adicional
+        break;
+}
+
 $where = implode(' AND ', $condicoes);
 
 // =====================================================================
@@ -214,6 +235,7 @@ $url = 'list_internacao_cap.php?'
     . '&pesquisa_nome=' . urlencode((string) $pesquisa_nome)
     . '&pesquisa_pac=' . urlencode((string) $pesquisa_pac)
     . '&senha_fin=' . urlencode((string) $senha_fin)
+    . '&status_conta=' . urlencode((string) $status_conta)
     . '&encerrado_cap=' . urlencode((string) $encerrado_cap)
     . '&med_check=' . urlencode((string) $med_check)
     . '&enf_check=' . urlencode((string) $enf_check)
@@ -364,6 +386,18 @@ if ($havePages) {
                             <option value="">Senha finalizada</option>
                             <option value="s" <?= $senha_fin === 's' ? 'selected' : '' ?>>Sim</option>
                             <option value="n" <?= $senha_fin === 'n' ? 'selected' : '' ?>>Não</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-sm-2" style="padding:2px !important">
+                        <select class="form-control form-control-sm"
+                            style="margin-top:7px;font-size:.8em;color:#878787" id="status_conta" name="status_conta">
+                            <option value="todos" <?= $status_conta === 'todos' ? 'selected' : '' ?>>Status — Encerrado (todos)
+                            </option>
+                            <option value="aberto" <?= $status_conta === 'aberto' ? 'selected' : '' ?>>Apenas abertos</option>
+                            <option value="auditoria" <?= $status_conta === 'auditoria' ? 'selected' : '' ?>>Em auditoria
+                            </option>
+                            <option value="encerrado" <?= $status_conta === 'encerrado' ? 'selected' : '' ?>>Somente encerrados
+                            </option>
                         </select>
                     </div>
                     <div class="form-group col-sm-2" style="padding:2px !important">

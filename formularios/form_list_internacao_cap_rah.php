@@ -408,11 +408,9 @@
                             <select class="form-control form-control-sm"
                                 style="margin-top:7px;font-size:.8em; color:#878787" id="encerrado_cap"
                                 name="encerrado_cap">
-                                <option value="">Encerrado (Todos)</option>
+                                <option value="" <?= ($encerrado_cap === null || $encerrado_cap === '') ? 'selected' : '' ?>>Encerrado (Todos)</option>
                                 <option value="s" <?= $encerrado_cap === 's' ? 'selected' : '' ?>>Sim</option>
-                                <option value="n"
-                                    <?= ($encerrado_cap === 'n' || $encerrado_cap === '') ? 'selected' : '' ?>>Não
-                                </option>
+                                <option value="n" <?= $encerrado_cap === 'n' ? 'selected' : '' ?>>Não</option>
                             </select>
                         </div>
 
@@ -747,26 +745,6 @@ $(document).ready(function() {
     }
 });
     </script>
-
-    <?php if ($isFinalContext): ?>
-    <script>
-$(document).ready(function() {
-    const $enc = $('#encerrado_cap');
-    if ($enc.length && ($enc.val() || '').trim() === '') {
-        $enc.val('s');
-    }
-});
-    </script>
-<?php else: ?>
-    <script>
-$(document).ready(function() {
-    const $enc = $('#encerrado_cap');
-    if ($enc.length && ($enc.val() || '').trim() === '') {
-        $enc.val('n');
-    }
-});
-    </script>
-    <?php endif; ?>
 
     <script>
 if (typeof window.paginateRah !== 'function') {
