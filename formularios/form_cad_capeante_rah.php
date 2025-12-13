@@ -24,6 +24,7 @@ require_once "dao/internacaoDao.php";
 require_once "dao/pacienteDao.php";
 require_once "dao/capeanteDao.php";
 require_once "dao/patologiaDao.php";
+require_once "dao/gestaoDao.php";
 
 // === CAD CENTRAL: DAOs e listas ===
 if (!isset($usuarioDao) || !($usuarioDao instanceof UserDAO)) {
@@ -49,10 +50,21 @@ $fmtDateBR = function ($d): string {
     $ts = strtotime($d);
     return $ts ? date('d/m/Y', $ts) : '';
 };
+$fmtSN = function ($value): string {
+    $val = strtolower((string)($value ?? ''));
+    if ($val === 's') {
+        return 'Sim';
+    }
+    if ($val === 'n') {
+        return 'Não';
+    }
+    return $val !== '' ? ucfirst($val) : '—';
+};
 
 /* Instâncias */
 $internacaoDAO = new internacaoDAO($conn, $BASE_URL);
 $capeanteDAO   = new capeanteDAO($conn, $BASE_URL);
+$gestaoDAO     = new gestaoDAO($conn, $BASE_URL);
 
 /* Parâmetros */
 $id_capeante   = filter_input(INPUT_GET, 'id_capeante', FILTER_VALIDATE_INT) ?: null;
@@ -167,6 +179,42 @@ if ($id_internacao) {
         }
     } catch (Throwable $e) {
         $parciaisLista = [];
+    }
+}
+
+$eventoAdversoInfo = null;
+$eventoEditLink = null;
+$internacaoParaEvento = (int)($row['id_internacao'] ?? $row['fk_int_capeante'] ?? 0);
+if (!$internacaoParaEvento && $id_internacao) {
+    $internacaoParaEvento = (int)$id_internacao;
+}
+if ($internacaoParaEvento > 0) {
+    try {
+        $gestoesBrutas = $gestaoDAO->selectRawByInternacao($internacaoParaEvento);
+        if (is_array($gestoesBrutas) && $gestoesBrutas) {
+            foreach (array_reverse($gestoesBrutas) as $registroGestao) {
+                if (strtolower((string)($registroGestao['evento_adverso_ges'] ?? 'n')) === 's') {
+                    $eventoAdversoInfo = [
+                        'tipo' => $registroGestao['tipo_evento_adverso_gest'] ?? '',
+                        'relatorio' => trim((string)($registroGestao['rel_evento_adverso_ges'] ?? '')),
+                        'data' => $registroGestao['evento_data_ges'] ?? '',
+                        'classificacao' => $registroGestao['evento_classificacao_ges'] ?? '',
+                        'impacto' => $registroGestao['evento_impacto_financ_ges'] ?? '',
+                        'prolongou' => $registroGestao['evento_prolongou_internacao_ges'] ?? '',
+                        'retorno' => $registroGestao['evento_retorno_qual_hosp_ges'] ?? '',
+                        'sinalizado' => $registroGestao['evento_sinalizado_ges'] ?? '',
+                        'discutido' => $registroGestao['evento_discutido_ges'] ?? '',
+                        'negociado' => $registroGestao['evento_negociado_ges'] ?? '',
+                        'valor_negociado' => $registroGestao['evento_valor_negoc_ges'] ?? '',
+                        'encerrado' => strtolower((string)($registroGestao['evento_encerrar_ges'] ?? 'n')) === 's'
+                    ];
+                    $eventoEditLink = rtrim($BASE_URL, '/') . '/edit_internacao.php?id_internacao=' . $internacaoParaEvento . '#div_evento';
+                    break;
+                }
+            }
+        }
+    } catch (Exception $ex) {
+        $eventoAdversoInfo = null;
     }
 }
 
@@ -298,6 +346,85 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
             </div>
         </div>
     </div>
+
+    <?php if ($eventoAdversoInfo):
+        $eventoEncerrado = (bool)($eventoAdversoInfo['encerrado'] ?? false);
+        $eventoStatusLabel = $eventoEncerrado ? 'Encerrado' : 'Aberto';
+        $eventoDescricao = $eventoEncerrado
+            ? 'Este evento foi encerrado pela gestão e permanece disponível para rastreabilidade.'
+            : 'Evento adverso ativo informado na visita. Revise os impactos antes de finalizar esta conta.';
+    ?>
+    <div class="sec-card rah-event-card <?= $eventoEncerrado ? 'is-closed' : 'is-open' ?>">
+        <div class="sec-header">
+            <div class="sec-title">Evento adverso</div>
+            <div class="rah-event-actions">
+                <div class="rah-event-status"><?= $eventoStatusLabel ?></div>
+                <?php if ($eventoEditLink): ?>
+                <a class="rah-event-btn" href="<?= $h($eventoEditLink) ?>" target="_blank" rel="noopener">
+                    Editar evento
+                </a>
+                <?php endif; ?>
+            </div>
+        </div>
+        <div class="sec-body">
+            <p class="rah-event-desc"><?= $eventoDescricao ?></p>
+            <div class="rah-event-grid">
+                <div>
+                    <span>Tipo</span>
+                    <strong><?= $eventoAdversoInfo['tipo'] ? $h($eventoAdversoInfo['tipo']) : '—' ?></strong>
+                </div>
+                <div>
+                    <span>Data do evento</span>
+                    <strong><?= $fmtDateBR($eventoAdversoInfo['data']) ?: '—' ?></strong>
+                </div>
+                <div>
+                    <span>Classificação</span>
+                    <strong><?= $eventoAdversoInfo['classificacao'] ? $h($eventoAdversoInfo['classificacao']) : '—' ?></strong>
+                </div>
+                <div>
+                    <span>Impacto financeiro</span>
+                    <strong><?= $fmtSN($eventoAdversoInfo['impacto'] ?? null) ?></strong>
+                </div>
+                <div>
+                    <span>Prolongou internação</span>
+                    <strong><?= $fmtSN($eventoAdversoInfo['prolongou'] ?? null) ?></strong>
+                </div>
+                <div>
+                    <span>Retorno qualidade hospital</span>
+                    <strong><?= $fmtSN($eventoAdversoInfo['retorno'] ?? null) ?></strong>
+                </div>
+                <?php if (!empty(trim((string)($eventoAdversoInfo['valor_negociado'] ?? '')))): ?>
+                <div>
+                    <span>Valor negociado</span>
+                    <strong><?= $h($eventoAdversoInfo['valor_negociado']) ?></strong>
+                </div>
+                <?php endif; ?>
+            </div>
+            <?php if (!empty($eventoAdversoInfo['relatorio'])): ?>
+            <div class="rah-event-notes">
+                <span>Resumo / relatório</span>
+                <p><?= nl2br($h($eventoAdversoInfo['relatorio'])) ?></p>
+            </div>
+            <?php endif; ?>
+            <div class="rah-event-flags">
+                <?php
+                $statusFlags = [
+                    'Sinalizado' => $eventoAdversoInfo['sinalizado'] ?? '',
+                    'Discutido' => $eventoAdversoInfo['discutido'] ?? '',
+                    'Negociado' => $eventoAdversoInfo['negociado'] ?? ''
+                ];
+                foreach ($statusFlags as $flagLabel => $flagValue):
+                    $flagValueLower = strtolower((string)$flagValue);
+                    $flagClass = $flagValueLower === 's' ? 'yes' : ($flagValueLower === 'n' ? 'no' : 'neutral');
+                ?>
+                <span class="rah-event-flag <?= $flagClass ?>">
+                    <?= $flagLabel ?>: <strong><?= $fmtSN($flagValue) ?></strong>
+                </span>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
 
     <!-- PERÍODO E VALORES GERAIS -->
     <div class="sec-card">

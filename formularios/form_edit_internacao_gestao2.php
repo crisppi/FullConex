@@ -160,7 +160,7 @@ function showIf(?string $cur): string
                 <label for="rel_evento_adverso_ges">Relatório Evento Adverso</label>
                 <textarea rows="2" class="form-control" id="rel_evento_adverso_ges" name="rel_evento_adverso_ges"
                     onfocus="this.rows=6"
-                    onblur="this.rows=2"><?= htmlspecialchars($int_gestao->rel_evento_adverso_ges) ?></textarea>
+                    onblur="this.rows=2"><?= htmlspecialchars((string)($int_gestao->rel_evento_adverso_ges ?? ''), ENT_QUOTES, 'UTF-8') ?></textarea>
             </div>
 
             <!-- Flags + Valor negociado -->
@@ -187,7 +187,7 @@ function showIf(?string $cur): string
                     <label for="evento_valor_negoc_ges">Valor negociado</label>
                     <input type="text" class="form-control form-control-sm" id="evento_valor_negoc_ges"
                         name="evento_valor_negoc_ges"
-                        value="<?= htmlspecialchars($int_gestao->evento_valor_negoc_ges) ?>">
+                        value="<?= htmlspecialchars((string)($int_gestao->evento_valor_negoc_ges ?? ''), ENT_QUOTES, 'UTF-8') ?>">
                 </div>
             </div>
         </div>
