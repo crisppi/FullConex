@@ -7,25 +7,35 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
     body{margin:0;font-family:'Inter',sans-serif;background:#f8f6fb;color:#2d1740;line-height:1.5}
-    header{background:linear-gradient(135deg,#6b3d7d,#422257);color:#fff;padding:45px 5vw 70px}
-    main{width:min(900px,92vw);margin:-40px auto 50px}
+    header{background:linear-gradient(135deg,#6b3d7d,#422257);color:#fff;padding:45px 5vw 70px;position:relative}
+    header p{max-width:700px;color:rgba(255,255,255,.9)}
+    main{width:min(900px,92vw);margin:-30px auto 50px;padding-top:32px}
     h2{font-size:26px;margin-bottom:14px;position:relative}
     h2::after{content:"";position:absolute;left:0;bottom:-6px;width:60px;height:3px;border-radius:99px;background:linear-gradient(90deg,#8a5ab0,#5ad1f0)}
     .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
     .card{background:#fff;border-radius:16px;padding:22px;border:1px solid rgba(90,43,120,.1);box-shadow:0 12px 24px rgba(57,23,92,.1)}
     ul{margin:0;padding-left:18px}
+    .pill{display:inline-flex;gap:8px;background:rgba(255,255,255,.15);padding:6px 12px;border-radius:999px;text-transform:uppercase;font-size:13px;letter-spacing:.08em;margin-bottom:20px}
     a.voltar{color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.4);padding:6px 12px;border-radius:999px}
     footer{text-align:center;color:#6f6b78;padding:30px}
-    </style>
+    .hero-layout{display:flex;align-items:center;gap:24px;margin-bottom:20px;flex-wrap:wrap}
+    .hero-logo-wrap{flex:0 0 auto}
+    .hero-logo{height:46px;max-width:200px}
+    .hero-body{flex:1 1 260px;min-width:0}
+    .hero-sys-link{color:#fff;text-decoration:none;font-weight:600;border:1px solid rgba(255,255,255,.4);padding:6px 14px;border-radius:999px;transition:background .2s,color .2s}
+    .hero-sys-link:hover{background:rgba(0,0,0,.15)}
+</style>
 </head>
 <body>
 <header>
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
-        <div>
+    <div class="hero-layout">
+        <div class="hero-logo-wrap"><img src="img/LogoFullCare.png" alt="FullCare" class="hero-logo"></div>
+        <div class="hero-body">
+            <div class="pill">Manual • Negociações</div>
             <h1>Negociações</h1>
-            <p>Acordos entre hospitais e seguradoras: pacotes, descontos, prorrogações especiais.</p>
+            <p>Acordos entre hospitais e seguradoras: pacotes, descontos, prorrogações especiais.<br><a class="voltar" href="manual.html">← Voltar para o índice</a></p>
         </div>
-        <a class="voltar" href="manual.html">← Voltar</a>
+        <a class="hero-sys-link" href="javascript:void(0)" onclick="if(document.referrer){history.back();}else{window.location='index.php';}">← Voltar ao sistema</a>
     </div>
 </header>
 <main>

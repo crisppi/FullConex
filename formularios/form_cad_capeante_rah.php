@@ -84,7 +84,9 @@ $defaults = [
     'valor_honorarios' => null,
     'valor_opme' => null,
     'desconto_valor_cap' => null,
-    'comentarios_obs' => null
+    'comentarios_obs' => null,
+    'conta_parada_cap' => 'n',
+    'parada_motivo_cap' => null
 ];
 
 $where = '';
@@ -198,6 +200,14 @@ $fv = function (string $k) use ($row) {
     return $row[$k] ?? null;
 };
 $hojeYMD = date('Y-m-d');
+$motivosParadaPadrao = [
+    'OPME pendente',
+    'Sem autorização',
+    'Fora do prazo',
+    'Senha cancelada',
+    'Documentação pendente',
+    'Outros'
+];
 
 // === CAD CENTRAL: helpers de cargo/visibilidade ===
 $cargoSessao = (string)($_SESSION['cargo'] ?? '');
@@ -379,6 +389,27 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
                     <select name="senha_finalizada" class="form-select" id="senha_finalizada">
                         <option value="n" <?= $senhaFinalVal === 'n' ? 'selected' : ''; ?>>Não</option>
                         <option value="s" <?= $senhaFinalVal === 's' ? 'selected' : ''; ?>>Sim</option>
+                    </select>
+                </div>
+
+                <?php $contaParadaVal = strtolower($fv('conta_parada_cap') ?? 'n') === 's' ? 's' : 'n'; ?>
+                <div class="form-group">
+                    <label class="form-label">Conta parada</label>
+                    <select name="conta_parada_cap" class="form-select" id="conta_parada_cap">
+                        <option value="n" <?= $contaParadaVal === 'n' ? 'selected' : ''; ?>>Não</option>
+                        <option value="s" <?= $contaParadaVal === 's' ? 'selected' : ''; ?>>Sim</option>
+                    </select>
+                </div>
+                <div class="form-group" id="parada-motivo-wrapper"
+                    style="<?= $contaParadaVal === 's' ? '' : 'display:none'; ?>">
+                    <label class="form-label">Motivo da parada</label>
+                    <select name="parada_motivo_cap" class="form-select" id="parada_motivo_cap">
+                        <option value="">Selecione...</option>
+                        <?php foreach ($motivosParadaPadrao as $motivo): ?>
+                            <option value="<?= $h($motivo) ?>" <?= ($fv('parada_motivo_cap') === $motivo ? 'selected' : '') ?>>
+                                <?= $h($motivo) ?>
+                            </option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
             </div>
@@ -1407,5 +1438,27 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     if (inputIni) inputIni.addEventListener('change', validarPeriodo);
     if (inputFim) inputFim.addEventListener('change', validarPeriodo);
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const contaParada = document.getElementById('conta_parada_cap');
+    const motivoWrap = document.getElementById('parada-motivo-wrapper');
+    const motivoSelect = document.getElementById('parada_motivo_cap');
+
+    if (!contaParada || !motivoWrap) return;
+
+    const toggleMotivo = () => {
+        if (contaParada.value === 's') {
+            motivoWrap.style.display = '';
+        } else {
+            motivoWrap.style.display = 'none';
+            if (motivoSelect) motivoSelect.value = '';
+        }
+    };
+
+    contaParada.addEventListener('change', toggleMotivo);
+    toggleMotivo();
 });
 </script>

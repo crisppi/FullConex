@@ -74,7 +74,8 @@
 
     main {
         width: min(1100px, 92vw);
-        margin: -60px auto 60px;
+        margin: -30px auto 60px;
+        padding-top: 32px;
     }
 
     h2 {
@@ -169,15 +170,26 @@
         color: var(--cinza);
         font-size: 14px;
     }
-    </style>
+    .hero-layout{display:flex;align-items:center;gap:24px;margin-bottom:20px;flex-wrap:wrap}
+    .hero-logo-wrap{flex:0 0 auto}
+    .hero-logo{height:46px;max-width:200px}
+    .hero-body{flex:1 1 260px;min-width:0}
+    .hero-sys-link{color:#fff;text-decoration:none;font-weight:600;border:1px solid rgba(255,255,255,.4);padding:6px 14px;border-radius:999px;transition:background .2s,color .2s}
+    .hero-sys-link:hover{background:rgba(0,0,0,.15)}
+</style>
 </head>
 
 <body>
     <header class="hero">
-        <div class="pill">Manual Operacional • v0.2</div>
-        <h1>FullCare</h1>
-        <p>Página inicial do manual. Cada módulo possui um guia próprio. Use os atalhos abaixo para abrir o conteúdo
-            detalhado.</p>
+        <div class="hero-layout">
+            <div class="hero-logo-wrap"><img src="img/LogoFullCare.png" alt="FullCare" class="hero-logo"></div>
+            <div class="hero-body">
+                <div class="pill">Manual Operacional • v0.2</div>
+                <h1>FullCare</h1>
+                <p>Página inicial do manual. Cada módulo possui um guia próprio. Use os atalhos abaixo para abrir o conteúdo detalhado.</p>
+            </div>
+            <a class="hero-sys-link" href="javascript:void(0)" onclick="if(document.referrer){history.back();}else{window.location='index.php';}">← Voltar ao sistema</a>
+        </div>
     </header>
 
     <main>

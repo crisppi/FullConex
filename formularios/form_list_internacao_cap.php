@@ -67,6 +67,7 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ?: ''; // campo para ORDER BY
 $pesquisa_nome = filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS);
 $pesquisa_pac = filter_input(INPUT_GET, 'pesquisa_pac', FILTER_SANITIZE_SPECIAL_CHARS);
 $senha_fin = filter_input(INPUT_GET, 'senha_fin') ?: NULL;
+$conta_parada = filter_input(INPUT_GET, 'conta_parada') ?: NULL;
 $status_conta = filter_input(INPUT_GET, 'status_conta', FILTER_SANITIZE_SPECIAL_CHARS);
 $statusOptions = ['todos', 'aberto', 'encerrado', 'auditoria'];
 if (!$status_conta || !in_array($status_conta, $statusOptions, true)) {
@@ -125,6 +126,7 @@ $condicoes = [
     strlen($idcapeante) ? 'ca.id_capeante LIKE "%' . $idcapeante . '%"' : NULL,
 
     strlen($senha_fin) ? 'ca.senha_finalizada = "' . $senha_fin . '"' : NULL,
+    ($conta_parada === 's' || $conta_parada === 'n') ? 'ca.conta_parada_cap = "' . $conta_parada . '"' : NULL,
     strlen($med_check) ? 'ca.med_check = "' . $med_check . '"' : NULL,
     strlen($enf_check) ? 'ca.enfer_check = "' . $enf_check . '"' : NULL,
     strlen($adm_check) ? 'ca.adm_check = "' . $adm_check . '"' : NULL,
@@ -235,6 +237,7 @@ $url = 'list_internacao_cap.php?'
     . '&pesquisa_nome=' . urlencode((string) $pesquisa_nome)
     . '&pesquisa_pac=' . urlencode((string) $pesquisa_pac)
     . '&senha_fin=' . urlencode((string) $senha_fin)
+    . '&conta_parada=' . urlencode((string) $conta_parada)
     . '&status_conta=' . urlencode((string) $status_conta)
     . '&encerrado_cap=' . urlencode((string) $encerrado_cap)
     . '&med_check=' . urlencode((string) $med_check)
@@ -386,6 +389,14 @@ if ($havePages) {
                             <option value="">Senha finalizada</option>
                             <option value="s" <?= $senha_fin === 's' ? 'selected' : '' ?>>Sim</option>
                             <option value="n" <?= $senha_fin === 'n' ? 'selected' : '' ?>>Não</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-sm-2" style="padding:2px !important">
+                        <select class="form-control form-control-sm"
+                            style="margin-top:7px;font-size:.8em;color:#878787" id="conta_parada" name="conta_parada">
+                            <option value="" <?= ($conta_parada === null || $conta_parada === '') ? 'selected' : '' ?>>Conta parada (todas)</option>
+                            <option value="s" <?= $conta_parada === 's' ? 'selected' : '' ?>>Paradas</option>
+                            <option value="n" <?= $conta_parada === 'n' ? 'selected' : '' ?>>Ativas</option>
                         </select>
                     </div>
                     <div class="form-group col-sm-2" style="padding:2px !important">

@@ -110,6 +110,8 @@ $parcial        = strPOST("parcial_capeante") ?: (filter_input(INPUT_POST, 'nova
 $parcial_num    = filter_input(INPUT_POST, 'parcial_num', FILTER_VALIDATE_INT);
 $novaParcialFlag = filter_input(INPUT_POST, 'nova_parcial') ? true : false;
 $senha_finalizada = flagPOST('senha_finalizada', 'n');
+$conta_parada_cap = flagPOST('conta_parada_cap', 'n');
+$parada_motivo_cap = strPOST('parada_motivo_cap');
 
 $data_inicial   = datePOST("data_inicial_capeante");
 $data_final     = datePOST("data_final_capeante");
@@ -384,6 +386,8 @@ $cap->pacote                    = $pacote;
 $cap->parcial_capeante          = $parcial;
 $cap->parcial_num               = $parcial_num;
 $cap->senha_finalizada          = $senha_finalizada;
+$cap->conta_parada_cap          = $conta_parada_cap;
+$cap->parada_motivo_cap         = $conta_parada_cap === 's' ? ($parada_motivo_cap ?: null) : null;
 
 /* Totais */
 $cap->valor_apresentado_capeante = $valor_apresentado;

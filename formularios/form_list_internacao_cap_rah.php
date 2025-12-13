@@ -82,18 +82,19 @@
     $limite           = filter_input(INPUT_GET, 'limite')     ? filter_input(INPUT_GET, 'limite')     : 10;
     $ordenar          = filter_input(INPUT_GET, 'ordenar')    ? filter_input(INPUT_GET, 'ordenar')    : 1;
 
-    $pesquisa_nome       = filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS);
-    $pesquisa_pac        = filter_input(INPUT_GET, 'pesquisa_pac',  FILTER_SANITIZE_SPECIAL_CHARS);
-    $encerrado_cap = filter_input(INPUT_GET, 'encerrado_cap'); // '' | 's' | 'n'
-    if (($encerrado_cap === null || $encerrado_cap === '') && isset($FORCE_ENCERRADO_CAP_RAH)) {
-        $encerrado_cap = $FORCE_ENCERRADO_CAP_RAH;
-    }
+$pesquisa_nome       = filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS);
+$pesquisa_pac        = filter_input(INPUT_GET, 'pesquisa_pac',  FILTER_SANITIZE_SPECIAL_CHARS);
+$encerrado_cap = filter_input(INPUT_GET, 'encerrado_cap'); // '' | 's' | 'n'
+if (($encerrado_cap === null || $encerrado_cap === '') && isset($FORCE_ENCERRADO_CAP_RAH)) {
+    $encerrado_cap = $FORCE_ENCERRADO_CAP_RAH;
+}
 
-    $senha_fin           = filter_input(INPUT_GET, 'senha_fin') ?: NULL;
-    if (($senha_fin === null || $senha_fin === '') && isset($FORCE_SENHA_FIN_RAH)) {
-        $senha_fin = $FORCE_SENHA_FIN_RAH;
-    }
-    $idcapeante          = filter_input(INPUT_GET, 'idcapeante') ?: NULL;
+$senha_fin           = filter_input(INPUT_GET, 'senha_fin') ?: NULL;
+if (($senha_fin === null || $senha_fin === '') && isset($FORCE_SENHA_FIN_RAH)) {
+    $senha_fin = $FORCE_SENHA_FIN_RAH;
+}
+$conta_parada        = filter_input(INPUT_GET, 'conta_parada') ?: NULL;
+$idcapeante          = filter_input(INPUT_GET, 'idcapeante') ?: NULL;
     $med_check           = filter_input(INPUT_GET, 'med_check') ?: NULL;
     $enf_check           = filter_input(INPUT_GET, 'enf_check') ?: NULL;
     $adm_check           = filter_input(INPUT_GET, 'adm_check') ?: NULL;
@@ -145,6 +146,7 @@
         strlen($lote)          ? 'ca.lote_cap = "' . $lote . '"'                 : NULL,
         strlen($idcapeante)    ? 'ca.id_capeante LIKE "%' . $idcapeante . '%"'   : NULL,
         strlen($senha_fin)     ? 'senha_finalizada = "' . $senha_fin . '"'       : NULL,
+        ($conta_parada === 's' || $conta_parada === 'n') ? 'ca.conta_parada_cap = "' . $conta_parada . '"' : NULL,
         ($encerrado_cap === 's' || $encerrado_cap === 'n') ? 'ca.encerrado_cap = "' . $encerrado_cap . '"' : NULL,
         strlen($med_check)     ? 'med_check = "'   . $med_check . '"'            : NULL,
         strlen($enf_check)     ? 'enfer_check = "' . $enf_check . '"'            : NULL,
@@ -165,6 +167,7 @@
         'pesquisa_pac'      => $pesquisa_pac,
         'senha_fin'         => $senha_fin,
         'encerrado_cap'     => $encerrado_cap,
+        'conta_parada'      => $conta_parada,
         'med_check'         => $med_check,
         'enf_check'         => $enf_check,
         'adm_check'         => $adm_check,
@@ -397,22 +400,31 @@
                         </div>
 
                         <div class="form-group col-sm-2" style="padding:2px !important">
-                            <select class="form-control form-control-sm"
-                                style="margin-top:7px;font-size:.8em; color:#878787" id="senha_fin" name="senha_fin">
-                                <option value="">Senha finalizada</option>
-                                <option value="s" <?= $senha_fin === 's' ? 'selected' : '' ?>>Sim</option>
-                                <option value="n" <?= $senha_fin === 'n' ? 'selected' : '' ?>>Não</option>
-                            </select>
-                        </div>
-                        <div class="form-group col-sm-2" style="padding:2px !important">
-                            <select class="form-control form-control-sm"
-                                style="margin-top:7px;font-size:.8em; color:#878787" id="encerrado_cap"
-                                name="encerrado_cap">
-                                <option value="" <?= ($encerrado_cap === null || $encerrado_cap === '') ? 'selected' : '' ?>>Encerrado (Todos)</option>
-                                <option value="s" <?= $encerrado_cap === 's' ? 'selected' : '' ?>>Sim</option>
-                                <option value="n" <?= $encerrado_cap === 'n' ? 'selected' : '' ?>>Não</option>
-                            </select>
-                        </div>
+                        <select class="form-control form-control-sm"
+                            style="margin-top:7px;font-size:.8em; color:#878787" id="senha_fin" name="senha_fin">
+                            <option value="">Senha finalizada</option>
+                            <option value="s" <?= $senha_fin === 's' ? 'selected' : '' ?>>Sim</option>
+                            <option value="n" <?= $senha_fin === 'n' ? 'selected' : '' ?>>Não</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-sm-2" style="padding:2px !important">
+                        <select class="form-control form-control-sm"
+                            style="margin-top:7px;font-size:.8em; color:#878787" id="encerrado_cap"
+                            name="encerrado_cap">
+                            <option value="" <?= ($encerrado_cap === null || $encerrado_cap === '') ? 'selected' : '' ?>>Encerrado (Todos)</option>
+                            <option value="s" <?= $encerrado_cap === 's' ? 'selected' : '' ?>>Sim</option>
+                            <option value="n" <?= $encerrado_cap === 'n' ? 'selected' : '' ?>>Não</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-sm-2" style="padding:2px !important">
+                        <select class="form-control form-control-sm"
+                            style="margin-top:7px;font-size:.8em; color:#878787" id="conta_parada"
+                            name="conta_parada">
+                            <option value="" <?= ($conta_parada === null || $conta_parada === '') ? 'selected' : '' ?>>Conta parada (Todas)</option>
+                            <option value="s" <?= $conta_parada === 's' ? 'selected' : '' ?>>Paradas</option>
+                            <option value="n" <?= $conta_parada === 'n' ? 'selected' : '' ?>>Ativas</option>
+                        </select>
+                    </div>
 
                         <div class="form-group col-sm-2" style="padding:2px !important">
                             <input class="form-control form-control-sm" type="date"
