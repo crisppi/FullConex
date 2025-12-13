@@ -189,6 +189,10 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                             class="bi bi-speedometer2"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
                                         Dashboard</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>dashboard_operacional.php"><i
+                                            class="bi bi-grid-3x3-gap"
+                                            style="font-size: 1rem;margin-right:5px; color:#5e2363;"></i>
+                                        Dashboard 360°</a></li>
                                 <li><a class="dropdown-item" href="<?= $BASE_URL ?>dashboard_mensal.php"><i
                                             class="bi bi-graph-up-arrow"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(94, 35, 99);"></i>
@@ -216,6 +220,7 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                 <?php }; ?>
                             </ul>
                         </li>
+
 
 
                         <?php if ($_SESSION['nivel'] > 3) { ?>
