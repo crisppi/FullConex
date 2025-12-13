@@ -354,11 +354,17 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
             ? 'Este evento foi encerrado pela gestão e permanece disponível para rastreabilidade.'
             : 'Evento adverso ativo informado na visita. Revise os impactos antes de finalizar esta conta.';
     ?>
-    <div class="sec-card rah-event-card <?= $eventoEncerrado ? 'is-closed' : 'is-open' ?>">
-        <div class="sec-header">
+    <?php
+        $eventoCardStyle = $eventoEncerrado ? '' : 'background:linear-gradient(135deg,#fff1f3 0%,#ffd8e1 65%,#ffc1cf 100%);border:2px solid #ff9aae;box-shadow:0 10px 32px rgba(255,115,140,.35);';
+        $eventoHeaderStyle = $eventoEncerrado ? '' : 'color:#8a1433;border-bottom:1px solid rgba(255,154,174,.7);background:rgba(255,255,255,.4);';
+        $eventoStatusStyle = $eventoEncerrado ? '' : 'background:rgba(139,0,33,.1);border-color:rgba(139,0,33,.3);color:#8b0021;';
+        $eventoBodyStyle = $eventoEncerrado ? '' : 'border:1px solid rgba(255,154,174,.55);background:rgba(255,255,255,.93);';
+    ?>
+    <div class="sec-card rah-event-card <?= $eventoEncerrado ? 'is-closed' : 'is-open' ?>" style="<?= $eventoCardStyle ?>">
+        <div class="sec-header" style="<?= $eventoHeaderStyle ?>">
             <div class="sec-title">Evento adverso</div>
             <div class="rah-event-actions">
-                <div class="rah-event-status"><?= $eventoStatusLabel ?></div>
+                <div class="rah-event-status" style="<?= $eventoStatusStyle ?>"><?= $eventoStatusLabel ?></div>
                 <?php if ($eventoEditLink): ?>
                 <a class="rah-event-btn" href="<?= $h($eventoEditLink) ?>" target="_blank" rel="noopener">
                     Editar evento
@@ -366,7 +372,7 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
                 <?php endif; ?>
             </div>
         </div>
-        <div class="sec-body">
+        <div class="sec-body" style="<?= $eventoBodyStyle ?>">
             <p class="rah-event-desc"><?= $eventoDescricao ?></p>
             <div class="rah-event-grid">
                 <div>
