@@ -10,14 +10,12 @@ function buildCapeanteDateExpr(string $alias = '')
 {
     $prefix = $alias !== '' ? rtrim($alias, '.') . '.' : '';
     return "COALESCE(
-        STR_TO_DATE(NULLIF({$prefix}data_digit_capeante,''), '%Y-%m-%d %H:%i:%s'),
-        STR_TO_DATE(NULLIF({$prefix}data_digit_capeante,''), '%Y-%m-%d'),
-        STR_TO_DATE(NULLIF({$prefix}data_digit_capeante,''), '%d/%m/%Y %H:%i:%s'),
-        STR_TO_DATE(NULLIF({$prefix}data_digit_capeante,''), '%d/%m/%Y'),
-        STR_TO_DATE(NULLIF({$prefix}data_create_cap,''), '%Y-%m-%d %H:%i:%s'),
-        STR_TO_DATE(NULLIF({$prefix}data_create_cap,''), '%Y-%m-%d'),
-        STR_TO_DATE(NULLIF({$prefix}data_create_cap,''), '%d/%m/%Y %H:%i:%s'),
-        STR_TO_DATE(NULLIF({$prefix}data_create_cap,''), '%d/%m/%Y')
+        NULLIF({$prefix}data_digit_capeante, '0000-00-00'),
+        NULLIF({$prefix}data_fech_capeante, '0000-00-00'),
+        NULLIF({$prefix}data_final_capeante, '0000-00-00'),
+        NULLIF({$prefix}data_inicial_capeante, '0000-00-00'),
+        NULLIF({$prefix}data_create_cap, '0000-00-00'),
+        {$prefix}data_create_cap
     )";
 }
 
@@ -25,10 +23,9 @@ function buildInternDateExpr(string $alias = '')
 {
     $prefix = $alias !== '' ? rtrim($alias, '.') . '.' : '';
     return "COALESCE(
-        STR_TO_DATE(NULLIF({$prefix}data_create_int,''), '%Y-%m-%d %H:%i:%s'),
-        STR_TO_DATE(NULLIF({$prefix}data_lancamento_int,''), '%Y-%m-%d %H:%i:%s'),
-        STR_TO_DATE(NULLIF({$prefix}data_create_int,''), '%Y-%m-%d'),
-        STR_TO_DATE(NULLIF({$prefix}data_create_int,''), '%d/%m/%Y')
+        NULLIF({$prefix}data_create_int, '0000-00-00'),
+        NULLIF({$prefix}data_lancamento_int, '0000-00-00'),
+        {$prefix}data_create_int
     )";
 }
 
@@ -63,18 +60,49 @@ function perfFetchAll(PDO $conn, string $sql, array $params = []): array
     }
 }
 
+$defaultEnd = new DateTime('today');
+$defaultStart = (clone $defaultEnd)->modify('-119 days'); // 120 dias padrão
+
+$rawStart = filter_input(INPUT_GET, 'start_date');
+$rawEnd   = filter_input(INPUT_GET, 'end_date');
+
+$periodStart = DateTime::createFromFormat('Y-m-d', (string)$rawStart) ?: clone $defaultStart;
+$periodEnd   = DateTime::createFromFormat('Y-m-d', (string)$rawEnd) ?: clone $defaultEnd;
+
+if ($periodStart > $periodEnd) {
+    [$periodStart, $periodEnd] = [$periodEnd, $periodStart];
+}
+
+$rangeDays = max(1, $periodStart->diff($periodEnd)->days + 1);
+$periodInputs = [
+    'start' => $periodStart->format('Y-m-d'),
+    'end'   => $periodEnd->format('Y-m-d'),
+];
+$periodLabel = $periodStart->format('d/m/Y') . ' a ' . $periodEnd->format('d/m/Y');
+$rangeParams = [
+    ':dt_ini' => $periodStart->format('Y-m-d 00:00:00'),
+    ':dt_fim' => $periodEnd->format('Y-m-d 23:59:59'),
+];
+$capeanteRangeExpr = buildCapeanteDateExpr('ca');
+$internRangeExpr  = buildInternDateExpr('i');
+
 $visitaDateExpr = "COALESCE(
-    STR_TO_DATE(NULLIF(v.data_visita_vis,''), '%Y-%m-%d %H:%i:%s'),
-    STR_TO_DATE(NULLIF(v.data_visita_vis,''), '%Y-%m-%d'),
-    STR_TO_DATE(NULLIF(v.data_visita_vis,''), '%d/%m/%Y %H:%i:%s'),
-    STR_TO_DATE(NULLIF(v.data_visita_vis,''), '%d/%m/%Y')
+    NULLIF(v.data_visita_vis, '0000-00-00 00:00:00'),
+    NULLIF(v.data_visita_vis, '0000-00-00'),
+    v.data_visita_vis
 )";
 $visitaLancExpr = "COALESCE(
-    STR_TO_DATE(NULLIF(v.data_lancamento_vis,''), '%Y-%m-%d %H:%i:%s'),
-    STR_TO_DATE(NULLIF(v.data_lancamento_vis,''), '%Y-%m-%d'),
-    STR_TO_DATE(NULLIF(v.data_lancamento_vis,''), '%d/%m/%Y %H:%i:%s'),
-    STR_TO_DATE(NULLIF(v.data_lancamento_vis,''), '%d/%m/%Y'),
+    NULLIF(v.data_lancamento_vis, '0000-00-00 00:00:00'),
+    NULLIF(v.data_lancamento_vis, '0000-00-00'),
+    NULLIF(v.data_visita_vis, '0000-00-00 00:00:00'),
+    NULLIF(v.data_visita_vis, '0000-00-00'),
     NOW()
+)";
+$negociacaoDateExpr = "COALESCE(
+    NULLIF(data_inicio_neg, '0000-00-00'),
+    NULLIF(data_fim_neg, '0000-00-00'),
+    data_inicio_neg,
+    data_fim_neg
 )";
 
 $tempoMedioConta = perfFetchValue(
@@ -86,19 +114,18 @@ $tempoMedioConta = perfFetchValue(
                 )
             )),1)
      FROM tb_capeante
-    WHERE data_digit_capeante >= DATE_SUB(CURDATE(), INTERVAL 90 DAY)
+    WHERE {$capeanteRangeExpr} BETWEEN :dt_ini AND :dt_fim
       AND data_inicial_capeante IS NOT NULL
       AND COALESCE(NULLIF(data_fech_capeante,'0000-00-00'), data_digit_capeante) IS NOT NULL",
-    [],
+    $rangeParams,
     0.0
 );
 
-$visitasUlt30 = perfFetchValue(
+$visitasPeriodo = perfFetchValue(
     $conn,
     "SELECT COUNT(*) FROM tb_visita v
-      WHERE $visitaDateExpr IS NOT NULL
-        AND $visitaDateExpr >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)",
-    [],
+      WHERE $visitaDateExpr BETWEEN :dt_ini AND :dt_fim",
+    $rangeParams,
     0
 );
 
@@ -108,16 +135,16 @@ $taxaNegociacao = perfFetchValue(
             SUM(CASE WHEN data_fim_neg IS NOT NULL AND data_fim_neg <> '0000-00-00' THEN 1 ELSE 0 END)
             / NULLIF(COUNT(*),0) * 100, 1)
        FROM tb_negociacao
-      WHERE data_inicio_neg IS NULL OR data_inicio_neg >= DATE_SUB(CURDATE(), INTERVAL 120 DAY)",
-    [],
+      WHERE {$negociacaoDateExpr} BETWEEN :dt_ini AND :dt_fim",
+    $rangeParams,
     0.0
 );
 
 $contasDigitadasMes = perfFetchValue(
     $conn,
     "SELECT COUNT(*) FROM tb_capeante
-      WHERE data_digit_capeante >= DATE_FORMAT(CURDATE(), '%Y-%m-01')",
-    [],
+      WHERE {$capeanteRangeExpr} BETWEEN :dt_ini AND :dt_fim",
+    $rangeParams,
     0
 );
 
@@ -130,12 +157,12 @@ $auditorRows = perfFetchAll(
         ROUND(AVG(GREATEST(0, TIMESTAMPDIFF(DAY, $visitaDateExpr, $visitaLancExpr))),1) AS sla_dias
      FROM tb_visita v
      LEFT JOIN tb_user u ON u.id_usuario = v.fk_usuario_vis
-    WHERE $visitaDateExpr IS NOT NULL
-      AND $visitaDateExpr >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+    WHERE $visitaDateExpr BETWEEN :dt_ini AND :dt_fim
     GROUP BY v.fk_usuario_vis
     HAVING visitas_30d > 0
     ORDER BY visitas_30d DESC
-    LIMIT 12"
+    LIMIT 12",
+    $rangeParams
 );
 
 $negRows = perfFetchAll(
@@ -144,8 +171,9 @@ $negRows = perfFetchAll(
             SUM(CASE WHEN data_fim_neg IS NOT NULL AND data_fim_neg <> '0000-00-00' THEN 1 ELSE 0 END) AS concluidas,
             COUNT(*) AS total
        FROM tb_negociacao
-      WHERE data_inicio_neg IS NULL OR data_inicio_neg >= DATE_SUB(CURDATE(), INTERVAL 120 DAY)
-    GROUP BY fk_usuario_neg"
+      WHERE {$negociacaoDateExpr} BETWEEN :dt_ini AND :dt_fim
+    GROUP BY fk_usuario_neg",
+    $rangeParams
 );
 $negByUser = [];
 foreach ($negRows as $row) {
@@ -176,48 +204,31 @@ usort($auditorRanking, function ($a, $b) {
     return $b['score'] <=> $a['score'];
 });
 
-$rangeDays = 120;
-$capeanteRangeExpr = buildCapeanteDateExpr('ca');
-$internRangeExpr = buildInternDateExpr('i');
-
-$capeanteMaxExpr = buildCapeanteDateExpr('');
-$internMaxExpr = buildInternDateExpr('');
-
-$latestCapeante = perfFetchValue(
-    $conn,
-    "SELECT DATE_FORMAT(MAX({$capeanteMaxExpr}), '%Y-%m-%d') FROM tb_capeante"
-);
-$latestIntern = perfFetchValue(
-    $conn,
-    "SELECT DATE_FORMAT(MAX({$internMaxExpr}), '%Y-%m-%d') FROM tb_internacao"
-);
-
-$capBase = $latestCapeante ?: date('Y-m-d');
-$intBase = $latestIntern ?: date('Y-m-d');
-$capRangeSql = "DATE_SUB('{$capBase}', INTERVAL {$rangeDays} DAY)";
-$intRangeSql = "DATE_SUB('{$intBase}', INTERVAL {$rangeDays} DAY)";
-
-$capeanteUserKey = "CASE 
-    WHEN ca.fk_id_aud_adm IS NOT NULL AND ca.fk_id_aud_adm <> 0 THEN CONCAT('id:', ca.fk_id_aud_adm)
-    WHEN TRIM(COALESCE(ca.usuario_create_cap,'')) <> '' THEN CONCAT('user:', LOWER(TRIM(ca.usuario_create_cap)))
-    ELSE 'user:indefinido'
-END";
-$internUserKey = "CASE 
-    WHEN i.fk_usuario_int IS NOT NULL AND i.fk_usuario_int <> 0 THEN CONCAT('id:', i.fk_usuario_int)
-    WHEN TRIM(COALESCE(i.usuario_create_int,'')) <> '' THEN CONCAT('user:', LOWER(TRIM(i.usuario_create_int)))
-    ELSE 'user:indefinido'
-END";
-$visitaUserKey = "CASE 
-    WHEN v.fk_usuario_vis IS NOT NULL AND v.fk_usuario_vis <> 0 THEN CONCAT('id:', v.fk_usuario_vis)
-    WHEN TRIM(COALESCE(v.usuario_create,'')) <> '' THEN CONCAT('user:', LOWER(TRIM(v.usuario_create)))
-    ELSE 'user:indefinido'
-END";
+$capeanteUserKey = "LOWER(TRIM(COALESCE(ca.usuario_create_cap,'')))";
+$capeanteStartExpr = "
+    COALESCE(
+        NULLIF(ca.data_inicial_capeante, '0000-00-00'),
+        NULLIF(ca.data_final_capeante, '0000-00-00'),
+        NULLIF(ca.data_fech_capeante, '0000-00-00'),
+        ca.data_inicial_capeante
+    )";
+$capeanteDigitExpr = "
+    COALESCE(
+        NULLIF(ca.data_digit_capeante, '0000-00-00 00:00:00'),
+        NULLIF(ca.data_digit_capeante, '0000-00-00'),
+        NULLIF(ca.data_create_cap, '0000-00-00 00:00:00'),
+        NULLIF(ca.data_create_cap, '0000-00-00'),
+        ca.data_digit_capeante,
+        ca.data_create_cap
+    )";
+$internUserKey = "LOWER(TRIM(COALESCE(i.usuario_create_int,'')))";
+$visitaUserKey = "LOWER(TRIM(COALESCE(v.usuario_create,'')))";
 
 $adminRows = perfFetchAll(
     $conn,
     "SELECT 
         {$capeanteUserKey} AS admin_key,
-        COALESCE(u.usuario_user, u.nome_user, NULLIF(TRIM(ca.usuario_create_cap),''), 'Usuário sem identificação') AS admin_nome,
+        COALESCE(NULLIF(TRIM(ca.usuario_create_cap),''), 'Usuário sem identificação') AS admin_nome,
         COUNT(*) AS total_contas,
         ROUND(AVG(CASE WHEN {$capeanteStartExpr} IS NOT NULL AND {$capeanteDigitExpr} IS NOT NULL
                  THEN GREATEST(0, TIMESTAMPDIFF(HOUR,
@@ -228,10 +239,12 @@ $adminRows = perfFetchAll(
         ROUND(SUM(COALESCE(ca.valor_final_capeante, ca.valor_apresentado_capeante)),2) AS valor_total
      FROM tb_capeante ca
      LEFT JOIN tb_user u ON u.id_usuario = ca.fk_id_aud_adm
-    WHERE {$capeanteRangeExpr} >= {$capRangeSql}
+    WHERE {$capeanteRangeExpr} BETWEEN :dt_ini AND :dt_fim
+      AND TRIM(ca.usuario_create_cap) <> ''
     GROUP BY admin_key, admin_nome
     HAVING admin_key IS NOT NULL AND admin_key <> ''
-    ORDER BY total_contas DESC"
+    ORDER BY total_contas DESC",
+    $rangeParams
 );
 
 $adminMonthly = perfFetchAll(
@@ -245,9 +258,10 @@ $adminMonthly = perfFetchAll(
             COALESCE(NULLIF(data_fech_capeante,'0000-00-00'), data_digit_capeante)
         ))),1) AS tempo
      FROM tb_capeante
-    WHERE data_digit_capeante >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+    WHERE {$capeanteRangeExpr} BETWEEN :dt_ini AND :dt_fim
     GROUP BY mes_ref, etiqueta
-    ORDER BY mes_ref ASC"
+    ORDER BY mes_ref ASC",
+    $rangeParams
 );
 
 $maxMonthlyTotal = 0;
@@ -258,29 +272,11 @@ foreach ($adminMonthly as $m) {
 }
 $maxMonthlyTotal = max(1, $maxMonthlyTotal);
 
-$capeanteStartExpr = "
-    COALESCE(
-        STR_TO_DATE(NULLIF(ca.data_inicial_capeante,''), '%Y-%m-%d'),
-        STR_TO_DATE(NULLIF(ca.data_final_capeante,''), '%Y-%m-%d'),
-        STR_TO_DATE(NULLIF(ca.data_fech_capeante,''), '%Y-%m-%d')
-    )";
-$capeanteDigitExpr = "
-    COALESCE(
-        STR_TO_DATE(NULLIF(ca.data_digit_capeante,''), '%Y-%m-%d %H:%i:%s'),
-        STR_TO_DATE(NULLIF(ca.data_digit_capeante,''), '%Y-%m-%d'),
-        STR_TO_DATE(NULLIF(ca.data_digit_capeante,''), '%d/%m/%Y %H:%i:%s'),
-        STR_TO_DATE(NULLIF(ca.data_digit_capeante,''), '%d/%m/%Y'),
-        STR_TO_DATE(NULLIF(ca.data_create_cap,''), '%Y-%m-%d %H:%i:%s'),
-        STR_TO_DATE(NULLIF(ca.data_create_cap,''), '%Y-%m-%d'),
-        STR_TO_DATE(NULLIF(ca.data_create_cap,''), '%d/%m/%Y %H:%i:%s'),
-        STR_TO_DATE(NULLIF(ca.data_create_cap,''), '%d/%m/%Y')
-    )";
-
 $contaTempoRows = perfFetchAll(
     $conn,
     "SELECT 
         {$capeanteUserKey} AS admin_id,
-        COALESCE(u.usuario_user, u.nome_user, NULLIF(TRIM(ca.usuario_create_cap),''), 'Usuário sem identificação') AS admin_nome,
+        COALESCE(NULLIF(TRIM(ca.usuario_create_cap),''), 'Usuário sem identificação') AS admin_nome,
         COUNT(*) AS total_registros,
         ROUND(AVG(CASE 
             WHEN {$capeanteStartExpr} IS NOT NULL AND {$capeanteDigitExpr} IS NOT NULL
@@ -288,25 +284,35 @@ $contaTempoRows = perfFetchAll(
         END),1) AS tempo_horas
      FROM tb_capeante ca
      LEFT JOIN tb_user u ON u.id_usuario = ca.fk_id_aud_adm
-    WHERE {$capeanteRangeExpr} >= {$capRangeSql}
+    WHERE {$capeanteRangeExpr} BETWEEN :dt_ini AND :dt_fim
+      AND TRIM(ca.usuario_create_cap) <> ''
     GROUP BY admin_id, admin_nome
     HAVING admin_id <> ''
     ORDER BY tempo_horas ASC
-    LIMIT 10"
+    LIMIT 10",
+    $rangeParams
 );
 
-$internStartExpr = "STR_TO_DATE(NULLIF(i.data_intern_int,''), '%Y-%m-%d')";
+$internStartExpr = "
+    COALESCE(
+        NULLIF(i.data_intern_int, '0000-00-00'),
+        i.data_intern_int
+    )";
 $internCreateExpr = "
     COALESCE(
-        STR_TO_DATE(NULLIF(i.data_create_int,''), '%Y-%m-%d %H:%i:%s'),
-        STR_TO_DATE(NULLIF(i.data_lancamento_int,''), '%Y-%m-%d %H:%i:%s')
+        NULLIF(i.data_create_int, '0000-00-00 00:00:00'),
+        NULLIF(i.data_create_int, '0000-00-00'),
+        NULLIF(i.data_lancamento_int, '0000-00-00 00:00:00'),
+        NULLIF(i.data_lancamento_int, '0000-00-00'),
+        i.data_create_int,
+        i.data_lancamento_int
     )";
 
 $internTempoRows = perfFetchAll(
     $conn,
     "SELECT 
         {$internUserKey} AS usuario_id,
-        COALESCE(u.usuario_user, u.nome_user, NULLIF(TRIM(i.usuario_create_int),''), 'Usuário sem identificação') AS admin_nome,
+        COALESCE(NULLIF(TRIM(i.usuario_create_int),''), 'Usuário sem identificação') AS admin_nome,
         COUNT(*) AS total_registros,
         ROUND(AVG(CASE 
             WHEN {$internStartExpr} IS NOT NULL AND {$internCreateExpr} IS NOT NULL
@@ -314,42 +320,48 @@ $internTempoRows = perfFetchAll(
         END),1) AS tempo_horas
      FROM tb_internacao i
      LEFT JOIN tb_user u ON u.id_usuario = i.fk_usuario_int
-    WHERE {$internRangeExpr} >= {$intRangeSql}
+    WHERE {$internRangeExpr} BETWEEN :dt_ini AND :dt_fim
+      AND TRIM(i.usuario_create_int) <> ''
     GROUP BY usuario_id, admin_nome
     HAVING usuario_id <> ''
     ORDER BY tempo_horas ASC
-    LIMIT 10"
+    LIMIT 10",
+    $rangeParams
 );
 
 $rankingContaUsers = perfFetchAll(
     $conn,
     "SELECT 
         {$capeanteUserKey} AS user_key,
-        COALESCE(u.usuario_user, u.nome_user, NULLIF(TRIM(ca.usuario_create_cap),''), 'Usuário sem identificação') AS admin_nome,
+        COALESCE(NULLIF(TRIM(ca.usuario_create_cap),''), 'Usuário sem identificação') AS admin_nome,
         COUNT(*) AS total_contas,
         ROUND(SUM(COALESCE(ca.valor_final_capeante, ca.valor_apresentado_capeante)),2) AS valor_total
      FROM tb_capeante ca
      LEFT JOIN tb_user u ON u.id_usuario = ca.fk_id_aud_adm
-    WHERE {$capeanteRangeExpr} >= {$capRangeSql}
+    WHERE {$capeanteRangeExpr} BETWEEN :dt_ini AND :dt_fim
+      AND TRIM(ca.usuario_create_cap) <> ''
     GROUP BY user_key, admin_nome
     HAVING user_key <> ''
     ORDER BY total_contas DESC
-    LIMIT 8"
+    LIMIT 8",
+    $rangeParams
 );
 
 $visitaLaunchExpr = "
     COALESCE(
-        STR_TO_DATE(NULLIF(v.data_lancamento_vis,''), '%Y-%m-%d %H:%i:%s'),
-        STR_TO_DATE(NULLIF(v.data_lancamento_vis,''), '%Y-%m-%d'),
-        STR_TO_DATE(NULLIF(v.data_visita_vis,''), '%Y-%m-%d %H:%i:%s'),
-        STR_TO_DATE(NULLIF(v.data_visita_vis,''), '%Y-%m-%d')
+        NULLIF(v.data_lancamento_vis, '0000-00-00 00:00:00'),
+        NULLIF(v.data_lancamento_vis, '0000-00-00'),
+        v.data_lancamento_vis,
+        NULLIF(v.data_visita_vis, '0000-00-00 00:00:00'),
+        NULLIF(v.data_visita_vis, '0000-00-00'),
+        v.data_visita_vis
     )";
 
 $rankingVisitas = perfFetchAll(
     $conn,
     "SELECT 
         {$visitaUserKey} AS user_key,
-        COALESCE(u.usuario_user, u.nome_user, NULLIF(TRIM(v.usuario_create),''), 'Usuário sem identificação') AS auditor_nome,
+        COALESCE(NULLIF(TRIM(v.usuario_create),''), 'Usuário sem identificação') AS auditor_nome,
         COUNT(*) AS total_visitas,
         ROUND(AVG(CASE 
             WHEN {$visitaDateExpr} IS NOT NULL AND {$visitaLancExpr} IS NOT NULL
@@ -358,11 +370,13 @@ $rankingVisitas = perfFetchAll(
      FROM tb_visita v
      LEFT JOIN tb_user u ON u.id_usuario = v.fk_usuario_vis
     WHERE {$visitaLaunchExpr} IS NOT NULL
-      AND {$visitaLaunchExpr} >= {$capRangeSql}
+      AND TRIM(v.usuario_create) <> ''
+      AND {$visitaLaunchExpr} BETWEEN :dt_ini AND :dt_fim
     GROUP BY user_key, auditor_nome
     HAVING user_key <> ''
     ORDER BY total_visitas DESC
-    LIMIT 8"
+    LIMIT 8",
+    $rangeParams
 );
 
 $currentUserId = (int)($_SESSION['id_usuario'] ?? 0);
@@ -406,7 +420,7 @@ if ($capWhere !== '0') {
     $myConta = perfFetchAll(
         $conn,
         "SELECT 
-            COALESCE(u.usuario_user, u.nome_user, ca.usuario_create_cap, :fallback) AS admin_nome,
+            COALESCE(NULLIF(TRIM(ca.usuario_create_cap),''), :fallback) AS admin_nome,
             COUNT(*) AS total_registros,
             ROUND(AVG(CASE WHEN {$capeanteStartExpr} IS NOT NULL AND {$capeanteDigitExpr} IS NOT NULL
                       THEN GREATEST(0, TIMESTAMPDIFF(HOUR, {$capeanteStartExpr}, {$capeanteDigitExpr}))
@@ -414,9 +428,9 @@ if ($capWhere !== '0') {
          FROM tb_capeante ca
          LEFT JOIN tb_user u ON u.id_usuario = ca.fk_id_aud_adm
         WHERE {$capWhere}
-          AND {$capeanteRangeExpr} >= {$capRangeSql}
+          AND {$capeanteRangeExpr} BETWEEN :dt_ini AND :dt_fim
         LIMIT 1",
-        $userMatchParamsCap
+        array_merge($rangeParams, $userMatchParamsCap)
     );
     if ($myConta) {
         $myContaStats = $myConta[0];
@@ -427,7 +441,7 @@ if ($intWhere !== '0') {
     $myIntern = perfFetchAll(
         $conn,
         "SELECT 
-            COALESCE(u.usuario_user, u.nome_user, i.usuario_create_int, :fallback) AS admin_nome,
+            COALESCE(NULLIF(TRIM(i.usuario_create_int),''), :fallback) AS admin_nome,
             COUNT(*) AS total_registros,
             ROUND(AVG(CASE WHEN {$internStartExpr} IS NOT NULL AND {$internCreateExpr} IS NOT NULL
                       THEN GREATEST(0, TIMESTAMPDIFF(HOUR, {$internStartExpr}, {$internCreateExpr}))
@@ -435,9 +449,9 @@ if ($intWhere !== '0') {
          FROM tb_internacao i
          LEFT JOIN tb_user u ON u.id_usuario = i.fk_usuario_int
         WHERE {$intWhere}
-          AND {$internRangeExpr} >= {$intRangeSql}
+          AND {$internRangeExpr} BETWEEN :dt_ini AND :dt_fim
         LIMIT 1",
-        $userMatchParamsInt
+        array_merge($rangeParams, $userMatchParamsInt)
     );
     if ($myIntern) {
         $myInternStats = $myIntern[0];
@@ -624,6 +638,43 @@ function perfFmt($value, $dec = 0)
     color: #6c5a83;
     font-size: .85rem;
 }
+.perf-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-end;
+    margin-bottom: 18px;
+}
+.perf-filter label {
+    font-size: .85rem;
+    color: #66557f;
+    margin-bottom: 4px;
+    display: block;
+}
+.perf-filter input {
+    border: 1px solid #d4c9eb;
+    border-radius: 10px;
+    padding: 6px 10px;
+    font-size: .95rem;
+}
+.perf-filter button {
+    border: none;
+    border-radius: 999px;
+    background: linear-gradient(120deg,#7c3aed,#9d4edd);
+    color: #fff;
+    padding: 10px 24px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .2s ease;
+}
+.perf-filter button:hover {
+    opacity: .9;
+}
+.perf-range-info {
+    color: #6c5a83;
+    font-size: .9rem;
+    margin-bottom: 22px;
+}
 @media (max-width: 768px) {
     .perf-card strong {
         font-size: 1.6rem;
@@ -636,22 +687,36 @@ function perfFmt($value, $dec = 0)
         <h1>Painel de performance das equipes</h1>
         <p>Combine indicadores operacionais com o ritmo da central administrativa para reagir rápido a gargalos e reconhecer resultados.</p>
     </div>
+    <form class="perf-filter" method="get">
+        <div>
+            <label for="start_date">Data inicial</label>
+            <input type="date" id="start_date" name="start_date" value="<?= htmlspecialchars($periodInputs['start']) ?>">
+        </div>
+        <div>
+            <label for="end_date">Data final</label>
+            <input type="date" id="end_date" name="end_date" value="<?= htmlspecialchars($periodInputs['end']) ?>">
+        </div>
+        <button type="submit">Aplicar período</button>
+    </form>
+    <div class="perf-range-info">
+        Período selecionado: <strong><?= $periodLabel ?></strong> (<?= $rangeDays ?> dia<?= $rangeDays > 1 ? 's' : '' ?>)
+    </div>
 
     <div class="perf-grid">
         <div class="perf-card">
             <h3>Tempo médio para fechar conta</h3>
             <strong><?= perfFmt($tempoMedioConta, 1) ?> <small style="font-size:1rem;color:#8a7a9f;">dias</small></strong>
-            <span>Média das contas finalizadas nos últimos 90 dias.</span>
+            <span>Média das contas finalizadas no período filtrado.</span>
         </div>
         <div class="perf-card">
-            <h3>Visitas registradas (30 dias)</h3>
-            <strong><?= perfFmt($visitasUlt30) ?></strong>
+            <h3>Visitas registradas (<?= $rangeDays ?>d)</h3>
+            <strong><?= perfFmt($visitasPeriodo) ?></strong>
             <span>Produção do time assistencial com visitas lançadas.</span>
         </div>
         <div class="perf-card">
             <h3>Taxa de negociação concluída</h3>
             <strong><?= perfFmt($taxaNegociacao, 1) ?>%</strong>
-            <span>Considera negociações fechadas nos últimos 4 meses.</span>
+            <span>Considera negociações fechadas no período filtrado.</span>
         </div>
         <div class="perf-card">
             <h3>Contas lançadas na central (mês)</h3>
@@ -724,7 +789,7 @@ function perfFmt($value, $dec = 0)
             <h2><i class="bi bi-diagram-3"></i> Central administrativa</h2>
             <div>
                 <?php if (!$adminRows): ?>
-                <p style="color:#7a6a8a;margin-bottom:0;">Sem lançamentos nos últimos 60 dias.</p>
+                <p style="color:#7a6a8a;margin-bottom:0;">Sem lançamentos no período selecionado.</p>
                 <?php else: ?>
                 <?php foreach ($adminRows as $adm):
                     $tempo = is_numeric($adm['tempo_horas']) ? $adm['tempo_horas'] : 0;
@@ -824,7 +889,7 @@ function perfFmt($value, $dec = 0)
 
     <div class="perf-sections" style="margin-top:28px;">
         <div class="perf-panel">
-            <h2><i class="bi bi-list-ol"></i> Ranking — Lançamento de contas</h2>
+            <h2><i class="bi bi-list-ol"></i> Produtividade — Lançamento de contas</h2>
             <table class="perf-table">
                 <thead>
                     <tr>
@@ -852,7 +917,7 @@ function perfFmt($value, $dec = 0)
             </table>
         </div>
         <div class="perf-panel">
-            <h2><i class="bi bi-journal-check"></i> Ranking — Lançamento de visitas</h2>
+            <h2><i class="bi bi-journal-check"></i> Produtividade — Lançamento de visitas</h2>
             <table class="perf-table">
                 <thead>
                     <tr>
