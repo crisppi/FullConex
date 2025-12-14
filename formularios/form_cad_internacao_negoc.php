@@ -95,7 +95,10 @@ if (!isset($dados_acomodacao) || !is_array($dados_acomodacao)) {
             <!-- Primeira linha (SEM botão "-") -->
             <div class="negotiation-field-container form-group row" data-initial="true">
                 <div class="form-group col-sm-2">
-                    <label for="tipo_negociacao">Tipo Negociação</label>
+                    <label for="tipo_negociacao">
+                        Tipo Negociação
+                        <span class="assist-anchor" data-assist-key="negociacao_tipo"></span>
+                    </label>
                     <select name="tipo_negociacao" id="tipo_negociacao" class="form-control">
                         <option value="">Selecione</option>
                         <option value="TROCA UTI/APTO">TROCA UTI/APTO</option>
@@ -273,7 +276,7 @@ function addNegotiationField() {
       <input type="hidden" name="negociacoes_json" value="">
 
       <div class="form-group col-sm-2">
-        <label>Tipo Negociação</label>
+        <label>Tipo Negociação <span class="assist-anchor" data-assist-key="negociacao_tipo"></span></label>
         <select name="tipo_negociacao" class="form-control">
           <option value="">Selecione</option>
           <option value="TROCA UTI/APTO">TROCA UTI/APTO</option>

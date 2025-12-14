@@ -181,7 +181,6 @@ if ($id_internacao) {
         $parciaisLista = [];
     }
 }
-
 $eventoAdversoInfo = null;
 $eventoEditLink = null;
 $internacaoParaEvento = (int)($row['id_internacao'] ?? $row['fk_int_capeante'] ?? 0);

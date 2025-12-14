@@ -193,6 +193,14 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
                                             class="bi bi-grid-3x3-gap"
                                             style="font-size: 1rem;margin-right:5px; color:#5e2363;"></i>
                                         Dashboard 360°</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>dashboard_performance.php"><i
+                                            class="bi bi-trophy"
+                                            style="font-size: 1rem;margin-right:5px; color:#7c3aed;"></i>
+                                        Performance equipes</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>faturamento_previsao.php"><i
+                                            class="bi bi-graph-up-arrow"
+                                            style="font-size: 1rem;margin-right:5px; color:#1d9ad8;"></i>
+                                        Previsão faturamento</a></li>
                                 <li><a class="dropdown-item" href="<?= $BASE_URL ?>dashboard_mensal.php"><i
                                             class="bi bi-graph-up-arrow"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(94, 35, 99);"></i>
@@ -663,6 +671,7 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
 <script src="./scripts/cadastro/general.js"></script>
 <script src="js/stepper.js"></script>
 <script src="js/show_internacao_visitas.js"></script>
+<script src="<?= $BASE_URL ?>js/contextual-assistant.js"></script>
 </script>
 <script>
 // Base para links absolutos

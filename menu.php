@@ -67,6 +67,16 @@ require_once("templates/header.php");
                     Auditoria
                 </a>
             </li>
+            <li>
+                <a href="dashboard_performance.php"><i class="bi bi-trophy"
+                        style="font-size: 1rem;margin-right:5px; color: rgb(120, 46, 200);"></i> Painel de
+                    performance</a>
+            </li>
+            <li>
+                <a href="faturamento_previsao.php"><i class="bi bi-graph-up"
+                        style="font-size: 1rem;margin-right:5px; color: rgb(65, 148, 212);"></i> Previsão de
+                    faturamento</a>
+            </li>
 
             <hr>
             <li>

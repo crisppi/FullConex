@@ -175,7 +175,12 @@ function showIf(?string $cur): string
                 ];
                 foreach ($flags as $f => $lbl) { ?>
                     <div class="form-group col-sm-2">
-                        <label for="<?= $f ?>"><?= $lbl ?></label>
+                        <label for="<?= $f ?>">
+                            <?= $lbl ?>
+                            <?php if ($f === 'evento_prorrogar_ges'): ?>
+                                <span class="assist-anchor" data-assist-key="prorrogacao"></span>
+                            <?php endif; ?>
+                        </label>
                         <select class="form-control-sm form-control" id="<?= $f ?>" name="<?= $f ?>">
                             <option value="n" <?= sel($int_gestao->$f, 'n') ?>>Não</option>
                             <option value="s" <?= sel($int_gestao->$f, 's') ?>>Sim</option>

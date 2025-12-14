@@ -220,7 +220,10 @@ if (!function_exists('sel')) {
         <?php foreach ($negociacoesInt as $neg): ?>
             <div  class="negociation-field-container negoc-row">
                 <div class="form-group col-sm-2">
-                    <label>Tipo Negociação</label>
+                    <label>
+                        Tipo Negociação
+                        <span class="assist-anchor" data-assist-key="negociacao_tipo"></span>
+                    </label>
                     <select name="tipo_negociacao" class="form-control">
                         <?= optionsTipoNegociacao($neg['tipo_negociacao'] ?? '') ?>
                     </select>

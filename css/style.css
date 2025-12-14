@@ -953,3 +953,77 @@ select:invalid,
 input:invalid {
     color: #555;
 }
+
+.assist-anchor {
+    display: inline-flex;
+    margin-left: 6px;
+}
+
+.assist-container {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.assist-trigger {
+    border: none;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    font-size: 12px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #5e2363, #8b3fa2);
+    color: #fff;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(94, 35, 99, .25);
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.assist-trigger:hover,
+.assist-trigger:focus-visible {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(94, 35, 99, .3);
+    outline: none;
+}
+
+.assist-popover {
+    --bs-popover-max-width: 320px;
+    --bs-popover-border-color: rgba(94, 35, 99, .18);
+    --bs-popover-font-size: .88rem;
+    --bs-popover-box-shadow: 0 18px 32px rgba(18, 11, 35, .2);
+}
+
+.assist-popover .popover-header {
+    border-bottom: 0;
+    padding-bottom: 0.35rem;
+    font-weight: 600;
+    color: #4b1f63;
+}
+
+.assist-popover .popover-body {
+    padding-top: 0;
+}
+
+.assist-popover-text {
+    margin-bottom: 6px;
+    color: #4c3e57;
+}
+
+.assist-popover-list {
+    padding-left: 18px;
+    margin: 0 0 6px;
+    color: #4a3f55;
+}
+
+.assist-popover-link {
+    font-weight: 600;
+    color: #5e2363;
+    text-decoration: none;
+}
+
+.assist-popover-link:hover {
+    text-decoration: underline;
+}
