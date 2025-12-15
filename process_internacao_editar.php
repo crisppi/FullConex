@@ -36,6 +36,35 @@ function limpa(?string $t, int $lim = 5000): string
     $t = htmlspecialchars($t ?? '', ENT_QUOTES, 'UTF-8');
     return substr($t, 0, $lim);
 }
+if (!function_exists('normalizeDateTimeInput')) {
+    function normalizeDateTimeInput($value)
+    {
+        if ($value === null) return null;
+        $value = trim((string)$value);
+        if ($value === '') return null;
+        $formats = [
+            ['fmt' => 'Y-m-d\\TH:i:s', 'has_time' => true],
+            ['fmt' => 'Y-m-d\\TH:i',   'has_time' => true],
+            ['fmt' => 'Y-m-d H:i:s',   'has_time' => true],
+            ['fmt' => 'Y-m-d H:i',     'has_time' => true],
+            ['fmt' => 'd/m/Y H:i:s',   'has_time' => true],
+            ['fmt' => 'd/m/Y H:i',     'has_time' => true],
+            ['fmt' => 'Y-m-d',         'has_time' => false],
+            ['fmt' => 'd/m/Y',         'has_time' => false],
+        ];
+        foreach ($formats as $conf) {
+            $dt = DateTime::createFromFormat($conf['fmt'], $value);
+            if ($dt instanceof DateTime) {
+                if (!$conf['has_time']) {
+                    $dt->setTime(0, 0, 0);
+                }
+                return $dt->format('Y-m-d H:i:s');
+            }
+        }
+        $ts = strtotime($value);
+        return $ts ? date('Y-m-d H:i:s', $ts) : null;
+    }
+}
 
 /*──────── session/inputs mínimos ────────*/
 $idInternacao = (int) ($_POST['id_internacao'] ?? 0);
@@ -58,29 +87,102 @@ try {
     $conn->beginTransaction();
 
     /*──────── INTERNACAO ────────*/
-    $int = new internacao();
-    $int->id_internacao         = $idInt;
-    $int->fk_hospital_int       = filter_input(INPUT_POST, 'fk_hospital_int', FILTER_VALIDATE_INT);
-    $int->fk_paciente_int       = filter_input(INPUT_POST, 'fk_paciente_int', FILTER_VALIDATE_INT);
-    $int->fk_patologia2         = filter_input(INPUT_POST, 'fk_patologia2',  FILTER_VALIDATE_INT) ?: 1;
-    $int->fk_patologia_int      = filter_input(INPUT_POST, 'fk_patologia_int', FILTER_VALIDATE_INT) ?: 1;
-    $int->fk_cid_int      = filter_input(INPUT_POST, 'fk_cid_int', FILTER_VALIDATE_INT) ?: 1;
-    $int->internado_int         = filter_input(INPUT_POST, 'internado_int');
-    $int->modo_internacao_int   = filter_input(INPUT_POST, 'modo_internacao_int');
-    $int->tipo_admissao_int     = filter_input(INPUT_POST, 'tipo_admissao_int');
-    $int->grupo_patologia_int   = filter_input(INPUT_POST, 'grupo_patologia_int');
-    $int->data_visita_int       = filter_input(INPUT_POST, 'data_visita_int') ?: null;
-    $int->data_intern_int       = filter_input(INPUT_POST, 'data_intern_int') ?: null;
-    $int->especialidade_int     = filter_input(INPUT_POST, 'especialidade_int');
-    $int->titular_int           = filter_input(INPUT_POST, 'titular_int');
-    $int->senha_int             = filter_input(INPUT_POST, 'senha_int');
-    $int->crm_int               = filter_input(INPUT_POST, 'crm_int');
-    $int->acomodacao_int        = filter_input(INPUT_POST, 'acomodacao_int');
-    $int->rel_int               = limpa(filter_input(INPUT_POST, 'rel_int'));
-    $int->acoes_int             = limpa(filter_input(INPUT_POST, 'acoes_int'));
-    $int->programacao_int       = limpa(filter_input(INPUT_POST, 'programacao_int'));
-    $int->usuario_create_int    = $_SESSION['id_usuario'] ?? null;
-    $int->num_atendimento_int   = filter_input(INPUT_POST, 'num_atendimento_int', FILTER_VALIDATE_INT) ?: null;
+    $currentIntern = $internacaoDao->findById($idInt);
+    if (!$currentIntern) {
+        throw new RuntimeException('Internação não encontrada.');
+    }
+
+    $int = $currentIntern;
+    $int->id_internacao = $idInt;
+
+    $fkHospital = filter_input(INPUT_POST, 'fk_hospital_int', FILTER_VALIDATE_INT);
+    if ($fkHospital !== null && $fkHospital !== false) {
+        $int->fk_hospital_int = $fkHospital;
+    }
+
+    $fkPaciente = filter_input(INPUT_POST, 'fk_paciente_int', FILTER_VALIDATE_INT);
+    if ($fkPaciente !== null && $fkPaciente !== false) {
+        $int->fk_paciente_int = $fkPaciente;
+    }
+
+    $fkPatologia2 = filter_input(INPUT_POST, 'fk_patologia2', FILTER_VALIDATE_INT);
+    if ($fkPatologia2 !== null && $fkPatologia2 !== false) {
+        $int->fk_patologia2 = $fkPatologia2 ?: $int->fk_patologia2;
+    }
+
+    $fkPatologia = filter_input(INPUT_POST, 'fk_patologia_int', FILTER_VALIDATE_INT);
+    if ($fkPatologia !== null && $fkPatologia !== false) {
+        $int->fk_patologia_int = $fkPatologia ?: $int->fk_patologia_int;
+    }
+
+    $fkCid = filter_input(INPUT_POST, 'fk_cid_int', FILTER_VALIDATE_INT);
+    if ($fkCid !== null && $fkCid !== false) {
+        $int->fk_cid_int = $fkCid ?: $int->fk_cid_int;
+    }
+
+    $int->internado_int       = filter_input(INPUT_POST, 'internado_int')       ?? $int->internado_int;
+    $int->modo_internacao_int = filter_input(INPUT_POST, 'modo_internacao_int') ?? $int->modo_internacao_int;
+    $int->tipo_admissao_int   = filter_input(INPUT_POST, 'tipo_admissao_int')   ?? $int->tipo_admissao_int;
+    $int->grupo_patologia_int = filter_input(INPUT_POST, 'grupo_patologia_int') ?? $int->grupo_patologia_int;
+
+    $dataVisita = filter_input(INPUT_POST, 'data_visita_int');
+    if ($dataVisita !== null) {
+        $int->data_visita_int = ($dataVisita === '') ? null : $dataVisita;
+    }
+
+    $dataIntern = filter_input(INPUT_POST, 'data_intern_int');
+    if ($dataIntern !== null) {
+        $int->data_intern_int = ($dataIntern === '') ? null : $dataIntern;
+    }
+
+    $dataLancInput = $_POST['data_lancamento_int'] ?? null;
+    if ($dataLancInput !== null) {
+        $int->data_lancamento_int = normalizeDateTimeInput($dataLancInput);
+    }
+
+    $int->especialidade_int = filter_input(INPUT_POST, 'especialidade_int') ?? $int->especialidade_int;
+    $int->titular_int       = filter_input(INPUT_POST, 'titular_int')       ?? $int->titular_int;
+    $int->crm_int           = filter_input(INPUT_POST, 'crm_int')           ?? $int->crm_int;
+    $int->acomodacao_int    = filter_input(INPUT_POST, 'acomodacao_int')    ?? $int->acomodacao_int;
+
+    $senha = filter_input(INPUT_POST, 'senha_int', FILTER_UNSAFE_RAW);
+    if ($senha !== null) {
+        $int->senha_int = $senha;
+    }
+
+    $int->rel_int         = limpa(filter_input(INPUT_POST, 'rel_int'));
+    $int->acoes_int       = limpa(filter_input(INPUT_POST, 'acoes_int'));
+    $int->programacao_int = limpa(filter_input(INPUT_POST, 'programacao_int'));
+
+    $int->primeira_vis_int = filter_input(INPUT_POST, 'primeira_vis_int') ?? $int->primeira_vis_int;
+    $int->visita_no_int    = filter_input(INPUT_POST, 'visita_no_int')    ?? $int->visita_no_int;
+    $int->visita_enf_int   = filter_input(INPUT_POST, 'visita_enf_int')   ?? $int->visita_enf_int;
+    $int->visita_med_int   = filter_input(INPUT_POST, 'visita_med_int')   ?? $int->visita_med_int;
+
+    $int->visita_auditor_prof_med = filter_input(INPUT_POST, 'visita_auditor_prof_med') ?? $int->visita_auditor_prof_med;
+    $int->visita_auditor_prof_enf = filter_input(INPUT_POST, 'visita_auditor_prof_enf') ?? $int->visita_auditor_prof_enf;
+
+    $fkUsuario = filter_input(INPUT_POST, 'fk_usuario_int', FILTER_VALIDATE_INT);
+    if ($fkUsuario !== null && $fkUsuario !== false) {
+        $int->fk_usuario_int = $fkUsuario;
+    }
+
+    $int->censo_int             = filter_input(INPUT_POST, 'censo_int')             ?? $int->censo_int;
+    $int->origem_int            = filter_input(INPUT_POST, 'origem_int')            ?? $int->origem_int;
+    $int->int_pertinente_int    = filter_input(INPUT_POST, 'int_pertinente_int')    ?? $int->int_pertinente_int;
+    $int->rel_pertinente_int    = limpa(filter_input(INPUT_POST, 'rel_pertinente_int'));
+    $int->hora_intern_int       = filter_input(INPUT_POST, 'hora_intern_int')       ?? $int->hora_intern_int;
+
+    $numAtendimento = filter_input(INPUT_POST, 'num_atendimento_int', FILTER_VALIDATE_INT);
+    if ($numAtendimento !== null && $numAtendimento !== false) {
+        $int->num_atendimento_int = $numAtendimento;
+    }
+
+    $timerRaw = filter_input(INPUT_POST, 'timer_int', FILTER_VALIDATE_INT);
+    if ($timerRaw !== null && $timerRaw !== false) {
+        $int->timer_int = max(0, $timerRaw);
+    }
+
     $internacaoDao->update($int);
 
     /*──────── DETALHES ────────*/

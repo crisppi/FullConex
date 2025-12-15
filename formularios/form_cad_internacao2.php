@@ -190,8 +190,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     <?php endforeach; ?>
                 </select>
                 <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <a style="font-size:.6em;margin-left:7px;color:blue;"
-                        href="<?= $BASE_URL ?>pacientes?id_paciente=<?= $id_paciente ?? 0 ?>">
+                    <a style="font-size:.8em;margin-left:7px;color:blue;" href="#"
+                        onclick="openModalPac('<?= $BASE_URL ?>cad_paciente.php', 'Cadastrar paciente'); return false;">
                         <i style="color:blue;margin-bottom:7px;" class="far fa-edit edit-icon"></i> Novo Paciente
                     </a>
                     <div id="alert_intern" style="font-size:1em;margin-left:7px;color:red;display:none">Paciente já
@@ -277,7 +277,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 <div class="form-group col-sm-4 d-none" id="box_resp_med">
                     <label class="control-label" for="resp_med_id">Selecionar médico</label>
-                    <select id="resp_med_id" class="form-control form-control-sm">
+                    <select id="resp_med_id" class="form-control form-control-sm selectpicker" data-live-search="true"
+                        data-size="5" title="Selecione">
                         <option value="">Selecione</option>
                         <?php foreach ($medicosAud as $m): ?>
                         <option value="<?= (int)$m['id_usuario'] ?>"
@@ -290,7 +291,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 <div class="form-group col-sm-5 d-none" id="box_resp_enf">
                     <label class="control-label" for="resp_enf_id">Selecionar enfermeiro</label>
-                    <select id="resp_enf_id" class="form-control form-control-sm">
+                    <select id="resp_enf_id" class="form-control form-control-sm selectpicker" data-live-search="true"
+                        data-size="5" title="Selecione">
                         <option value="">Selecione</option>
                         <?php foreach ($enfsAud as $e): ?>
                         <option value="<?= (int)$e['id_usuario'] ?>"
@@ -888,6 +890,32 @@ function teste(evt) {
         }
     });
 }
+
+document.addEventListener('paciente:cadastrado', function(event) {
+    const data = event.detail || {};
+    const novoId = data.id || data.id_paciente;
+    if (!novoId) return;
+    const select = document.getElementById('fk_paciente_int');
+    if (!select) return;
+
+    let option = Array.from(select.options).find(opt => String(opt.value) === String(novoId));
+    const label = data.nome || data.nome_pac || `Paciente #${novoId}`;
+
+    if (!option) {
+        option = new Option(label, novoId, true, true);
+        select.appendChild(option);
+    } else {
+        option.selected = true;
+        option.textContent = label;
+    }
+
+    if (window.$ && $.fn.selectpicker && $(select).hasClass('selectpicker')) {
+        $(select).selectpicker('refresh');
+        $(select).selectpicker('val', String(novoId));
+    } else {
+        select.value = novoId;
+    }
+});
 </script>
 
 <script src="<?= $BASE_URL ?>js/text_cad_internacao.js"></script>
@@ -1169,11 +1197,18 @@ document.addEventListener('DOMContentLoaded', mirrorVisitMedFromFk);
     const idSessao = "<?= htmlspecialchars($idSessao) ?>";
     const cargoSessao = "<?= addslashes($cargoSessao) ?>";
 
+    function refreshPicker(el) {
+        if (window.$ && $.fn.selectpicker && el && $(el).hasClass('selectpicker')) {
+            $(el).selectpicker('refresh');
+        }
+    }
+
     function hide(el) {
         if (el) {
             el.classList.add('d-none');
             el.hidden = true;
             el.style.display = '';
+            refreshPicker(el.querySelector('select') || el);
         }
     }
 
@@ -1182,6 +1217,7 @@ document.addEventListener('DOMContentLoaded', mirrorVisitMedFromFk);
             el.classList.remove('d-none');
             el.hidden = false;
             el.style.display = '';
+            refreshPicker(el.querySelector('select') || el);
         }
     }
 
@@ -1214,10 +1250,12 @@ document.addEventListener('DOMContentLoaded', mirrorVisitMedFromFk);
         hide(boxEnf);
         if (v === 'med') {
             show(boxMed);
+            refreshPicker(selMed);
             if (flgMed) flgMed.value = 's';
         }
         if (v === 'enf') {
             show(boxEnf);
+            refreshPicker(selEnf);
             if (flgEnf) flgEnf.value = 's';
         }
         mirrorVisitMedFromFk();

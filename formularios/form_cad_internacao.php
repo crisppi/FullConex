@@ -533,8 +533,8 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
                     <?php endforeach; ?>
                 </select>
                 <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <a style="font-size:.6em;margin-left:7px;color:blue;"
-                        href="<?= $BASE_URL ?>pacientes?id_paciente=<?= $id_paciente ?? 0 ?>">
+                    <a style="font-size:.8em;margin-left:7px;color:blue;" href="#"
+                        onclick="openModalPac('<?= $BASE_URL ?>cad_paciente.php', 'Cadastrar paciente'); return false;">
                         <i style="color:blue;margin-bottom:7px;" class="far fa-edit edit-icon"></i> Novo Paciente
                     </a>
                 </div>
@@ -655,7 +655,8 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
 
                 <div class="form-group col-sm-4 d-none" id="box_resp_med">
                     <label class="control-label" for="resp_med_id">Selecionar médico</label>
-                    <select id="resp_med_id" class="form-control form-control-sm">
+                    <select id="resp_med_id" class="form-control form-control-sm selectpicker" data-live-search="true"
+                        data-size="5" title="Selecione">
                         <option value="">Selecione</option>
                         <?php foreach ($medicosAud as $m): ?>
                         <option value="<?= (int) $m['id_usuario'] ?>"
@@ -668,7 +669,8 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
 
                 <div class="form-group col-sm-5 d-none" id="box_resp_enf">
                     <label class="control-label" for="resp_enf_id">Selecionar enfermeiro</label>
-                    <select id="resp_enf_id" class="form-control form-control-sm">
+                    <select id="resp_enf_id" class="form-control form-control-sm selectpicker" data-live-search="true"
+                        data-size="5" title="Selecione">
                         <option value="">Selecione</option>
                         <?php foreach ($enfsAud as $e): ?>
                         <option value="<?= (int) $e['id_usuario'] ?>"
@@ -1416,7 +1418,6 @@ const hospitalInsightsHelper = (function() {
     const popover = document.getElementById('hospitalTipPopover');
     const alertBox = document.getElementById('hospitalUtiAlert');
     const defaultMessage = 'Selecione um hospital para ver negociações e pacientes em UTI.';
-    let autoHideTimer = null;
 
     function hideAlert() {
         if (alertBox) {
@@ -1431,19 +1432,19 @@ const hospitalInsightsHelper = (function() {
         alertBox.classList.add('show');
     }
 
-    function setPopover(content, autoShow = false) {
+    function setPopover(content) {
         if (!popover) return;
         popover.innerHTML = content;
-        if (autoShow) {
-            popover.classList.add('show');
-            clearTimeout(autoHideTimer);
-            autoHideTimer = setTimeout(() => popover.classList.remove('show'), 6000);
-        }
     }
 
     function setLoading(hospitalName) {
-        if (button) button.disabled = true;
-        setPopover(`Carregando dados de <strong>${hospitalName}</strong>...`, true);
+        if (button) {
+            button.disabled = true;
+        }
+        if (popover) {
+            popover.classList.remove('show');
+        }
+        setPopover(`Carregando dados de <strong>${hospitalName}</strong>...`);
         hideAlert();
     }
 
@@ -1484,7 +1485,7 @@ const hospitalInsightsHelper = (function() {
                 <div>MP UTI: <strong>${data.mp_uti ?? 0} dias</strong></div>
                 <div>Longa permanência (&ge; ${longThreshold} dias): <strong>${longStay}</strong></div>
             `;
-            setPopover(html, true);
+            setPopover(html);
             if (data.uti_alert) {
                 const threshold = data.threshold ?? 0;
                 showAlert(`Alerta: ${data.inter_uti} internações em UTI neste hospital (limite ${threshold}).`);
@@ -1493,7 +1494,7 @@ const hospitalInsightsHelper = (function() {
             }
         } catch (err) {
             if (button) button.disabled = true;
-            setPopover(`Não foi possível carregar os dados. ${err.message}`, true);
+            setPopover(`Não foi possível carregar os dados. ${err.message}`);
             showAlert('Não foi possível verificar os pacientes em UTI agora.');
         }
     }
@@ -1869,11 +1870,18 @@ document.addEventListener('DOMContentLoaded', function() {
         if (el) el.classList.remove('is-invalid');
     };
 
+    function refreshPicker(el) {
+        if (window.$ && $.fn.selectpicker && el && $(el).hasClass('selectpicker')) {
+            $(el).selectpicker('refresh');
+        }
+    }
+
     function hide(el) {
         if (el) {
             el.classList.add('d-none');
             el.hidden = true;
             el.style.display = '';
+            refreshPicker(el.querySelector('select') || el);
         }
     }
 
@@ -1882,6 +1890,7 @@ document.addEventListener('DOMContentLoaded', function() {
             el.classList.remove('d-none');
             el.hidden = false;
             el.style.display = '';
+            refreshPicker(el.querySelector('select') || el);
         }
     }
 
@@ -1917,10 +1926,12 @@ document.addEventListener('DOMContentLoaded', function() {
         hide(boxEnf);
         if (v === 'med') {
             show(boxMed);
+            refreshPicker(selMed);
             if (flgMed) flgMed.value = 's';
         }
         if (v === 'enf') {
             show(boxEnf);
+            refreshPicker(selEnf);
             if (flgEnf) flgEnf.value = 's';
         }
         mirrorVisitMedFromFk();
@@ -2556,6 +2567,32 @@ document.addEventListener('DOMContentLoaded', function() {
     window.isSenhaDuplicada = function() {
         return senhaDuplicadaFlag;
     };
+});
+
+document.addEventListener('paciente:cadastrado', function(event) {
+    const data = event.detail || {};
+    const novoId = data.id || data.id_paciente;
+    if (!novoId) return;
+    const select = document.getElementById('fk_paciente_int');
+    if (!select) return;
+
+    let option = Array.from(select.options).find(opt => String(opt.value) === String(novoId));
+    const label = data.nome || data.nome_pac || `Paciente #${novoId}`;
+
+    if (!option) {
+        option = new Option(label, novoId, true, true);
+        select.appendChild(option);
+    } else {
+        option.selected = true;
+        option.textContent = label;
+    }
+
+    if (window.$ && $.fn.selectpicker && $(select).hasClass('selectpicker')) {
+        $(select).selectpicker('refresh');
+        $(select).selectpicker('val', String(novoId));
+    } else {
+        select.value = novoId;
+    }
 });
 </script>
 

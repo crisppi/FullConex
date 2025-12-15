@@ -187,6 +187,60 @@ try {
 }
 
 // -----------------------------------------------------
+// 4.1) Última visita médica (texto quadro clínico)
+// -----------------------------------------------------
+$ultimaVisitaMedica = [];
+if (is_array($registros) && count($registros) > 0) {
+    $internacaoIds = array_values(array_unique(array_filter(array_map(function ($row) {
+        return isset($row['id_internacao']) ? (int)$row['id_internacao'] : 0;
+    }, $registros))));
+
+    if (!empty($internacaoIds)) {
+        $placeholders = implode(',', array_fill(0, count($internacaoIds), '?'));
+        $sqlUltima = "
+            SELECT sub.fk_internacao_vis AS id_internacao,
+                   v.rel_visita_vis AS quadro_clinico
+            FROM (
+                SELECT fk_internacao_vis,
+                       COALESCE(
+                           MAX(CASE WHEN LOWER(COALESCE(visita_med_vis, '')) IN ('s','sim','1') THEN id_visita END),
+                           MAX(id_visita)
+                       ) AS id_visita_target
+                FROM tb_visita
+                WHERE fk_internacao_vis IN ($placeholders)
+                  AND (retificado IS NULL OR retificado IN ('', '0', 0, 'n', 'N'))
+                GROUP BY fk_internacao_vis
+            ) sub
+            INNER JOIN tb_visita v ON v.id_visita = sub.id_visita_target
+        ";
+
+        try {
+            $stmtUlt = $conn->prepare($sqlUltima);
+            foreach ($internacaoIds as $idx => $internacaoId) {
+                $stmtUlt->bindValue($idx + 1, $internacaoId, PDO::PARAM_INT);
+            }
+            $stmtUlt->execute();
+            $rowsUlt = $stmtUlt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($rowsUlt as $row) {
+                $idInt = (int)($row['id_internacao'] ?? 0);
+                if ($idInt > 0) {
+                    $ultimaVisitaMedica[$idInt] = trim((string)($row['quadro_clinico'] ?? ''));
+                }
+            }
+        } catch (Throwable $e) {
+            error_log('Falha ao buscar última visita médica para exportação: ' . $e->getMessage());
+        }
+    }
+}
+
+foreach ($registros as &$internacao) {
+    $idAtual = (int)($internacao['id_internacao'] ?? 0);
+    $internacao['ultima_visita_medico'] = $ultimaVisitaMedica[$idAtual] ?? '';
+}
+unset($internacao);
+
+// -----------------------------------------------------
 // 4.1) DEBUG opcional
 // -----------------------------------------------------
 if ($DEBUG) {
@@ -233,6 +287,7 @@ $labelsMap = [
     'profissional'    => 'Nome do Profissional',
     'profissional_cargo' => 'Cargo do Profissional',
     'profissional_registro' => 'Registro Profissional',
+    'ultima_visita_medico' => 'Última visita médica (quadro clínico)',
 ];
 
 
@@ -260,6 +315,7 @@ $fieldMap = [
     'profissional'    => 'auditor_nome',
     'profissional_cargo' => 'auditor_cargo',
     'profissional_registro' => 'auditor_registro',
+    'ultima_visita_medico' => 'ultima_visita_medico',
 ];
 
 
@@ -284,6 +340,7 @@ $typeMap = [
     'profissional'    => 'text',
     'profissional_cargo' => 'text',
     'profissional_registro' => 'text',
+    'ultima_visita_medico' => 'text',
 ];
 
 

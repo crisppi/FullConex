@@ -688,6 +688,91 @@ $hideConexLogo = in_array($hideConexLogoParam, ['1', 'true', 'sim', 'on'], true)
 // Base para links absolutos
 const BASE_URL = '<?= $BASE_URL ?>';
 
+function setupModalForms(container, modalEl) {
+    if (!container || !modalEl) return;
+    const forms = container.querySelectorAll('form');
+    forms.forEach((form) => {
+        if (form.dataset.modalAjaxBound === '1') return;
+        form.dataset.modalAjaxBound = '1';
+
+        form.addEventListener('submit', function modalFormSubmit(ev) {
+            if (!modalEl.contains(form)) return;
+            ev.preventDefault();
+
+            const action = form.getAttribute('action') || window.location.href;
+            const method = (form.getAttribute('method') || 'POST').toUpperCase();
+            const submitBtn = form.querySelector('[type="submit"]');
+            if (submitBtn) submitBtn.disabled = true;
+
+            fetch(action, {
+                    method,
+                    body: new FormData(form),
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(resp => {
+                    const ct = resp.headers.get('content-type') || '';
+                    if (ct.includes('application/json')) {
+                        return resp.json();
+                    }
+                    return resp.text().then(html => ({
+                        html
+                    }));
+                })
+                .then(payload => {
+                    if (payload && payload.success) {
+                        if (window.bootstrap && bootstrap.Modal) {
+                            const inst = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                            inst.hide();
+                        } else if (window.$ && typeof $('#globalModal').modal === 'function') {
+                            $('#globalModal').modal('hide');
+                        }
+                        document.dispatchEvent(new CustomEvent('modalFormSuccess', {
+                            detail: payload
+                        }));
+                        if (payload.paciente) {
+                            document.dispatchEvent(new CustomEvent('paciente:cadastrado', {
+                                detail: payload.paciente
+                            }));
+                        }
+                        return;
+                    }
+                    if (payload && payload.html) {
+                        const temp = document.createElement('div');
+                        temp.innerHTML = payload.html;
+                        let inner = temp.querySelector('#main-container') || temp.querySelector('main') || temp.querySelector('body');
+                        const html = inner ? inner.innerHTML : payload.html;
+                        renderModalBody(container, html, modalEl);
+                        return;
+                    }
+                    throw new Error('Resposta inesperada');
+                })
+                .catch(() => {
+                    container.innerHTML = '<div class="p-4 text-danger">Erro ao processar o formulário.</div>';
+                })
+                .finally(() => {
+                    if (submitBtn) submitBtn.disabled = false;
+                });
+        });
+    });
+}
+
+function renderModalBody(target, html, modalEl) {
+    if (!target) return;
+    target.innerHTML = html;
+
+    try {
+        if (window.$ && typeof $('.selectpicker').selectpicker === 'function') {
+            $('.selectpicker', target).selectpicker();
+            $('.selectpicker', target).selectpicker('refresh');
+        }
+    } catch (_) {}
+
+    setupModalForms(target, modalEl);
+}
+
 if (typeof window.openModalPac !== 'function') {
     window.openModalPac = function(url, titulo = 'Cadastro') {
         const modalEl = document.getElementById('globalModal');
@@ -722,27 +807,11 @@ if (typeof window.openModalPac !== 'function') {
             })
             .then(r => r.text())
             .then(html => {
-                // tenta extrair só o #main-container do HTML carregado
                 const temp = document.createElement('div');
                 temp.innerHTML = html;
-
-                // procura #main-container
-                let inner = temp.querySelector('#main-container');
-
-                // fallback: se não achar, tenta <main> ou o conteúdo do <body>
-                if (!inner) inner = temp.querySelector('main');
-                if (!inner) inner = temp.querySelector('body');
-
-                // se mesmo assim não houver, injeta tudo
-                body.innerHTML = inner ? inner.innerHTML : html;
-
-                // Se a página carregada usa selectpicker, tenta atualizar
-                try {
-                    if (window.$ && typeof $('.selectpicker').selectpicker === 'function') {
-                        $('.selectpicker', body).selectpicker();
-                        $('.selectpicker', body).selectpicker('refresh');
-                    }
-                } catch (_) {}
+                let inner = temp.querySelector('#main-container') || temp.querySelector('main') || temp.querySelector('body');
+                const resolvedHtml = inner ? inner.innerHTML : html;
+                renderModalBody(body, resolvedHtml, modalEl);
             })
             .catch(err => {
                 console.error(err);

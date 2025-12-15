@@ -154,6 +154,19 @@ if ($type === "create") {
         $paciente->numero_rn_pac = $numero_rn_pac;
 
         $pacienteDao->create($paciente);
+        $novoId = (int)$conn->lastInsertId();
+        // Detecção de requisição feita dentro do modal global
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode([
+                'success' => true,
+                'paciente' => [
+                    'id'   => $novoId,
+                    'nome' => $nome_pac
+                ]
+            ]);
+            exit;
+        }
         header("Location: " . $BASE_URL . "pacientes");
     } else {
 

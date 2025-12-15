@@ -1,6 +1,6 @@
 <?php
 
-$dados_acomodacao = ["UTI", "Apto", "Enfermaria", "Semi", "Day Clinic"];
+$dados_acomodacao = ["UTI", "UTI Pediátrica", "UTI NEO", "SEMI NEO", "Apto", "Enfermaria", "Semi", "Day Clinic", "Berçário"];
 
 $dados_UTI = [
     "Insuficência respiratória",
