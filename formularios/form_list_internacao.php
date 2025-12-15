@@ -176,6 +176,96 @@ $internacao     = new internacaoDAO($conn, $BASE_URL);
     min-width: 18px;
     font-weight: 700;
 }
+
+.filter-intel-wrapper {
+    border: 1px solid #ebe2f3;
+    border-radius: 14px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    background: #fdfbff;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+.filter-intel-wrapper h6 {
+    font-weight: 800;
+    color: #5e2363;
+    margin-bottom: 6px;
+}
+.filter-intel-wrapper small {
+    color: #7a6b84;
+    display: block;
+}
+.filter-intel-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+}
+.filter-intel-grid .smart-search-group {
+    flex: 1;
+    min-width: 220px;
+}
+.filter-intel-grid label {
+    font-size: .82rem;
+    font-weight: 700;
+    color: #7a6b84;
+}
+.filter-intel-grid .input-group {
+    display: flex;
+    gap: 6px;
+}
+.filter-intel-grid input[type="text"] {
+    flex: 1;
+}
+.filter-memory-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.filter-memory-actions button {
+    border-radius: 999px;
+    font-size: .82rem;
+    font-weight: 600;
+    border: 1px solid #bfa3d1;
+    background: #fff;
+    color: #5e2363;
+    padding: 6px 14px;
+    transition: all .15s ease;
+}
+.filter-memory-actions button:hover {
+    background: #5e2363;
+    color: #fff;
+}
+.filter-favorites {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.filter-favorite-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: .78rem;
+    font-weight: 600;
+    border: 1px solid #ffcad9;
+    color: #a03a5e;
+    background: #fff5f8;
+    cursor: pointer;
+}
+.filter-favorite-chip .remove {
+    font-size: .75rem;
+    color: #c24360;
+    cursor: pointer;
+}
+.filter-favorite-chip .remove:hover {
+    color: #8a1433;
+}
+.filter-empty-hint {
+    font-size: .78rem;
+    color: #a690b3;
+}
 </style>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
@@ -244,6 +334,30 @@ if (typeof jQuery !== 'undefined') {
                 $data_intern_int_max = filter_input(INPUT_GET, 'data_intern_int_max') ?: null;
                 $senha_int           = filter_input(INPUT_GET, 'senha_int') ?: null;
                 ?>
+                <div class="filter-intel-wrapper">
+                    <h6>Memória de filtros e busca inteligente</h6>
+                    <div class="filter-intel-grid">
+                        <div class="smart-search-group">
+                            <label for="smartSearchPhrase">Busca em linguagem natural</label>
+                            <div class="input-group">
+                                <input type="text" id="smartSearchPhrase" class="form-control form-control-sm"
+                                    placeholder='Ex.: "contas Einstein outubro 2023" ou "paciente Ana maio"'>
+                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                    id="btnApplySmartSearch">
+                                    Aplicar frase
+                                </button>
+                            </div>
+                            <small>Tente combinar hospital, paciente, mês/ano ou senha em uma frase única.</small>
+                        </div>
+                        <div class="filter-memory-actions">
+                            <button type="button" id="btnApplyLastFilter">Aplicar último filtro</button>
+                            <button type="button" id="btnSaveFavFilter">Salvar como favorito</button>
+                            <button type="button" id="btnClearFilters">Limpar filtros</button>
+                        </div>
+                    </div>
+                    <div class="filter-favorites" id="filterFavorites"></div>
+                    <div class="filter-empty-hint" id="filterFavoritesHint">Nenhum favorito salvo ainda.</div>
+                </div>
                 <div class="form-group row">
                     <div class="form-group col-sm-2" style="padding:2px;padding-left:16px !important;">
                         <input class="form-control form-control-sm" type="text" style="color:#878787;margin-top:7px;"
@@ -1235,6 +1349,316 @@ if (typeof window.paginateInternacao !== 'function') {
         return false;
     };
 }
+</script>
+
+<script>
+(function() {
+    const storageKeys = {
+        last: 'fullconex:listInternacao:lastFilter',
+        fav: 'fullconex:listInternacao:favorites'
+    };
+    const form = document.getElementById('select-internacao-form');
+    if (!form) return;
+
+    const btnApplyLast = document.getElementById('btnApplyLastFilter');
+    const btnSaveFav = document.getElementById('btnSaveFavFilter');
+    const btnClear = document.getElementById('btnClearFilters');
+    const favoritesWrap = document.getElementById('filterFavorites');
+    const favoritesHint = document.getElementById('filterFavoritesHint');
+    const smartInput = document.getElementById('smartSearchPhrase');
+    const btnSmart = document.getElementById('btnApplySmartSearch');
+
+    const fieldNames = [
+        'pesquisa_nome',
+        'pesquisa_pac',
+        'senha_int',
+        'limite_pag',
+        'ordenar',
+        'data_intern_int',
+        'data_intern_int_max',
+        'pesqInternado',
+        'sem_senha',
+        'sort_field',
+        'sort_dir'
+    ];
+
+    const hiddenDefaults = {
+        pesqInternado: form.elements.namedItem('pesqInternado')?.value || 's',
+        sem_senha: form.elements.namedItem('sem_senha')?.value || '0',
+        sort_field: '',
+        sort_dir: form.elements.namedItem('sort_dir')?.value || 'desc'
+    };
+
+    const storageAvailable = (() => {
+        try {
+            const test = '__fc_filter__';
+            localStorage.setItem(test, '1');
+            localStorage.removeItem(test);
+            return true;
+        } catch (err) {
+            return false;
+        }
+    })();
+
+    function readFormValues() {
+        const values = {};
+        fieldNames.forEach((name) => {
+            const field = form.elements.namedItem(name);
+            if (!field) return;
+            if (field.type === 'checkbox') {
+                values[name] = field.checked ? '1' : '0';
+            } else {
+                values[name] = field.value ?? '';
+            }
+        });
+        return values;
+    }
+
+    function fillFormValues(values) {
+        if (!values) return;
+        fieldNames.forEach((name) => {
+            if (!(name in values)) return;
+            const field = form.elements.namedItem(name);
+            if (!field) return;
+            if (field.type === 'checkbox') {
+                field.checked = values[name] === '1';
+            } else {
+                field.value = values[name];
+            }
+        });
+    }
+
+    function persistLastFilter(values) {
+        if (!storageAvailable) return;
+        localStorage.setItem(storageKeys.last, JSON.stringify(values));
+    }
+
+    function getLastFilter() {
+        if (!storageAvailable) return null;
+        const data = localStorage.getItem(storageKeys.last);
+        if (!data) return null;
+        try {
+            return JSON.parse(data);
+        } catch (err) {
+            return null;
+        }
+    }
+
+    function getFavorites() {
+        if (!storageAvailable) return [];
+        const data = localStorage.getItem(storageKeys.fav);
+        if (!data) return [];
+        try {
+            const parsed = JSON.parse(data);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (err) {
+            return [];
+        }
+    }
+
+    function saveFavorites(list) {
+        if (!storageAvailable) return;
+        localStorage.setItem(storageKeys.fav, JSON.stringify(list));
+    }
+
+    function renderFavorites() {
+        const favorites = getFavorites();
+        if (favoritesWrap) favoritesWrap.innerHTML = '';
+        if (!favorites.length) {
+            if (favoritesHint) favoritesHint.style.display = 'block';
+            return;
+        }
+        if (favoritesHint) favoritesHint.style.display = 'none';
+        favorites.forEach((fav, index) => {
+            const chip = document.createElement('div');
+            chip.className = 'filter-favorite-chip';
+            chip.dataset.index = String(index);
+            chip.innerHTML = `
+                <span class="label">${fav.label}</span>
+                <span class="remove" title="Remover favorito">&times;</span>
+            `;
+            chip.addEventListener('click', (event) => {
+                if (event.target.classList.contains('remove')) return;
+                applyFavorite(index);
+            });
+            chip.querySelector('.remove').addEventListener('click', (event) => {
+                event.stopPropagation();
+                removeFavorite(index);
+            });
+            favoritesWrap && favoritesWrap.appendChild(chip);
+        });
+    }
+
+    function applyFavorite(index) {
+        const favorites = getFavorites();
+        const fav = favorites[index];
+        if (!fav) return;
+        fillFormValues(fav.values);
+        form.submit();
+    }
+
+    function removeFavorite(index) {
+        const favorites = getFavorites();
+        favorites.splice(index, 1);
+        saveFavorites(favorites);
+        renderFavorites();
+    }
+
+    function handleSaveFavorite() {
+        const current = readFormValues();
+        const labelDefault = current.pesquisa_nome || current.pesquisa_pac || 'Novo favorito';
+        const label = prompt('Nome do favorito:', labelDefault);
+        if (!label) return;
+        const favorites = getFavorites();
+        favorites.unshift({
+            label: label.trim(),
+            savedAt: new Date().toISOString(),
+            values: current
+        });
+        if (favorites.length > 5) {
+            favorites.length = 5;
+        }
+        saveFavorites(favorites);
+        renderFavorites();
+    }
+
+    function handleApplyLast() {
+        const last = getLastFilter();
+        if (!last) {
+            alert('Nenhum filtro anterior encontrado.');
+            return;
+        }
+        fillFormValues(last);
+        form.submit();
+    }
+
+    function handleClearFilters() {
+        ['pesquisa_nome', 'pesquisa_pac', 'senha_int', 'data_intern_int', 'data_intern_int_max'].forEach((name) => {
+            const field = form.elements.namedItem(name);
+            if (field) field.value = '';
+        });
+        ['limite_pag', 'ordenar'].forEach((name) => {
+            const field = form.elements.namedItem(name);
+            if (field && field.tagName === 'SELECT') {
+                field.selectedIndex = 0;
+            }
+        });
+        Object.keys(hiddenDefaults).forEach((name) => {
+            const field = form.elements.namedItem(name);
+            if (field) field.value = hiddenDefaults[name];
+        });
+    }
+
+    function parseSmartPhrase(phrase) {
+        if (!phrase) return null;
+        const cleaned = phrase.trim();
+        if (!cleaned) return null;
+        const months = {
+            janeiro: '01',
+            fevereiro: '02',
+            marco: '03',
+            março: '03',
+            abril: '04',
+            maio: '05',
+            junho: '06',
+            julho: '07',
+            agosto: '08',
+            setembro: '09',
+            outubro: '10',
+            novembro: '11',
+            dezembro: '12'
+        };
+        const result = {};
+        const lower = cleaned.toLowerCase();
+
+        let monthInfo = null;
+        Object.keys(months).some((name) => {
+            const regex = new RegExp(name, 'i');
+            const match = cleaned.match(regex);
+            if (match) {
+                const yearMatch = cleaned.match(/20\d{2}/);
+                const year = yearMatch ? parseInt(yearMatch[0], 10) : new Date().getFullYear();
+                const monthNum = parseInt(months[name], 10);
+                const start = `${year}-${String(monthNum).padStart(2, '0')}-01`;
+                const endDay = new Date(year, monthNum, 0).getDate();
+                const end = `${year}-${String(monthNum).padStart(2, '0')}-${String(endDay).padStart(2, '0')}`;
+                result.data_intern_int = start;
+                result.data_intern_int_max = end;
+                monthInfo = { index: match.index, length: match[0].length };
+                return true;
+            }
+            return false;
+        });
+
+        const hospRegex = /(?:contas|hospital|hosp)\s+([^0-9]+?)(?=(?:janeiro|fevereiro|mar[cç]o|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro|paciente|\d{4}|$))/i;
+        const hospMatch = cleaned.match(hospRegex);
+        if (hospMatch) {
+            result.pesquisa_nome = hospMatch[1].trim();
+        } else if (monthInfo && monthInfo.index > 0) {
+            const possible = cleaned.slice(0, monthInfo.index).replace(/^(contas|hospital|hosp)\s+/i, '').trim();
+            if (possible) result.pesquisa_nome = possible;
+        }
+
+        const pacRegex = /paciente\s+([^0-9]+?)(?=(?:contas|hospital|hosp|janeiro|fevereiro|mar[cç]o|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro|\d{4}|$))/i;
+        const pacMatch = cleaned.match(pacRegex);
+        if (pacMatch) {
+            result.pesquisa_pac = pacMatch[1].trim();
+        }
+
+        const senhaMatch = cleaned.match(/senha\s+([\w-]+)/i);
+        if (senhaMatch) {
+            result.senha_int = senhaMatch[1];
+        }
+
+        if (Object.keys(result).length === 0) {
+            return null;
+        }
+        return result;
+    }
+
+    function handleSmartSearch() {
+        const phrase = smartInput.value;
+        const parsed = parseSmartPhrase(phrase);
+        if (!parsed) {
+            alert('Não foi possível interpretar esta frase. Tente informar hospital, paciente ou mês.');
+            return;
+        }
+        fillFormValues(parsed);
+        form.submit();
+    }
+
+    if (storageAvailable) {
+        const hasQuery = window.location.search.length > 1;
+        const last = getLastFilter();
+        if (last && !hasQuery) {
+            fillFormValues(last);
+        }
+        renderFavorites();
+    } else {
+        if (favoritesHint) {
+            favoritesHint.textContent = 'Memória de filtros não disponível neste navegador.';
+            favoritesHint.style.display = 'block';
+        }
+    }
+
+    form.addEventListener('submit', () => {
+        const values = readFormValues();
+        persistLastFilter(values);
+    });
+
+    if (btnSaveFav) btnSaveFav.addEventListener('click', handleSaveFavorite);
+    if (btnApplyLast) btnApplyLast.addEventListener('click', handleApplyLast);
+    if (btnClear) btnClear.addEventListener('click', handleClearFilters);
+    if (btnSmart) btnSmart.addEventListener('click', handleSmartSearch);
+    if (smartInput) {
+        smartInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                handleSmartSearch();
+            }
+        });
+    }
+})();
 </script>
 
 <script src="./js/input-estilo.js"></script>

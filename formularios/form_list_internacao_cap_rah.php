@@ -291,6 +291,21 @@ $idcapeante          = filter_input(INPUT_GET, 'idcapeante') ?: NULL;
                 ?>
             </h4>
         </div>
+
+        <style>
+        .filter-date-col {
+            flex: 0 0 150px;
+            width: 150px;
+            max-width: 150px;
+        }
+        @media (max-width: 991.98px) {
+            .filter-date-col {
+                flex: 1 0 100%;
+                width: 100%;
+                max-width: 100%;
+            }
+        }
+        </style>
         <div class="complete-table">
 
             <div id="navbarToggleExternalContent" class="table-filters">
@@ -426,13 +441,13 @@ $idcapeante          = filter_input(INPUT_GET, 'idcapeante') ?: NULL;
                         </select>
                     </div>
 
-                        <div class="form-group col-sm-2" style="padding:2px !important">
+                        <div class="form-group col-sm-2 filter-date-col" style="padding:2px !important">
                             <input class="form-control form-control-sm" type="date"
                                 style="margin-top:7px;font-size:.8em; color:#878787" name="data_intern_int"
                                 placeholder="Data Internação Min"
                                 value="<?= htmlspecialchars((string)$data_intern_int) ?>">
                         </div>
-                        <div class="form-group col-sm-2" style="padding:2px !important">
+                        <div class="form-group col-sm-2 filter-date-col" style="padding:2px !important">
                             <input class="form-control form-control-sm" type="date"
                                 style="margin-top:7px;font-size:.8em; color:#878787" name="data_intern_int_max"
                                 placeholder="Data Internação Max"
