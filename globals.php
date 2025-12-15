@@ -109,6 +109,10 @@ if (in_array($__method, ['POST', 'PUT', 'PATCH', 'DELETE'], true) && !in_array($
     Gate::autoEnforce($conn, $BASE_URL);
 }
 
+require_once __DIR__ . '/app/schemaEnsurer.php';
+ensure_visita_timer_column($conn);
+ensure_internacao_timer_column($conn);
+
 // ------------------ 7) Helpers globais (opcional) ----------
 
 if (!function_exists('app_url')) {

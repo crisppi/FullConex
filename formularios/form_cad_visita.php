@@ -144,6 +144,7 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
 
     <form action="<?= $BASE_URL ?>process_visita.php" id="add-visita-form" method="POST" enctype="multipart/form-data">
         <input type="hidden" name="type" value="create">
+        <input type="hidden" name="timer_vis" id="timer_vis" value="">
 
         <div class="form-group row" style="margin:15px">
             <div id="view-contact-container" style="align-items:center">
@@ -972,6 +973,48 @@ document.getElementById("fieldsContainer").addEventListener("input", (event) => 
         calculateDiarias(fieldContainer);
     }
 });
+</script>
+
+<script>
+(function () {
+    var form = document.getElementById('add-visita-form');
+    var timerField = document.getElementById('timer_vis');
+    var pacienteField = document.getElementById('fk_paciente_int');
+    var timerStart = null;
+
+    function startTimer() {
+        if (timerStart === null) {
+            timerStart = Date.now();
+        }
+    }
+
+    if (pacienteField) {
+        if (pacienteField.value) {
+            startTimer();
+        } else {
+            pacienteField.addEventListener('change', function () {
+                if (this.value) {
+                    startTimer();
+                }
+            });
+        }
+    } else {
+        startTimer();
+    }
+
+    ['pacienteSelecionado', 'paciente-selecionado', 'visitaPacienteSelecionado'].forEach(function (evtName) {
+        document.addEventListener(evtName, startTimer);
+    });
+
+    if (form && timerField) {
+        form.addEventListener('submit', function () {
+            if (timerStart !== null) {
+                var elapsed = Math.max(0, Math.round((Date.now() - timerStart) / 1000));
+                timerField.value = elapsed;
+            }
+        });
+    }
+})();
 </script>
 
 

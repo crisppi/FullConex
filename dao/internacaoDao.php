@@ -13,6 +13,7 @@ class internacaoDAO implements internacaoDAOInterface
     public $message;
     private $hasHoraAltaColumn = null;
     private $hasDataLancamentoColumn = null;
+    private $hasTimerColumn = null;
 
     public function __construct(PDO $conn, $url)
     {
@@ -20,6 +21,12 @@ class internacaoDAO implements internacaoDAOInterface
         $this->url = $url;
         $this->message = new Message($url);
         $this->ensureDataLancamentoColumn();
+        if (function_exists('ensure_internacao_timer_column')) {
+            ensure_internacao_timer_column($this->conn);
+            $this->hasTimerColumn = true;
+        } else {
+            $this->ensureTimerColumnFallback();
+        }
     }
 
     private function tbAltaHasHoraColumn()
@@ -59,6 +66,25 @@ class internacaoDAO implements internacaoDAOInterface
         return $this->hasDataLancamentoColumn;
     }
 
+    private function ensureTimerColumnFallback()
+    {
+        if ($this->hasTimerColumn !== null) {
+            return $this->hasTimerColumn;
+        }
+        try {
+            $stmt = $this->conn->query("SHOW COLUMNS FROM tb_internacao LIKE 'timer_int'");
+            $exists = $stmt && $stmt->fetch() ? true : false;
+            if (!$exists) {
+                $this->conn->exec("ALTER TABLE tb_internacao ADD COLUMN timer_int INT NULL DEFAULT NULL AFTER num_atendimento_int");
+            }
+            $this->hasTimerColumn = true;
+        } catch (Throwable $th) {
+            $this->hasTimerColumn = false;
+            error_log('Falha ao garantir coluna timer_int: ' . $th->getMessage());
+        }
+        return $this->hasTimerColumn;
+    }
+
     public function buildinternacao($data)
     {
         $internacao = new internacao();
@@ -77,6 +103,7 @@ class internacaoDAO implements internacaoDAOInterface
         $internacao->data_visita_int = $data["data_visita_int"];
         $internacao->data_create_int = $data["data_create_int"];
         $internacao->usuario_create_int = $data["usuario_create_int"];
+        $internacao->timer_int = $data["timer_int"] ?? null;
         $internacao->titular_int = $data["titular_int"];
         $internacao->especialidade_int = $data["especialidade_int"];
         $internacao->grupo_patologia_int = $data["grupo_patologia_int"];
@@ -206,7 +233,8 @@ class internacaoDAO implements internacaoDAOInterface
             int_pertinente_int,
             rel_pertinente_int,
             hora_intern_int,
-            num_atendimento_int
+            num_atendimento_int,
+            timer_int
 
    
          ) VALUES (
@@ -244,7 +272,8 @@ class internacaoDAO implements internacaoDAOInterface
            :int_pertinente_int,
            :rel_pertinente_int,
            :hora_intern_int,
-           :num_atendimento_int
+           :num_atendimento_int,
+           :timer_int
 
         )");
 
@@ -284,6 +313,7 @@ class internacaoDAO implements internacaoDAOInterface
         $stmt->bindParam(":hora_intern_int", $internacao->hora_intern_int);
         $stmt->bindParam(":fk_usuario_int", $internacao->fk_usuario_int);
         $stmt->bindParam(":num_atendimento_int", $internacao->num_atendimento_int);
+        $stmt->bindParam(":timer_int", $internacao->timer_int);
 
 
         $stmt->execute();
@@ -331,7 +361,8 @@ class internacaoDAO implements internacaoDAOInterface
         rel_pertinente_int = :rel_pertinente_int,
         programacao_int = :programacao_int,
         hora_intern_int = :hora_intern_int,
-        num_atendimento_int = :num_atendimento_int
+        num_atendimento_int = :num_atendimento_int,
+        timer_int = :timer_int
 
 
         WHERE id_internacao = :id_internacao
@@ -373,6 +404,7 @@ class internacaoDAO implements internacaoDAOInterface
         $stmt->bindParam(":hora_intern_int", $internacao->hora_intern_int);
         $stmt->bindParam(":id_internacao", $internacao->id_internacao);
         $stmt->bindParam(":num_atendimento_int", $internacao->num_atendimento_int);
+        $stmt->bindParam(":timer_int", $internacao->timer_int);
 
 
         $stmt->execute();
@@ -416,7 +448,8 @@ class internacaoDAO implements internacaoDAOInterface
         int_pertinente_int = :int_pertinente_int,
         rel_pertinente_int = :rel_pertinente_int,
         hora_intern_int = :hora_intern_int,
-        num_atendimento_int = :num_atendimento_int
+        num_atendimento_int = :num_atendimento_int,
+        timer_int = :timer_int
 
         
         WHERE id_internacao = :id_internacao 
@@ -453,7 +486,7 @@ class internacaoDAO implements internacaoDAOInterface
         $stmt->bindParam(":origem_int", $internacao->origem_int);
         $stmt->bindParam(":hora_intern_int", $internacao->hora_intern_int);
         $stmt->bindParam(":num_atendimento_int", $internacao->num_atendimento_int);
-
+        $stmt->bindParam(":timer_int", $internacao->timer_int);
 
         $stmt->bindParam(":id_internacao", $internacao->id_internacao);
         $stmt->execute();

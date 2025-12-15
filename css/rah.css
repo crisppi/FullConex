@@ -149,39 +149,39 @@ select.form-select:focus {
 .pill strong { font-weight: 900; }
 .sec-body { padding: 14px 16px 16px 16px; }
 .rah-event-card {
-  border: 2px solid #dcb6e5;
-  box-shadow: 0 10px 28px rgba(110,32,99,.18);
+  border: 1.5px solid #f6bad1 !important;
   overflow: hidden;
-  background: #fbf4ff;
+  background: #fff;
+  color: #3a1b2a;
+  box-shadow: none !important;
+  border-radius: 20px;
 }
-.rah-event-card .sec-title { color: #762c8f; font-weight: 800; }
+.rah-event-card .sec-title { color: #5e2363; font-weight: 900; }
 .rah-event-card.is-open {
-  background: linear-gradient(135deg,#ff4f73 0%,#ff005d 60%,#d8004a 100%);
-  border-color: #c40042;
-  box-shadow: 0 15px 40px rgba(255,0,90,.45);
+  background: #fff;
+  border: 2px solid #ffb3cc !important;
+  box-shadow: none;
 }
 .rah-event-card.is-open .sec-title {
-  color: #ffe9ef;
+  color: #5e2363;
 }
 .rah-event-card.is-closed {
   background: linear-gradient(135deg,#f0fff8,#dffcec);
   border-color: #6ec497;
+  box-shadow: none;
 }
 .rah-event-card.is-open .sec-header {
-  background: rgba(0,0,0,.15);
-  border-bottom: 1px solid rgba(255,255,255,.35);
+  background: #fff;
+  border-bottom: 1px solid rgba(255,154,174,.3);
 }
 .rah-event-card.is-closed .sec-header {
   border-color: rgba(185,226,204,.7);
 }
 .rah-event-card .sec-body {
-  background: rgba(255,255,255,.94);
+  background: transparent;
   border-radius: 16px;
   margin: 0 16px 16px;
   padding: 18px;
-}
-.rah-event-card.is-open .sec-body {
-  border: 1px solid rgba(255,255,255,.4);
 }
 .rah-event-status {
   border-radius: 999px;
@@ -197,10 +197,10 @@ select.form-select:focus {
   flex-wrap: wrap;
 }
 .rah-event-card.is-open .rah-event-status {
-  background: rgba(255,255,255,.25);
-  border-color: rgba(255,255,255,.55);
-  color: #fff;
-  text-shadow: 0 1px 1px rgba(0,0,0,.25);
+  background: #ffeef2;
+  border-color: #ffccd5;
+  color: #8a1433;
+  text-shadow: none;
 }
 .rah-event-card.is-closed .rah-event-status {
   background: rgba(25,135,84,.12);

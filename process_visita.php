@@ -444,6 +444,8 @@ if ($type === "create") {
     $fk_usuario_vis              = toIntOrNull($_POST['fk_usuario_vis'] ?? null);
     $data_lancamento_vis_input   = normalizeDateTimeInput($_POST['data_lancamento_vis'] ?? null);
     $data_lancamento_vis         = $data_lancamento_vis_input ?: date('Y-m-d H:i:s');
+    $timer_vis_raw               = toIntOrNull($_POST['timer_vis'] ?? null);
+    $timer_vis                   = $timer_vis_raw !== null ? max(0, $timer_vis_raw) : null;
 
     // bloco enfermagem (visita)
     $exames_enf                  = strOrNull($_POST['exames_enf'] ?? null);
@@ -527,7 +529,8 @@ if ($type === "create") {
             'faturado_vis'            => $visitaEmEdicao['faturado_vis'] ?? 'n',
             'exames_enf'              => $exames_enf,
             'oportunidades_enf'       => $oportunidades_enf,
-            'programacao_enf'         => $programacao_enf
+            'programacao_enf'         => $programacao_enf,
+            'timer_vis'               => $visitaEmEdicao['timer_vis'] ?? $timer_vis
         ];
         try {
             if (!$visitaDao->updateDirect($dadosAtualizados)) {
@@ -580,6 +583,7 @@ if ($type === "create") {
     $visita->exames_enf               = $exames_enf;
     $visita->oportunidades_enf        = $oportunidades_enf;
     $visita->programacao_enf          = $programacao_enf;
+    $visita->timer_vis                = $timer_vis;
 
     // ------------------- Persistência VISITA --------------------------
     try {

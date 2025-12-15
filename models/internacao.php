@@ -15,6 +15,7 @@ class Internacao
   public $data_intern_int;
   public $data_lancamento_int;
   public $data_visita_int;
+  public $timer_int;
   public $especialidade_int;
   public $fk_antecedente_int;
   public $fk_patologia_int;

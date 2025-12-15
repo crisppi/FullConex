@@ -12,6 +12,7 @@ class visitaDAO
     public Message $message;
     private bool $lancamentoColumnEnsured = false;
     private bool $faturamentoColumnEnsured = false;
+    private bool $timerColumnEnsured = false;
     private bool $logTableEnsured = false;
 
     private const TABLE = 'tb_visita';
@@ -24,6 +25,7 @@ class visitaDAO
         $this->message = new Message($url);
         $this->ensureLancamentoColumn();
         $this->ensureDataFaturamentoColumn();
+        $this->ensureTimerColumn();
         $this->ensureLogTable();
     }
 
@@ -52,6 +54,7 @@ class visitaDAO
         $v->data_lancamento_vis     = $data["data_lancamento_vis"]     ?? null;
         $v->data_faturamento_vis    = $data["data_faturamento_vis"]    ?? null;
         $v->faturado_vis            = $data["faturado_vis"]            ?? 'n';
+        $v->timer_vis               = $data["timer_vis"]               ?? null;
         $v->retificou               = $data["retificou"]               ?? null;
         $v->retificado              = $data["retificado"]              ?? null;
 
@@ -139,6 +142,33 @@ class visitaDAO
         }
     }
 
+    private function ensureTimerColumn(): void
+    {
+        if ($this->timerColumnEnsured) {
+            return;
+        }
+        try {
+            $stmt = $this->conn->query("
+                SELECT COUNT(*)
+                  FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE()
+                   AND TABLE_NAME   = '" . self::TABLE . "'
+                   AND COLUMN_NAME  = 'timer_vis'
+            ");
+            $exists = (int)$stmt->fetchColumn() > 0;
+            if (!$exists) {
+                $this->conn->exec("
+                    ALTER TABLE " . self::TABLE . "
+                    ADD COLUMN timer_vis INT NULL DEFAULT NULL AFTER programacao_enf
+                ");
+            }
+        } catch (Throwable $e) {
+            error_log('Falha ao garantir coluna timer_vis: ' . $e->getMessage());
+        } finally {
+            $this->timerColumnEnsured = true;
+        }
+    }
+
     private function ensureLogTable(): void
     {
         if ($this->logTableEnsured) {
@@ -186,6 +216,7 @@ class visitaDAO
             exames_enf,
             oportunidades_enf,
             programacao_enf,
+            timer_vis,
             retificou
         ) VALUES (
             :fk_internacao_vis,
@@ -205,6 +236,7 @@ class visitaDAO
             :exames_enf,
             :oportunidades_enf,
             :programacao_enf,
+            :timer_vis,
             :retificou
         )";
 
@@ -238,6 +270,7 @@ class visitaDAO
         $stmt->bindValue(":exames_enf",        $visita->exames_enf ?: 'Sem exames relevantes no período');
         $stmt->bindValue(":oportunidades_enf", $visita->oportunidades_enf);
         $stmt->bindValue(":programacao_enf",   $visita->programacao_enf);
+        $this->bindIntOrNull($stmt, ":timer_vis", $visita->timer_vis);
 
         // RETIFICAÇÃO (FK para id_visita anterior, se existir)
         $this->bindIntOrNull($stmt, ":retificou", $visita->retificou);
@@ -280,7 +313,8 @@ class visitaDAO
             faturado_vis            = :faturado_vis,
             exames_enf              = :exames_enf,
             oportunidades_enf       = :oportunidades_enf,
-            programacao_enf         = :programacao_enf
+            programacao_enf         = :programacao_enf,
+            timer_vis               = :timer_vis
         WHERE id_visita = :id_visita";
 
         $stmt = $this->conn->prepare($sql);
@@ -312,6 +346,7 @@ class visitaDAO
         $stmt->bindValue(":exames_enf",        $data['exames_enf']        ?? null);
         $stmt->bindValue(":oportunidades_enf", $data['oportunidades_enf'] ?? null);
         $stmt->bindValue(":programacao_enf",   $data['programacao_enf']   ?? null);
+        $this->bindIntOrNull($stmt, ":timer_vis", $data['timer_vis'] ?? null);
 
         // PK
         $stmt->bindValue(":id_visita", (int)$data['id_visita'], PDO::PARAM_INT);
@@ -343,7 +378,8 @@ class visitaDAO
             faturado_vis            = :faturado_vis,
             exames_enf              = :exames_enf,
             oportunidades_enf       = :oportunidades_enf,
-            programacao_enf         = :programacao_enf
+            programacao_enf         = :programacao_enf,
+            timer_vis               = :timer_vis
         WHERE id_visita = :id_visita";
 
         $stmt = $this->conn->prepare($sql);
@@ -365,6 +401,7 @@ class visitaDAO
         $stmt->bindValue(":exames_enf",        $data['exames_enf']        ?? null);
         $stmt->bindValue(":oportunidades_enf", $data['oportunidades_enf'] ?? null);
         $stmt->bindValue(":programacao_enf",   $data['programacao_enf']   ?? null);
+        $this->bindIntOrNull($stmt, ":timer_vis", $data['timer_vis'] ?? null);
         $stmt->bindValue(":id_visita", (int)$data['id_visita'], PDO::PARAM_INT);
 
         return $stmt->execute();

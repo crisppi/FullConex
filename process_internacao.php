@@ -144,6 +144,8 @@ if ($type === "create") {
 
     $programacao_int = filter_input(INPUT_POST, "programacao_int");
     $programacao_int = substr($programacao_int, 0, 5000);
+    $timer_int_raw = filter_input(INPUT_POST, "timer_int", FILTER_VALIDATE_INT);
+    $timer_int = ($timer_int_raw !== false && $timer_int_raw !== null) ? max(0, $timer_int_raw) : null;
 
     $senha_int = filter_input(INPUT_POST, "senha_int");
     if ($senha_int && $internacaoDao->senhaExists($senha_int, $id_internacao)) {
@@ -318,6 +320,7 @@ if ($type === "create") {
     $internacao->tipo_admissao_int = $tipo_admissao_int;
     $internacao->grupo_patologia_int = $grupo_patologia_int;
     $internacao->data_visita_int = $data_visita_int;
+    $internacao->timer_int = $timer_int;
     $internacao->data_intern_int = $data_intern_int;
     $internacao->data_lancamento_int = $data_lancamento_int;
     $internacao->especialidade_int = $especialidade_int;

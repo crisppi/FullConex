@@ -183,6 +183,68 @@ document.addEventListener('DOMContentLoaded', function() {
             'data-target'));
     });
 });
+
+document.addEventListener('DOMContentLoaded', function () {
+    var form = document.getElementById('myForm');
+    var timerField = document.getElementById('timer_int');
+    var pacienteSelect = document.getElementById('fk_paciente_int');
+    var timerStart = null;
+    var intervalId = null;
+
+    function startTimer() {
+        if (timerStart === null) {
+            timerStart = Date.now();
+        }
+        if (intervalId) {
+            clearInterval(intervalId);
+            intervalId = null;
+        }
+    }
+
+    function scheduleValueWatch() {
+        if (!pacienteSelect || intervalId) return;
+        intervalId = setInterval(function () {
+            if (pacienteSelect.value) {
+                startTimer();
+            }
+        }, 700);
+    }
+
+    if (pacienteSelect) {
+        if (pacienteSelect.value) {
+            startTimer();
+        } else {
+            scheduleValueWatch();
+        }
+        pacienteSelect.addEventListener('change', function () {
+            if (this.value) startTimer();
+        });
+
+        if (window.jQuery && typeof jQuery.fn.on === 'function') {
+            jQuery(function ($) {
+                $('#fk_paciente_int').on('changed.bs.select', function () {
+                    if (this.value) startTimer();
+                });
+            });
+        }
+    } else {
+        startTimer();
+    }
+
+    ['pacienteSelecionado', 'paciente-selecionado'].forEach(function (evtName) {
+        document.addEventListener(evtName, startTimer);
+    });
+
+    if (form && timerField) {
+        form.addEventListener('submit', function () {
+            var elapsed = 0;
+            if (timerStart !== null) {
+                elapsed = Math.max(0, Math.round((Date.now() - timerStart) / 1000));
+            }
+            timerField.value = elapsed;
+        });
+    }
+});
 </script>
 
 <div class="row" style="margin-top:-5px;">
@@ -265,6 +327,7 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
         </div>
 
         <input type="hidden" name="type" value="create">
+        <input type="hidden" name="timer_int" id="timer_int" value="">
         <p style="display:none" id="proximoId_int">0</p>
         <input type="hidden" value="n" id="censo_int" name="censo_int">
 

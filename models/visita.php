@@ -25,6 +25,7 @@ class visita
   public $oportunidades_enf;
   public $exames_enf;
   public $programacao_enf;
+  public $timer_vis;
   public $retificado;
   public $retificou;
 }

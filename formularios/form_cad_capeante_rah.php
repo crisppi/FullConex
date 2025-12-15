@@ -354,10 +354,10 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
             : 'Evento adverso ativo informado na visita. Revise os impactos antes de finalizar esta conta.';
     ?>
     <?php
-        $eventoCardStyle = $eventoEncerrado ? '' : 'background:linear-gradient(135deg,#fff1f3 0%,#ffd8e1 65%,#ffc1cf 100%);border:2px solid #ff9aae;box-shadow:0 10px 32px rgba(255,115,140,.35);';
-        $eventoHeaderStyle = $eventoEncerrado ? '' : 'color:#8a1433;border-bottom:1px solid rgba(255,154,174,.7);background:rgba(255,255,255,.4);';
-        $eventoStatusStyle = $eventoEncerrado ? '' : 'background:rgba(139,0,33,.1);border-color:rgba(139,0,33,.3);color:#8b0021;';
-        $eventoBodyStyle = $eventoEncerrado ? '' : 'border:1px solid rgba(255,154,174,.55);background:rgba(255,255,255,.93);';
+        $eventoCardStyle = $eventoEncerrado ? '' : 'background:#fff;border:2px solid #ffb3cc;';
+        $eventoHeaderStyle = $eventoEncerrado ? '' : 'color:#5e2363;border-bottom:1px solid rgba(255,154,174,.3);background:#fff;';
+        $eventoStatusStyle = $eventoEncerrado ? '' : 'background:#ffedf2;border-color:#f7b9c6;color:#8a1433;';
+        $eventoBodyStyle = $eventoEncerrado ? '' : 'border:none;background:#fff;';
     ?>
     <div class="sec-card rah-event-card <?= $eventoEncerrado ? 'is-closed' : 'is-open' ?>" style="<?= $eventoCardStyle ?>">
         <div class="sec-header" style="<?= $eventoHeaderStyle ?>">
