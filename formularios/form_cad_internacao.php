@@ -245,6 +245,80 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
 .hospital-uti-alert.show {
     display: block;
 }
+.patient-insight-card {
+    margin-top: 6px;
+    border: 1px solid #ebe2f3;
+    border-radius: 14px;
+    padding: 10px 14px;
+    background: #faf8ff;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.6);
+    font-size: .85rem;
+    color: #4a2c60;
+}
+.patient-insight-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+.patient-insight-header .label {
+    font-weight: 700;
+    color: #5e2363;
+}
+.patient-insight-header a {
+    font-size: .78rem;
+    text-decoration: none;
+    color: #5e2363;
+    font-weight: 600;
+}
+.patient-insight-header a.disabled {
+    pointer-events: none;
+    opacity: .5;
+}
+.patient-insight-metrics {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.patient-insight-metrics div {
+    background: #fff;
+    border: 1px solid #e1d4ef;
+    border-radius: 10px;
+    padding: 6px 10px;
+    font-size: .78rem;
+    line-height: 1.2;
+    min-width: 120px;
+}
+.patient-insight-metrics div strong {
+    display: block;
+    font-size: 1rem;
+    color: #2d1144;
+}
+.patient-insight-inline-btn {
+    border: none;
+    background: #f4e9fb;
+    color: #5e2363;
+    border-radius: 999px;
+    width: 26px;
+    height: 26px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform .15s ease, background .15s ease;
+}
+.patient-insight-inline-btn:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+.patient-insight-inline-btn.active {
+    background: #5e2363;
+    color: #fff;
+}
+.patient-insight-inline-btn:not(:disabled):hover {
+    transform: translateY(-1px);
+}
 </style>
 
 <!-- Shim BS4 -> BS5 (data-toggle -> data-bs-*) -->
@@ -284,24 +358,36 @@ document.addEventListener('DOMContentLoaded', function () {
         intervalId = setInterval(function () {
             if (pacienteSelect.value) {
                 startTimer();
+                if (typeof handlePacienteChange === 'function') {
+                    handlePacienteChange();
+                }
             }
         }, 700);
+    }
+
+    function handlePacienteChange() {
+        if (!pacienteSelect) return;
+        const selectedText = pacienteSelect.options[pacienteSelect.selectedIndex]?.text?.trim() || '';
+        const id = pacienteSelect.value;
+        if (id) startTimer();
+        if (patientInsightsHelper && typeof patientInsightsHelper.fetch === 'function') {
+            patientInsightsHelper.fetch(id, selectedText);
+        }
     }
 
     if (pacienteSelect) {
         if (pacienteSelect.value) {
             startTimer();
+            handlePacienteChange();
         } else {
             scheduleValueWatch();
         }
-        pacienteSelect.addEventListener('change', function () {
-            if (this.value) startTimer();
-        });
+        pacienteSelect.addEventListener('change', handlePacienteChange);
 
         if (window.jQuery && typeof jQuery.fn.on === 'function') {
             jQuery(function ($) {
                 $('#fk_paciente_int').on('changed.bs.select', function () {
-                    if (this.value) startTimer();
+                    handlePacienteChange();
                 });
             });
         }
@@ -426,7 +512,12 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
 
 
             <div class="form-group col-sm-3" style="margin-bottom:-5px">
-                <label class="control-label" for="fk_paciente_int"><span style="color:red;">*</span> Paciente </label>
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <label class="control-label mb-0" for="fk_paciente_int">
+                        <span style="color:red;">*</span> Paciente
+                    </label>
+                    <button type="button" id="patientInsightToggle" class="patient-insight-inline-btn" title="Mostrar resumo do paciente" aria-expanded="false">i</button>
+                </div>
                 <select data-size="5" data-live-search="true"
                     class="form-control form-control-sm selectpicker show-tick" id="fk_paciente_int"
                     name="fk_paciente_int" required>
@@ -446,6 +537,16 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
                         href="<?= $BASE_URL ?>pacientes?id_paciente=<?= $id_paciente ?? 0 ?>">
                         <i style="color:blue;margin-bottom:7px;" class="far fa-edit edit-icon"></i> Novo Paciente
                     </a>
+                </div>
+                <div class="patient-insight-card" id="patientInsightCard"
+                    data-hub-base="<?= $BASE_URL ?>hub_paciente.php?id_paciente=" style="display:none;">
+                    <div class="patient-insight-header">
+                        <span class="label">Resumo do paciente</span>
+                        <a href="#" id="patientInsightHub" class="disabled" target="_blank" rel="noopener">Abrir HUB</a>
+                    </div>
+                    <div id="patientInsightBody">
+                        Selecione um paciente para visualizar o histórico resumido.
+                    </div>
                 </div>
 
             </div>
@@ -1372,12 +1473,17 @@ const hospitalInsightsHelper = (function() {
             const data = payload.data;
             if (button) button.disabled = false;
             const percent = data.percent_uti ?? 0;
+            const longStay = data.long_stay ?? 0;
+            const longThreshold = data.long_threshold ?? 0;
             const html = `
                 <div><strong>${hospitalName || 'Hospital selecionado'}</strong></div>
                 <div>Negociações registradas: <strong>${data.negociacoes ?? 0}</strong></div>
                 <div>Internações em UTI: <strong>${data.inter_uti ?? 0}</strong></div>
                 <div>Total de internações: <strong>${data.total_internacoes ?? 0}</strong></div>
                 <div>UTI vs Total: <strong>${percent}%</strong></div>
+                <div>MP Hospital: <strong>${data.mp_hospital ?? 0} dias</strong></div>
+                <div>MP UTI: <strong>${data.mp_uti ?? 0} dias</strong></div>
+                <div>Longa permanência (&ge; ${longThreshold} dias): <strong>${longStay}</strong></div>
             `;
             setPopover(html, true);
             if (data.uti_alert) {
@@ -1409,6 +1515,117 @@ const hospitalInsightsHelper = (function() {
     return {
         fetch: fetchInsights,
         reset: reset
+    };
+})();
+
+const patientInsightsHelper = (function() {
+    const card = document.getElementById('patientInsightCard');
+    const body = document.getElementById('patientInsightBody');
+    const hubLink = document.getElementById('patientInsightHub');
+    const hubBase = card ? card.dataset.hubBase || '' : '';
+    const defaultMessage = 'Selecione um paciente para visualizar o histórico resumido.';
+    let requestId = 0;
+
+    function setMessage(msg) {
+        if (body) body.innerHTML = msg;
+    }
+
+    function disableHub() {
+        if (hubLink) {
+            hubLink.classList.add('disabled');
+            hubLink.href = '#';
+        }
+    }
+
+    function enableHub(idPaciente) {
+        if (hubLink) {
+            hubLink.classList.remove('disabled');
+            hubLink.href = hubBase ? hubBase + encodeURIComponent(idPaciente) : '#';
+        }
+    }
+
+    function reset() {
+        setMessage(defaultMessage);
+        disableHub();
+    }
+
+    async function fetchInsights(pacId, pacName) {
+        if (!card || !body) return;
+        if (!pacId) {
+            reset();
+            return;
+        }
+        const current = ++requestId;
+        setMessage(`Carregando dados de <strong>${pacName || 'paciente'}</strong>...`);
+        disableHub();
+        try {
+            const response = await fetch('ajax/paciente_insights.php?id_paciente=' + encodeURIComponent(pacId), {
+                credentials: 'same-origin'
+            });
+            if (!response.ok) throw new Error('Falha ao consultar resumo.');
+            const payload = await response.json();
+            if (current !== requestId) return;
+            if (!payload.success || !payload.data) throw new Error(payload.error || 'Resposta inválida.');
+            const data = payload.data;
+            const html = `
+                <div class="patient-insight-metrics">
+                    <div>
+                        Total internações
+                        <strong>${data.total_internacoes ?? 0}</strong>
+                    </div>
+                    <div>
+                        Nº de diárias
+                        <strong>${data.total_diarias ?? 0}</strong>
+                    </div>
+                    <div>
+                        MP (dias)
+                        <strong>${data.mp ?? 0}</strong>
+                    </div>
+                </div>
+            `;
+            setMessage(html);
+            enableHub(pacId);
+        } catch (err) {
+            if (current !== requestId) return;
+            setMessage(`Não foi possível carregar o resumo. ${err.message}`);
+            disableHub();
+        }
+    }
+
+    reset();
+    return { fetch: fetchInsights, reset };
+})();
+
+const patientInsightDisplay = (function() {
+    const card = document.getElementById('patientInsightCard');
+    const btn = document.getElementById('patientInsightToggle');
+    let visible = false;
+
+    function update() {
+        if (card) card.style.display = visible ? 'block' : 'none';
+        if (btn) {
+            btn.classList.toggle('active', visible);
+            btn.setAttribute('aria-expanded', visible ? 'true' : 'false');
+        }
+    }
+
+    if (btn) {
+        btn.addEventListener('click', function() {
+            visible = !visible;
+            update();
+        });
+    }
+
+    update();
+
+    return {
+        hide() {
+            visible = false;
+            update();
+        },
+        isVisible() {
+            return visible;
+        }
     };
 })();
 

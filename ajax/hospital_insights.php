@@ -57,8 +57,52 @@ try {
     $stmtUti->execute();
     $pacientesUti = (int) $stmtUti->fetchColumn();
 
+    $longStayThreshold = 20;
+    $stmtLong = $conn->prepare("
+        SELECT
+            SUM(DATEDIFF(COALESCE(al.data_alta_alt, CURRENT_DATE), ac.data_intern_int)) AS dias_total,
+            COUNT(*) AS qtd_long
+          FROM tb_internacao ac
+          LEFT JOIN tb_alta al ON al.fk_id_int_alt = ac.id_internacao
+         WHERE ac.fk_hospital_int = :hospId
+           AND DATEDIFF(COALESCE(al.data_alta_alt, CURRENT_DATE), ac.data_intern_int) >= :dias
+    ");
+    $stmtLong->bindValue(':hospId', $hospitalId, PDO::PARAM_INT);
+    $stmtLong->bindValue(':dias', $longStayThreshold, PDO::PARAM_INT);
+    $stmtLong->execute();
+    $longRow = $stmtLong->fetch(PDO::FETCH_ASSOC) ?: ['dias_total' => 0, 'qtd_long' => 0];
+    $longStay = (int) ($longRow['qtd_long'] ?? 0);
+    $totalDiasLong = (int) ($longRow['dias_total'] ?? 0);
+
+    $stmtDiasHospital = $conn->prepare("
+        SELECT SUM(DATEDIFF(COALESCE(al.data_alta_alt, CURRENT_DATE), ac.data_intern_int)) AS total_dias
+          FROM tb_internacao ac
+          LEFT JOIN tb_alta al ON al.fk_id_int_alt = ac.id_internacao
+         WHERE ac.fk_hospital_int = :hospId
+    ");
+    $stmtDiasHospital->bindValue(':hospId', $hospitalId, PDO::PARAM_INT);
+    $stmtDiasHospital->execute();
+    $totalDiasHosp = (int) ($stmtDiasHospital->fetchColumn() ?: 0);
+
+    $stmtDiasUti = $conn->prepare("
+        SELECT SUM(DATEDIFF(COALESCE(ut.data_alta_uti, CURRENT_DATE), ut.data_internacao_uti)) AS total_dias
+          FROM tb_internacao ac
+          INNER JOIN tb_uti ut ON ut.fk_internacao_uti = ac.id_internacao
+         WHERE ac.fk_hospital_int = :hospId
+    ");
+    $stmtDiasUti->bindValue(':hospId', $hospitalId, PDO::PARAM_INT);
+    $stmtDiasUti->execute();
+    $totalDiasUti = (int) ($stmtDiasUti->fetchColumn() ?: 0);
+
     $percentUti = $totalInternacoes > 0
         ? round(($pacientesUti / $totalInternacoes) * 100, 1)
+        : 0;
+
+    $mpHospital = $totalInternacoes > 0
+        ? round($totalDiasHosp / $totalInternacoes, 1)
+        : 0;
+    $mpUti = $pacientesUti > 0
+        ? round($totalDiasUti / $pacientesUti, 1)
         : 0;
 
     echo json_encode([
@@ -68,6 +112,11 @@ try {
             'total_internacoes' => $totalInternacoes,
             'inter_uti'         => $pacientesUti,
             'percent_uti'       => $percentUti,
+            'long_stay'         => $longStay,
+            'mp_hospital'       => $mpHospital,
+            'mp_uti'            => $mpUti,
+            'mp_long'           => $longStay > 0 ? round($totalDiasLong / $longStay, 1) : 0,
+            'long_threshold'    => $longStayThreshold,
             'threshold'         => $threshold,
             'uti_alert'         => $pacientesUti >= $threshold
         ]
