@@ -60,7 +60,7 @@ try {
     $longStayThreshold = 20;
     $stmtLong = $conn->prepare("
         SELECT
-            SUM(DATEDIFF(COALESCE(al.data_alta_alt, CURRENT_DATE), ac.data_intern_int)) AS dias_total,
+            SUM(GREATEST(DATEDIFF(COALESCE(al.data_alta_alt, CURRENT_DATE), ac.data_intern_int), 0)) AS dias_total,
             COUNT(*) AS qtd_long
           FROM tb_internacao ac
           LEFT JOIN tb_alta al ON al.fk_id_int_alt = ac.id_internacao
@@ -75,7 +75,7 @@ try {
     $totalDiasLong = (int) ($longRow['dias_total'] ?? 0);
 
     $stmtDiasHospital = $conn->prepare("
-        SELECT SUM(DATEDIFF(COALESCE(al.data_alta_alt, CURRENT_DATE), ac.data_intern_int)) AS total_dias
+        SELECT SUM(GREATEST(DATEDIFF(COALESCE(al.data_alta_alt, CURRENT_DATE), ac.data_intern_int), 0)) AS total_dias
           FROM tb_internacao ac
           LEFT JOIN tb_alta al ON al.fk_id_int_alt = ac.id_internacao
          WHERE ac.fk_hospital_int = :hospId
@@ -85,7 +85,7 @@ try {
     $totalDiasHosp = (int) ($stmtDiasHospital->fetchColumn() ?: 0);
 
     $stmtDiasUti = $conn->prepare("
-        SELECT SUM(DATEDIFF(COALESCE(ut.data_alta_uti, CURRENT_DATE), ut.data_internacao_uti)) AS total_dias
+        SELECT SUM(GREATEST(DATEDIFF(COALESCE(ut.data_alta_uti, CURRENT_DATE), ut.data_internacao_uti), 0)) AS total_dias
           FROM tb_internacao ac
           INNER JOIN tb_uti ut ON ut.fk_internacao_uti = ac.id_internacao
          WHERE ac.fk_hospital_int = :hospId

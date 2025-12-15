@@ -637,8 +637,7 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
             <div class="form-group col-sm-12" style="margin-bottom:6px;">
                 <span style="font-weight:700;color:#5e2363;">Cadastro Central ativo</span>
                 <?php if ($cadastroCentralObrigatorio): ?>
-                <small style="margin-left:8px;color:#b02a37;font-weight:600;">Obrigatório para diretores: selecione o
-                    tipo e o responsável.</small>
+                <small style="margin-left:8px;color:#b02a37;font-weight:600;">Cadastro central obrigatório: selecione o tipo e o responsável.</small>
                 <?php else: ?>
                 <small style="margin-left:8px;color:#666;">(opcional: escolha o tipo e o responsável)</small>
                 <?php endif; ?>
