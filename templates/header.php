@@ -7,6 +7,9 @@ header("Content-type: text/html; charset=utf-8");
 
 // Caminho default
 $defaultFoto = $BASE_URL . 'img/user-default.png';
+$hideConexLogoParam = strtolower((string)(filter_input(INPUT_GET, 'hide_conex', FILTER_SANITIZE_SPECIAL_CHARS) ?? ''));
+$hideConexLogo = in_array($hideConexLogoParam, ['1', 'true', 'sim', 'on'], true);
+
 // ini_set('display_errors', 1);
 // ini_set('display_startup_errors', 1);
 // error_reporting(E_ALL);
@@ -153,10 +156,18 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
             width: 100%;
         }
     }
+
+    body.no-conex-brand .navbar .navbar-brand::after {
+        display: none !important;
+    }
+
+    body.no-conex-brand .navbar .navbar-brand .logo-novo {
+        margin-right: 0 !important;
+    }
     </style>
 </head>
 
-<body>
+<body class="<?= $hideConexLogo ? 'no-conex-brand' : '' ?>">
     <div class="col-md-12" style="padding:0 !important">
         <nav class="navbar navbar-expand-lg navbar-light bg-light nav_bar_custom fixed-top">
             <div class="bar_color" style="position:fixed;top:0;z-index:1000;width:100%;height:5px;background-image: linear-gradient(to right, #5e2363,#5bd9f3);

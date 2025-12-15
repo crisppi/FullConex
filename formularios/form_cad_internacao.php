@@ -167,6 +167,84 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
 .retroativa-banner i {
     font-size: 1.15rem;
 }
+.hospital-select-wrapper {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    flex-wrap: nowrap;
+}
+.hospital-select-wrapper select {
+    flex: 1 1 260px;
+    min-width: 260px;
+}
+.hospital-tip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 0;
+    position: relative;
+    flex: 0 0 auto;
+}
+@media (max-width: 767.98px) {
+    .hospital-select-wrapper {
+        flex-wrap: wrap;
+    }
+    .hospital-tip {
+        margin-top: 6px;
+    }
+}
+.hospital-tip button {
+    border: none;
+    background: #f4e9fb;
+    color: #5e2363;
+    border-radius: 999px;
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform .15s ease;
+}
+.hospital-tip button:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+.hospital-tip button:not(:disabled):hover {
+    transform: translateY(-1px);
+}
+.hospital-tip-popover {
+    min-width: 220px;
+    background: #fff;
+    border: 1px solid #e1d4ef;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: .85rem;
+    color: #4a2c60;
+    box-shadow: 0 6px 22px rgba(57, 15, 94, 0.12);
+    display: none;
+}
+.hospital-tip-popover strong {
+    color: #2e1146;
+}
+.hospital-tip-popover.show {
+    display: block;
+}
+.hospital-uti-alert {
+    display: none;
+    margin-top: 10px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: #fff2f2;
+    border: 1px solid #f4bebe;
+    color: #851010;
+    font-weight: 600;
+    font-size: .9rem;
+}
+.hospital-uti-alert.show {
+    display: block;
+}
 </style>
 
 <!-- Shim BS4 -> BS5 (data-toggle -> data-bs-*) -->
@@ -267,20 +345,29 @@ document.addEventListener('DOMContentLoaded', function () {
                 <label class="control-label" for="hospital_selected" style="margin-bottom:2px;">
                     <span style="color:red;">*</span> Hospital
                 </label>
-                <select onchange="myFunctionSelected()" class="form-select botao_select" id="hospital_selected"
-                    name="hospital_selected" required
-                    style="height:45px !important;border:1px solid #555;font-size:1em;background-color:#fff;color:#000;width:100%;">
-                    <option value="">Selecione</option>
-                    <?php if (!empty($listaHospitais)): ?>
-                    <?php foreach ($listaHospitais as $h): ?>
-                    <option value="<?= htmlspecialchars($h['id_hospital']) ?>">
-                        <?= htmlspecialchars($h['nome_hosp']) ?>
-                    </option>
-                    <?php endforeach; ?>
-                    <?php else: ?>
-                    <option value="">Nenhum hospital disponível</option>
-                    <?php endif; ?>
-                </select>
+                <div class="hospital-select-wrapper">
+                    <select onchange="myFunctionSelected()" class="form-select botao_select" id="hospital_selected"
+                        name="hospital_selected" required
+                        style="height:45px !important;border:1px solid #555;font-size:1em;background-color:#fff;color:#000;">
+                        <option value="">Selecione</option>
+                        <?php if (!empty($listaHospitais)): ?>
+                        <?php foreach ($listaHospitais as $h): ?>
+                        <option value="<?= htmlspecialchars($h['id_hospital']) ?>">
+                            <?= htmlspecialchars($h['nome_hosp']) ?>
+                        </option>
+                        <?php endforeach; ?>
+                        <?php else: ?>
+                        <option value="">Nenhum hospital disponível</option>
+                        <?php endif; ?>
+                    </select>
+                        <div class="hospital-tip" id="hospitalTipContainer">
+                            <button type="button" id="hospitalTipButton" title="Clique para mostrar/ocultar os insights" disabled>i</button>
+                            <div class="hospital-tip-popover" id="hospitalTipPopover">
+                            Selecione um hospital para ver negociações e internações em UTI.
+                            </div>
+                        </div>
+                    </div>
+                <div id="hospitalUtiAlert" class="hospital-uti-alert"></div>
             </div>
 
 
@@ -1224,6 +1311,107 @@ $(function() {
     }
 });
 
+const hospitalInsightsHelper = (function() {
+    const button = document.getElementById('hospitalTipButton');
+    const popover = document.getElementById('hospitalTipPopover');
+    const alertBox = document.getElementById('hospitalUtiAlert');
+    const defaultMessage = 'Selecione um hospital para ver negociações e pacientes em UTI.';
+    let autoHideTimer = null;
+
+    function hideAlert() {
+        if (alertBox) {
+            alertBox.textContent = '';
+            alertBox.classList.remove('show');
+        }
+    }
+
+    function showAlert(message) {
+        if (!alertBox) return;
+        alertBox.textContent = message;
+        alertBox.classList.add('show');
+    }
+
+    function setPopover(content, autoShow = false) {
+        if (!popover) return;
+        popover.innerHTML = content;
+        if (autoShow) {
+            popover.classList.add('show');
+            clearTimeout(autoHideTimer);
+            autoHideTimer = setTimeout(() => popover.classList.remove('show'), 6000);
+        }
+    }
+
+    function setLoading(hospitalName) {
+        if (button) button.disabled = true;
+        setPopover(`Carregando dados de <strong>${hospitalName}</strong>...`, true);
+        hideAlert();
+    }
+
+    function reset() {
+        if (button) button.disabled = true;
+        if (popover) popover.classList.remove('show');
+        setPopover(defaultMessage, false);
+        hideAlert();
+    }
+
+    async function fetchInsights(hospitalId, hospitalName) {
+        if (!hospitalId) {
+            reset();
+            return;
+        }
+        setLoading(hospitalName || 'hospital selecionado');
+        try {
+            const response = await fetch('ajax/hospital_insights.php?id_hospital=' + encodeURIComponent(hospitalId), {
+                credentials: 'same-origin'
+            });
+            if (!response.ok) throw new Error('Falha ao consultar insights.');
+            const payload = await response.json();
+            if (!payload.success || !payload.data) {
+                throw new Error(payload.error || 'Resposta inválida.');
+            }
+            const data = payload.data;
+            if (button) button.disabled = false;
+            const percent = data.percent_uti ?? 0;
+            const html = `
+                <div><strong>${hospitalName || 'Hospital selecionado'}</strong></div>
+                <div>Negociações registradas: <strong>${data.negociacoes ?? 0}</strong></div>
+                <div>Internações em UTI: <strong>${data.inter_uti ?? 0}</strong></div>
+                <div>Total de internações: <strong>${data.total_internacoes ?? 0}</strong></div>
+                <div>UTI vs Total: <strong>${percent}%</strong></div>
+            `;
+            setPopover(html, true);
+            if (data.uti_alert) {
+                const threshold = data.threshold ?? 0;
+                showAlert(`Alerta: ${data.inter_uti} internações em UTI neste hospital (limite ${threshold}).`);
+            } else {
+                hideAlert();
+            }
+        } catch (err) {
+            if (button) button.disabled = true;
+            setPopover(`Não foi possível carregar os dados. ${err.message}`, true);
+            showAlert('Não foi possível verificar os pacientes em UTI agora.');
+        }
+    }
+
+    if (button && popover) {
+        button.addEventListener('click', function() {
+            if (button.disabled) return;
+            popover.classList.toggle('show');
+        });
+        document.addEventListener('click', function(evt) {
+            if (!popover || !button) return;
+            if (popover.contains(evt.target) || button.contains(evt.target)) return;
+            popover.classList.remove('show');
+        });
+    }
+
+    reset();
+    return {
+        fetch: fetchInsights,
+        reset: reset
+    };
+})();
+
 // Hospital selecionado -> mostra nome e grava hidden
 function myFunctionSelected() {
     const select = document.getElementById("hospital_selected");
@@ -1243,12 +1431,18 @@ function myFunctionSelected() {
         select.style.border = "2px solid green";
         divNome.textContent = nome;
         divNome.style.display = "flex";
+        if (hospitalInsightsHelper && typeof hospitalInsightsHelper.fetch === 'function') {
+            hospitalInsightsHelper.fetch(id, nome);
+        }
     } else {
         select.style.color = "#000";
         select.style.fontWeight = "normal";
         select.style.border = "1px solid #555";
         divNome.textContent = "";
         divNome.style.display = "none";
+        if (hospitalInsightsHelper && typeof hospitalInsightsHelper.reset === 'function') {
+            hospitalInsightsHelper.reset();
+        }
     }
 }
 
