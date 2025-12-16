@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Manual | Internação • Prorrogação</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+    body{margin:0;font-family:'Inter',sans-serif;background:#f8f6fb;color:#2d1740;line-height:1.5}
+    header{background:linear-gradient(135deg,#6b3d7d,#422257);color:#fff;padding:48px 5vw 80px;position:relative}
+    header p{max-width:760px;color:rgba(255,255,255,.9)}
+    main{width:min(1100px,92vw);margin:-30px auto 60px;padding-top:32px}
+    h2{font-size:26px;margin:30px 0 14px;position:relative}
+    h2::after{content:"";position:absolute;left:0;bottom:-6px;width:60px;height:3px;border-radius:99px;background:linear-gradient(90deg,#8a5ab0,#5ad1f0)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px}
+    .card{background:#fff;border-radius:16px;padding:22px;border:1px solid rgba(90,43,120,.1);box-shadow:0 14px 28px rgba(57,23,92,.12)}
+    ul{margin:0;padding-left:18px}
+    .pill{display:inline-flex;gap:8px;background:rgba(255,255,255,.15);padding:6px 12px;border-radius:999px;text-transform:uppercase;font-size:13px;letter-spacing:.08em;margin-bottom:20px}
+    a.voltar{color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.4);padding:6px 12px;border-radius:999px}
+    footer{text-align:center;color:#6f6b78;padding:30px}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{text-align:left;padding:10px;border-bottom:1px solid rgba(90,43,120,.1)}
+    th{text-transform:uppercase;font-size:12px;background:#f5f0fb}
+    .hero-layout{display:flex;align-items:center;gap:24px;margin-bottom:20px;flex-wrap:wrap}
+    .hero-logo-wrap{flex:0 0 auto}
+    .hero-logo{height:46px;max-width:200px}
+    .hero-body{flex:1 1 260px;min-width:0}
+    .hero-sys-link{color:#fff;text-decoration:none;font-weight:600;border:1px solid rgba(255,255,255,.4);padding:6px 14px;border-radius:999px;transition:background .2s,color .2s}
+    .hero-sys-link:hover{background:rgba(0,0,0,.15)}
+    </style>
+</head>
+<body>
+<header>
+    <div class="hero-layout">
+        <div class="hero-logo-wrap"><img src="img/LogoFullCare.png" alt="FullCare" class="hero-logo"></div>
+        <div class="hero-body">
+            <div class="pill">Manual • Internação</div>
+            <h1>Prorrogações e gestão de senhas</h1>
+            <p>Procedimento para solicitar, acompanhar e aplicar novas datas em <strong>edit_internacao.php?aba=prorrogacao</strong> e <code>process_prorrogacao.php</code>.<br><a class="voltar" href="manual_internacao.html">← Voltar para Internação</a></p>
+        </div>
+        <a class="hero-sys-link" href="javascript:void(0)" onclick="if(document.referrer){history.back();}else{window.location='index.php';}">← Voltar ao sistema</a>
+    </div>
+</header>
+<main>
+    <section>
+        <h2>Etapas</h2>
+        <div class="grid">
+            <article class="card">
+                <h3>Solicitação</h3>
+                <ul>
+                    <li>Botão <strong>Nova prorrogação</strong> abre campos data sugerida, motivo e responsável.</li>
+                    <li>Upload de laudos/pareceres é opcional, mas recomendável para auditoria.</li>
+                    <li>Status inicial = “Solicitada” e notificação enviada ao e-mail da seguradora.</li>
+                </ul>
+            </article>
+            <article class="card">
+                <h3>Aprovação</h3>
+                <ul>
+                    <li>Diretoria ou gestão da seguradora muda para “Aprovada” ou “Negada”.</li>
+                    <li>Campos data início/fim da internação são atualizados automaticamente.</li>
+                    <li>Negativa gera banner vermelho e bloqueia novas solicitações até ajuste manual.</li>
+                </ul>
+            </article>
+            <article class="card">
+                <h3>Histórico</h3>
+                <ul>
+                    <li>Linha do tempo com carimbo de data/hora e usuário responsável.</li>
+                    <li>PDF do capeante lista todas as prorrogações aprovadas no topo.</li>
+                    <li>Exportação <code>exportar_excel_list_intern.php</code> traz coluna “Prorrogações”.</li>
+                </ul>
+            </article>
+        </div>
+    </section>
+
+    <section>
+        <h2>Regras e validações</h2>
+        <div class="grid">
+            <article class="card">
+                <h3>Data</h3>
+                <ul>
+                    <li>Nova data final deve ser ≥ data atual +1 dia.</li>
+                    <li>Sobreposição com parcial seguinte resulta em erro “Intervalo conflitante”.</li>
+                    <li>Datas em branco mantém contagem original, útil para solicitações em análise.</li>
+                </ul>
+            </article>
+            <article class="card">
+                <h3>Permissões</h3>
+                <ul>
+                    <li>Auditores podem solicitar; apenas diretoria altera status.</li>
+                    <li>Logs guardam IP, navegador e usuário (<code>logs/prorrogacao.log</code>).</li>
+                    <li>Hospitais externos visualizam somente status final (sem histórico interno).</li>
+                </ul>
+            </article>
+            <article class="card">
+                <h3>Integrações</h3>
+                <ul>
+                    <li>Lista de visitas é atualizada para liberar novos dias automaticamente.</li>
+                    <li>Solicitação cria tarefa no painel Kanban (scripts/kanban_prorrogacao.js).</li>
+                    <li>Se houver negociação vinculada, ela passa a exigir revalidação.</li>
+                </ul>
+            </article>
+        </div>
+    </section>
+
+    <section>
+        <h2>Impacto no capeante e envios</h2>
+        <div class="grid">
+            <article class="card">
+                <h3>Edição</h3>
+                <ul>
+                    <li>Ao aprovar prorrogação, a parcial atual recebe nova faixa de datas automaticamente.</li>
+                    <li>Itens do TUSS marcados como “Por cobertura extra” são destacados com ícone azul.</li>
+                    <li>Aba Capeante exibe tooltip “Atualizado por prorrogação em DD/MM”.</li>
+                </ul>
+            </article>
+            <article class="card">
+                <h3>PDF</h3>
+                <ul>
+                    <li>Header do PDF mostra período antes e depois da prorrogação.</li>
+                    <li>Resumo textual explica motivo da extensão para quem recebe o arquivo.</li>
+                    <li>Envio automático anexa a última carta de autorização recebida.</li>
+                </ul>
+            </article>
+            <article class="card">
+                <h3>Automatismos</h3>
+                <ul>
+                    <li>Cron diário verifica internações com prorrogação próxima de vencer e envia alerta.</li>
+                    <li>Dashboard mensal apresenta card “Prorrogações pendentes de resposta”.</li>
+                    <li>Exportação em massa para seguradora inclui apenas registros aprovados.</li>
+                </ul>
+            </article>
+        </div>
+    </section>
+
+    <section>
+        <h2>Painéis</h2>
+        <article class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Painel</th>
+                        <th>Indicadores</th>
+                        <th>Fonte</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Dashboard operacional</td>
+                        <td>% de prorrogações aprovadas, tempo médio de resposta.</td>
+                        <td><code>dashboard_operacional.php</code> usa dados de <code>process_prorrogacao.php</code>.</td>
+                    </tr>
+                    <tr>
+                        <td>Painel BI</td>
+                        <td>Mapa de calor por hospital/seguradora mostrando concentração.</td>
+                        <td>CSV em <code>diversos/export_prorrogacao.csv</code> atualizado diariamente.</td>
+                    </tr>
+                    <tr>
+                        <td>Lista de internações</td>
+                        <td>Coluna “Prorrogação” com badge verde (aprovada) ou cinza (aguardando).</td>
+                        <td><code>list_internacao.php</code> (campos adicionais no SELECT).</td>
+                    </tr>
+                </tbody>
+            </table>
+        </article>
+    </section>
+</main>
+<footer>Manual Internação • Prorrogações • versão 0.3</footer>
+</body>
+</html>

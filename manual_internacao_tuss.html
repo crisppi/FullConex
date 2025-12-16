@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Manual | Internação • TUSS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+    body{margin:0;font-family:'Inter',sans-serif;background:#f8f6fb;color:#2d1740;line-height:1.5}
+    header{background:linear-gradient(135deg,#6b3d7d,#422257);color:#fff;padding:48px 5vw 80px;position:relative}
+    header p{max-width:760px;color:rgba(255,255,255,.9)}
+    main{width:min(1100px,92vw);margin:-30px auto 60px;padding-top:32px}
+    h2{font-size:26px;margin:30px 0 14px;position:relative}
+    h2::after{content:"";position:absolute;left:0;bottom:-6px;width:60px;height:3px;border-radius:99px;background:linear-gradient(90deg,#8a5ab0,#5ad1f0)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px}
+    .card{background:#fff;border-radius:16px;padding:22px;border:1px solid rgba(90,43,120,.1);box-shadow:0 14px 28px rgba(57,23,92,.12)}
+    ul{margin:0;padding-left:18px}
+    .pill{display:inline-flex;gap:8px;background:rgba(255,255,255,.15);padding:6px 12px;border-radius:999px;text-transform:uppercase;font-size:13px;letter-spacing:.08em;margin-bottom:20px}
+    a.voltar{color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.4);padding:6px 12px;border-radius:999px}
+    footer{text-align:center;color:#6f6b78;padding:30px}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{text-align:left;padding:10px;border-bottom:1px solid rgba(90,43,120,.1)}
+    th{text-transform:uppercase;font-size:12px;background:#f5f0fb}
+    .hero-layout{display:flex;align-items:center;gap:24px;margin-bottom:20px;flex-wrap:wrap}
+    .hero-logo-wrap{flex:0 0 auto}
+    .hero-logo{height:46px;max-width:200px}
+    .hero-body{flex:1 1 260px;min-width:0}
+    .hero-sys-link{color:#fff;text-decoration:none;font-weight:600;border:1px solid rgba(255,255,255,.4);padding:6px 14px;border-radius:999px;transition:background .2s,color .2s}
+    .hero-sys-link:hover{background:rgba(0,0,0,.15)}
+    </style>
+</head>
+<body>
+<header>
+    <div class="hero-layout">
+        <div class="hero-logo-wrap"><img src="img/LogoFullCare.png" alt="FullCare" class="hero-logo"></div>
+        <div class="hero-body">
+            <div class="pill">Manual • Internação</div>
+            <h1>TUSS integrada à internação</h1>
+            <p>Aba específica dentro de <strong>edit_internacao_TUSS.php</strong> para controlar os procedimentos autorizados pela seguradora, refletindo diretamente no capeante, PDF e e-mails automáticos.<br><a class="voltar" href="manual_internacao.html">← Voltar para Internação</a></p>
+        </div>
+        <a class="hero-sys-link" href="javascript:void(0)" onclick="if(document.referrer){history.back();}else{window.location='index.php';}">← Voltar ao sistema</a>
+    </div>
+</header>
+<main>
+    <section>
+        <h2>Contexto</h2>
+        <div class="grid">
+            <article class="card">
+                <h3>Onde acessar</h3>
+                <ul>
+                    <li>Aba <strong>TUSS</strong> dentro da internação, após selecionar o paciente.</li>
+                    <li>Registros alimentam automaticamente a tabela <code>cap_tuss</code> utilizada nos relatórios.</li>
+                    <li>Back-end centralizado em <code>process_tuss.php</code> / <code>process_tuss2.php</code>.</li>
+                </ul>
+            </article>
+            <article class="card">
+                <h3>Objetivo</h3>
+                <ul>
+                    <li>Controlar solicitações e liberações de materiais, OPME e diárias especiais.</li>
+                    <li>Sinalizar glosas e exceções antes da etapa financeira.</li>
+                    <li>Expor o detalhamento no capeante e no PDF enviado ao cliente.</li>
+                </ul>
+            </article>
+        </div>
+    </section>
+
+    <section>
+        <h2>Fluxo de cadastro</h2>
+        <div class="grid">
+            <article class="card">
+                <h3>Inclusão</h3>
+                <ul>
+                    <li>Botão <strong>Adicionar TUSS</strong> abre modal com campos código, descrição, tipo e data.</li>
+                    <li>Quantidade e valor unitário calculam total automaticamente (quantidade × unitário).</li>
+                    <li>Campo "Status" oferece Em análise, Autorizado ou Negado, acionando badge na lista.</li>
+                </ul>
+            </article>
+            <article class="card">
+                <h3>Edição e histórico</h3>
+                <ul>
+                    <li>Ao clicar no registro a linha vira formulário inline; ações salvam via AJAX.</li>
+                    <li>Alterações mantêm log de usuário/data visível ao passar o mouse no ícone “i”.</li>
+                    <li>Exclusões exigem justificativa; item fica oculto, mas aparece no PDF como “Cancelado”.</li>
+                </ul>
+            </article>
+            <article class="card">
+                <h3>Travas</h3>
+                <ul>
+                    <li>Datas precisam estar dentro do período da internação ou de prorrogação vigente.</li>
+                    <li>Não permite duplicar código + data + paciente; sistema sugere editar o registro existente.</li>
+                    <li>Valores negativos são bloqueados e exibem alerta “Valor inválido”.</li>
+                </ul>
+            </article>
+        </div>
+    </section>
+
+    <section>
+        <h2>Capeante, PDFs e envio</h2>
+        <div class="grid">
+            <article class="card">
+                <h3>Impacto na edição</h3>
+                <ul>
+                    <li>Ao abrir <code>form_list_internacao_cap.php</code>, os itens TUSS aparecem agrupados por tipo (diárias, taxas, OPME).</li>
+                    <li>Campos editáveis recalculam totais em tela antes do envio ao faturamento.</li>
+                    <li>Ano/mês do capeante determina qual parcial e quais TUSS entram no relatório.</li>
+                </ul>
+            </article>
+            <article class="card">
+                <h3>Geração de PDF</h3>
+                <ul>
+                    <li><code>process_capeante_pdf.php</code> renderiza cada TUSS em tabela específica com totalizador automático.</li>
+                    <li>Itens glosados ganham destaque em vermelho e legenda com justificativa.</li>
+                    <li>Resumo das negociações aprovadas (caso existam) aparece no rodapé.</li>
+                </ul>
+            </article>
+            <article class="card">
+                <h3>Envio automatizado</h3>
+                <ul>
+                    <li><code>process_capeante_pdf (email OK).php</code> dispara o PDF para a seguradora e cópia para o auditor.</li>
+                    <li>Assunto segue o padrão “Capeante – Paciente – Parcial N – Hospital”.</li>
+                    <li>Falha no envio grava log em <code>logs/export_capeante_pdf.error.log</code> e informa alerta na tela.</li>
+                </ul>
+            </article>
+        </div>
+    </section>
+
+    <section>
+        <h2>Painéis e monitoramento</h2>
+        <article class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Origem</th>
+                        <th>Uso</th>
+                        <th>Onde ver</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Dashboard operacional</td>
+                        <td>Ranking mensal de TUSS autorizados x negados por hospital.</td>
+                        <td><code>dashboard_operacional.php</code> → card “Procedimentos liberados”.</td>
+                    </tr>
+                    <tr>
+                        <td>Relatório export_negociacoes_graficos.php</td>
+                        <td>Resumo diário para BI, alimentando painel automatizado no Power BI.</td>
+                        <td>Menu Operação &gt; Gráficos.</td>
+                    </tr>
+                    <tr>
+                        <td>Alertas de glosas</td>
+                        <td>Sinaliza internações com mais de 30% dos itens negados.</td>
+                        <td>Lista de internações e módulo de visita recebem badge vermelho.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </article>
+    </section>
+</main>
+<footer>Manual Internação • TUSS • versão 0.3</footer>
+</body>
+</html>

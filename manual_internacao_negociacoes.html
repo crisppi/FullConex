@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Manual | Internação • Negociações</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+    body{margin:0;font-family:'Inter',sans-serif;background:#f8f6fb;color:#2d1740;line-height:1.5}
+    header{background:linear-gradient(135deg,#6b3d7d,#422257);color:#fff;padding:48px 5vw 80px;position:relative}
+    header p{max-width:760px;color:rgba(255,255,255,.9)}
+    main{width:min(1100px,92vw);margin:-30px auto 60px;padding-top:32px}
+    h2{font-size:26px;margin:30px 0 14px;position:relative}
+    h2::after{content:"";position:absolute;left:0;bottom:-6px;width:60px;height:3px;border-radius:99px;background:linear-gradient(90deg,#8a5ab0,#5ad1f0)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px}
+    .card{background:#fff;border-radius:16px;padding:22px;border:1px solid rgba(90,43,120,.1);box-shadow:0 14px 28px rgba(57,23,92,.12)}
+    ul{margin:0;padding-left:18px}
+    .pill{display:inline-flex;gap:8px;background:rgba(255,255,255,.15);padding:6px 12px;border-radius:999px;text-transform:uppercase;font-size:13px;letter-spacing:.08em;margin-bottom:20px}
+    a.voltar{color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.4);padding:6px 12px;border-radius:999px}
+    footer{text-align:center;color:#6f6b78;padding:30px}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{text-align:left;padding:10px;border-bottom:1px solid rgba(90,43,120,.1)}
+    th{text-transform:uppercase;font-size:12px;background:#f5f0fb}
+    .hero-layout{display:flex;align-items:center;gap:24px;margin-bottom:20px;flex-wrap:wrap}
+    .hero-logo-wrap{flex:0 0 auto}
+    .hero-logo{height:46px;max-width:200px}
+    .hero-body{flex:1 1 260px;min-width:0}
+    .hero-sys-link{color:#fff;text-decoration:none;font-weight:600;border:1px solid rgba(255,255,255,.4);padding:6px 14px;border-radius:999px;transition:background .2s,color .2s}
+    .hero-sys-link:hover{background:rgba(0,0,0,.15)}
+    </style>
+</head>
+<body>
+<header>
+    <div class="hero-layout">
+        <div class="hero-logo-wrap"><img src="img/LogoFullCare.png" alt="FullCare" class="hero-logo"></div>
+        <div class="hero-body">
+            <div class="pill">Manual • Internação</div>
+            <h1>Negociações dentro da internação</h1>
+            <p>Guia específico para a aba Negociações (<strong>edit_internacao.php?aba=negociacoes</strong>), onde auditoria registra acordos e descontos antes do faturamento.<br><a class="voltar" href="manual_internacao.html">← Voltar para Internação</a></p>
+        </div>
+        <a class="hero-sys-link" href="javascript:void(0)" onclick="if(document.referrer){history.back();}else{window.location='index.php';}">← Voltar ao sistema</a>
+    </div>
+</header>
+<main>
+    <section>
+        <h2>Fluxo</h2>
+        <div class="grid">
+            <article class="card">
+                <h3>Quando usar</h3>
+                <ul>
+                    <li>Hospitais solicitam pacote alternativo ou desconto para materiais/diárias.</li>
+                    <li>Seguradora pede validação da prorrogação mediante redução de valor.</li>
+                    <li>Evento adverso gera necessidade de cobertura extraordinária.</li>
+                </ul>
+            </article>
+            <article class="card">
+                <h3>Cadastro</h3>
+                <ul>
+                    <li>Campos obrigatórios: motivo, valor pedido, valor negociado, percentual e responsável.</li>
+                    <li>Upload de e-mails e pareceres em PDF/JPG (até 5MB).</li>
+                    <li>Botão <strong>Salvar negociação</strong> envia dados para <code>process_negociacao.php</code>.</li>
+                </ul>
+            </article>
+            <article class="card">
+                <h3>Status e alertas</h3>
+                <ul>
+                    <li><strong>Em análise</strong> – badge laranja na lista de internações.</li>
+                    <li><strong>Aprovada</strong> – valores bloqueados na conta/RAH.</li>
+                    <li><strong>Rejeitada</strong> – permanece no histórico sem reflexo financeiro.</li>
+                    <li>Fluxo de aprovação envia e-mail para diretoria (configurado em <code>globals.php</code>).</li>
+                </ul>
+            </article>
+        </div>
+    </section>
+
+    <section>
+        <h2>Integração com capeante e faturamento</h2>
+        <div class="grid">
+            <article class="card">
+                <h3>Edição</h3>
+                <ul>
+                    <li>Enquanto existir negociação em análise, campos críticos do capeante ficam bloqueados.</li>
+                    <li>Após aprovação, valores sugeridos são preenchidos automaticamente nos campos “Negociado”.</li>
+                    <li>Clique em “Aplicar na conta” grava o reflexo no <code>process_capeante.php</code>.</li>
+                </ul>
+            </article>
+            <article class="card">
+                <h3>PDF e envio</h3>
+                <ul>
+                    <li>Resumo das negociações aprovadas aparece antes do quadro financeiro no PDF.</li>
+                    <li>Quando o capeante é enviado por e-mail, o corpo da mensagem lista cada negociação como check-list.</li>
+                    <li>Anexos da negociação são reencaminhados junto ao capeante, evitando buscas no servidor.</li>
+                </ul>
+            </article>
+            <article class="card">
+                <h3>Logs</h3>
+                <ul>
+                    <li>Toda alteração gera entrada em <code>logs/negociacoes.log</code> com usuário/IP.</li>
+                    <li>Exportação para Excel (<code>exportar_excel_negociacoes.php</code>) respeita filtros aplicados na aba.</li>
+                    <li>Ação “Desfazer” restaura último valor antes da aprovação (controle por versão).</li>
+                </ul>
+            </article>
+        </div>
+    </section>
+
+    <section>
+        <h2>Painéis automatizados</h2>
+        <article class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Origem</th>
+                        <th>Descrição</th>
+                        <th>Atualização</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>negociacoes_graficos.php</td>
+                        <td>API que consolida volume por hospital, status e ticket médio.</td>
+                        <td>Atualiza a cada inclusão/edição aprovada.</td>
+                    </tr>
+                    <tr>
+                        <td>export_negociacoes_graficos.php</td>
+                        <td>Arquivo CSV consumido pelo painel automatizado do BI.</td>
+                        <td>Executado às 06h/12h/18h via cron.</td>
+                    </tr>
+                    <tr>
+                        <td>Dashboard mensal</td>
+                        <td>Card “Economia por negociação” mostra economia acumulada versus meta.</td>
+                        <td>Consulta em tempo real quando usuário abre <code>dashboard_mensal.php</code>.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </article>
+    </section>
+
+    <section>
+        <h2>Boas práticas</h2>
+        <div class="grid">
+            <article class="card">
+                <ul>
+                    <li>Use o campo “Observações internas” para orientar faturamento, não vai para o PDF.</li>
+                    <li>Atualize o status antes de gerar capeante; PDFs não se atualizam retroativamente.</li>
+                    <li>Caso exista evento adverso associado, vincule o número do evento para rastreabilidade.</li>
+                </ul>
+            </article>
+        </div>
+    </section>
+</main>
+<footer>Manual Internação • Negociações • versão 0.3</footer>
+</body>
+</html>

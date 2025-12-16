@@ -16,13 +16,13 @@
         <header class="hero" id="home">
             <nav class="hero__nav">
                 <div class="brand">
-                    <img src="../img/LogoFullCare.png" alt="FullCare" class="brand__logo">
-                    <span class="brand__tagline">Gestão em saúde</span>
+                    <img src="../img/logo_fullcare_branco_large.png" alt="FullCare • Gestão em Saúde" class="brand__full-logo">
                 </div>
                 <div class="hero__nav-links">
                     <a href="#sobre">Sobre</a>
                     <a href="#diferenciais">Diferenciais</a>
                     <a href="#fluxo">Fluxo</a>
+                    <a href="#modulos">Módulos</a>
                     <a href="#contato">Contato</a>
                 </div>
                 <a class="btn btn--ghost" href="../index.php">Entrar no sistema</a>
@@ -73,14 +73,6 @@
                             <div class="visual-card__divider"></div>
                             <p class="visual-card__value visual-card__value--highlight">Alertas ativos <strong>12</strong></p>
                             <span class="visual-card__tiny">Eventos adversos sinalizados e pacientes em risco elevado.</span>
-                        </div>
-                        <div class="floating-badge">
-                            <span>Score assistencial</span>
-                            <strong>9,4</strong>
-                        </div>
-                        <div class="floating-badge floating-badge--secondary">
-                            <span>Negociações concluídas</span>
-                            <strong>+312</strong>
                         </div>
                     </div>
                 </div>
@@ -197,6 +189,40 @@
                         <h3>BI & indicadores</h3>
                         <p>Exportações automáticas, alertas proativos e integrações com o time executivo.</p>
                     </article>
+                </div>
+            </section>
+
+            <section class="section modules" id="modulos">
+                <div class="section__intro">
+                    <span class="eyebrow">Módulos em foco</span>
+                    <h2>Detalhe de funcionalidades avançadas</h2>
+                    <p>Conheça fluxos críticos da operação que ganharam páginas dedicadas com exemplos e benefícios.</p>
+                </div>
+                <div class="modules__grid">
+                    <a class="module-card" href="internacoes-tuss.php">
+                        <span class="module-card__chip">Internações</span>
+                        <h3>TUSS integrada</h3>
+                        <p>Procedimentos autorizados e glosas com reflexo direto no capeante e nos envios automáticos.</p>
+                        <span class="module-card__link">Ver detalhes →</span>
+                    </a>
+                    <a class="module-card" href="internacoes-negociacoes.php">
+                        <span class="module-card__chip">Internações</span>
+                        <h3>Negociações</h3>
+                        <p>Workflow com aprovação, simulações e registros prontos para PDF e dashboards.</p>
+                        <span class="module-card__link">Ver detalhes →</span>
+                    </a>
+                    <a class="module-card" href="internacoes-prorrogacao.php">
+                        <span class="module-card__chip">Internações</span>
+                        <h3>Prorrogações inteligentes</h3>
+                        <p>Solicitação estruturada, atualização automática das datas e alertas proativos.</p>
+                        <span class="module-card__link">Ver detalhes →</span>
+                    </a>
+                    <a class="module-card" href="internacoes-evento-adverso.php">
+                        <span class="module-card__chip">Qualidade</span>
+                        <h3>Eventos adversos</h3>
+                        <p>Registro com impacto financeiro, vínculo ao capeante e visualização em painéis automatizados.</p>
+                        <span class="module-card__link">Ver detalhes →</span>
+                    </a>
                 </div>
             </section>
 
