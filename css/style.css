@@ -1027,3 +1027,43 @@ input:invalid {
 .assist-popover-link:hover {
     text-decoration: underline;
 }
+
+.saude-autocomplete-wrapper {
+    position: relative;
+}
+
+.saude-suggestions {
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 1055;
+    background: #fff;
+    border: 1px solid rgba(94, 35, 99, 0.25);
+    border-radius: 8px;
+    box-shadow: 0 10px 24px rgba(15, 11, 35, 0.12);
+    margin-top: 4px;
+    padding: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.saude-suggestions.d-none {
+    display: none !important;
+}
+
+.saude-suggestions__item {
+    background: #f4e9fb;
+    color: #5e2363;
+    border: 0;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.saude-suggestions__item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 12px rgba(94, 35, 99, 0.25);
+}

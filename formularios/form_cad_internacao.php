@@ -802,8 +802,8 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
             </div>
             <div id="div_rel_pertinente_int" style="display:none;" class="form-group col-sm-8">
                 <label for="rel_pertinente_int">Justifique não pertinência</label>
-                <textarea style="resize:none" rows="3" class="form-control" id="rel_pertinente_int"
-                    name="rel_pertinente_int"></textarea>
+                <textarea data-saude-autocomplete="true" style="resize:none" rows="3" class="form-control"
+                    id="rel_pertinente_int" name="rel_pertinente_int"></textarea>
             </div>
         </div>
 
@@ -892,8 +892,8 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
         <div class="form-group" style="margin-left:0px; margin-top:-15px">
             <div>
                 <label for="rel_int">Relatório de Auditoria</label>
-                <textarea maxlength="5000" style="resize:none" rows="2" onclick="aumentarText('rel_int')"
-                    class="form-control" id="rel_int" name="rel_int"></textarea>
+                <textarea data-saude-autocomplete="true" maxlength="5000" style="resize:none" rows="2"
+                    onclick="aumentarText('rel_int')" class="form-control" id="rel_int" name="rel_int"></textarea>
             </div>
 
             <!-- Chat Widget -->
@@ -915,14 +915,16 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
 
             <div style="margin-top: 10px;">
                 <label for="acoes_int">Ações da Auditoria</label>
-                <textarea rows="2" style="resize:none" onclick="aumentarText('acoes_int')" class="form-control"
-                    maxlength="5000" id="acoes_int" name="acoes_int"></textarea>
+                <textarea data-saude-autocomplete="true" rows="2" style="resize:none"
+                    onclick="aumentarText('acoes_int')" class="form-control" maxlength="5000" id="acoes_int"
+                    name="acoes_int"></textarea>
             </div>
 
             <div style="margin-top: 10px;">
                 <label for="programacao_int">Programação Terapêutica</label>
-                <textarea style="resize:none" maxlength="5000" rows="2" onclick="aumentarText('programacao_int')"
-                    class="form-control" id="programacao_int" name="programacao_int"></textarea>
+                <textarea data-saude-autocomplete="true" style="resize:none" maxlength="5000" rows="2"
+                    onclick="aumentarText('programacao_int')" class="form-control" id="programacao_int"
+                    name="programacao_int"></textarea>
             </div>
 
             <div><br></div>
@@ -1146,13 +1148,13 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
                         </div>
                         <div>
                             <label for="exames_det">Exames relevantes</label>
-                            <textarea style="resize:none" maxlength="5000" rows="3" onclick="aumentarText('exames_det')"
-                                onblur="reduzirText('exames_det', 3)" class="form-control" id="exames_det"
-                                name="exames_det"></textarea>
+                            <textarea data-saude-autocomplete="true" style="resize:none" maxlength="5000" rows="3"
+                                onclick="aumentarText('exames_det')" onblur="reduzirText('exames_det', 3)"
+                                class="form-control" id="exames_det" name="exames_det"></textarea>
                         </div>
                         <div>
                             <label for="oportunidades_det">Oportunidades</label>
-                            <textarea style="resize:none" maxlength="5000" rows="2"
+                            <textarea data-saude-autocomplete="true" style="resize:none" maxlength="5000" rows="2"
                                 onclick="aumentarText('oportunidades_det')" class="form-control" id="oportunidades_det"
                                 onblur="reduzirText('oportunidades_det', 3)" name="oportunidades_det"></textarea>
                         </div>
@@ -2665,3 +2667,4 @@ document.addEventListener('paciente:cadastrado', function(event) {
     integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous">
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
+<script src="<?= $BASE_URL ?>js/saude-autocomplete.js?v=2"></script>
