@@ -214,6 +214,9 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
 .hospital-tip button:not(:disabled):hover {
     transform: translateY(-1px);
 }
+#myForm {
+    transition: filter .2s ease, opacity .2s ease;
+}
 .hospital-tip-popover {
     min-width: 220px;
     background: #fff;
@@ -335,6 +338,44 @@ document.addEventListener('DOMContentLoaded', function() {
             'data-target'));
     });
 });
+
+function triggerInternacaoAutoSave() {
+    const form = document.getElementById('myForm');
+    if (!form) return;
+    const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+
+    // impede salvar se houver campos obrigatórios faltando
+    if (typeof form.checkValidity === 'function' && !form.checkValidity()) {
+        form.reportValidity && form.reportValidity();
+        return;
+    }
+
+    const restoreVisual = () => {
+        form.style.filter = '';
+        form.style.opacity = '';
+        if (submitBtn) submitBtn.disabled = false;
+    };
+
+    if (submitBtn) submitBtn.disabled = true;
+    form.style.filter = 'blur(2px)';
+    form.style.opacity = '0.6';
+
+    setTimeout(function() {
+        const hasJquery = typeof window.jQuery === 'function';
+        if (hasJquery) {
+            window.jQuery(form).trigger('submit');
+            restoreVisual();
+            return;
+        }
+        const evt = new Event('submit', { cancelable: true, bubbles: true });
+        const notCanceled = form.dispatchEvent(evt);
+        if (notCanceled) {
+            form.submit();
+        } else {
+            restoreVisual();
+        }
+    }, 150);
+}
 
 document.addEventListener('DOMContentLoaded', function () {
     var form = document.getElementById('myForm');
@@ -1904,10 +1945,30 @@ document.addEventListener('DOMContentLoaded', function() {
         mirrorVisitMedFromFk();
     }
 
+    function resetCadastroCentralUI() {
+        respTipo?.classList.remove('is-invalid');
+        if (respTipo) respTipo.value = '';
+
+        [selMed, selEnf].forEach(function(selectEl) {
+            if (!selectEl) return;
+            selectEl.classList.remove('is-invalid');
+            selectEl.value = '';
+            refreshPicker(selectEl);
+        });
+
+        hide(boxMed);
+        hide(boxEnf);
+        resetToSessionUser();
+    }
+
     // inicia oculto
     hide(boxMed);
     hide(boxEnf);
     resetToSessionUser();
+
+    window.cadastroCentralHelper = window.cadastroCentralHelper || {};
+    window.cadastroCentralHelper.reset = resetCadastroCentralUI;
+    window.cadastroCentralHelper.resetToSessionUser = resetToSessionUser;
 
     respTipo?.addEventListener('change', function() {
         clearInvalid(respTipo);
@@ -2130,6 +2191,10 @@ $("#myForm").submit(function(event) {
                         element.value = '';
                     }
                 });
+
+                if (window.cadastroCentralHelper && typeof window.cadastroCentralHelper.reset === 'function') {
+                    window.cadastroCentralHelper.reset();
+                }
 
                 // 3. Restaura o valor selecionado do select de hospitais (já feito antes do AJAX)
                 // document.getElementById("hospital_selected").value = hospitalSelected; // Não precisa redefinir aqui

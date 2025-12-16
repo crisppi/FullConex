@@ -168,6 +168,10 @@ $hideConexLogo = in_array($hideConexLogoParam, ['1', 'true', 'sim', 'on'], true)
 </head>
 
 <body class="<?= $hideConexLogo ? 'no-conex-brand' : '' ?>">
+    <button type="button" id="return-flow-btn"
+        style="display:none;position:fixed;bottom:24px;right:24px;z-index:1100;padding:0.65rem 1.2rem;border:none;border-radius:999px;background:#5e2363;color:#fff;font-weight:600;box-shadow:0 12px 25px rgba(94,35,99,0.35);cursor:pointer;">
+        Voltar ao fluxo anterior
+    </button>
     <div class="col-md-12" style="padding:0 !important">
         <nav class="navbar navbar-expand-lg navbar-light bg-light nav_bar_custom fixed-top">
             <div class="bar_color" style="position:fixed;top:0;z-index:1000;width:100%;height:5px;background-image: linear-gradient(to right, #5e2363,#5bd9f3);
@@ -958,6 +962,219 @@ $menu.on('click', '#create-new-pac', function(e) {
     const url = BASE_URL + 'cad_paciente.php';
     openModalPac(url, 'Cadastrar novo paciente'); // <— só isso
     $menu.hide();
+});
+
+function escapeAttrValue(val) {
+    return String(val)
+        .replace(/\\/g, '\\\\')
+        .replace(/"/g, '\\"');
+}
+
+function navigateWithReturn(url) {
+    try {
+        sessionStorage.setItem('return_flow_url', window.location.href);
+    } catch (e) {}
+    try {
+        const draft = collectFormDraft();
+        if (draft) {
+            sessionStorage.setItem('return_form_draft', JSON.stringify(draft));
+        } else {
+            sessionStorage.removeItem('return_form_draft');
+        }
+    } catch (e) {}
+    window.location.href = url;
+}
+
+function collectFormDraft() {
+    const form = document.getElementById('myForm');
+    if (!form) return null;
+    const elements = Array.from(form.elements || []);
+    const values = {};
+    const checks = {};
+    let hasValue = false;
+
+    const skipTypes = ['button', 'submit', 'reset', 'file'];
+
+    elements.forEach(el => {
+        if (!el || !el.name || el.disabled) return;
+        const type = (el.type || '').toLowerCase();
+        if (skipTypes.includes(type)) return;
+
+        if (type === 'checkbox') {
+            if (!checks[el.name]) checks[el.name] = {};
+            const key = el.value || '__on__';
+            checks[el.name][key] = el.checked;
+            if (el.checked) hasValue = true;
+            return;
+        }
+
+        if (type === 'radio') {
+            if (el.checked) {
+                values[el.name] = el.value;
+                hasValue = true;
+            } else if (!(el.name in values)) {
+                values[el.name] = null;
+            }
+            return;
+        }
+
+        if (el.tagName === 'SELECT' && el.multiple) {
+            const selected = Array.from(el.options || [])
+                .filter(opt => opt.selected)
+                .map(opt => opt.value);
+            values[el.name] = selected;
+            if (selected.length) hasValue = true;
+            return;
+        }
+
+        values[el.name] = el.value;
+        if (el.value) hasValue = true;
+    });
+
+    if (!hasValue) return null;
+
+    return {
+        url: window.location.href,
+        timestamp: Date.now(),
+        values,
+        checks
+    };
+}
+
+function restoreFormDraft() {
+    let raw = null;
+    try {
+        raw = sessionStorage.getItem('return_form_draft');
+    } catch (e) {
+        raw = null;
+    }
+    if (!raw) return;
+    let payload;
+    try {
+        payload = JSON.parse(raw);
+    } catch (e) {
+        sessionStorage.removeItem('return_form_draft');
+        return;
+    }
+    if (!payload || payload.url !== window.location.href) return;
+    const form = document.getElementById('myForm');
+    if (!form) return;
+
+    const values = payload.values || {};
+    Object.keys(values).forEach(name => {
+        const field = form.elements.namedItem(name);
+        if (!field) return;
+        const stored = values[name];
+
+        if (field instanceof RadioNodeList || (field.length && field[0] && field[0].type === 'radio')) {
+            const radios = field.length ? Array.from(field) : [field];
+            radios.forEach(radio => {
+                radio.checked = stored !== null && radio.value === stored;
+            });
+            return;
+        }
+
+        if (field.tagName === 'SELECT' && field.multiple && Array.isArray(stored)) {
+            Array.from(field.options || []).forEach(opt => {
+                opt.selected = stored.includes(opt.value);
+            });
+            return;
+        }
+
+        field.value = stored ?? '';
+    });
+
+    const checkboxStates = payload.checks || {};
+    Object.keys(checkboxStates).forEach(name => {
+        const states = checkboxStates[name];
+        const selector = 'input[type="checkbox"][name="' + escapeAttrValue(name) + '"]';
+        const boxes = form.querySelectorAll(selector);
+        boxes.forEach(box => {
+            const key = box.value || '__on__';
+            if (Object.prototype.hasOwnProperty.call(states, key)) {
+                box.checked = !!states[key];
+            }
+        });
+    });
+
+    if (window.$ && $.fn.selectpicker) {
+        $('.selectpicker', form).each(function() {
+            try {
+                $(this).selectpicker('refresh');
+            } catch (_) {}
+        });
+    }
+
+    try {
+        sessionStorage.removeItem('return_form_draft');
+    } catch (_) {}
+}
+
+document.addEventListener('keydown', function(e) {
+    if (!e.ctrlKey || !e.shiftKey) return;
+    const key = (e.key || '').toUpperCase();
+    let handled = false;
+
+    if (key === 'I') {
+        handled = true;
+        navigateWithReturn(BASE_URL + 'internacoes/nova');
+    } else if (key === 'P') {
+        handled = true;
+        openModalPac(BASE_URL + 'cad_paciente.php', 'Cadastrar novo paciente');
+    } else if (key === 'V') {
+        handled = true;
+        navigateWithReturn(BASE_URL + 'cad_visita.php');
+    } else if (key === 'S') {
+        handled = true;
+        if (typeof triggerInternacaoAutoSave === 'function') {
+            triggerInternacaoAutoSave();
+        } else {
+            const form = document.getElementById('myForm');
+            form && form.submit();
+        }
+    } else if (key === 'L') {
+        handled = true;
+        navigateWithReturn(BASE_URL + 'internacoes/lista');
+    } else if (key === 'C') {
+        handled = true;
+        navigateWithReturn(BASE_URL + 'internacoes/rah');
+    } else if (key === 'A') {
+        handled = true;
+        navigateWithReturn(BASE_URL + 'listas/altas');
+    }
+
+    if (handled) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById('return-flow-btn');
+    let target = null;
+    try {
+        target = sessionStorage.getItem('return_flow_url');
+    } catch (e) {
+        target = null;
+    }
+    if (target && window.location.href === target) {
+        try {
+            sessionStorage.removeItem('return_flow_url');
+        } catch (_) {}
+        target = null;
+    }
+    if (target && btn) {
+        btn.style.display = 'flex';
+        btn.addEventListener('click', function() {
+            try {
+                sessionStorage.removeItem('return_flow_url');
+            } catch (_) {}
+                window.location.href = target;
+        });
+    } else if (btn) {
+        btn.style.display = 'none';
+    }
+    restoreFormDraft();
 });
 </script>
 
