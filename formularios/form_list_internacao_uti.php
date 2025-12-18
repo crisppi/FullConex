@@ -54,6 +54,7 @@ $uti = new utiDAO($conn, $BASE_URL);
                     $pesqInternado = filter_input(INPUT_GET, 'pesqInternado', FILTER_SANITIZE_SPECIAL_CHARS);
                     $limite_pag = filter_input(INPUT_GET, 'limite_pag');
                     $pesquisa_pac = filter_input(INPUT_GET, 'pesquisa_pac', FILTER_SANITIZE_SPECIAL_CHARS);
+                    $pesquisa_matricula = filter_input(INPUT_GET, 'pesquisa_matricula', FILTER_SANITIZE_SPECIAL_CHARS);
                     $ordenar = filter_input(INPUT_GET, 'ordenar');
                     ?>
                     <div class="row">
@@ -68,6 +69,11 @@ $uti = new utiDAO($conn, $BASE_URL);
                             <input class="form-control form-control-sm" type="text" name="pesquisa_pac"
                                 style="margin-top:7px;font-size:.8em; color:#878787" placeholder="Paciente"
                                 value="<?= $pesquisa_pac ?>">
+                        </div>
+                        <div class="col-sm-2" style="padding:2px !important">
+                            <input class="form-control form-control-sm" type="text" name="pesquisa_matricula"
+                                style="margin-top:7px;font-size:.8em; color:#878787" placeholder="Matrícula"
+                                value="<?= htmlspecialchars((string)$pesquisa_matricula) ?>">
                         </div>
 
                         <div class="col-sm-2" style="padding:2px !important">
@@ -139,6 +145,7 @@ $uti = new utiDAO($conn, $BASE_URL);
         $pesqInternado = filter_input(INPUT_GET, 'pesqInternado');
         $limite_pag = filter_input(INPUT_GET, 'limite_pag') ? filter_input(INPUT_GET, 'limite_pag') : 10;
         $pesquisa_pac = filter_input(INPUT_GET, 'pesquisa_pac');
+        $pesquisa_matricula = filter_input(INPUT_GET, 'pesquisa_matricula');
         $data_intern_int = filter_input(INPUT_GET, 'data_intern_int') ?: null;
         $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : 1;
         $uti_internacao = 's';
@@ -147,6 +154,7 @@ $uti = new utiDAO($conn, $BASE_URL);
         $condicoes = [
             strlen($pesquisa_nome) ? 'nome_hosp LIKE "%' . $pesquisa_nome . '%"' : null,
             strlen($pesquisa_pac) ? 'nome_pac LIKE "%' . $pesquisa_pac . '%"' : null,
+            strlen($pesquisa_matricula) ? 'pa.matricula_pac LIKE "%' . $pesquisa_matricula . '%"' : null,
             strlen($pesqInternado) ? 'internado_int = "' . $pesqInternado . '"' : NULL,
             strlen($uti_internacao) ? 'uti.internacao_uti = "s"' : "s",
             strlen($uti_internado) ? 'uti.internado_uti = "s"' : "s",

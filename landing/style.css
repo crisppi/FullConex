@@ -539,7 +539,8 @@ img {
 
 .page--module .hero {
     min-height: 0;
-    padding-bottom: 60px;
+    padding-top: 20px;
+    padding-bottom: 40px;
 }
 
 .module-hero__content {
@@ -563,10 +564,10 @@ img {
 
 .module-main {
     width: min(1100px, 92vw);
-    margin: -20px auto 80px;
+    margin: -40px auto 70px;
     background: #fff;
     border-radius: 32px;
-    padding: 48px clamp(20px, 4vw, 60px);
+    padding: 44px clamp(20px, 4vw, 60px);
     box-shadow: var(--shadow-card);
 }
 

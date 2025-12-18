@@ -66,6 +66,7 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ?: ''; // campo para ORDER BY
 
 $pesquisa_nome = filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS);
 $pesquisa_pac = filter_input(INPUT_GET, 'pesquisa_pac', FILTER_SANITIZE_SPECIAL_CHARS);
+$pesquisa_matricula = filter_input(INPUT_GET, 'pesquisa_matricula', FILTER_SANITIZE_SPECIAL_CHARS);
 $senha_fin = filter_input(INPUT_GET, 'senha_fin') ?: NULL;
 $conta_parada = filter_input(INPUT_GET, 'conta_parada') ?: NULL;
 $status_conta = filter_input(INPUT_GET, 'status_conta', FILTER_SANITIZE_SPECIAL_CHARS);
@@ -74,9 +75,6 @@ if (!$status_conta || !in_array($status_conta, $statusOptions, true)) {
     $status_conta = 'todos'; // padrão passa a mostrar todas as contas
 }
 $idcapeante = filter_input(INPUT_GET, 'idcapeante') ?: NULL;
-$med_check = filter_input(INPUT_GET, 'med_check') ?: NULL;
-$enf_check = filter_input(INPUT_GET, 'enf_check') ?: NULL;
-$adm_check = filter_input(INPUT_GET, 'adm_check') ?: NULL;
 $senha_int = filter_input(INPUT_GET, 'senha_int', FILTER_SANITIZE_SPECIAL_CHARS) ?: NULL;
 $lote = filter_input(INPUT_GET, 'lote', FILTER_SANITIZE_SPECIAL_CHARS) ?: NULL;
 $data_intern_int = filter_input(INPUT_GET, 'data_intern_int') ?: NULL;
@@ -122,14 +120,12 @@ $condicoes = [
 
     strlen($pesquisa_nome) ? 'ho.nome_hosp LIKE "%' . $pesquisa_nome . '%"' : NULL,
     strlen($pesquisa_pac) ? 'pa.nome_pac  LIKE "%' . $pesquisa_pac . '%"' : NULL,
+    strlen($pesquisa_matricula) ? 'pa.matricula_pac LIKE "%' . $pesquisa_matricula . '%"' : NULL,
     strlen($lote) ? 'ca.lote_cap = "' . $lote . '"' : NULL,
     strlen($idcapeante) ? 'ca.id_capeante LIKE "%' . $idcapeante . '%"' : NULL,
 
     strlen($senha_fin) ? 'ca.senha_finalizada = "' . $senha_fin . '"' : NULL,
     ($conta_parada === 's' || $conta_parada === 'n') ? 'ca.conta_parada_cap = "' . $conta_parada . '"' : NULL,
-    strlen($med_check) ? 'ca.med_check = "' . $med_check . '"' : NULL,
-    strlen($enf_check) ? 'ca.enfer_check = "' . $enf_check . '"' : NULL,
-    strlen($adm_check) ? 'ca.adm_check = "' . $adm_check . '"' : NULL,
     strlen($senha_int) ? 'ac.senha_int LIKE "%' . $senha_int . '%"' : NULL,
     strlen($data_intern_int) ? 'ac.data_intern_int BETWEEN "' . $data_intern_int . '" AND "' . $data_intern_int_max . '"' : NULL,
 
@@ -236,14 +232,12 @@ $url = 'list_internacao_cap.php?'
     . 'id_hosp=' . urlencode((string) $id_hosp)
     . '&pesquisa_nome=' . urlencode((string) $pesquisa_nome)
     . '&pesquisa_pac=' . urlencode((string) $pesquisa_pac)
+    . '&pesquisa_matricula=' . urlencode((string) $pesquisa_matricula)
     . '&senha_fin=' . urlencode((string) $senha_fin)
     . '&conta_parada=' . urlencode((string) $conta_parada)
     . '&status_conta=' . urlencode((string) $status_conta)
     . '&encerrado_cap=' . urlencode((string) $encerrado_cap)
-    . '&med_check=' . urlencode((string) $med_check)
-    . '&enf_check=' . urlencode((string) $enf_check)
     . '&lote=' . urlencode((string) $lote)
-    . '&adm_check=' . urlencode((string) $adm_check)
     . '&senha_int=' . urlencode((string) $senha_int)
     . '&data_intern_int=' . urlencode((string) $data_intern_int)
     . '&data_intern_int_max=' . urlencode((string) $data_intern_int_max)
@@ -309,11 +303,17 @@ if ($havePages) {
 
                     <div class="form-group col-sm-2" style="padding:2px !important">
                         <input class="form-control form-control-sm"
+                            style="margin-top:7px; font-size:.8em; color:#878787" type="text" name="pesquisa_matricula"
+                            placeholder="Matrícula" value="<?= htmlspecialchars((string) $pesquisa_matricula) ?>">
+                    </div>
+
+                    <div class="form-group col-sm-2" style="padding:2px !important">
+                        <input class="form-control form-control-sm"
                             style="margin-top:7px; font-size:.8em; color:#878787" type="text" name="senha_int"
                             placeholder="Senha" value="<?= htmlspecialchars((string) $senha_int) ?>">
                     </div>
 
-                    <div class="form-group col-sm-2" style="padding:2px !important">
+                    <div class="form-group col-sm-1" style="padding:2px !important">
                         <input class="form-control form-control-sm"
                             style="margin-top:7px; font-size:.8em; color:#878787" type="text" name="lote"
                             placeholder="Lote" value="<?= htmlspecialchars((string) $lote) ?>">
@@ -340,7 +340,7 @@ if ($havePages) {
                 </div>
 
                 <div class="form-group row" style="margin-top:-15px">
-                    <div class="form-group col-sm-1" style="padding-left:16px !important;">
+                    <div class="form-group col-sm-2" style="padding-left:16px !important;">
                         <select class="form-control form-control-sm"
                             style="margin-top:7px;font-size:.8em; color:#878787" id="ordenar" name="ordenar">
                             <option value="">Classificar por</option>
@@ -356,30 +356,6 @@ if ($havePages) {
                             </option>
                             <option value="data_intern_int" <?= $ordenar == 'data_intern_int' ? 'selected' : '' ?>>Data
                                 Internação</option>
-                        </select>
-                    </div>
-                    <div class="form-group col-sm-1" style="padding:2px !important;">
-                        <select class="form-control form-control-sm"
-                            style="margin-top:7px;font-size:.8em; color:#878787" id="med_check" name="med_check">
-                            <option value="">Médico</option>
-                            <option value="s" <?= $med_check === 's' ? 'selected' : '' ?>>Sim</option>
-                            <option value="n" <?= $med_check === 'n' ? 'selected' : '' ?>>Não</option>
-                        </select>
-                    </div>
-                    <div class="form-group col-sm-1" style="padding:2px !important">
-                        <select class="form-control form-control-sm"
-                            style="margin-top:7px;font-size:.8em; color:#878787" id="enf_check" name="enf_check">
-                            <option value="">Enf</option>
-                            <option value="s" <?= $enf_check === 's' ? 'selected' : '' ?>>Sim</option>
-                            <option value="n" <?= $enf_check === 'n' ? 'selected' : '' ?>>Não</option>
-                        </select>
-                    </div>
-                    <div class="form-group col-sm-1" style="padding:2px !important">
-                        <select class="form-control form-control-sm"
-                            style="margin-top:7px;font-size:.8em; color:#878787" id="adm_check" name="adm_check">
-                            <option value="">Adm</option>
-                            <option value="s" <?= $adm_check === 's' ? 'selected' : '' ?>>Sim</option>
-                            <option value="n" <?= $adm_check === 'n' ? 'selected' : '' ?>>Não</option>
                         </select>
                     </div>
 
@@ -642,8 +618,9 @@ if ($havePages) {
         loadContent(
             'list_internacao_cap.php?id_hosp=<?= urlencode((string) $id_hosp) ?>' +
             '&pesquisa_pac=<?= urlencode((string) $pesquisa_pac) ?>' +
+            '&pesquisa_matricula=<?= urlencode((string) $pesquisa_matricula) ?>' +
             '&data_intern_int=<?= urlencode((string) $data_intern_int) ?>' +
-            '&med_check=&enfer_check=&pag=1&bl=0&limite=<?= (int) $limite ?>' +
+            '&pag=1&bl=0&limite=<?= (int) $limite ?>' +
             '&ordenar=<?= htmlspecialchars((string) $ordenar) ?>'
         );
     });

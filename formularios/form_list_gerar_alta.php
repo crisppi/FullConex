@@ -18,6 +18,7 @@ $paginationObj = new pagination(0, 1, 10);
 
 $pesquisa_hosp = trim((string)(filter_input(INPUT_GET, 'pesquisa_hosp', FILTER_SANITIZE_SPECIAL_CHARS) ?: ''));
 $pesquisa_pac  = trim((string)(filter_input(INPUT_GET, 'pesquisa_pac', FILTER_SANITIZE_SPECIAL_CHARS) ?: ''));
+$pesquisa_matricula = trim((string)(filter_input(INPUT_GET, 'pesquisa_matricula', FILTER_SANITIZE_SPECIAL_CHARS) ?: ''));
 $limite        = filter_input(INPUT_GET, 'limite', FILTER_VALIDATE_INT) ?: 10;
 $ordenar       = filter_input(INPUT_GET, 'ordenar', FILTER_SANITIZE_SPECIAL_CHARS) ?: 'data_intern_int ASC';
 $pagAtual      = filter_input(INPUT_GET, 'pag', FILTER_VALIDATE_INT) ?: 1;
@@ -28,6 +29,9 @@ if ($pesquisa_hosp !== '') {
 }
 if ($pesquisa_pac !== '') {
     $condicoes[] = 'pa.nome_pac LIKE "%' . $pesquisa_pac . '%"';
+}
+if ($pesquisa_matricula !== '') {
+    $condicoes[] = 'pa.matricula_pac LIKE "%' . $pesquisa_matricula . '%"';
 }
 $where = implode(' AND ', $condicoes);
 
@@ -55,10 +59,15 @@ sort($dadosAlta);
                     <input type="text" class="form-control form-control-sm" name="pesquisa_hosp"
                         value="<?= htmlspecialchars($pesquisa_hosp) ?>" placeholder="Nome do hospital">
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label small text-muted">Paciente</label>
                     <input type="text" class="form-control form-control-sm" name="pesquisa_pac"
                         value="<?= htmlspecialchars($pesquisa_pac) ?>" placeholder="Nome do paciente">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small text-muted">Matrícula</label>
+                    <input type="text" class="form-control form-control-sm" name="pesquisa_matricula"
+                        value="<?= htmlspecialchars($pesquisa_matricula) ?>" placeholder="Matrícula do paciente">
                 </div>
                 <div class="col-md-2">
                     <label class="form-label small text-muted">Registros</label>

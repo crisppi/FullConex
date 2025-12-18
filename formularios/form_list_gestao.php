@@ -55,6 +55,30 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar
     <script src="./js/ajaxNav.js"></script>
     <h4 class="page-title">Gestão</h4>
     <hr>
+    <style>
+    .gestao-filter-bar {
+        display: flex;
+        gap: 10px;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 8px;
+    }
+    .gestao-filter-bar .filter-item {
+        flex: 0 0 auto;
+        min-width: 140px;
+    }
+    .gestao-filter-bar .filter-item.wide {
+        min-width: 200px;
+    }
+    .gestao-filter-bar .filter-item.compact {
+        min-width: 120px;
+    }
+    @media (max-width: 1199px) {
+        .gestao-filter-bar {
+            flex-wrap: wrap;
+        }
+    }
+    </style>
     <div class="complete-table">
         <div id="navbarToggleExternalContent" class="table-filters">
 
@@ -63,15 +87,16 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar
                 $pesqGestao = filter_input(INPUT_GET, 'pesqGestao');
                 $limite_pag = filter_input(INPUT_GET, 'limite_pag') ?? 10;
                 $pesquisa_pac = filter_input(INPUT_GET, 'pesquisa_pac', FILTER_SANITIZE_SPECIAL_CHARS);
+                $pesquisa_matricula = filter_input(INPUT_GET, 'pesquisa_matricula', FILTER_SANITIZE_SPECIAL_CHARS);
                 $ordenar = filter_input(INPUT_GET, 'ordenar');
                 $data_intern_int = filter_input(INPUT_GET, 'data_intern_int') ?: null;
                 $data_intern_int_max = filter_input(INPUT_GET, 'data_intern_int_max') ?: null;
                 ?>
 
-                <div class="row">
-                    <div class="col-sm-1" style="padding:2px !important;padding-left:16px !important;">
-                        <select style="margin-top:7px;font-size:.8em; color:#878787"
-                            class="form-control mb-2 form-control-sm" id="pesqGestao" name="pesqGestao">
+                <div class="gestao-filter-bar" style="padding-left:16px;">
+                    <div class="filter-item wide">
+                        <select class="form-control mb-2 form-control-sm" id="pesqGestao" name="pesqGestao"
+                            style="margin-top:7px;font-size:.8em; color:#878787">
                             <option value="">Selecione a Gestão</option>
                             <option value="home_care" <?= $pesqGestao == 'home_care' ? 'selected' : null ?>>Home care
                             </option>
@@ -81,49 +106,48 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar
                             <option value="alto" <?= $pesqGestao == 'alto' ? 'selected' : null ?>>Alto custo</option>
                         </select>
                     </div>
-                    <div class="col-sm-2" style="padding:2px !important">
+                    <div class="filter-item wide">
                         <input style="margin-top:7px;font-size:.8em; color:#878787" class="form-control form-control-sm"
                             type="text" name="pesquisa_nome" placeholder="Selecione o Hospital"
                             value="<?= $pesquisa_nome ?>">
                     </div>
-                    <div class="col-sm-2" style="padding:2px !important">
+                    <div class="filter-item wide">
                         <input style="margin-top:7px;font-size:.8em; color:#878787" class="form-control form-control-sm"
                             type="text" name="pesquisa_pac" placeholder="Selecione o Paciente"
                             value="<?= $pesquisa_pac ?>">
                     </div>
-                    <div class="col-sm-1" style="padding:2px !important">
+                    <div class="filter-item wide">
                         <input style="margin-top:7px;font-size:.8em; color:#878787" class="form-control form-control-sm"
-                            type="text" name="senha_int" placeholder="Selecione a Senha" value="<?= $senha_int ?>">
+                            type="text" name="pesquisa_matricula" placeholder="Matrícula"
+                            value="<?= htmlspecialchars((string)$pesquisa_matricula) ?>">
                     </div>
-
-
-                    <div class="col-sm-1" style="padding:2px !important">
-                        <select class="form-control sm-3 form-control-sm placeholder col-12"
+                    <div class="filter-item compact">
+                        <input style="margin-top:7px;font-size:.8em; color:#878787" class="form-control form-control-sm"
+                            type="text" name="senha_int" placeholder="Senha" value="<?= $senha_int ?>">
+                    </div>
+                    <div class="filter-item compact">
+                        <select class="form-control form-control-sm placeholder"
                             style="margin-top:7px;font-size:.8em; color:#878787" id="pesqInternado"
                             name="pesqInternado">
-                            <option value="">Busca por Internados</option>
+                            <option value="">Internados</option>
                             <option value="s" <?= $pesqInternado == 's' ? 'selected' : null ?>>Sim</option>
                             <option value="n" <?= $pesqInternado == 'n' ? 'selected' : null ?>>Não</option>
                         </select>
                     </div>
-                    <div class="col-sm-1" style="padding:2px !important">
+                    <div class="filter-item compact">
                         <select class="form-control mb-3 form-control-sm" style="margin-top:7px;" id="limite"
                             name="limite">
-                            <option value="">Reg por página</option>
-                            <option value="5" <?= $limite == '5' ? 'selected' : null ?>>Reg por pág = 5
-                            </option>
-                            <option value="10" <?= $limite == '10' ? 'selected' : null ?>>Reg por pág = 10
-                            </option>
-                            <option value="20" <?= $limite == '20' ? 'selected' : null ?>>Reg por pág = 20
-                            </option>
-                            <option value="50" <?= $limite == '50' ? 'selected' : null ?>>Reg por pág = 50
-                            </option>
+                            <option value="">Registros</option>
+                            <option value="5" <?= $limite == '5' ? 'selected' : null ?>>5</option>
+                            <option value="10" <?= $limite == '10' ? 'selected' : null ?>>10</option>
+                            <option value="20" <?= $limite == '20' ? 'selected' : null ?>>20</option>
+                            <option value="50" <?= $limite == '50' ? 'selected' : null ?>>50</option>
                         </select>
                     </div>
-                    <div class="col-sm-1" style="padding:2px !important">
+                    <div class="filter-item compact">
                         <select style="margin-top:7px;font-size:.8em; color:#878787"
                             class="form-control mb-3 form-control-sm" id="ordenar" name="ordenar">
-                            <option value="">Classificar por</option>
+                            <option value="">Classificar</option>
                             <option value="id_internacao" <?= $ordenar == 'id_internacao' ? 'selected' : null ?>>
                                 Internação</option>
                             <option value="nome_pac" <?= $ordenar == 'nome_pac' ? 'selected' : null ?>>Paciente
@@ -132,22 +156,21 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar
                             </option>
                         </select>
                     </div>
-                    <div class="col-sm-1" style="padding:2px !important">
+                    <div class="filter-item compact">
                         <input class="form-control form-control-sm" type="date"
                             style="margin-top:7px;font-size:.8em; color:#878787" name="data_intern_int"
                             placeholder="Data Internação Min" value="<?= $data_intern_int ?>">
                     </div>
-                    <div class="col-sm-1" style="padding:2px !important">
+                    <div class="filter-item compact">
                         <input class="form-control form-control-sm" type="date"
                             style="margin-top:7px;font-size:.8em; color:#878787" name="data_intern_int_max"
                             placeholder="Data Internação Max" value="<?= $data_intern_int_max ?>">
                     </div>
-                    <div class="col-sm-1" style="padding:2px !important" style="margin:0px 0px 20px 0px">
-                        <button type="submit" class="btn btn-primary"
-                            style="background-color:#5e2363;width:42px;height:32px;margin-top:7px;border-color:#5e2363"><span
-                                class="material-icons" style="margin-left:-3px;margin-top:-2px;">
-                                search
-                            </span></button>
+                    <div class="filter-item compact" style="min-width:90px">
+                        <button type="submit" class="btn btn-primary w-100"
+                            style="background-color:#5e2363;margin-top:7px;border-color:#5e2363">
+                            <span class="material-icons" style="font-size:1rem;vertical-align:middle;">search</span>
+                        </button>
                     </div>
                 </div>
             </form>
@@ -208,6 +231,7 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar
             $pesqInternado = filter_input(INPUT_GET, 'pesqInternado');
             $limite_pag = filter_input(INPUT_GET, 'limite_pag') ? filter_input(INPUT_GET, 'limite_pag') : 10;
             $pesquisa_pac = filter_input(INPUT_GET, 'pesquisa_pac');
+            $pesquisa_matricula = filter_input(INPUT_GET, 'pesquisa_matricula');
             $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : 1;
             $data_intern_int = filter_input(INPUT_GET, 'data_intern_int');
             $data_intern_int_max = filter_input(INPUT_GET, 'data_intern_int_max');
@@ -218,6 +242,7 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar
             $condicoes = [
                 strlen($pesquisa_nome) ? 'ho.nome_hosp LIKE "%' . $pesquisa_nome . '%"' : null,
                 strlen($pesquisa_pac) ? 'pa.nome_pac LIKE "%' . $pesquisa_pac . '%"' : null,
+                strlen($pesquisa_matricula) ? 'pa.matricula_pac LIKE "%' . $pesquisa_matricula . '%"' : null,
                 strlen($senha_int) ? 'senha_int LIKE "%' . $senha_int . '%"' : null,
                 strlen($pesqInternado) ? 'internado_int = "' . $pesqInternado . '"' : NULL,
                 strlen($gestaoAlto) ? 'alto_custo_ges = "' . $gestaoAlto . '"' : NULL,

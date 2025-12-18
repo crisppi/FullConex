@@ -22,6 +22,7 @@ include_once("dao/visitaDao.php");
 
 include_once("models/hospital.php");
 include_once("dao/hospitalDao.php");
+include_once("dao/hospitalUserDao.php");
 
 include_once("models/pagination.php");
 
@@ -47,10 +48,43 @@ $sortDir   = $sortDir === 'asc' ? 'asc' : 'desc';
 $onlySemSenhaParam = filter_input(INPUT_GET, 'sem_senha', FILTER_SANITIZE_SPECIAL_CHARS);
 $onlySemSenha = in_array($onlySemSenhaParam, ['1', 1, 'true', 'on'], true);
 
-$hospital_geral = new HospitalDAO($conn, $BASE_URL);
-$patologiaDao   = new patologiaDAO($conn, $BASE_URL);
-$visitaDao      = new visitaDAO($conn, $BASE_URL);
-$internacao     = new internacaoDAO($conn, $BASE_URL);
+$hospital_geral     = new HospitalDAO($conn, $BASE_URL);
+$patologiaDao       = new patologiaDAO($conn, $BASE_URL);
+$visitaDao          = new visitaDAO($conn, $BASE_URL);
+$internacao         = new internacaoDAO($conn, $BASE_URL);
+$hospitalUserDao    = new hospitalUserDAO($conn, $BASE_URL);
+
+$hospitalOptions = [];
+try {
+    $nivelSessao     = (int) ($_SESSION['nivel'] ?? 0);
+    $usuarioSessaoId = (int) ($_SESSION['id_usuario'] ?? 0);
+    $rawHospitais    = [];
+
+    if ($nivelSessao >= 4) {
+        $rawHospitais = $hospital_geral->findGeral();
+    } elseif ($hospitalUserDao && $usuarioSessaoId) {
+        $rawHospitais = $hospitalUserDao->listarPorUsuario($usuarioSessaoId);
+        if (!is_array($rawHospitais) || !count($rawHospitais)) {
+            $rawHospitais = $hospital_geral->findGeral();
+        }
+    } else {
+        $rawHospitais = $hospital_geral->findGeral();
+    }
+
+    if (is_array($rawHospitais)) {
+        foreach ($rawHospitais as $hospitalRow) {
+            $nome = trim((string) ($hospitalRow['nome_hosp'] ?? ''));
+            if ($nome && !isset($hospitalOptions[$nome])) {
+                $hospitalOptions[$nome] = $nome;
+            }
+        }
+        if ($hospitalOptions) {
+            ksort($hospitalOptions, SORT_NATURAL | SORT_FLAG_CASE);
+        }
+    }
+} catch (Throwable $th) {
+    $hospitalOptions = [];
+}
 ?>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 
@@ -102,6 +136,7 @@ $internacao     = new internacaoDAO($conn, $BASE_URL);
     align-items: center;
     gap: 0.35rem;
 }
+
 .th-sortable .sort-icons a {
     text-decoration: none;
     font-size: 0.85rem;
@@ -109,6 +144,7 @@ $internacao     = new internacaoDAO($conn, $BASE_URL);
     margin-left: 2px;
     opacity: 0.7;
 }
+
 .th-sortable .sort-icons a.active {
     color: #ffd966;
     opacity: 1;
@@ -185,42 +221,51 @@ $internacao     = new internacaoDAO($conn, $BASE_URL);
     background: #fdfbff;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
+
 .filter-intel-wrapper h6 {
     font-weight: 800;
     color: #5e2363;
     margin-bottom: 6px;
 }
+
 .filter-intel-wrapper small {
     color: #7a6b84;
     display: block;
 }
+
 .filter-intel-grid {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
     align-items: flex-end;
 }
+
 .filter-intel-grid .smart-search-group {
     flex: 1;
     min-width: 220px;
 }
+
 .filter-intel-grid label {
     font-size: .82rem;
     font-weight: 700;
     color: #7a6b84;
 }
+
 .filter-intel-grid .input-group {
     display: flex;
     gap: 6px;
 }
+
 .filter-intel-grid input[type="text"] {
     flex: 1;
 }
+
 .filter-memory-actions {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
 }
+
 .filter-memory-actions button {
     border-radius: 999px;
     font-size: .82rem;
@@ -231,16 +276,19 @@ $internacao     = new internacaoDAO($conn, $BASE_URL);
     padding: 6px 14px;
     transition: all .15s ease;
 }
+
 .filter-memory-actions button:hover {
     background: #5e2363;
     color: #fff;
 }
+
 .filter-favorites {
     margin-top: 10px;
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
 }
+
 .filter-favorite-chip {
     display: inline-flex;
     align-items: center;
@@ -254,14 +302,17 @@ $internacao     = new internacaoDAO($conn, $BASE_URL);
     background: #fff5f8;
     cursor: pointer;
 }
+
 .filter-favorite-chip .remove {
     font-size: .75rem;
     color: #c24360;
     cursor: pointer;
 }
+
 .filter-favorite-chip .remove:hover {
     color: #8a1433;
 }
+
 .filter-empty-hint {
     font-size: .78rem;
     color: #a690b3;
@@ -329,6 +380,7 @@ if (typeof jQuery !== 'undefined') {
                 $pesqInternado       = filter_input(INPUT_GET, 'pesqInternado') ? filter_input(INPUT_GET, 'pesqInternado') : 's';
                 $limite              = filter_input(INPUT_GET, 'limite_pag');
                 $pesquisa_pac        = filter_input(INPUT_GET, 'pesquisa_pac');
+                $pesquisa_matricula  = filter_input(INPUT_GET, 'pesquisa_matricula');
                 $ordenar             = filter_input(INPUT_GET, 'ordenar');
                 $data_intern_int     = filter_input(INPUT_GET, 'data_intern_int') ?: null;
                 $data_intern_int_max = filter_input(INPUT_GET, 'data_intern_int_max') ?: null;
@@ -342,8 +394,7 @@ if (typeof jQuery !== 'undefined') {
                             <div class="input-group">
                                 <input type="text" id="smartSearchPhrase" class="form-control form-control-sm"
                                     placeholder='Ex.: "contas Einstein outubro 2023" ou "paciente Ana maio"'>
-                                <button type="button" class="btn btn-outline-secondary btn-sm"
-                                    id="btnApplySmartSearch">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="btnApplySmartSearch">
                                     Aplicar frase
                                 </button>
                             </div>
@@ -361,14 +412,25 @@ if (typeof jQuery !== 'undefined') {
                 <div class="form-group row">
                     <div class="form-group col-sm-2" style="padding:2px;padding-left:16px !important;">
                         <input class="form-control form-control-sm" type="text" style="color:#878787;margin-top:7px;"
-                            name="pesquisa_nome" placeholder="Selecione o Hospital"
+                            name="pesquisa_nome" list="internacaoHospitaisList" placeholder="Selecione o Hospital"
                             value="<?= htmlspecialchars((string)$pesquisa_nome) ?>">
+                        <datalist id="internacaoHospitaisList">
+                            <?php foreach ($hospitalOptions as $nomeHosp): ?>
+                                <option value="<?= htmlspecialchars($nomeHosp) ?>"></option>
+                            <?php endforeach; ?>
+                        </datalist>
                     </div>
 
                     <div class="form-group col-sm-2" style="padding:2px;">
                         <input class="form-control form-control-sm" type="text" style="color:#878787;margin-top:7px;"
                             name="pesquisa_pac" placeholder="Selecione o Paciente"
                             value="<?= htmlspecialchars((string)$pesquisa_pac) ?>">
+                    </div>
+
+                    <div class="form-group col-sm-2" style="padding:2px;">
+                        <input class="form-control form-control-sm" type="text" style="color:#878787;margin-top:7px;"
+                            name="pesquisa_matricula" placeholder="Matrícula"
+                            value="<?= htmlspecialchars((string)($pesquisa_matricula ?? '')) ?>">
                     </div>
 
                     <div class="form-group col-sm-1" style="padding:2px;">
@@ -447,6 +509,7 @@ if (typeof jQuery !== 'undefined') {
         $pesqInternado       = filter_input(INPUT_GET, 'pesqInternado', FILTER_SANITIZE_SPECIAL_CHARS) ?: "s";
         $limite              = filter_input(INPUT_GET, 'limite_pag') ? filter_input(INPUT_GET, 'limite_pag') : 10;
         $pesquisa_pac        = filter_input(INPUT_GET, 'pesquisa_pac', FILTER_SANITIZE_SPECIAL_CHARS);
+        $pesquisa_matricula  = filter_input(INPUT_GET, 'pesquisa_matricula', FILTER_SANITIZE_SPECIAL_CHARS);
         $senha_int           = filter_input(INPUT_GET, 'senha_int', FILTER_SANITIZE_SPECIAL_CHARS);
         $data_intern_int     = filter_input(INPUT_GET, 'data_intern_int');
         $data_intern_int_max = filter_input(INPUT_GET, 'data_intern_int_max');
@@ -460,6 +523,7 @@ if (typeof jQuery !== 'undefined') {
         $condicoes = [
             strlen($pesquisa_nome)       ? 'ho.nome_hosp LIKE "%' . $pesquisa_nome . '%"'                  : null,
             strlen($pesquisa_pac)        ? 'pa.nome_pac LIKE "%' . $pesquisa_pac . '%"'                    : null,
+            strlen($pesquisa_matricula)  ? 'pa.matricula_pac LIKE "%' . $pesquisa_matricula . '%"'         : null,
             strlen($pesqInternado)       ? 'internado_int = "' . $pesqInternado . '"'                      : null,
             strlen($data_intern_int)     ? 'data_intern_int BETWEEN "' . $data_intern_int . '" AND "' . $data_intern_int_max . '"' : null,
             strlen($senha_int)           ? 'ac.senha_int LIKE "%' . $senha_int . '%"'                         : null,
@@ -525,6 +589,7 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
         $paginationBaseParams = [
             'pesquisa_nome'       => $pesquisa_nome,
             'pesquisa_pac'        => $pesquisa_pac,
+            'pesquisa_matricula'  => $pesquisa_matricula,
             'senha_int'           => $senha_int,
             'data_intern_int'     => $data_intern_int,
             'data_intern_int_max' => $data_intern_int_max,
@@ -572,15 +637,17 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                                 $ascUrl = buildInternacaoPaginationUrl($paginationBaseParams, ['sort_field' => $key, 'sort_dir' => 'asc', 'pag' => 1]);
                                 $descUrl = buildInternacaoPaginationUrl($paginationBaseParams, ['sort_field' => $key, 'sort_dir' => 'desc', 'pag' => 1]);
                             ?>
-                                <th scope="col" style="<?= $meta['style'] ?>" class="text-center">
-                                    <div class="th-sortable justify-content-center">
-                                        <span><?= htmlspecialchars($meta['label'], ENT_QUOTES, 'UTF-8') ?></span>
-                                        <span class="sort-icons">
-                                            <a href="<?= htmlspecialchars($ascUrl, ENT_QUOTES, 'UTF-8') ?>" class="<?= $ascActive ? 'active' : '' ?>" title="Ordenar crescente">↑</a>
-                                            <a href="<?= htmlspecialchars($descUrl, ENT_QUOTES, 'UTF-8') ?>" class="<?= $descActive ? 'active' : '' ?>" title="Ordenar decrescente">↓</a>
-                                        </span>
-                                    </div>
-                                </th>
+                            <th scope="col" style="<?= $meta['style'] ?>" class="text-center">
+                                <div class="th-sortable justify-content-center">
+                                    <span><?= htmlspecialchars($meta['label'], ENT_QUOTES, 'UTF-8') ?></span>
+                                    <span class="sort-icons">
+                                        <a href="<?= htmlspecialchars($ascUrl, ENT_QUOTES, 'UTF-8') ?>"
+                                            class="<?= $ascActive ? 'active' : '' ?>" title="Ordenar crescente">↑</a>
+                                        <a href="<?= htmlspecialchars($descUrl, ENT_QUOTES, 'UTF-8') ?>"
+                                            class="<?= $descActive ? 'active' : '' ?>" title="Ordenar decrescente">↓</a>
+                                    </span>
+                                </div>
+                            </th>
                             <?php endforeach; ?>
                             <th scope="col" style="min-width: 80px;">Senha</th>
                             <th scope="col" style="min-width: 80px;">Dias Int</th>
@@ -782,8 +849,7 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                                         <?php } ?>
 
                                         <li>
-                                            <button type="button" class="btn btn-default"
-                                                style="font-size: .9rem;"
+                                            <button type="button" class="btn btn-default" style="font-size: .9rem;"
                                                 onclick="window.location.href='<?= $BASE_URL ?>cad_visita.php?id_internacao=<?= $intern['id_internacao'] ?>'">
                                                 <i class="bi bi-file-text"
                                                     style="font-size: 1rem; margin-right:5px; color: rgba(128, 27, 156, 1);"></i>
@@ -824,8 +890,7 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                                         </li>
 
                                         <li>
-                                            <button type="button" class="btn btn-default"
-                                                style="font-size: .9rem;"
+                                            <button type="button" class="btn btn-default" style="font-size: .9rem;"
                                                 onclick="window.location.href='<?= $BASE_URL ?>edit_internacao.php?id_internacao=<?= $intern['id_internacao'] ?>'">
                                                 <i class="bi bi-pencil-square"
                                                     style="font-size: 1rem; margin-right: 5px; color: rgba(113, 27, 156, 1);"></i>
@@ -897,8 +962,7 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                                     ]);
                                     ?>
                             <li class="page-item">
-                                <a class="page-link" id="blocoNovo" href="<?= htmlspecialchars($firstPageUrl) ?>"
-                                    >
+                                <a class="page-link" id="blocoNovo" href="<?= htmlspecialchars($firstPageUrl) ?>">
                                     <i class="fa-solid fa-angles-left"></i>
                                 </a>
                             </li>
@@ -914,8 +978,7 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                                     ]);
                                     ?>
                             <li class="page-item">
-                                <a class="page-link" href="<?= htmlspecialchars($prevUrl) ?>"
-                                    >
+                                <a class="page-link" href="<?= htmlspecialchars($prevUrl) ?>">
                                     <i class="fa-solid fa-angle-left"></i>
                                 </a>
                             </li>
@@ -929,8 +992,7 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                                     ]);
                                     ?>
                             <li class="page-item <?= ($_GET['pag'] ?? 1) == $i ? "active" : "" ?>">
-                                <a class="page-link" href="<?= htmlspecialchars($pageUrl) ?>"
-                                    >
+                                <a class="page-link" href="<?= htmlspecialchars($pageUrl) ?>">
                                     <?= $i ?>
                                 </a>
                             </li>
@@ -946,8 +1008,7 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                                     ]);
                                     ?>
                             <li class="page-item">
-                                <a class="page-link" id="blocoNovo" href="<?= htmlspecialchars($nextUrl) ?>"
-                                    >
+                                <a class="page-link" id="blocoNovo" href="<?= htmlspecialchars($nextUrl) ?>">
                                     <i class="fa-solid fa-angle-right"></i>
                                 </a>
                             </li>
@@ -961,8 +1022,7 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                                     ]);
                                     ?>
                             <li class="page-item">
-                                <a class="page-link" id="blocoNovo" href="<?= htmlspecialchars($lastUrl) ?>"
-                                    >
+                                <a class="page-link" id="blocoNovo" href="<?= htmlspecialchars($lastUrl) ?>">
                                     <i class="fa-solid fa-angles-right"></i>
                                 </a>
                             </li>
@@ -1378,6 +1438,7 @@ if (typeof window.paginateInternacao !== 'function') {
     const fieldNames = [
         'pesquisa_nome',
         'pesquisa_pac',
+        'pesquisa_matricula',
         'senha_int',
         'limite_pag',
         'ordenar',
@@ -1513,7 +1574,8 @@ if (typeof window.paginateInternacao !== 'function') {
 
     function handleSaveFavorite() {
         const current = readFormValues();
-        const labelDefault = current.pesquisa_nome || current.pesquisa_pac || 'Novo favorito';
+        const labelDefault = current.pesquisa_nome || current.pesquisa_pac || current.pesquisa_matricula ||
+            'Novo favorito';
         const label = prompt('Nome do favorito:', labelDefault);
         if (!label) return;
         const favorites = getFavorites();
@@ -1540,7 +1602,9 @@ if (typeof window.paginateInternacao !== 'function') {
     }
 
     function handleClearFilters() {
-        ['pesquisa_nome', 'pesquisa_pac', 'senha_int', 'data_intern_int', 'data_intern_int_max'].forEach((name) => {
+        ['pesquisa_nome', 'pesquisa_pac', 'pesquisa_matricula', 'senha_int', 'data_intern_int',
+            'data_intern_int_max'
+        ].forEach((name) => {
             const field = form.elements.namedItem(name);
             if (field) field.value = '';
         });
@@ -1588,16 +1652,21 @@ if (typeof window.paginateInternacao !== 'function') {
                 const monthNum = parseInt(months[name], 10);
                 const start = `${year}-${String(monthNum).padStart(2, '0')}-01`;
                 const endDay = new Date(year, monthNum, 0).getDate();
-                const end = `${year}-${String(monthNum).padStart(2, '0')}-${String(endDay).padStart(2, '0')}`;
+                const end =
+                    `${year}-${String(monthNum).padStart(2, '0')}-${String(endDay).padStart(2, '0')}`;
                 result.data_intern_int = start;
                 result.data_intern_int_max = end;
-                monthInfo = { index: match.index, length: match[0].length };
+                monthInfo = {
+                    index: match.index,
+                    length: match[0].length
+                };
                 return true;
             }
             return false;
         });
 
-        const hospRegex = /(?:contas|hospital|hosp)\s+([^0-9]+?)(?=(?:janeiro|fevereiro|mar[cç]o|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro|paciente|\d{4}|$))/i;
+        const hospRegex =
+            /(?:contas|hospital|hosp)\s+([^0-9]+?)(?=(?:janeiro|fevereiro|mar[cç]o|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro|paciente|\d{4}|$))/i;
         const hospMatch = cleaned.match(hospRegex);
         if (hospMatch) {
             result.pesquisa_nome = hospMatch[1].trim();
@@ -1606,7 +1675,8 @@ if (typeof window.paginateInternacao !== 'function') {
             if (possible) result.pesquisa_nome = possible;
         }
 
-        const pacRegex = /paciente\s+([^0-9]+?)(?=(?:contas|hospital|hosp|janeiro|fevereiro|mar[cç]o|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro|\d{4}|$))/i;
+        const pacRegex =
+            /paciente\s+([^0-9]+?)(?=(?:contas|hospital|hosp|janeiro|fevereiro|mar[cç]o|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro|\d{4}|$))/i;
         const pacMatch = cleaned.match(pacRegex);
         if (pacMatch) {
             result.pesquisa_pac = pacMatch[1].trim();
@@ -1615,6 +1685,11 @@ if (typeof window.paginateInternacao !== 'function') {
         const senhaMatch = cleaned.match(/senha\s+([\w-]+)/i);
         if (senhaMatch) {
             result.senha_int = senhaMatch[1];
+        }
+
+        const matriculaMatch = cleaned.match(/matr[íi]cula\s+([\w.-]+)/i);
+        if (matriculaMatch) {
+            result.pesquisa_matricula = matriculaMatch[1];
         }
 
         if (Object.keys(result).length === 0) {

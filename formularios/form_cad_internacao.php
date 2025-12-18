@@ -167,16 +167,19 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
 .retroativa-banner i {
     font-size: 1.15rem;
 }
+
 .hospital-select-wrapper {
     display: flex;
     align-items: flex-start;
     gap: 14px;
     flex-wrap: nowrap;
 }
+
 .hospital-select-wrapper select {
     flex: 1 1 260px;
     min-width: 260px;
 }
+
 .hospital-tip {
     display: flex;
     align-items: center;
@@ -185,14 +188,17 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
     position: relative;
     flex: 0 0 auto;
 }
+
 @media (max-width: 767.98px) {
     .hospital-select-wrapper {
         flex-wrap: wrap;
     }
+
     .hospital-tip {
         margin-top: 6px;
     }
 }
+
 .hospital-tip button {
     border: none;
     background: #f4e9fb;
@@ -207,16 +213,20 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
     cursor: pointer;
     transition: transform .15s ease;
 }
+
 .hospital-tip button:disabled {
     opacity: .5;
     cursor: not-allowed;
 }
+
 .hospital-tip button:not(:disabled):hover {
     transform: translateY(-1px);
 }
+
 #myForm {
     transition: filter .2s ease, opacity .2s ease;
 }
+
 .hospital-tip-popover {
     min-width: 220px;
     background: #fff;
@@ -228,12 +238,15 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
     box-shadow: 0 6px 22px rgba(57, 15, 94, 0.12);
     display: none;
 }
+
 .hospital-tip-popover strong {
     color: #2e1146;
 }
+
 .hospital-tip-popover.show {
     display: block;
 }
+
 .hospital-uti-alert {
     display: none;
     margin-top: 10px;
@@ -245,44 +258,52 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
     font-weight: 600;
     font-size: .9rem;
 }
+
 .hospital-uti-alert.show {
     display: block;
 }
+
 .patient-insight-card {
     margin-top: 6px;
     border: 1px solid #ebe2f3;
     border-radius: 14px;
     padding: 10px 14px;
     background: #faf8ff;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.6);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6);
     font-size: .85rem;
     color: #4a2c60;
 }
+
 .patient-insight-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 6px;
 }
+
 .patient-insight-header .label {
     font-weight: 700;
     color: #5e2363;
 }
+
 .patient-insight-header a {
     font-size: .78rem;
     text-decoration: none;
     color: #5e2363;
     font-weight: 600;
 }
+
 .patient-insight-header a.disabled {
     pointer-events: none;
     opacity: .5;
 }
+
 .patient-insight-metrics {
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
 }
+
 .patient-insight-metrics div {
     background: #fff;
     border: 1px solid #e1d4ef;
@@ -292,11 +313,13 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
     line-height: 1.2;
     min-width: 120px;
 }
+
 .patient-insight-metrics div strong {
     display: block;
     font-size: 1rem;
     color: #2d1144;
 }
+
 .patient-insight-inline-btn {
     border: none;
     background: #f4e9fb;
@@ -311,14 +334,17 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
     cursor: pointer;
     transition: transform .15s ease, background .15s ease;
 }
+
 .patient-insight-inline-btn:disabled {
     opacity: .5;
     cursor: not-allowed;
 }
+
 .patient-insight-inline-btn.active {
     background: #5e2363;
     color: #fff;
 }
+
 .patient-insight-inline-btn:not(:disabled):hover {
     transform: translateY(-1px);
 }
@@ -367,7 +393,10 @@ function triggerInternacaoAutoSave() {
             restoreVisual();
             return;
         }
-        const evt = new Event('submit', { cancelable: true, bubbles: true });
+        const evt = new Event('submit', {
+            cancelable: true,
+            bubbles: true
+        });
         const notCanceled = form.dispatchEvent(evt);
         if (notCanceled) {
             form.submit();
@@ -377,7 +406,7 @@ function triggerInternacaoAutoSave() {
     }, 150);
 }
 
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function() {
     var form = document.getElementById('myForm');
     var timerField = document.getElementById('timer_int');
     var pacienteSelect = document.getElementById('fk_paciente_int');
@@ -396,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function scheduleValueWatch() {
         if (!pacienteSelect || intervalId) return;
-        intervalId = setInterval(function () {
+        intervalId = setInterval(function() {
             if (pacienteSelect.value) {
                 startTimer();
                 if (typeof handlePacienteChange === 'function') {
@@ -426,8 +455,8 @@ document.addEventListener('DOMContentLoaded', function () {
         pacienteSelect.addEventListener('change', handlePacienteChange);
 
         if (window.jQuery && typeof jQuery.fn.on === 'function') {
-            jQuery(function ($) {
-                $('#fk_paciente_int').on('changed.bs.select', function () {
+            jQuery(function($) {
+                $('#fk_paciente_int').on('changed.bs.select', function() {
                     handlePacienteChange();
                 });
             });
@@ -436,12 +465,12 @@ document.addEventListener('DOMContentLoaded', function () {
         startTimer();
     }
 
-    ['pacienteSelecionado', 'paciente-selecionado'].forEach(function (evtName) {
+    ['pacienteSelecionado', 'paciente-selecionado'].forEach(function(evtName) {
         document.addEventListener(evtName, startTimer);
     });
 
     if (form && timerField) {
-        form.addEventListener('submit', function () {
+        form.addEventListener('submit', function() {
             var elapsed = 0;
             if (timerStart !== null) {
                 elapsed = Math.max(0, Math.round((Date.now() - timerStart) / 1000));
@@ -487,13 +516,14 @@ document.addEventListener('DOMContentLoaded', function () {
                         <option value="">Nenhum hospital disponível</option>
                         <?php endif; ?>
                     </select>
-                        <div class="hospital-tip" id="hospitalTipContainer">
-                            <button type="button" id="hospitalTipButton" title="Clique para mostrar/ocultar os insights" disabled>i</button>
-                            <div class="hospital-tip-popover" id="hospitalTipPopover">
+                    <div class="hospital-tip" id="hospitalTipContainer">
+                        <button type="button" id="hospitalTipButton" title="Clique para mostrar/ocultar os insights"
+                            disabled>i</button>
+                        <div class="hospital-tip-popover" id="hospitalTipPopover">
                             Selecione um hospital para ver negociações e internações em UTI.
-                            </div>
                         </div>
                     </div>
+                </div>
                 <div id="hospitalUtiAlert" class="hospital-uti-alert"></div>
             </div>
 
@@ -557,7 +587,8 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
                     <label class="control-label mb-0" for="fk_paciente_int">
                         <span style="color:red;">*</span> Paciente
                     </label>
-                    <button type="button" id="patientInsightToggle" class="patient-insight-inline-btn" title="Mostrar resumo do paciente" aria-expanded="false">i</button>
+                    <button type="button" id="patientInsightToggle" class="patient-insight-inline-btn"
+                        title="Mostrar resumo do paciente" aria-expanded="false">i</button>
                 </div>
                 <select data-size="5" data-live-search="true"
                     class="form-control form-control-sm selectpicker show-tick" id="fk_paciente_int"
@@ -678,7 +709,8 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
             <div class="form-group col-sm-12" style="margin-bottom:6px;">
                 <span style="font-weight:700;color:#5e2363;">Cadastro Central ativo</span>
                 <?php if ($cadastroCentralObrigatorio): ?>
-                <small style="margin-left:8px;color:#b02a37;font-weight:600;">Cadastro central obrigatório: selecione o tipo e o responsável.</small>
+                <small style="margin-left:8px;color:#b02a37;font-weight:600;">Cadastro central obrigatório: selecione o
+                    tipo e o responsável.</small>
                 <?php else: ?>
                 <small style="margin-left:8px;color:#666;">(opcional: escolha o tipo e o responsável)</small>
                 <?php endif; ?>
@@ -1505,7 +1537,8 @@ const hospitalInsightsHelper = (function() {
         }
         setLoading(hospitalName || 'hospital selecionado');
         try {
-            const response = await fetch('ajax/hospital_insights.php?id_hospital=' + encodeURIComponent(hospitalId), {
+            const response = await fetch('ajax/hospital_insights.php?id_hospital=' + encodeURIComponent(
+                hospitalId), {
                 credentials: 'same-origin'
             });
             if (!response.ok) throw new Error('Falha ao consultar insights.');
@@ -1531,7 +1564,9 @@ const hospitalInsightsHelper = (function() {
             setPopover(html);
             if (data.uti_alert) {
                 const threshold = data.threshold ?? 0;
-                showAlert(`Alerta: ${data.inter_uti} internações em UTI neste hospital (limite ${threshold}).`);
+                showAlert(
+                    `Alerta: ${data.inter_uti} internações em UTI neste hospital (limite ${threshold}).`
+                    );
             } else {
                 hideAlert();
             }
@@ -1602,7 +1637,8 @@ const patientInsightsHelper = (function() {
         setMessage(`Carregando dados de <strong>${pacName || 'paciente'}</strong>...`);
         disableHub();
         try {
-            const response = await fetch('ajax/paciente_insights.php?id_paciente=' + encodeURIComponent(pacId), {
+            const response = await fetch('ajax/paciente_insights.php?id_paciente=' + encodeURIComponent(
+                pacId), {
                 credentials: 'same-origin'
             });
             if (!response.ok) throw new Error('Falha ao consultar resumo.');
@@ -1636,7 +1672,10 @@ const patientInsightsHelper = (function() {
     }
 
     reset();
-    return { fetch: fetchInsights, reset };
+    return {
+        fetch: fetchInsights,
+        reset
+    };
 })();
 
 const patientInsightDisplay = (function() {
@@ -2194,7 +2233,8 @@ $("#myForm").submit(function(event) {
                     }
                 });
 
-                if (window.cadastroCentralHelper && typeof window.cadastroCentralHelper.reset === 'function') {
+                if (window.cadastroCentralHelper && typeof window.cadastroCentralHelper.reset ===
+                    'function') {
                     window.cadastroCentralHelper.reset();
                 }
 
@@ -2667,4 +2707,4 @@ document.addEventListener('paciente:cadastrado', function(event) {
     integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous">
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
-<script src="<?= $BASE_URL ?>js/saude-autocomplete.js?v=2"></script>
+<!-- <script src="<?= $BASE_URL ?>js/saude-autocomplete.js?v=2"></script> -->

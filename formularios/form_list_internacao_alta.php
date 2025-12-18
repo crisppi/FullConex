@@ -35,6 +35,7 @@ $internacao = new internacaoDAO($conn, $BASE_URL);
 
 $pesquisa_nome   = filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS) ?: '';
 $pesquisa_pac    = filter_input(INPUT_GET, 'pesquisa_pac',   FILTER_SANITIZE_SPECIAL_CHARS) ?: '';
+$pesquisa_matricula = filter_input(INPUT_GET, 'pesquisa_matricula', FILTER_SANITIZE_SPECIAL_CHARS) ?: '';
 $pesqInternado   = filter_input(INPUT_GET, 'pesqInternado',  FILTER_SANITIZE_SPECIAL_CHARS) ?: 's';
 $limite          = filter_input(INPUT_GET, 'limite', FILTER_VALIDATE_INT) ?: 10;
 $ordenar         = filter_input(INPUT_GET, 'ordenar', FILTER_SANITIZE_SPECIAL_CHARS) ?: 'id_internacao';
@@ -57,6 +58,9 @@ if (strlen(trim((string)$pesquisa_nome)) > 0) {
 // Paciente (pa.nome_pac)
 if (strlen(trim((string)$pesquisa_pac)) > 0) {
     $condicoes[] = 'pa.nome_pac LIKE "%' . $pesquisa_pac . '%"';
+}
+if (strlen(trim((string)$pesquisa_matricula)) > 0) {
+    $condicoes[] = 'pa.matricula_pac LIKE "%' . $pesquisa_matricula . '%"';
 }
 
 // Data de alta
@@ -106,6 +110,7 @@ if ($qtdIntItens > $limite) {
 $paginationParams = [
     'pesquisa_nome' => $pesquisa_nome,
     'pesquisa_pac' => $pesquisa_pac,
+    'pesquisa_matricula' => $pesquisa_matricula,
     'pesqInternado' => $pesqInternado,
     'limite' => $limite,
     'ordenar' => $ordenar,
@@ -212,6 +217,11 @@ $buildListaAltaLink = function($pagina, $bloco) use ($paginationParams, $BASE_UR
                             <input class="form-control form-control-sm" style="margin-top:7px;" type="text"
                                 name="pesquisa_pac" placeholder="Selecione o Paciente"
                                 value="<?= htmlspecialchars((string)$pesquisa_pac) ?>">
+                        </div>
+                        <div class="col-sm-2" style="padding:2px !important">
+                            <input class="form-control form-control-sm" style="margin-top:7px;" type="text"
+                                name="pesquisa_matricula" placeholder="Matrícula"
+                                value="<?= htmlspecialchars((string)$pesquisa_matricula) ?>">
                         </div>
 
                         <div class="col-sm-1" style="padding:2px !important">
