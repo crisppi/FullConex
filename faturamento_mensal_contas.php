@@ -1,4 +1,8 @@
 <?php
+$exporting = isset($_GET['export']) && $_GET['export'] == '1';
+if ($exporting) {
+    define('SKIP_HEADER', true);
+}
 require_once __DIR__ . '/check_logado.php';
 require_once __DIR__ . '/globals.php';
 require_once __DIR__ . '/db.php';

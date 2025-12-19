@@ -15,7 +15,6 @@ if ($_SESSION['ativo'] != 's') {
     header('location:index.php');
 } else {
 };
-
-
-
-require_once("templates/header.php");
+if (!defined('SKIP_HEADER') || !SKIP_HEADER) {
+    require_once("templates/header.php");
+}
