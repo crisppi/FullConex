@@ -451,6 +451,13 @@ $hideConexLogo = in_array($hideConexLogoParam, ['1', 'true', 'sim', 'on'], true)
                                             class="bi bi-bar-chart"
                                             style="font-size: 1rem;margin-right:5px; color:#20c997;"></i>
                                         Gráfico Negociações</a></li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>list_fila_tarefas.php"><i
+                                            class="bi bi-list-check"
+                                            style="font-size: 1rem;margin-right:5px; color: rgb(20, 120, 90);"></i>
+                                        Fila de Tarefas</a></li>
 
                             </ul>
                         </li>

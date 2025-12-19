@@ -232,6 +232,11 @@ require_once("templates/header.php");
                     <?php } ?>><span class="bi bi-heart-pulse"
                         style="font-size: 1rem;margin-right:5px; color: rgb(255, 215, 55);"></span> Seguradora</a>
             </li>
+            <hr>
+            <li>
+                <a href="list_fila_tarefas.php"><span class="bi bi-list-check"
+                        style="font-size: 1rem;margin-right:5px; color: rgb(20, 120, 90);"></span> Fila de Tarefas</a>
+            </li>
         </div>
         <hr>
         <!-- <?php include_once("nivel_login.php"); ?> -->

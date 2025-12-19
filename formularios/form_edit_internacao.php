@@ -304,25 +304,8 @@ if (!empty($intern['data_lancamento_int']) && $intern['data_lancamento_int'] !==
                     <div class="form-group col-sm-2 mb-2">
                         <label class="control-label" for="data_lancamento_int">Data lançamento</label>
                         <input type="datetime-local" class="form-control form-control-sm" id="data_lancamento_int"
-                            name="data_lancamento_int" value="<?= $dataLancamentoAtual ?>">
+                            name="data_lancamento_int" value="<?= $dataLancamentoAtual ?>" readonly>
                     </div>
-
-                    <!-- Data Visita -->
-                    <div class="form-group col-sm-2 mb-2">
-                        <label for="data_visita_int"><span style="color: red;">*</span> Data Visita</label>
-                        <input type="date" class="form-control form-control-sm" id="data_visita_int"
-                            name="data_visita_int" value="<?= date('Y-m-d'); ?>">
-                    </div>
-
-                    <!-- Internado -->
-                    <div class="form-group col-sm-1 mb-2">
-                        <label class="control-label" for="internado_int">Internado</label>
-                        <select class="form-control-sm form-control" id="internado_int" name="internado_int">
-                            <option value="s" <?= $intern['internado_int'] == 's' ? 'selected' : '' ?>>Sim</option>
-                            <option value="n" <?= $intern['internado_int'] == 'n' ? 'selected' : '' ?>>Não</option>
-                        </select>
-                    </div>
-
                 </div>
 
                 <!-- ENTRADA DE DADOS AUTOMATICOS NO INPUT-->
@@ -348,8 +331,27 @@ if (!empty($intern['data_lancamento_int']) && $intern['data_lancamento_int'] !==
                                                                                                         }; ?>">
 
 
-                <div class="row">
-                    <div class="form-group col-sm-2">
+                <?php
+                $cidSelecionado = isset($intern['fk_cid_int']) ? (int)$intern['fk_cid_int'] : null;
+                ?>
+                <div class="row align-items-end">
+                    <!-- Data Visita -->
+                    <div class="form-group col-sm-2 mb-2">
+                        <label for="data_visita_int"><span style="color: red;">*</span> Data Visita</label>
+                        <input type="date" class="form-control form-control-sm" id="data_visita_int"
+                            name="data_visita_int" value="<?= date('Y-m-d'); ?>">
+                    </div>
+
+                    <!-- Internado -->
+                    <div class="form-group col-sm-2 mb-2">
+                        <label class="control-label" for="internado_int">Internado</label>
+                        <select class="form-control-sm form-control" id="internado_int" name="internado_int">
+                            <option value="s" <?= $intern['internado_int'] == 's' ? 'selected' : '' ?>>Sim</option>
+                            <option value="n" <?= $intern['internado_int'] == 'n' ? 'selected' : '' ?>>Não</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group col-sm-2 mb-2">
                         <label class="control-label" for="acomodacao_int">Acomodação</label>
                         <select class="form-control-sm form-control" id="acomodacao_int" name="acomodacao_int">
                             <option value="">Selecione</option>
@@ -364,7 +366,7 @@ if (!empty($intern['data_lancamento_int']) && $intern['data_lancamento_int'] !==
                         </select>
                     </div>
 
-                    <div class="form-group col-sm-2">
+                    <div class="form-group col-sm-2 mb-2">
                         <label class="control-label" for="especialidade_int">Especialidade</label>
                         <input list="especialidade-options" class="form-control-sm form-control" id="especialidade_int"
                             name="especialidade_int" value="<?= htmlspecialchars($intern['especialidade_int'] ?? '') ?>"
@@ -379,17 +381,19 @@ if (!empty($intern['data_lancamento_int']) && $intern['data_lancamento_int'] !==
                         </datalist>
                     </div>
 
-                    <div class="form-group col-sm-3">
+                    <div class="form-group col-sm-3 mb-2">
                         <label for="titular_int">Médico</label>
                         <input type="text" maxlength="100" class="form-control form-control-sm" id="titular_int"
                             value="<?= $intern["titular_int"] ?>" name="titular_int">
                     </div>
-                    <div class="form-group col-sm-1">
+                    <div class="form-group col-sm-1 mb-2">
                         <label for="crm_int">CRM</label>
                         <input type="text" maxlength="10" class="form-control form-control-sm" id="crm_int"
                             name="crm_int" value="<?= $intern["crm_int"] ?>">
                     </div>
-                    <div class="form-group col-sm-2">
+                </div>
+                <div class="row align-items-end">
+                    <div class="form-group col-sm-2 mb-2">
                         <label class="control-label" for="modo_internacao_int">Modo Admissão</label>
                         <select class="form-control-sm form-control" id="modo_internacao_int"
                             name="modo_internacao_int">
@@ -412,7 +416,7 @@ if (!empty($intern['data_lancamento_int']) && $intern['data_lancamento_int'] !==
                         </select>
                     </div>
 
-                    <div class="form-group col-sm-2">
+                    <div class="form-group col-sm-2 mb-2">
                         <label class="control-label" for="tipo_admissao_int">Tipo Internação</label>
                         <select class="form-control-sm form-control" id="tipo_admissao_int" name="tipo_admissao_int">
                             <option value="">Selecione</option>
@@ -424,7 +428,50 @@ if (!empty($intern['data_lancamento_int']) && $intern['data_lancamento_int'] !==
                                 Urgência</option>
                         </select>
                     </div>
+                    <div class="form-group col-sm-3 mb-2">
+                        <label class="control-label" for="fk_cid_int">CID</label>
+                        <select class="form-control selectpicker show-tick" data-size="5" id="fk_cid_int"
+                            name="fk_cid_int" data-live-search="true">
+                            <option value="">Selecione o CID</option>
 
+                            <?php foreach ($cids as $cid): ?>
+                            <?php $idCid = (int)$cid['id_cid']; ?>
+                            <option value="<?= $idCid ?>" <?= ($cidSelecionado == $idCid) ? 'selected' : '' ?>>
+                                <?= $cid['cat'] . " - " . $cid["descricao"] ?>
+                            </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group col-sm-2 mb-2">
+                        <label class="control-label" for="grupo_patologia_int">Grupo Patologia</label>
+                        <select class="form-control-sm form-control" id="grupo_patologia_int"
+                            name="grupo_patologia_int">
+                            <option value="">Selecione</option>
+                            <?php foreach ($dados_grupo_pat as $grupo): ?>
+                            <option value="<?= $grupo ?>"
+                                <?= ($grupo == $intern['grupo_patologia_int']) ? 'selected' : ''; ?>>
+                                <?= $grupo ?>
+                            </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group col-sm-2 mb-2">
+                        <label class="control-label" for="origem_int">Origem</label>
+                        <select class="form-control-sm form-control" id="origem_int" name="origem_int">
+                            <option value="">Selecione</option>
+                            <?php foreach ($origem as $origens): ?>
+                            <option value="<?= $origens ?>"
+                                <?= ($origens == $intern['origem_int']) ? 'selected' : ''; ?>>
+                                <?= $origens ?>
+                            </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group col-sm-1 mb-2">
+                        <label for="senha_int">Senha</label>
+                        <input type="text" maxlength="20" class="form-control form-control-sm" id="senha_int"
+                            value="<?= $intern["senha_int"] ?>" name="senha_int">
+                    </div>
                 </div>
                 <div class="form-group row">
                     <div style="display: <?= ($intern['int_pertinente_int'] !== '') ? 'block' : 'none'; ?>"
@@ -450,89 +497,17 @@ if (!empty($intern['data_lancamento_int']) && $intern['data_lancamento_int'] !==
                     </div>
                 </div>
 
-                <div class="form-group row">
-                    <!-- <div class="form-group col-sm-3">
-                        <label class="control-label" for="fk_patologia_int">Patologia</label>
-                        <select class="form-control-sm form-control selectpicker show-tick" data-size="5"
-                            data-live-search="true" id="fk_patologia_int" name="fk_patologia_int">
-                            <option value="">Selecione</option>
-                            <?php
-                            // Ordena o array de patologias em ordem ascendente de patologia
-                            usort($patologias, function ($a, $b) {
-                                return strcmp($a["patologia_pat"], $b["patologia_pat"]);
-                            });
+                <?php
+                $antecedentes = $antecedentes ?? [];         // se vier null vira array vazio
 
-                            foreach ($patologias as $patologia):
-                                // Verifica se o id da patologia é igual ao valor vindo do banco
-                                $selected = ($patologia["id_patologia"] == $intern['fk_patologia_int']) ? 'selected' : '';
-                            ?>
-                            <option value="<?= $patologia["id_patologia"] ?>" <?= $selected; ?>>
-                                <?= $patologia["patologia_pat"] ?>
-                            </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div> -->
-                    <?php
-                    $cidSelecionado = isset($intern['fk_cid_int']) ? (int)$intern['fk_cid_int'] : null;
-                    ?>
+                if ($antecedentes) {                         // só ordena se houver itens
+                    usort(
+                        $antecedentes,
+                        fn($a, $b) => strcmp($a['antecedente_ant'], $b['antecedente_ant'])
+                    );
+                }
 
-                    <div class="form-group col-sm-3">
-                        <label class="control-label" for="fk_cid_int">CID</label>
-                        <select class="form-control selectpicker show-tick" data-size="5" id="fk_cid_int"
-                            name="fk_cid_int" data-live-search="true">
-                            <option value="">Selecione o CID</option>
-
-                            <?php foreach ($cids as $cid): ?>
-                            <?php $idCid = (int)$cid['id_cid']; ?>
-                            <option value="<?= $idCid ?>" <?= ($cidSelecionado == $idCid) ? 'selected' : '' ?>>
-                                <?= $cid['cat'] . " - " . $cid["descricao"] ?>
-                            </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="form-group col-sm-2">
-                        <label class="control-label" for="grupo_patologia_int">Grupo Patologia</label>
-                        <select class="form-control-sm form-control" id="grupo_patologia_int"
-                            name="grupo_patologia_int">
-                            <option value="">Selecione</option>
-                            <?php foreach ($dados_grupo_pat as $grupo): ?>
-                            <option value="<?= $grupo ?>"
-                                <?= ($grupo == $intern['grupo_patologia_int']) ? 'selected' : ''; ?>>
-                                <?= $grupo ?>
-                            </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="form-group col-sm-2">
-                        <label class="control-label" for="origem_int">Origem</label>
-                        <select class="form-control-sm form-control" id="origem_int" name="origem_int">
-                            <option value="">Selecione</option>
-                            <?php foreach ($origem as $origens): ?>
-                            <option value="<?= $origens ?>"
-                                <?= ($origens == $intern['origem_int']) ? 'selected' : ''; ?>>
-                                <?= $origens ?>
-                            </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="form-group col-sm-1">
-                        <label for="senha_int">Senha</label>
-                        <input type="text" maxlength="20" class="form-control form-control-sm" id="senha_int"
-                            value="<?= $intern["senha_int"] ?>" name="senha_int">
-                    </div>
-
-                    <?php
-                    $antecedentes = $antecedentes ?? [];         // se vier null vira array vazio
-
-                    if ($antecedentes) {                         // só ordena se houver itens
-                        usort(
-                            $antecedentes,
-                            fn($a, $b) => strcmp($a['antecedente_ant'], $b['antecedente_ant'])
-                        );
-                    }
-
-                    ?>
-                </div>
+                ?>
                 <div>
                     <br>
                 </div>
@@ -565,7 +540,7 @@ if (!empty($intern['data_lancamento_int']) && $intern['data_lancamento_int'] !==
                     <!--************ div de detalhes ***********-->
                     <!--****************************************-->
                     <!-- <input type="text" class="form-control" id="select_detalhes" name="select_detalhes"> -->
-                    <input type="hidden" class="form-control" id="select_detalhes" name="select_detalhes" value="s">
+                    <input type="hidden" class="form-control" id="select_detalhes" name="select_detalhes" value="n">
 
                     <?php if (!empty($detalhesDaInt[0]['id_detalhes'])): ?>
                     <input type="hidden" name="id_detalhes" value="<?= $detalhesDaInt[0]['id_detalhes'] ?>">
@@ -580,7 +555,7 @@ if (!empty($intern['data_lancamento_int']) && $intern['data_lancamento_int'] !==
                         <select class="form-control-sm form-control" id="relatorio-detalhado"
                             name="relatorio-detalhado">
                             <option value="s">Sim</option>
-                            <option value="n">Não</option>
+                            <option value="n" selected>Não</option>
                         </select>
 
                     </div>
@@ -592,7 +567,7 @@ if (!empty($intern['data_lancamento_int']) && $intern['data_lancamento_int'] !==
                         <hr>
                     </div>
                 </div>
-                <div id="div-detalhado" class="form-group row" style="margin-left:5px">
+                <div id="div-detalhado" class="form-group row" style="margin-left:5px; display:none;">
                     <div class="form-group row">
 
                         <?php
