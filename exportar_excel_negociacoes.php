@@ -10,6 +10,8 @@ require_once("vendor/autoload.php");
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
 $negociacaoDao = new negociacaoDAO($conn, $BASE_URL);
 
@@ -63,6 +65,29 @@ $spreadsheet = new Spreadsheet();
 $sheet = $spreadsheet->getActiveSheet();
 $sheet->setTitle('Negociacoes');
 
+$logoPath = __DIR__ . '/img/LogoConexAud.png';
+if (file_exists($logoPath)) {
+    $logo = new Drawing();
+    $logo->setName('Logo');
+    $logo->setDescription('Logo Conex');
+    $logo->setPath($logoPath);
+    $logo->setHeight(32);
+    $logo->setCoordinates('A2');
+    $logo->setWorksheet($sheet);
+}
+
+$lastCol = Coordinate::stringFromColumnIndex(count($headers));
+$sheet->getRowDimension(1)->setRowHeight(28);
+$sheet->getRowDimension(2)->setRowHeight(18);
+$sheet->setCellValue('D1', 'Negociações - Exportação');
+$sheet->mergeCells('D1:' . $lastCol . '1');
+$sheet->getStyle('D1')->getFont()->setBold(true)->setSize(13);
+$sheet->setCellValue('D2', 'Data da extração: ' . date('d/m/Y H:i'));
+$sheet->mergeCells('D2:' . $lastCol . '2');
+
+$sheet->setShowGridlines(false);
+$headerRow = 6;
+
 $headers = [
     'ID Internação',
     'Senha',
@@ -79,9 +104,9 @@ $headers = [
     'Auditor'
 ];
 
-$sheet->fromArray($headers, null, 'A1');
+$sheet->fromArray($headers, null, 'A' . $headerRow);
 
-$linha = 2;
+$linha = $headerRow + 1;
 foreach ($dados as $item) {
     $sheet->setCellValue('A' . $linha, $item['fk_id_int'] ?? '');
     $sheet->setCellValue('B' . $linha, $item['senha_int'] ?? '');
@@ -99,8 +124,31 @@ foreach ($dados as $item) {
     $linha++;
 }
 
-$sheet->getStyle('A1:L1')->getFont()->setBold(true);
-$sheet->getStyle('A1:L' . ($linha - 1))->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+$headerStyle = [
+    'fill' => [
+        'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+        'startColor' => ['rgb' => 'E5E5E5'],
+    ],
+    'font' => ['bold' => true],
+    'borders' => [
+        'allBorders' => [
+            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+            'color' => ['rgb' => 'BDBDBD'],
+        ],
+    ],
+];
+$borderStyle = [
+    'borders' => [
+        'allBorders' => [
+            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+            'color' => ['rgb' => 'D0D0D0'],
+        ],
+    ],
+];
+
+$sheet->getStyle('A' . $headerRow . ':' . $lastCol . $headerRow)->applyFromArray($headerStyle);
+$sheet->getStyle('A' . $headerRow . ':' . $lastCol . ($linha - 1))->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+$sheet->getStyle('A' . $headerRow . ':' . $lastCol . ($linha - 1))->applyFromArray($borderStyle);
 $sheet->getColumnDimension('C')->setWidth(30);
 $sheet->getColumnDimension('D')->setWidth(30);
 

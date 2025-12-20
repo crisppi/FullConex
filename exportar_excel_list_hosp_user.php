@@ -40,29 +40,31 @@ $sheet = $spreadsheet->getActiveSheet();
 $sheet->setShowGridlines(false); // Não exibir as linhas de grade
 
 // Inserir o logo
-$logoPath = 'img/full-03.jpeg';  // Caminho do logo na pasta "img"
-$logo = new Drawing();
-$logo->setName('Logo');
-$logo->setDescription('Logo da Empresa');
-$logo->setPath($logoPath); // Caminho para o arquivo do logo
-$logo->setHeight(100); // Ajuste a altura do logo conforme necessário
-$logo->setCoordinates('A1'); // Coloca o logo na célula A1
-$logo->setWorksheet($sheet); // Adiciona o logo à planilha
+$logoPath = __DIR__ . '/img/LogoConexAud.png';
+if (file_exists($logoPath)) {
+    $logo = new Drawing();
+    $logo->setName('Logo');
+    $logo->setDescription('Logo da Empresa');
+    $logo->setPath($logoPath);
+    $logo->setHeight(32);
+    $logo->setCoordinates('A2');
+    $logo->setWorksheet($sheet);
+}
 
-// Pular 4 linhas após o logo
-$row = 6; // Começa na linha 6 após o logo
+$sheet->getRowDimension(1)->setRowHeight(28);
+$sheet->getRowDimension(2)->setRowHeight(18);
 
 // Adicionando título "Hospitais por Usuário" e data de extração
-$sheet->setCellValue('A' . $row, 'Hospitais por Usuário')
-    ->mergeCells('A' . $row . ':H' . $row); // Mescla as células de A6 até H6 para o título
-$sheet->getStyle('A' . $row)->getFont()->setBold(true)->setSize(14); // Definindo o estilo do título
-$sheet->setCellValue('A' . ($row + 1), 'Data de Extração: ' . date('d/m/Y')); // Adiciona a data da extração
-$sheet->mergeCells('A' . ($row + 1) . ':H' . ($row + 1)); // Mescla as células de A7 até H7 para a data
+$sheet->setCellValue('D1', 'Hospitais por Usuário')
+    ->mergeCells('D1:H1');
+$sheet->getStyle('D1')->getFont()->setBold(true)->setSize(14);
+$sheet->setCellValue('D2', 'Data de Extração: ' . date('d/m/Y H:i'));
+$sheet->mergeCells('D2:H2');
 
-// Pule uma linha
-$row = $row + 3; // A partir da linha 9, onde começará a tabela
+$row = 6; // linha do cabeçalho da tabela
 
 // Cabeçalho das colunas no Excel
+$headerRow = $row;
 $sheet->setCellValue('A' . $row, 'Id')
     ->setCellValue('B' . $row, 'Hospital')
     ->setCellValue('C' . $row, 'Nome')
@@ -84,7 +86,7 @@ $headerStyle = [
     ]
 ];
 
-// Aplica o estilo para as células de cabeçalho (A9 a G9)
+// Aplica o estilo para as células de cabeçalho
 foreach (range('A', 'G') as $columnID) {
     $sheet->getStyle($columnID . $row)->applyFromArray($headerStyle);
 }
@@ -112,7 +114,7 @@ foreach (range('A', 'G') as $columnID) {
 }
 
 // Adicionando bordas em todas as células
-$allCells = 'A9:G' . $row; // Define o intervalo de todas as células preenchidas, começando após o título
+$allCells = 'A' . $headerRow . ':G' . ($row - 1); // Define o intervalo de todas as células preenchidas
 
 // Estilo para as bordas
 $borderStyle = [

@@ -479,7 +479,7 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
 
                 <div class="form-group">
                     <label class="form-label">Data Digitação</label>
-                    <input type="date" class="form-control" name="data_digit_capeante" value="<?= $h($hojeYMD) ?>">
+                    <input type="date" class="form-control" name="data_digit_capeante" value="<?= $h($hojeYMD) ?>" required>
                 </div>
 
                 <div class="form-group">

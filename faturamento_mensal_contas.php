@@ -29,7 +29,7 @@ $fieldsMap = [
     'id_capeante'   => ['label' => 'ID Conta', 'field' => 'id_capeante'],
     'id_internacao' => ['label' => 'ID Int', 'field' => 'id_internacao'],
     'senha'         => ['label' => 'Senha', 'field' => 'senha_int'],
-    'hospital'      => ['label' => 'Hospital', 'field' => 'hospital'],
+    'hospital'      => ['label' => 'Prestador', 'field' => 'hospital'],
     'cnpj_hospital' => ['label' => 'CNPJ do hospital', 'field' => 'cnpj_hospital'],
     'nome_paciente' => ['label' => 'Nome do paciente', 'field' => 'paciente'],
     'matricula'     => ['label' => 'Matrícula', 'field' => 'matricula'],
@@ -39,6 +39,7 @@ $fieldsMap = [
     'data_digitacao'=> ['label' => 'Data digitação', 'field' => 'data_digit_fmt'],
     'ciclo'         => ['label' => 'Ciclo (30 dias)', 'field' => 'ciclo_label'],
     'valor_apresentado' => ['label' => 'Valor apresentado', 'field' => 'valor_apresentado_capeante'],
+    'valor_glosado' => ['label' => 'Valor glosado', 'field' => 'valor_glosa_total'],
     'valor_final'   => ['label' => 'Valor final', 'field' => 'valor_final_capeante'],
     'conta_faturada_cap' => ['label' => 'Faturado?', 'field' => 'conta_faturada_cap'],
 ];
@@ -152,6 +153,7 @@ SELECT
     DATE_FORMAT(ca.data_final_capeante, '%d/%m/%Y') AS data_final_fmt,
     DATE_FORMAT(ca.data_digit_capeante, '%d/%m/%Y') AS data_digit_fmt,
     ca.valor_apresentado_capeante,
+    ca.valor_glosa_total,
     ca.valor_final_capeante,
     ca.conta_faturada_cap
 $sqlBase
@@ -201,19 +203,41 @@ if (isset($_GET['export']) && $_GET['export'] == '1') {
     $sheet = $spreadsheet->getActiveSheet();
     $sheet->setTitle('Faturamento Mensal Contas');
 
+    $logoPath = __DIR__ . '/img/LogoConexAud.png';
+    if (file_exists($logoPath)) {
+        $logo = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
+        $logo->setName('Logo');
+        $logo->setDescription('Logo Conex');
+        $logo->setPath($logoPath);
+        $logo->setHeight(32);
+        $logo->setCoordinates('A2');
+        $logo->setWorksheet($sheet);
+    }
+
+    $lastCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(max(1, count($visibleFields)));
+    $sheet->getRowDimension(1)->setRowHeight(28);
+    $sheet->getRowDimension(2)->setRowHeight(18);
+    $sheet->setCellValue('D1', 'Faturamento Mensal - Contas');
+    $sheet->mergeCells('D1:' . $lastCol . '1');
+    $sheet->getStyle('D1')->getFont()->setBold(true)->setSize(13);
+    $sheet->setCellValue('D2', 'Data da extração: ' . date('d/m/Y H:i'));
+    $sheet->mergeCells('D2:' . $lastCol . '2');
+
+    $sheet->setShowGridlines(false);
+    $headerRow = 6;
     $col = 1;
     foreach ($visibleFields as $key) {
-        $sheet->setCellValueByColumnAndRow($col, 1, $fieldsMap[$key]['label']);
+        $sheet->setCellValueByColumnAndRow($col, $headerRow, $fieldsMap[$key]['label']);
         $col++;
     }
 
-    $rowIndex = 2;
+    $rowIndex = $headerRow + 1;
     foreach ($rowsExp as $r) {
         $col = 1;
         foreach ($visibleFields as $key) {
             $field = $fieldsMap[$key]['field'] ?? $key;
             $val = $r[$field] ?? '';
-            if (in_array($key, ['valor_apresentado', 'valor_final'], true)) {
+            if (in_array($key, ['valor_apresentado', 'valor_glosado', 'valor_final'], true)) {
                 $val = number_format((float)$val, 2, ',', '.');
             } elseif ($key === 'conta_faturada_cap') {
                 $val = strtolower($r['conta_faturada_cap'] ?? 'n') === 's' ? 'Sim' : 'Não';
@@ -229,9 +253,35 @@ if (isset($_GET['export']) && $_GET['export'] == '1') {
         $rowIndex++;
     }
 
-    $sheet->getStyleByColumnAndRow(1, 1, count($visibleFields), 1)->getFont()->setBold(true);
+    $headerStyle = [
+        'fill' => [
+            'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+            'startColor' => ['rgb' => 'E5E5E5'],
+        ],
+        'font' => ['bold' => true],
+        'borders' => [
+            'allBorders' => [
+                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                'color' => ['rgb' => 'BDBDBD'],
+            ],
+        ],
+    ];
+    $borderStyle = [
+        'borders' => [
+            'allBorders' => [
+                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                'color' => ['rgb' => 'D0D0D0'],
+            ],
+        ],
+    ];
+
+    $sheet->getStyleByColumnAndRow(1, $headerRow, count($visibleFields), $headerRow)->applyFromArray($headerStyle);
     for ($c = 1; $c <= count($visibleFields); $c++) {
         $sheet->getColumnDimensionByColumn($c)->setAutoSize(true);
+    }
+    $lastDataRow = $rowIndex - 1;
+    if ($lastDataRow >= $headerRow) {
+        $sheet->getStyle('A' . $headerRow . ':' . $lastCol . $lastDataRow)->applyFromArray($borderStyle);
     }
 
     $fname = "faturamento_mensal_contas_" . date("Ymd_His") . ".xlsx";
@@ -277,6 +327,7 @@ $fieldIcons = [
     'data_digitacao'=> 'bi-calendar2-week',
     'ciclo'         => 'bi-calendar-range',
     'valor_apresentado' => 'bi-currency-dollar',
+    'valor_glosado' => 'bi-scissors',
     'valor_final'   => 'bi-cash-stack',
     'conta_faturada_cap' => 'bi-clipboard-check',
 ];
@@ -336,7 +387,7 @@ $fieldIcons = [
 
         <div class="mb-2"><label class="form-label fw-semibold m-0">Filtros</label></div>
 
-        <div class="row g-3">
+        <div class="row g-3 align-items-end">
             <div class="col-12 col-lg-3">
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
@@ -348,7 +399,7 @@ $fieldIcons = [
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-hospital"></i></span>
                     <select name="hospital_id" class="form-select">
-                        <option value="">— Hospital —</option>
+                        <option value="">— Prestador —</option>
                         <?php foreach ($hospitais as $h): ?>
                             <option value="<?= $h['id_hospital'] ?>" <?= $hospitalId == $h['id_hospital'] ? 'selected' : '' ?>>
                                 <?= h($h['nome_hosp']) ?>
@@ -406,17 +457,17 @@ $fieldIcons = [
                     <input type="date" name="dt_fim" class="form-control" value="<?= h($periodoFim) ?>" placeholder="Fim">
                 </div>
             </div>
+            <div class="col-12 col-xl-auto ms-xl-auto d-flex justify-content-end gap-2">
+                <button class="btn btn-primary" type="submit"><i class="bi bi-funnel me-1"></i>Aplicar</button>
+                <button class="btn btn-success" type="submit" name="export" value="1">
+                    <i class="bi bi-file-earmark-spreadsheet me-1"></i>Exportar XLSX (Excel)
+                </button>
+            </div>
         </div>
         <input type="hidden" name="dt_base" value="<?= h($dtBase) ?>">
 
         <input type="hidden" name="sort_field" value="">
         <input type="hidden" name="sort_dir" value="">
-        <div class="d-flex justify-content-end gap-2 mt-3">
-            <button class="btn btn-primary" type="submit"><i class="bi bi-funnel me-1"></i>Aplicar</button>
-            <button class="btn btn-success" type="submit" name="export" value="1">
-                <i class="bi bi-file-earmark-spreadsheet me-1"></i>Exportar XLSX (Excel)
-            </button>
-        </div>
     </form>
 
     <div class="card p-3">
@@ -453,7 +504,7 @@ $fieldIcons = [
                             <?php foreach ($visibleFields as $k):
                                 $fieldName = $fieldsMap[$k]['field'] ?? $k;
                                 $val = $r[$fieldName] ?? '';
-                                if (in_array($k, ['valor_apresentado', 'valor_final'], true)) {
+                                if (in_array($k, ['valor_apresentado', 'valor_glosado', 'valor_final'], true)) {
                                     $val = number_format((float)$val, 2, ',', '.');
                                 } elseif ($k === 'conta_faturada_cap') {
                                     $val = strtolower($r['conta_faturada_cap'] ?? 'n') === 's' ? 'Sim' : 'Não';

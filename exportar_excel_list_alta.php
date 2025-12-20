@@ -168,32 +168,32 @@ $sheet       = $spreadsheet->getActiveSheet();
 // Ocultar gridlines
 $sheet->setShowGridlines(false);
 
-// Logo (metade da altura anterior: 40)
-$logoPath = 'img/LogoConexAud.png';
+// Logo
+$logoPath = __DIR__ . '/img/LogoConexAud.png';
 if (file_exists($logoPath)) {
     $logo = new Drawing();
     $logo->setName('Logo');
     $logo->setDescription('Logo da Empresa');
     $logo->setPath($logoPath);
-    $logo->setHeight(40); // metade de 80
-    $logo->setCoordinates('A1');
+    $logo->setHeight(32);
+    $logo->setCoordinates('A2');
     $logo->setWorksheet($sheet);
 }
 
-// Linha inicial após logo
-$row = 4;
+$lastCol = colLetterFromIndex(count($colsCodes) - 1);
+$sheet->getRowDimension(1)->setRowHeight(28);
+$sheet->getRowDimension(2)->setRowHeight(18);
 
 // Título
-$sheet->setCellValue('A' . $row, 'Alta Hospitalar - Listagem');
-$sheet->mergeCells('A' . $row . ':' . colLetterFromIndex(count($colsCodes) - 1) . $row);
-$sheet->getStyle('A' . $row)->getFont()->setBold(true)->setSize(14);
+$sheet->setCellValue('D1', 'Alta Hospitalar - Listagem');
+$sheet->mergeCells('D1:' . $lastCol . '1');
+$sheet->getStyle('D1')->getFont()->setBold(true)->setSize(14);
 
 // Data de extração
-$sheet->setCellValue('A' . ($row + 1), 'Data de Extração: ' . date('d/m/Y'));
-$sheet->mergeCells('A' . ($row + 1) . ':' . colLetterFromIndex(count($colsCodes) - 1) . ($row + 1));
+$sheet->setCellValue('D2', 'Data de Extração: ' . date('d/m/Y H:i'));
+$sheet->mergeCells('D2:' . $lastCol . '2');
 
-$row = $row + 3; // linha do cabeçalho
-$headerRow = $row;
+$headerRow = 6;
 
 // Cabeçalhos conforme campos escolhidos
 foreach (array_values($colsCodes) as $index => $code) {

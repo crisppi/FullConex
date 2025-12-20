@@ -390,31 +390,31 @@ $sheet       = $spreadsheet->getActiveSheet();
 $sheet->setShowGridlines(false);
 
 // Logo
-$logoPath = 'img/LogoConexAud.png';
+$logoPath = __DIR__ . '/img/LogoConexAud.png';
 if (file_exists($logoPath)) {
     $logo = new Drawing();
     $logo->setName('Logo');
     $logo->setDescription('Logo da Empresa');
     $logo->setPath($logoPath);
-    $logo->setHeight(40); // metade de 80
-    $logo->setCoordinates('A1');
+    $logo->setHeight(32);
+    $logo->setCoordinates('A2');
     $logo->setWorksheet($sheet);
 }
 
-// Linha inicial após logo
-$row = 6;
+$lastCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(max(1, count($labelsAtivos)));
+$sheet->getRowDimension(1)->setRowHeight(28);
+$sheet->getRowDimension(2)->setRowHeight(18);
 
 // Título
-$sheet->setCellValue('A' . $row, 'Listagem de Internações');
-$sheet->mergeCells('A' . $row . ':Z' . $row);
-$sheet->getStyle('A' . $row)->getFont()->setBold(true)->setSize(14);
+$sheet->setCellValue('D1', 'Listagem de Internações');
+$sheet->mergeCells('D1:' . $lastCol . '1');
+$sheet->getStyle('D1')->getFont()->setBold(true)->setSize(14);
 
 // Data/hora extração
-$sheet->setCellValue('A' . ($row + 1), 'Data de Extração: ' . date('d/m/Y H:i'));
-$sheet->mergeCells('A' . ($row + 1) . ':Z' . ($row + 1));
+$sheet->setCellValue('D2', 'Data de Extração: ' . date('d/m/Y H:i'));
+$sheet->mergeCells('D2:' . $lastCol . '2');
 
-$row = $row + 3;
-$headerRow = $row;
+$headerRow = 6;
 
 // Letras das colunas
 $colLetters = [];

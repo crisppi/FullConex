@@ -504,10 +504,15 @@ if ($type === 'create' && $lastCapeanteFinal) {
                     <input readonly type="text" class="form-control" id="diarias_capeante" name="diarias_capeante"
                         value="<?= $h($val('diarias_capeante')) ?>">
                 </div>
-                <div class="form-group col-md-6 mb-3">
+                <div class="form-group col-md-3 mb-3">
                     <label for="data_fech_capeante">Data Fechamento</label>
                     <input type="date" class="form-control" id="data_fech_capeante" name="data_fech_capeante"
                         value="<?= date('Y-m-d') ?>">
+                </div>
+                <div class="form-group col-md-3 mb-3">
+                    <label for="data_digit_capeante">Data Digitação</label>
+                    <input type="date" class="form-control" id="data_digit_capeante" name="data_digit_capeante"
+                        value="<?= $h($val('data_digit_capeante') ?: date('Y-m-d')) ?>" required>
                 </div>
             </div>
 

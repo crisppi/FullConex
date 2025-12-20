@@ -121,13 +121,35 @@ SELECT
     $sheet = $spreadsheet->getActiveSheet();
     $sheet->setTitle('Faturamento Mensal Visitas');
 
+    $logoPath = __DIR__ . '/img/LogoConexAud.png';
+    if (file_exists($logoPath)) {
+        $logo = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
+        $logo->setName('Logo');
+        $logo->setDescription('Logo Conex');
+        $logo->setPath($logoPath);
+        $logo->setHeight(32);
+        $logo->setCoordinates('A2');
+        $logo->setWorksheet($sheet);
+    }
+
+    $lastCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(max(1, count($selected)));
+    $sheet->getRowDimension(1)->setRowHeight(28);
+    $sheet->getRowDimension(2)->setRowHeight(18);
+    $sheet->setCellValue('D1', 'Faturamento Mensal - Visitas');
+    $sheet->mergeCells('D1:' . $lastCol . '1');
+    $sheet->getStyle('D1')->getFont()->setBold(true)->setSize(13);
+    $sheet->setCellValue('D2', 'Data da extração: ' . date('d/m/Y H:i'));
+    $sheet->mergeCells('D2:' . $lastCol . '2');
+
+    $sheet->setShowGridlines(false);
+    $headerRow = 6;
     $col = 1;
     foreach ($selected as $key) {
-        $sheet->setCellValueByColumnAndRow($col, 1, $fieldsMap[$key]['label']);
+        $sheet->setCellValueByColumnAndRow($col, $headerRow, $fieldsMap[$key]['label']);
         $col++;
     }
 
-    $rowIndex = 2;
+    $rowIndex = $headerRow + 1;
     foreach ($rowsExp as $r) {
         $col = 1;
         foreach ($selected as $key) {
@@ -147,9 +169,35 @@ SELECT
         $rowIndex++;
     }
 
-    $sheet->getStyleByColumnAndRow(1, 1, count($selected), 1)->getFont()->setBold(true);
+    $headerStyle = [
+        'fill' => [
+            'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+            'startColor' => ['rgb' => 'E5E5E5'],
+        ],
+        'font' => ['bold' => true],
+        'borders' => [
+            'allBorders' => [
+                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                'color' => ['rgb' => 'BDBDBD'],
+            ],
+        ],
+    ];
+    $borderStyle = [
+        'borders' => [
+            'allBorders' => [
+                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                'color' => ['rgb' => 'D0D0D0'],
+            ],
+        ],
+    ];
+
+    $sheet->getStyleByColumnAndRow(1, $headerRow, count($selected), $headerRow)->applyFromArray($headerStyle);
     for ($c = 1; $c <= count($selected); $c++) {
         $sheet->getColumnDimensionByColumn($c)->setAutoSize(true);
+    }
+    $lastDataRow = $rowIndex - 1;
+    if ($lastDataRow >= $headerRow) {
+        $sheet->getStyle('A' . $headerRow . ':' . $lastCol . $lastDataRow)->applyFromArray($borderStyle);
     }
 
     $fname = "faturamento_mensal_" . date("Ymd_His") . ".xlsx";
@@ -243,15 +291,15 @@ $fieldIcons = [
 
         <div class="mb-2"><label class="form-label fw-semibold m-0">Filtros</label></div>
 
-        <div class="row g-3">
-            <div class="col-12 col-lg-3">
+        <div class="row g-3 align-items-end">
+            <div class="col-12 col-lg-2">
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
                     <input type="text" name="nome" class="form-control" placeholder="Nome do paciente"
                         value="<?= h($nomePaciente) ?>">
                 </div>
             </div>
-            <div class="col-12 col-lg-3">
+            <div class="col-12 col-lg-2">
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-hospital"></i></span>
                     <select name="hospital_id" class="form-select">
@@ -286,15 +334,15 @@ $fieldIcons = [
                     <input type="text" class="form-control" value="<?= h(date('d/m/Y', strtotime($periodoIni))) ?> - <?= h(date('d/m/Y', strtotime($periodoFim))) ?>" readonly>
                 </div>
             </div>
+            <div class="col-12 col-lg-2 d-flex justify-content-end gap-2">
+                <button class="btn btn-primary" type="submit"><i class="bi bi-funnel me-1"></i>Aplicar</button>
+                <button class="btn btn-success" type="submit" name="export" value="1">
+                    <i class="bi bi-file-earmark-spreadsheet me-1"></i>Exportar XLSX (Excel)
+                </button>
+            </div>
         </div>
         <input type="hidden" name="sort_field" value="">
         <input type="hidden" name="sort_dir" value="">
-        <div class="d-flex justify-content-end gap-2 mt-3">
-            <button class="btn btn-primary" type="submit"><i class="bi bi-funnel me-1"></i>Aplicar</button>
-            <button class="btn btn-success" type="submit" name="export" value="1">
-                <i class="bi bi-file-earmark-spreadsheet me-1"></i>Exportar XLSX (Excel)
-            </button>
-        </div>
     </form>
 
     <div class="card p-3">

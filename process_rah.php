@@ -118,6 +118,11 @@ $data_final     = datePOST("data_final_capeante");
 $data_fech      = datePOST("data_fech_capeante");
 $data_digit     = datePOST("data_digit_capeante");
 
+if (!$data_digit) {
+    $message->setMessage("Data de digitação é obrigatória.", "error", "back");
+    exit;
+}
+
 /* --------- Validações de período --------- */
 if ($data_inicial && $data_final) {
     if (strtotime($data_final) < strtotime($data_inicial)) {

@@ -38,6 +38,7 @@ if ($type === "create") {
     $data_inicial_capeante = filter_input(INPUT_POST, "data_inicial_capeante") ?: null;
     $data_final_capeante = filter_input(INPUT_POST, "data_final_capeante") ?: null;
     $data_fech_capeante = filter_input(INPUT_POST, "data_fech_capeante") ?: null;
+    $data_digit_capeante = filter_input(INPUT_POST, "data_digit_capeante") ?: null;
     $diarias_capeante = filter_input(INPUT_POST, "diarias_capeante");
     $lote_cap = filter_input(INPUT_POST, "lote_cap");
     $acomodacao_cap = filter_input(INPUT_POST, "acomodacao_cap");
@@ -103,12 +104,17 @@ if ($type === "create") {
 
     // Validação mínima de dados
     if (!empty(3 < 4)) {
+        if (empty($data_digit_capeante)) {
+            $message->setMessage("Data de digitação é obrigatória.", "error", "back");
+            exit;
+        }
 
         $capeante->adm_capeante = $adm_capeante;
         $capeante->adm_check = $adm_check;
         $capeante->aud_enf_capeante = $aud_enf_capeante;
         $capeante->aud_med_capeante = $aud_med_capeante;
         $capeante->data_fech_capeante = $data_fech_capeante;
+        $capeante->data_digit_capeante = $data_digit_capeante;
         $capeante->data_final_capeante = $data_final_capeante;
         $capeante->data_inicial_capeante = $data_inicial_capeante;
         $capeante->diarias_capeante = $diarias_capeante;
@@ -179,6 +185,7 @@ if ($type === "update") {
     $data_inicial_capeante = filter_input(INPUT_POST, "data_inicial_capeante") ?: null;
     $data_fech_capeante = filter_input(INPUT_POST, "data_fech_capeante") ?: null;
     $data_final_capeante = filter_input(INPUT_POST, "data_final_capeante") ?: null;
+    $data_digit_capeante = filter_input(INPUT_POST, "data_digit_capeante") ?: null;
     $diarias_capeante = filter_input(INPUT_POST, "diarias_capeante");
     $lote_cap = filter_input(INPUT_POST, "lote_cap");
     $acomodacao_cap = filter_input(INPUT_POST, "acomodacao_cap");
@@ -238,6 +245,10 @@ if ($type === "update") {
     $checkbox_imprimir = filter_input(INPUT_POST, "checkbox_imprimir");
 
     $capeanteUpdate = new capeante();
+    if (empty($data_digit_capeante)) {
+        $message->setMessage("Data de digitação é obrigatória.", "error", "back");
+        exit;
+    }
 
     // Validação mínima de dados
     if (!empty(3 < 4)) {
@@ -247,8 +258,9 @@ if ($type === "update") {
         $capeanteUpdate->aud_enf_capeante = $aud_enf_capeante;
         $capeanteUpdate->aud_med_capeante = $aud_med_capeante;
 
-        $capeanteUpdate->data_fech_capeante = $data_fech_capeante;
-        $capeanteUpdate->data_final_capeante = $data_final_capeante;
+    $capeanteUpdate->data_fech_capeante = $data_fech_capeante;
+    $capeanteUpdate->data_digit_capeante = $data_digit_capeante;
+    $capeanteUpdate->data_final_capeante = $data_final_capeante;
         $capeanteUpdate->data_inicial_capeante = $data_inicial_capeante;
         $capeanteUpdate->diarias_capeante = $diarias_capeante;
         $capeanteUpdate->lote_cap = $lote_cap;

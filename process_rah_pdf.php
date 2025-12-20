@@ -17,6 +17,10 @@ if (!$id_internacao) {
 }
 
 $hojeYMD = (new DateTime('now'))->format('Y-m-d');
+$dataDigit = $_POST['data_digit_capeante'] ?? null;
+if (!$dataDigit) {
+    throw new RuntimeException("data_digit_capeante obrigatória.");
+}
 
 try {
     $conn->beginTransaction();
@@ -31,7 +35,7 @@ try {
         $stmt->execute([
             ':fk'     => $id_internacao,
             ':fech'   => $_POST['data_fech_capeante'] ?? $hojeYMD,
-            ':digit'  => $_POST['data_digit_capeante'] ?? $hojeYMD,
+            ':digit'  => $dataDigit,
             ':pacote' => ($_POST['pacote'] ?? 'n')
         ]);
         $id_capeante = (int)$conn->lastInsertId();
@@ -48,7 +52,7 @@ try {
         $stmt->execute([
             ':fk'    => $id_internacao,
             ':fech'  => $_POST['data_fech_capeante'] ?? $hojeYMD,
-            ':digit' => $_POST['data_digit_capeante'] ?? $hojeYMD,
+            ':digit' => $dataDigit,
             ':pacote' => ($_POST['pacote'] ?? 'n'),
             ':id'    => $id_capeante
         ]);

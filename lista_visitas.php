@@ -330,15 +330,37 @@ if ($isExport) {
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Visitas');
 
+        $logoPath = __DIR__ . '/img/LogoConexAud.png';
+        if (file_exists($logoPath)) {
+            $logo = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
+            $logo->setName('Logo');
+            $logo->setDescription('Logo Conex');
+            $logo->setPath($logoPath);
+            $logo->setHeight(32);
+            $logo->setCoordinates('A2');
+            $logo->setWorksheet($sheet);
+        }
+
+        $lastCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(max(1, count($selected)));
+        $sheet->getRowDimension(1)->setRowHeight(28);
+        $sheet->getRowDimension(2)->setRowHeight(18);
+        $sheet->setCellValue('D1', 'Lista de Visitas');
+        $sheet->mergeCells('D1:' . $lastCol . '1');
+        $sheet->getStyle('D1')->getFont()->setBold(true)->setSize(13);
+        $sheet->setCellValue('D2', 'Data da extração: ' . date('d/m/Y H:i'));
+        $sheet->mergeCells('D2:' . $lastCol . '2');
+
         // Cabeçalho
+        $sheet->setShowGridlines(false);
+        $headerRow = 6;
         $col = 1;
         foreach ($selected as $k) {
-            $sheet->setCellValueByColumnAndRow($col, 1, $fieldsMap[$k]['label']);
+            $sheet->setCellValueByColumnAndRow($col, $headerRow, $fieldsMap[$k]['label']);
             $col++;
         }
 
         // Linhas
-        $row = 2;
+        $row = $headerRow + 1;
         foreach ($rowsExp as $r) {
             $col = 1;
             foreach ($selected as $k) {
@@ -363,9 +385,35 @@ if ($isExport) {
         }
 
         // Estilo e largura
-        $sheet->getStyleByColumnAndRow(1, 1, count($selected), 1)->getFont()->setBold(true);
+        $headerStyle = [
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'E5E5E5'],
+            ],
+            'font' => ['bold' => true],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => 'BDBDBD'],
+                ],
+            ],
+        ];
+        $borderStyle = [
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => 'D0D0D0'],
+                ],
+            ],
+        ];
+
+        $sheet->getStyleByColumnAndRow(1, $headerRow, count($selected), $headerRow)->applyFromArray($headerStyle);
         for ($c = 1; $c <= count($selected); $c++) {
             $sheet->getColumnDimensionByColumn($c)->setAutoSize(true);
+        }
+        $lastDataRow = $row - 1;
+        if ($lastDataRow >= $headerRow) {
+            $sheet->getStyle('A' . $headerRow . ':' . $lastCol . $lastDataRow)->applyFromArray($borderStyle);
         }
 
         // Download
@@ -456,8 +504,8 @@ $brandSoftColor = $isFaturamentoView ? '#d6e4ff' : '#dfe6ff';
         border-left: 0;
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
-        min-height: 2.55rem;
-        height: 2.55rem !important;
+        min-height: 2.1875rem;
+        height: 2.1875rem !important;
         width: 100%;
         padding: 0.25rem 0.45rem;
         display: flex;
@@ -471,8 +519,8 @@ $brandSoftColor = $isFaturamentoView ? '#d6e4ff' : '#dfe6ff';
     .select2-container--default .select2-selection--multiple {
         border: 1px solid #ced4da;
         border-radius: .375rem;
-        min-height: 2.55rem;
-        height: 2.55rem !important;
+        min-height: 2.1875rem;
+        height: 2.1875rem !important;
         padding: 0.25rem 0.45rem;
         display: flex;
         align-items: center;
@@ -533,6 +581,31 @@ $brandSoftColor = $isFaturamentoView ? '#d6e4ff' : '#dfe6ff';
         color: #ffd966;
         font-weight: bold;
         opacity: 1;
+    }
+
+    @media (min-width: 1200px) {
+        .filters-inline {
+            display: grid;
+            grid-template-columns: minmax(180px, 1.4fr) minmax(180px, 1.4fr) minmax(160px, 1fr) minmax(160px, 1fr) auto;
+            align-items: end;
+            gap: 0.5rem;
+        }
+        .filters-inline > .filters-item,
+        .filters-inline > .filters-actions {
+            width: 100%;
+            max-width: none;
+        }
+        .filters-inline > .filters-actions {
+            justify-self: end;
+        }
+        .filters-inline .input-group,
+        .filters-inline .row {
+            min-width: 0;
+        }
+        .filters-inline .input-group > .form-control,
+        .filters-inline .input-group > .form-select {
+            min-width: 0;
+        }
     }
 </style>
 
@@ -596,18 +669,18 @@ $fieldIcons = [
 
         <div class="mb-2"><label class="form-label fw-semibold m-0">Filtros</label></div>
 
-        <div class="row g-3">
-            <div class="col-12 col-xl-3">
-                <div class="input-group">
+        <div class="row g-2 align-items-end filters-inline">
+            <div class="col-12 col-xl-3 filters-item">
+                <div class="input-group input-group-sm">
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
-                    <input type="text" name="nome" class="form-control" placeholder="Nome do paciente"
+                    <input type="text" name="nome" class="form-control form-control-sm" placeholder="Nome do paciente"
                         value="<?= h($nomePaciente) ?>">
                 </div>
             </div>
-            <div class="col-12 col-xl-3">
-                <div class="input-group">
+            <div class="col-12 col-xl-3 filters-item">
+                <div class="input-group input-group-sm">
                     <span class="input-group-text"><i class="bi bi-hospital"></i></span>
-                    <select name="hospital_id[]" id="filtro-hospital" class="form-select" multiple>
+                    <select name="hospital_id[]" id="filtro-hospital" class="form-select form-select-sm" multiple>
                         <?php foreach ($hospitais as $h): ?>
                             <?php $isSelected = in_array((int)$h['id_hospital'], $hospitalIds, true); ?>
                             <option value="<?= $h['id_hospital'] ?>" <?= $isSelected ? 'selected' : '' ?>>
@@ -617,28 +690,28 @@ $fieldIcons = [
                     </select>
                 </div>
             </div>
-            <div class="col-12 col-xl-3">
+            <div class="col-12 col-xl-2 filters-item">
                 <div class="row g-2">
                     <div class="col-6">
-                        <div class="input-group">
+                        <div class="input-group input-group-sm">
                             <span class="input-group-text"><i class="bi bi-calendar2"></i></span>
-                            <input type="date" name="dt_ini" class="form-control" value="<?= h($dtIni) ?>" title="De">
+                            <input type="date" name="dt_ini" class="form-control form-control-sm" value="<?= h($dtIni) ?>" title="De">
                         </div>
                     </div>
                     <div class="col-6">
-                        <div class="input-group">
+                        <div class="input-group input-group-sm">
                             <span class="input-group-text"><i class="bi bi-calendar2-check"></i></span>
-                            <input type="date" name="dt_fim" class="form-control" value="<?= h($dtFim) ?>" title="Até">
+                            <input type="date" name="dt_fim" class="form-control form-control-sm" value="<?= h($dtFim) ?>" title="Até">
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-xl-3">
+            <div class="col-12 col-xl-2 filters-item">
                 <div class="row g-2">
                     <div class="col-12 col-sm-6">
-                        <div class="input-group">
+                        <div class="input-group input-group-sm">
                             <span class="input-group-text"><i class="bi bi-list-ol"></i></span>
-                            <select name="limite" class="form-select" onchange="this.form.submit()">
+                            <select name="limite" class="form-select form-select-sm" onchange="this.form.submit()">
                                 <?php foreach ([10, 20, 50, 100] as $opt): ?>
                                     <option value="<?= $opt ?>" <?= $limite == $opt ? 'selected' : '' ?>><?= $opt ?> por página</option>
                                 <?php endforeach; ?>
@@ -646,9 +719,9 @@ $fieldIcons = [
                         </div>
                     </div>
                     <div class="col-12 col-sm-6">
-                        <div class="input-group">
+                        <div class="input-group input-group-sm">
                             <span class="input-group-text"><i class="bi bi-cash-stack"></i></span>
-                            <select name="faturado" class="form-select">
+                            <select name="faturado" class="form-select form-select-sm">
                                 <option value="" <?= $faturadoVis === '' ? 'selected' : '' ?>>Todos</option>
                                 <option value="s" <?= $faturadoVis === 's' ? 'selected' : '' ?>>Faturado</option>
                                 <option value="n" <?= $faturadoVis === 'n' ? 'selected' : '' ?>>Não faturado</option>
@@ -657,17 +730,19 @@ $fieldIcons = [
                     </div>
                 </div>
             </div>
+            <div class="col-12 col-xl-2 d-flex justify-content-end gap-2 filters-actions">
+                <button class="btn btn-primary btn-sm px-3 text-nowrap" type="submit">
+                    <i class="bi bi-funnel me-1"></i>Aplicar
+                </button>
+                <button class="btn btn-success btn-sm px-3 text-nowrap" type="submit" name="export" value="1">
+                    <i class="bi bi-file-earmark-spreadsheet me-1"></i>Exportar XLSX
+                </button>
+                <input type="hidden" name="debug" value="<?= $DEBUG ? 1 : 0 ?>">
+            </div>
         </div>
 
         <input type="hidden" name="sort_field" value="<?= h($sortField) ?>">
         <input type="hidden" name="sort_dir" value="<?= h($sortDir) ?>">
-        <div class="sticky-actions mt-3 d-flex flex-wrap gap-2 justify-content-end">
-            <button class="btn btn-primary" type="submit"><i class="bi bi-funnel me-1"></i>Aplicar</button>
-            <button class="btn btn-success" type="submit" name="export" value="1">
-                <i class="bi bi-file-earmark-spreadsheet me-1"></i>Exportar XLSX (Excel)
-            </button>
-            <input type="hidden" name="debug" value="<?= $DEBUG ? 1 : 0 ?>">
-        </div>
     </form>
 
     <?php if ($isFaturamentoView): ?>

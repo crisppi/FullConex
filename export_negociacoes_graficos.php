@@ -13,6 +13,8 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
 function fetchChartData(PDO $conn, string $sql): array
 {
@@ -159,15 +161,62 @@ $savingByHospital = fetchChartData(
 $spreadsheet = new Spreadsheet();
 $spreadsheet->removeSheetByIndex(0);
 
-$addSheet = function (Spreadsheet $spreadsheet, string $title, array $headers, array $rows) {
+$applyHeader = function ($sheet, string $title, int $colCount): int {
+    $logoPath = __DIR__ . '/img/LogoConexAud.png';
+    if (file_exists($logoPath)) {
+        $logo = new Drawing();
+        $logo->setName('Logo');
+        $logo->setDescription('Logo Conex');
+        $logo->setPath($logoPath);
+        $logo->setHeight(32);
+        $logo->setCoordinates('A2');
+        $logo->setWorksheet($sheet);
+    }
+
+    $lastCol = Coordinate::stringFromColumnIndex(max(1, $colCount));
+    $sheet->getRowDimension(1)->setRowHeight(28);
+    $sheet->getRowDimension(2)->setRowHeight(18);
+    $sheet->setCellValue('D1', 'Relatório de Negociações - ' . $title);
+    $sheet->mergeCells('D1:' . $lastCol . '1');
+    $sheet->getStyle('D1')->getFont()->setBold(true)->setSize(13);
+    $sheet->setCellValue('D2', 'Data da extração: ' . date('d/m/Y H:i'));
+    $sheet->mergeCells('D2:' . $lastCol . '2');
+
+    $sheet->setShowGridlines(false);
+    return 6;
+};
+
+$addSheet = function (Spreadsheet $spreadsheet, string $title, array $headers, array $rows) use ($applyHeader) {
     $sheet = $spreadsheet->createSheet();
     $sheet->setTitle($title);
+    $headerRow = $applyHeader($sheet, $title, count($headers));
+    $headerStyle = [
+        'fill' => [
+            'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+            'startColor' => ['rgb' => 'E5E5E5'],
+        ],
+        'font' => ['bold' => true],
+        'borders' => [
+            'allBorders' => [
+                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                'color' => ['rgb' => 'BDBDBD'],
+            ],
+        ],
+    ];
+    $borderStyle = [
+        'borders' => [
+            'allBorders' => [
+                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                'color' => ['rgb' => 'D0D0D0'],
+            ],
+        ],
+    ];
     $col = 1;
     foreach ($headers as $header) {
-        $sheet->setCellValueByColumnAndRow($col, 1, $header);
+        $sheet->setCellValueByColumnAndRow($col, $headerRow, $header);
         $col++;
     }
-    $rowIdx = 2;
+    $rowIdx = $headerRow + 1;
     foreach ($rows as $row) {
         $col = 1;
         foreach ($row as $value) {
@@ -176,7 +225,11 @@ $addSheet = function (Spreadsheet $spreadsheet, string $title, array $headers, a
         }
         $rowIdx++;
     }
-    $sheet->getStyleByColumnAndRow(1, 1, count($headers), 1)->getFont()->setBold(true);
+    $sheet->getStyleByColumnAndRow(1, $headerRow, count($headers), $headerRow)->applyFromArray($headerStyle);
+    if ($rowIdx > $headerRow) {
+        $lastCol = Coordinate::stringFromColumnIndex(count($headers));
+        $sheet->getStyle('A' . $headerRow . ':' . $lastCol . ($rowIdx - 1))->applyFromArray($borderStyle);
+    }
     for ($i = 1; $i <= count($headers); $i++) {
         $sheet->getColumnDimensionByColumn($i)->setAutoSize(true);
     }
@@ -188,17 +241,41 @@ $monthlyCountSeries = expandMonthlySeries($monthlyCountRaw, 'total');
 $spreadsheet->addSheet(new \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet($spreadsheet, 'tmp'), 0);
 $spreadsheet->setActiveSheetIndex(0);
 $spreadsheet->getActiveSheet()->setTitle('Saving mensal');
-$spreadsheet->getActiveSheet()->setCellValue('A1', 'Período');
-$spreadsheet->getActiveSheet()->setCellValue('B1', 'Saving (R$)');
-$row = 2;
+$activeSheet = $spreadsheet->getActiveSheet();
+$headerRow = $applyHeader($activeSheet, 'Saving mensal', 2);
+$activeSheet->setCellValue('A' . $headerRow, 'Período');
+$activeSheet->setCellValue('B' . $headerRow, 'Saving (R$)');
+$headerStyle = [
+    'fill' => [
+        'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+        'startColor' => ['rgb' => 'E5E5E5'],
+    ],
+    'font' => ['bold' => true],
+    'borders' => [
+        'allBorders' => [
+            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+            'color' => ['rgb' => 'BDBDBD'],
+        ],
+    ],
+];
+$borderStyle = [
+    'borders' => [
+        'allBorders' => [
+            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+            'color' => ['rgb' => 'D0D0D0'],
+        ],
+    ],
+];
+$row = $headerRow + 1;
 foreach ($monthlySavingSeries as $item) {
-    $spreadsheet->getActiveSheet()->setCellValue("A{$row}", $item['periodo_label']);
-    $spreadsheet->getActiveSheet()->setCellValue("B{$row}", (float)$item['value']);
+    $activeSheet->setCellValue("A{$row}", $item['periodo_label']);
+    $activeSheet->setCellValue("B{$row}", (float)$item['value']);
     $row++;
 }
-$spreadsheet->getActiveSheet()->getStyle("A1:B1")->getFont()->setBold(true);
-$spreadsheet->getActiveSheet()->getColumnDimension('A')->setAutoSize(true);
-$spreadsheet->getActiveSheet()->getColumnDimension('B')->setAutoSize(true);
+$activeSheet->getStyle('A' . $headerRow . ':B' . $headerRow)->applyFromArray($headerStyle);
+$activeSheet->getStyle('A' . $headerRow . ':B' . ($row - 1))->applyFromArray($borderStyle);
+$activeSheet->getColumnDimension('A')->setAutoSize(true);
+$activeSheet->getColumnDimension('B')->setAutoSize(true);
 
 $addSheet($spreadsheet, 'Negociações mensais', ['Período', 'Qtd'], array_map(fn($r) => [$r['periodo_label'], $r['value']], $monthlyCountSeries));
 $addSheet($spreadsheet, 'Saving x Auditor', ['Auditor', 'Saving (R$)'], array_map(fn($r) => [$r['auditor'], $r['total']], $savingByAuditor));
