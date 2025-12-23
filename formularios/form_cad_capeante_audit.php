@@ -374,7 +374,6 @@ if ($type === 'create' && $lastCapeanteFinal) {
                                 </span>
                             </div>
                         </div>
-
                         <?php if ($mostrarCadastroCentral): ?>
                         <div style="flex:0 0 100%; width:100%;">
                             <div id="cadastro-central-wrapper" class="w-100 border rounded-3 p-3 mb-3"

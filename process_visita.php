@@ -442,8 +442,6 @@ if ($type === "create") {
     $visita_auditor_prof_enf     = strOrNull($_POST['visita_auditor_prof_enf'] ?? null);
     $visita_auditor_prof_med     = strOrNull($_POST['visita_auditor_prof_med'] ?? null);
     $fk_usuario_vis              = toIntOrNull($_POST['fk_usuario_vis'] ?? null);
-    $data_lancamento_vis_input   = normalizeDateTimeInput($_POST['data_lancamento_vis'] ?? null);
-    $data_lancamento_vis         = $data_lancamento_vis_input ?: date('Y-m-d H:i:s');
     $timer_vis_raw               = toIntOrNull($_POST['timer_vis'] ?? null);
     $timer_vis                   = $timer_vis_raw !== null ? max(0, $timer_vis_raw) : null;
 
@@ -511,6 +509,10 @@ if ($type === "create") {
     }
     $isEditMode = $visitaEmEdicao && $id_visita_edit;
 
+    $data_lancamento_vis = $isEditMode
+        ? ($visitaEmEdicao['data_lancamento_vis'] ?? date('Y-m-d H:i:s'))
+        : date('Y-m-d H:i:s');
+
     if ($isEditMode) {
         $dadosAtualizados = [
             'id_visita'               => $id_visita_edit,
@@ -524,7 +526,7 @@ if ($type === "create") {
             'visita_no_vis'           => $visitaEmEdicao['visita_no_vis'] ?? $visita_no_vis,
             'fk_usuario_vis'          => $fk_usuario_vis,
             'data_visita_vis'         => $data_visita_vis ?: ($visitaEmEdicao['data_visita_vis'] ?? null),
-            'data_lancamento_vis'     => $data_lancamento_vis_input ?: ($visitaEmEdicao['data_lancamento_vis'] ?? null),
+            'data_lancamento_vis'     => $data_lancamento_vis,
             'data_faturamento_vis'    => $visitaEmEdicao['data_faturamento_vis'] ?? null,
             'faturado_vis'            => $visitaEmEdicao['faturado_vis'] ?? 'n',
             'exames_enf'              => $exames_enf,

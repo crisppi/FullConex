@@ -350,29 +350,16 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
 }
 </style>
 
-<!-- Shim BS4 -> BS5 (data-toggle -> data-bs-*) -->
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('[data-toggle="dropdown"]').forEach(function(el) {
-        el.setAttribute('data-bs-toggle', 'dropdown');
-    });
-    document.querySelectorAll('[data-toggle="collapse"]').forEach(function(el) {
-        el.setAttribute('data-bs-toggle', 'collapse');
-    });
-    document.querySelectorAll('[data-target]').forEach(function(el) {
-        if (!el.getAttribute('data-bs-target')) el.setAttribute('data-bs-target', el.getAttribute(
-            'data-target'));
-    });
-});
-
 function triggerInternacaoAutoSave() {
     const form = document.getElementById('myForm');
     if (!form) return;
+
     const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
 
-    // impede salvar se houver campos obrigatórios faltando
+    // Impede salvar se houver campos obrigatórios faltando
     if (typeof form.checkValidity === 'function' && !form.checkValidity()) {
-        form.reportValidity && form.reportValidity();
+        if (typeof form.reportValidity === 'function') form.reportValidity();
         return;
     }
 
@@ -386,64 +373,67 @@ function triggerInternacaoAutoSave() {
     form.style.filter = 'blur(2px)';
     form.style.opacity = '0.6';
 
-    setTimeout(function() {
-        const hasJquery = typeof window.jQuery === 'function';
-        if (hasJquery) {
+    setTimeout(() => {
+        // Se tiver jQuery/Bootstrap, dispara submit pelo jQuery (mantém handlers)
+        if (typeof window.jQuery === 'function') {
             window.jQuery(form).trigger('submit');
             restoreVisual();
             return;
         }
+
+        // Fallback sem jQuery: tenta disparar evento antes do submit
         const evt = new Event('submit', {
             cancelable: true,
             bubbles: true
         });
-        const notCanceled = form.dispatchEvent(evt);
-        if (notCanceled) {
-            form.submit();
-        } else {
-            restoreVisual();
-        }
+        const ok = form.dispatchEvent(evt);
+
+        if (ok) form.submit();
+        else restoreVisual();
     }, 150);
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    var form = document.getElementById('myForm');
-    var timerField = document.getElementById('timer_int');
-    var pacienteSelect = document.getElementById('fk_paciente_int');
-    var timerStart = null;
-    var intervalId = null;
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('myForm');
+    const timerField = document.getElementById('timer_int');
+    const pacienteSelect = document.getElementById('fk_paciente_int');
 
-    function startTimer() {
-        if (timerStart === null) {
-            timerStart = Date.now();
-        }
+    let timerStart = null;
+    let intervalId = null;
+
+    const startTimer = () => {
+        if (timerStart === null) timerStart = Date.now();
         if (intervalId) {
             clearInterval(intervalId);
             intervalId = null;
         }
-    }
+    };
 
-    function scheduleValueWatch() {
+    const handlePacienteChange = () => {
+        if (!pacienteSelect) return;
+
+        const id = pacienteSelect.value;
+        const selectedText =
+            pacienteSelect.options?. [pacienteSelect.selectedIndex]?.text?.trim?.() || '';
+
+        if (id) startTimer();
+
+        // Evita ReferenceError se helper não existir
+        if (window.patientInsightsHelper && typeof window.patientInsightsHelper.fetch === 'function') {
+            window.patientInsightsHelper.fetch(id, selectedText);
+        }
+    };
+
+    const scheduleValueWatch = () => {
         if (!pacienteSelect || intervalId) return;
-        intervalId = setInterval(function() {
+
+        intervalId = setInterval(() => {
             if (pacienteSelect.value) {
                 startTimer();
-                if (typeof handlePacienteChange === 'function') {
-                    handlePacienteChange();
-                }
+                handlePacienteChange();
             }
         }, 700);
-    }
-
-    function handlePacienteChange() {
-        if (!pacienteSelect) return;
-        const selectedText = pacienteSelect.options[pacienteSelect.selectedIndex]?.text?.trim() || '';
-        const id = pacienteSelect.value;
-        if (id) startTimer();
-        if (patientInsightsHelper && typeof patientInsightsHelper.fetch === 'function') {
-            patientInsightsHelper.fetch(id, selectedText);
-        }
-    }
+    };
 
     if (pacienteSelect) {
         if (pacienteSelect.value) {
@@ -452,34 +442,38 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             scheduleValueWatch();
         }
+
         pacienteSelect.addEventListener('change', handlePacienteChange);
 
-        if (window.jQuery && typeof jQuery.fn.on === 'function') {
-            jQuery(function($) {
-                $('#fk_paciente_int').on('changed.bs.select', function() {
+        // Bootstrap-select dispara changed.bs.select
+        if (window.jQuery && window.jQuery.fn && typeof window.jQuery.fn.on === 'function') {
+            window.jQuery(() => {
+                window.jQuery('#fk_paciente_int').on('changed.bs.select', () => {
                     handlePacienteChange();
                 });
             });
         }
     } else {
+        // Sem select ainda: pelo menos inicia o timer
         startTimer();
     }
 
-    ['pacienteSelecionado', 'paciente-selecionado'].forEach(function(evtName) {
+    // Eventos customizados que você dispara em outros pontos
+    ['pacienteSelecionado', 'paciente-selecionado'].forEach((evtName) => {
         document.addEventListener(evtName, startTimer);
     });
 
+    // Grava tempo gasto no form no submit
     if (form && timerField) {
-        form.addEventListener('submit', function() {
-            var elapsed = 0;
-            if (timerStart !== null) {
-                elapsed = Math.max(0, Math.round((Date.now() - timerStart) / 1000));
-            }
+        form.addEventListener('submit', () => {
+            const elapsed =
+                timerStart !== null ? Math.max(0, Math.round((Date.now() - timerStart) / 1000)) : 0;
             timerField.value = elapsed;
         });
     }
 });
 </script>
+
 
 <div class="row" style="margin-top:-5px;">
     <div class="form-group row">
@@ -600,7 +594,8 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
                     };
                     usort($pacientes, fn($a, $b) => strcmp($a["nome_pac"], $b["nome_pac"]));
                     foreach ($pacientes as $paciente): ?>
-                    <option value="<?= (int) $paciente["id_paciente"] ?>"><?= htmlspecialchars($paciente["nome_pac"]) ?>
+                    <option value="<?= (int) $paciente["id_paciente"] ?>">
+                        <?= htmlspecialchars($paciente["nome_pac"]) ?>
                     </option>
                     <?php endforeach; ?>
                 </select>
@@ -614,7 +609,8 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
                     data-hub-base="<?= $BASE_URL ?>hub_paciente.php?id_paciente=" style="display:none;">
                     <div class="patient-insight-header">
                         <span class="label">Resumo do paciente</span>
-                        <a href="#" id="patientInsightHub" class="disabled" target="_blank" rel="noopener">Abrir HUB</a>
+                        <a href="#" id="patientInsightHub" class="disabled" target="_blank" rel="noopener">Abrir
+                            HUB</a>
                     </div>
                     <div id="patientInsightBody">
                         Selecione um paciente para visualizar o histórico resumido.
@@ -709,7 +705,8 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
             <div class="form-group col-sm-12" style="margin-bottom:6px;">
                 <span style="font-weight:700;color:#5e2363;">Cadastro Central ativo</span>
                 <?php if ($cadastroCentralObrigatorio): ?>
-                <small style="margin-left:8px;color:#b02a37;font-weight:600;">Cadastro central obrigatório: selecione o
+                <small style="margin-left:8px;color:#b02a37;font-weight:600;">Cadastro central obrigatório:
+                    selecione o
                     tipo e o responsável.</small>
                 <?php else: ?>
                 <small style="margin-left:8px;color:#666;">(opcional: escolha o tipo e o responsável)</small>
@@ -764,9 +761,7 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
                 <select class="form-control-sm form-control" id="acomodacao_int" name="acomodacao_int">
                     <option value="">Selecione</option>
                     <?php
-                    if (!is_array($dados_acomodacao)) {
-                        $dados_acomodacao = [];
-                    };
+                    $dados_acomodacao = is_array($dados_acomodacao ?? null) ? $dados_acomodacao : [];
                     sort($dados_acomodacao, SORT_ASC);
                     foreach ($dados_acomodacao as $acomd): ?>
                     <option value="<?= htmlspecialchars($acomd) ?>"><?= htmlspecialchars($acomd) ?></option>
@@ -1408,44 +1403,7 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
         </div>
     </div>
 </div>
-<?php if (!empty($id_paciente_get)): ?>
-<script>
-(function preselectPaciente() {
-    var tentativas = 0;
-    var idPac = "<?= (int) $id_paciente_get ?>";
 
-    function aplicar() {
-        var $sel = $('#fk_paciente_int');
-        if (!$sel.length) return false;
-
-        // seta o valor
-        $sel.val(idPac);
-
-        // se estiver usando bootstrap-select, atualiza a UI
-        if ($.fn.selectpicker && $sel.hasClass('selectpicker')) {
-            $sel.selectpicker('refresh');
-        }
-
-        // dispara sua verificação de internação ativa
-        if (typeof window.triggerInternacaoCheck === 'function') {
-            try {
-                window.triggerInternacaoCheck();
-            } catch (e) {
-                console.warn('triggerInternacaoCheck falhou:', e);
-            }
-        }
-        return true;
-    }
-
-    // tenta algumas vezes até o select/BS-Select estarem prontos
-    (function aguardarPronto() {
-        if (aplicar()) return;
-        if (++tentativas < 30) return setTimeout(aguardarPronto, 100);
-        console.warn('Não foi possível pré-selecionar o paciente.');
-    })();
-})();
-</script>
-<?php endif; ?>
 
 <script>
 function aumentarText(id) {
@@ -1566,7 +1524,7 @@ const hospitalInsightsHelper = (function() {
                 const threshold = data.threshold ?? 0;
                 showAlert(
                     `Alerta: ${data.inter_uti} internações em UTI neste hospital (limite ${threshold}).`
-                    );
+                );
             } else {
                 hideAlert();
             }
@@ -1644,7 +1602,8 @@ const patientInsightsHelper = (function() {
             if (!response.ok) throw new Error('Falha ao consultar resumo.');
             const payload = await response.json();
             if (current !== requestId) return;
-            if (!payload.success || !payload.data) throw new Error(payload.error || 'Resposta inválida.');
+            if (!payload.success || !payload.data) throw new Error(payload.error ||
+                'Resposta inválida.');
             const data = payload.data;
             const html = `
                 <div class="patient-insight-metrics">
@@ -2194,7 +2153,8 @@ $("#myForm").submit(function(event) {
             }
             if (resposta === 'senha_duplicada') {
                 $('#alert').removeClass("alert-success").addClass("alert-danger");
-                $('#alert').fadeIn().html("Esta senha já está cadastrada para outra internação.");
+                $('#alert').fadeIn().html(
+                    "Esta senha já está cadastrada para outra internação.");
                 setTimeout(function() {
                     $('#alert').fadeOut('Slow');
                 }, 3500);
@@ -2228,12 +2188,14 @@ $("#myForm").submit(function(event) {
 
                 // 2. Resetando os campos de input, select e textarea EXCETO os campos `hidden` e o select do hospital
                 document.querySelectorAll('input, select, textarea').forEach((element) => {
-                    if (element.type !== "hidden" && element.id !== "hospital_selected") {
+                    if (element.type !== "hidden" && element.id !==
+                        "hospital_selected") {
                         element.value = '';
                     }
                 });
 
-                if (window.cadastroCentralHelper && typeof window.cadastroCentralHelper.reset ===
+                if (window.cadastroCentralHelper && typeof window.cadastroCentralHelper
+                    .reset ===
                     'function') {
                     window.cadastroCentralHelper.reset();
                 }
@@ -2285,9 +2247,11 @@ $("#myForm").submit(function(event) {
                     "#select_tuss, #select_gestao, #relatorio-detalhado, #select_prorrog, #select_uti, #select_negoc, select" // Removido 'select' genérico para evitar redefinir o hospital
                 ).forEach(select => {
                     if (select.id !==
-                        "hospital_selected") { // Garante que não afeta o select de hospital
+                        "hospital_selected"
+                    ) { // Garante que não afeta o select de hospital
                         select.value = ""; // Reseta o valor do select
-                        select.style.border = "1px solid #ced4da"; // Borda padrão Bootstrap
+                        select.style.border =
+                            "1px solid #ced4da"; // Borda padrão Bootstrap
                         select.style.color =
                             "#6c757d"; // Cor padrão Bootstrap para placeholder
                         select.style.fontWeight = "normal";
@@ -2449,7 +2413,8 @@ $(document).ready(function() {
                 else console.error("Erro recebido do servidor:", response.message);
             },
             error: function(xhr, status, error) {
-                console.error("Erro na requisição AJAX:", error, "Status:", status, "Resposta:", xhr
+                console.error("Erro na requisição AJAX:", error, "Status:", status, "Resposta:",
+                    xhr
                     .responseText);
             },
         });
@@ -2677,32 +2642,37 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 document.addEventListener('paciente:cadastrado', function(event) {
-    const data = event.detail || {};
-    const novoId = data.id || data.id_paciente;
-    if (!novoId) return;
-    const select = document.getElementById('fk_paciente_int');
-    if (!select) return;
+            const data = event.detail || {};
+            const novoId = data.id || data.id_paciente;
+            if (!novoId) return;
+            const select = document.getElementById('fk_paciente_int');
+            if (!select) return;
 
-    let option = Array.from(select.options).find(opt => String(opt.value) === String(novoId));
-    const label = data.nome || data.nome_pac || `Paciente #${novoId}`;
+            let option = Array.from(select.options).find(opt => String(opt.value) === String(novoId));
+            const label = data.nome || data.nome_pac || `Paciente #${novoId}`;
 
-    if (!option) {
-        option = new Option(label, novoId, true, true);
-        select.appendChild(option);
-    } else {
-        option.selected = true;
-        option.textContent = label;
-    }
+            if (!option) {
+                option = new Option(label, novoId, true, true);
+                select.appendChild(option);
+            } else {
+                option.selected = true;
+                option.textContent = label;
+            }
 
-    if (window.$ && $.fn.selectpicker && $(select).hasClass('selectpicker')) {
-        $(select).selectpicker('refresh');
-        $(select).selectpicker('val', String(novoId));
-    } else {
-        select.value = novoId;
-    }
-});
+            if (window.$ && $.fn.selectpicker && $(select).hasClass('selectpicker')) {
+                $(select).selectpicker('refresh');
+                $(select).selectpicker('val', String(novoId));
+            } else {
+                select.value = novoId;
+            }
+            window.formInternacaoConfig = Object.assign({}, window.formInternacaoConfig || {}, {
+                prefillPacienteId: <?= !empty($id_paciente_get) ? (int) $id_paciente_get : 'null' ?>,
+                idSessao: <?= json_encode($idSessao ?? '') ?>,
+                cargoSessao: <?= json_encode($cargoSessao ?? '') ?>,
+                ultimoReg: <?= (int) $ultimoReg ?>
+            });
 </script>
-
+<script src="<?= $BASE_URL ?>js/form_cad_internacao.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous">
 </script>

@@ -43,4 +43,40 @@
             card.style.transform = '';
         });
     });
+
+    const aiCards = document.querySelectorAll('.ai-card');
+    aiCards.forEach((card) => {
+        card.addEventListener('mousemove', (event) => {
+            const rect = card.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            card.style.setProperty('--pointer-x', `${x}px`);
+            card.style.setProperty('--pointer-y', `${y}px`);
+            card.classList.add('is-active');
+        });
+        card.addEventListener('mouseleave', () => {
+            card.classList.remove('is-active');
+        });
+    });
+
+    const pipelineSteps = document.querySelectorAll('.ai-diagram__step');
+    if (pipelineSteps.length) {
+        const reveal = (step) => step.classList.add('is-visible');
+        if ('IntersectionObserver' in window) {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        reveal(entry.target);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.35 });
+            pipelineSteps.forEach((step, index) => {
+                step.style.transitionDelay = `${index * 0.12}s`;
+                observer.observe(step);
+            });
+        } else {
+            pipelineSteps.forEach((step) => reveal(step));
+        }
+    }
 })();

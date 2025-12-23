@@ -188,8 +188,9 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
             <div class="form-group col-sm-3">
                 <label for="data_lancamento_vis">Data do lançamento</label>
                 <input type="date" value="<?= $agoraLanc; ?>" class="form-control"
-                    id="data_lancamento_vis" name="data_lancamento_vis">
-                <small class="text-muted">Ajuste se precisar registrar o dia real do lançamento.</small>
+                    id="data_lancamento_vis" name="data_lancamento_vis" readonly tabindex="-1"
+                    onfocus="this.blur();" onkeydown="return false;" style="cursor:not-allowed;">
+                <small class="text-muted">Definida automaticamente pelo sistema.</small>
             </div>
 
             <div class="form-group col-sm-3">
@@ -205,6 +206,34 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
                     <?php endif; ?>
                     <?php endforeach; ?>
                 </select>
+            </div>
+
+            <div class="form-group col-sm-4">
+                <label class="control-label" for="fk_patologia2">Antecedentes do paciente</label>
+                <select class="form-control selectpicker show-tick" data-live-search="true" data-size="6"
+                    id="fk_patologia2" name="fk_patologia2[]" multiple title="Selecione os antecedentes">
+                    <?php
+                    $listaAntecedentes = is_array($antecedentes) ? $antecedentes : [];
+                    usort($listaAntecedentes, function ($a, $b) {
+                        $nomeA = isset($a["antecedente_ant"]) ? (string) $a["antecedente_ant"] : '';
+                        $nomeB = isset($b["antecedente_ant"]) ? (string) $b["antecedente_ant"] : '';
+                        return strcmp($nomeA, $nomeB);
+                    });
+                    $antecSelecionados = isset($antecedentesInternacaoIds) ? $antecedentesInternacaoIds : [];
+                    foreach ($listaAntecedentes as $antecedente):
+                        $idAntecedente = (int) ($antecedente["id_antecedente"] ?? 0);
+                        if ($idAntecedente <= 0) {
+                            continue;
+                        }
+                        $nomeAntecedente = $antecedente["antecedente_ant"] ?? '';
+                        $selected = in_array($idAntecedente, $antecSelecionados, true) ? 'selected' : '';
+                        ?>
+                    <option value="<?= $idAntecedente ?>" <?= $selected ?>>
+                        <?= htmlspecialchars($nomeAntecedente) ?>
+                    </option>
+                    <?php endforeach; ?>
+                </select>
+                <small class="text-muted">Use este campo para vincular antecedentes já cadastrados.</small>
             </div>
 
 
@@ -281,18 +310,21 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
             <div>
                 <label for="rel_visita_vis">Relatório de Auditoria</label>
                 <textarea type="textarea" style="resize:none" rows="2" onclick="aumentarTextAudit()"
-                    class="form-control" id="rel_visita_vis" name="rel_visita_vis"></textarea>
+                    class="form-control" id="rel_visita_vis" name="rel_visita_vis" autocomplete="off"
+                    autocorrect="off" autocapitalize="none" spellcheck="false"></textarea>
             </div>
             <div style="margin-bottom:20px">
                 <label for="acoes_int_vis">Ações da Auditoria</label>
                 <textarea type="textarea" style="resize:none" rows="2" onclick="aumentarTextAcoes()"
-                    class="form-control" id="acoes_int_vis" name="acoes_int_vis"></textarea>
+                    class="form-control" id="acoes_int_vis" name="acoes_int_vis" autocomplete="off"
+                    autocorrect="off" autocapitalize="none" spellcheck="false"></textarea>
             </div>
             <div>
                 <label for="programacao_enf">Programação Terapêutica</label>
                 <textarea type="textarea" style="resize:none" style="resize:none" rows="2"
                     onclick="aumentarTextProgVis()" class="form-control" id="programacao_enf"
-                    name="programacao_enf"></textarea>
+                    name="programacao_enf" autocomplete="off" autocorrect="off" autocapitalize="none"
+                    spellcheck="false"></textarea>
             </div>
             <div><br></div>
 
@@ -474,13 +506,15 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
                         <label for="exames_det">Exames relevantes</label>
                         <textarea type="textarea" style="resize:none" rows="3" onclick="aumentarText('exames_det')"
                             onblur="reduzirText('exames_det', 3)" class="form-control" id="exames_det"
-                            name="exames_det"></textarea>
+                            name="exames_det" autocomplete="off" autocorrect="off" autocapitalize="none"
+                            spellcheck="false"></textarea>
                     </div>
                     <div>
                         <label for="oportunidades_det">Oportunidades</label>
                         <textarea type="textarea" style="resize:none" rows="2"
                             onclick="aumentarText('oportunidades_det')" class="form-control" id="oportunidades_det"
-                            onblur="reduzirText('oportunidades_det', 3)" name="oportunidades_det"></textarea>
+                            onblur="reduzirText('oportunidades_det', 3)" name="oportunidades_det" autocomplete="off"
+                            autocorrect="off" autocapitalize="none" spellcheck="false"></textarea>
                     </div>
                 </div>
 
@@ -903,24 +937,37 @@ const acomodacoes = <?php echo $jsonAcomodacoes; ?>;
 
 populateSelects(acomodacoes)
 
-//criar o json de antecedentes
-document.getElementById('fk_patologia2').addEventListener('change', function() {
-    const selectedOptions = Array.from(this.selectedOptions).map(option => parseInt(option.value,
-        10)); // Converte os valores para inteiros
-    const fkPaciente = parseInt(document.getElementById('fk_paciente_int').value,
-        10); // Garante que fkPaciente é inteiro
-    const fkInternacao = parseInt(document.getElementById('fk_internacao_vis').value,
-        10); // Garante que fkInternacao é inteiro
+// criar o json de antecedentes
+(function() {
+    var selectAntecedente = document.getElementById('fk_patologia2');
+    var hiddenJsonField = document.getElementById('json-antec');
+    if (!selectAntecedente || !hiddenJsonField) return;
 
-    const jsonAntecedentes = selectedOptions.map(idAntecedente => ({
-        fk_id_paciente: fkPaciente,
-        fk_internacao_ant_int: fkInternacao + 1, // Soma 1 ao valor de fkInternacao
-        intern_antec_ant_int: idAntecedente // Certifica que idAntecedente é um número inteiro
-    }));
+    function buildAntecedentesPayload() {
+        var selectedOptions = Array.from(selectAntecedente.selectedOptions || []);
+        var pacienteField = document.getElementById('fk_paciente_int');
+        var internacaoField = document.getElementById('fk_internacao_vis');
+        var fkPaciente = pacienteField ? parseInt(pacienteField.value || '0', 10) : null;
+        var fkInternacao = internacaoField ? parseInt(internacaoField.value || '0', 10) : null;
 
-    // Atualiza o campo hidden com o JSON gerado
-    document.getElementById('json-antec').value = JSON.stringify(jsonAntecedentes);
-});
+        var payload = selectedOptions
+            .map(function(option) {
+                var idAntecedente = parseInt(option.value, 10);
+                if (!idAntecedente) return null;
+                return {
+                    fk_id_paciente: fkPaciente,
+                    fk_internacao_ant_int: fkInternacao,
+                    intern_antec_ant_int: idAntecedente
+                };
+            })
+            .filter(function(item) { return item !== null; });
+
+        hiddenJsonField.value = payload.length ? JSON.stringify(payload) : '';
+    }
+
+    selectAntecedente.addEventListener('change', buildAntecedentesPayload);
+    buildAntecedentesPayload();
+})();
 
 // Função para calcular as diárias e validar as datas
 function calculateDiarias(container) {

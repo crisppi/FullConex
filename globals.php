@@ -30,15 +30,22 @@ if (!function_exists('str_ends_with')) {
 // Ajuste manual padrão (produção na raiz):
 $APP_BASE_PATH = '/';
 
-// Detecta automaticamente quando rodando em localhost com subpasta (ex.: /FullConex)
-$__host     = $_SERVER['HTTP_HOST']        ?? '';
-$__script   = $_SERVER['SCRIPT_NAME']      ?? '';
-$__docroot  = rtrim($_SERVER['DOCUMENT_ROOT'] ?? '', '/');
+// Detecta automaticamente a subpasta real do app (ex.: /FullCare) usando o DOCUMENT_ROOT
+$__docroot = rtrim(str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT'] ?? ''), '/');
+$__appDir  = str_replace('\\', '/', realpath(__DIR__) ?: __DIR__);
+if ($__docroot !== '' && strpos($__appDir, $__docroot) === 0) {
+    $relative = trim(substr($__appDir, strlen($__docroot)), '/');
+    if ($relative !== '') {
+        $APP_BASE_PATH = '/' . $relative . '/';
+    }
+}
 
-if ($__host && stripos($__host, 'localhost') !== false) {
-    // Se o script estiver dentro de /FullConex, use essa pasta como base
-    if (strpos($__script, '/FullConex/') === 0 || substr($__script, -strlen('/FullConex/index.php')) === '/FullConex/index.php') {
-        $APP_BASE_PATH = '/FullConex';
+// Fallback para ambientes locais antigos (mantém suporte a /FullConex, etc.)
+$__host   = $_SERVER['HTTP_HOST']   ?? '';
+$__script = $_SERVER['SCRIPT_NAME'] ?? '';
+if ($APP_BASE_PATH === '/' && $__host && stripos($__host, 'localhost') !== false) {
+    if (preg_match('#^/(FullCare|FullConex(?:Aud)?)(/|$)#i', $__script, $match)) {
+        $APP_BASE_PATH = '/' . trim($match[1], '/') . '/';
     }
 }
 // Normaliza
@@ -112,6 +119,7 @@ if (in_array($__method, ['POST', 'PUT', 'PATCH', 'DELETE'], true) && !in_array($
 require_once __DIR__ . '/app/schemaEnsurer.php';
 ensure_visita_timer_column($conn);
 ensure_internacao_timer_column($conn);
+ensure_internacao_forecast_columns($conn);
 
 // ------------------ 7) Helpers globais (opcional) ----------
 

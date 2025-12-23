@@ -86,7 +86,7 @@ class mensagemDAO implements mensagemDAOInterface
         return $mensagem;
     }
 
-    public function create(Mensagem $mensagem)
+    public function create(Mensagem $mensagem, bool $flashFeedback = true)
     {
         $stmt = $this->conn->prepare("INSERT INTO tb_mensagem (
             de_usuario, 
@@ -110,8 +110,9 @@ class mensagemDAO implements mensagemDAOInterface
 
         $stmt->execute();
 
-        // Success message after creating the message
-        $this->message->setMessage("Mensagem enviada com sucesso!", "success", "list_mensagens.php");
+        if ($flashFeedback) {
+            $this->message->setMessage("Mensagem enviada com sucesso!", "success", "list_mensagens.php");
+        }
     }
 
     public function update(Mensagem $mensagem)

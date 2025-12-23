@@ -17,8 +17,8 @@
 
 body {
     padding-top: 100px;
-    zoom: 100%;
-    
+    zoom: 80%;
+
     /* Ajuste este valor de acordo com a altura real do seu header */
 }
 
@@ -810,25 +810,6 @@ select {
     box-shadow: 0 0 0 .2rem rgba(94, 35, 99, .15) !important;
 }
 
-/* === LEGENDA do select fatura (estilo inspirado na timeline) === */
-.legend-container {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    /* espaço entre itens da legenda (se quiser mais no futuro) */
-    flex-wrap: wrap;
-}
-
-.legend-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    color: #6c757d;
-    /* cinza suave como rótulos da timeline */
-    font-weight: 500;
-}
-
 /* Bolinha no mesmo “espírito” da timeline */
 .legend-dot {
     width: 14px;
@@ -892,6 +873,7 @@ select {
     font-size: 12px;
     line-height: 1;
 }
+
 /* --- FORÇAR LARGURA TOTAL NESTA PÁGINA --- */
 
 /* Se o form estiver dentro de .container/.container-* do Bootstrap,
@@ -924,6 +906,7 @@ form#form-capeante-rah {
         grid-template-columns: minmax(280px, 2fr) 120px 180px 180px 180px 1.2fr;
     }
 }
+
 /* Placeholder e option padrão "Selecione" */
 select option[value=""],
 select option[disabled],
@@ -1026,44 +1009,4 @@ input:invalid {
 
 .assist-popover-link:hover {
     text-decoration: underline;
-}
-
-.saude-autocomplete-wrapper {
-    position: relative;
-}
-
-.saude-suggestions {
-    position: absolute;
-    left: 0;
-    right: 0;
-    z-index: 1055;
-    background: #fff;
-    border: 1px solid rgba(94, 35, 99, 0.25);
-    border-radius: 8px;
-    box-shadow: 0 10px 24px rgba(15, 11, 35, 0.12);
-    margin-top: 4px;
-    padding: 4px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-}
-
-.saude-suggestions.d-none {
-    display: none !important;
-}
-
-.saude-suggestions__item {
-    background: #f4e9fb;
-    color: #5e2363;
-    border: 0;
-    border-radius: 20px;
-    padding: 4px 12px;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.saude-suggestions__item:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 12px rgba(94, 35, 99, 0.25);
 }

@@ -111,7 +111,8 @@
             <div class="form-group col-sm-3">
                 <label for="data_lancamento_vis">Data do lançamento</label>
                 <input type="date" class="form-control" id="data_lancamento_vis"
-                    name="data_lancamento_vis" value="<?= $agoraLanc; ?>">
+                    name="data_lancamento_vis" value="<?= $agoraLanc; ?>" readonly tabindex="-1"
+                    onfocus="this.blur();" onkeydown="return false;" style="cursor:not-allowed;">
             </div>
             <div class="form-group col-sm-1">
                 <input type="hidden" class="form-control" id="visita_enf_vis" name="visita_enf_vis"

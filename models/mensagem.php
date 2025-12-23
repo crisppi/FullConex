@@ -16,7 +16,7 @@ interface mensagemDAOInterface
     public function findAll();
     public function findById($id_mensagem);
     public function getMensagemsBetweenUsers($de_usuario, $para_usuario, $ultima_msg);
-    public function create(Mensagem $mensagem);
+    public function create(Mensagem $mensagem, bool $flashFeedback = true);
     public function update(Mensagem $mensagem);
     public function destroy($id_mensagem);
     public function selectAllMensagems($where = null, $order = null, $limit = null);

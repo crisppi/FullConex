@@ -1,4 +1,4 @@
-.sidebar {
+.chat-page .sidebar {
     /* max-height: 550px; */
     /* Altura máxima da barra lateral */
     height: 100%;
@@ -10,14 +10,14 @@
     /* Adiciona a barra de rolagem se o conteúdo exceder a altura */
 }
 
-.user-list {
+.chat-page .user-list {
     list-style: none;
     /* Remove as bolinhas da lista */
     padding: 0;
     margin: 0;
 }
 
-.user-list li {
+.chat-page .user-list li {
     width: 100%;
     /* Faz com que o <li> ocupe toda a largura da <ul> */
     display: flex;
@@ -26,7 +26,7 @@
     border-bottom: 1px solid #ddd;
 }
 
-.user-list li a {
+.chat-page .user-list li a {
     text-decoration: none;
     color: inherit;
     /* Mantém a cor do texto como padrão */
@@ -35,14 +35,14 @@
     /* Faz com que o link ocupe toda a largura da <li> */
 }
 
-.user-list li a:hover {
+.chat-page .user-list li a:hover {
     background-color: #5bd9f3;
     /* display: block; */
     padding: 5px;
     border-radius:5px;
 }
 
-.user-photo {
+.chat-page .user-photo {
     width: 40px;
     /* Tamanho da foto do usuário */
     height: 40px;
@@ -52,80 +52,92 @@
     /* Garante que a foto fique cortada corretamente */
 }
 
-.chat-container {
-    height: 100%;
-    /* Faz com que a sidebar e a área de chat preencham a altura total */
+.chat-page .chat-container {
+    height: calc(100vh - 160px);
     padding: 20px;
     border-radius: 10px;
-    overflow-y: auto;
-    /* Permite rolagem caso o conteúdo exceda a altura */
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background: #fff;
 }
 
-.message-box {
-    height: calc(100% - 170px);
-    /* Ajuste a altura da área de mensagens para ocupar o espaço disponível */
+.chat-page .chat-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-page .chat-input {
+    background: #fefefe;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.chat-page .message-box {
+    flex: 1;
     overflow-y: auto;
-    /* Adiciona barra de rolagem para mensagens longas */
     border: 1px solid #ddd;
     padding: 10px;
-    margin-bottom: 20px;
     border-radius: 5px;
     background-color: #f9f9f9;
 }
 
-.message {
+.chat-page .message {
     margin-bottom: 10px;
 }
 
-.message.sent {
+.chat-page .message.sent {
     text-align: right;
 }
 
-.message.received {
+.chat-page .message.received {
     text-align: left;
 }
 
-.message .text {
+.chat-page .message .text {
     display: inline-block;
     padding: 8px;
     border-radius: 10px;
     background-color: #e9ecef;
 }
 
-.message.sent .text {
+.chat-page .message.sent .text {
     background-color: #DCF8C6;
 }
 
-.message.received .text {
+.chat-page .message.received .text {
     background-color: #d0e8ff;
     
 }
 
-.chat-header {
+.chat-page .chat-header {
     padding: 10px 0;
     border-bottom: 1px solid #ddd;
     margin-bottom: 20px;
 }
 
-.user-photo-chat {
+.chat-page .user-photo-chat {
     width: 50px;
     height: 50px;
     border-radius: 50%;
     object-fit: cover;
 }
 
-h3 {
+.chat-page h3 {
     margin: 0;
     font-size: 1.5rem;
     text-align: left;
 }
 
-.user-list .badge {
+.chat-page .user-list .badge {
     font-size: 0.7rem;
     /* Tamanho da badge */
 }
 
-.user-list .text-truncate {
+.chat-page .user-list .text-truncate {
     white-space: nowrap;
     /* Impede quebra de linha */
     overflow: hidden;
@@ -136,21 +148,24 @@ h3 {
     /* Limita a largura para garantir truncamento */
 }
 
-.user-list .text-muted.small {
+.chat-page .user-list .text-muted.small {
     font-size: 0.85rem;
     /* Define um tamanho de fonte menor para a data e mensagem */
 }
 
-.row {
-    height: 70vh;
-    /* Define a altura da linha como 100% da altura da tela */
+.chat-page .chat-row {
+    min-height: 70vh;
 }
 
-.chat-container .input-group {
-    padding: 10px;
+.chat-page .chat-container form {
+    margin: 0;
 }
 
-.message {
+.chat-page .chat-container form .input-group {
+    padding: 0;
+}
+
+.chat-page .message {
     position: relative;  /* Para alinhar o conteúdo dentro da mensagem */
     padding: 10px;       /* Espaçamento dentro da mensagem */
     border-radius: 8px;  /* Bordas arredondadas como no WhatsApp */
@@ -159,24 +174,24 @@ h3 {
     word-wrap: break-word; /* Para evitar que textos longos quebrem o layout */
 }
 
-.message.sent {
+.chat-page .message.sent {
     background-color: #DCF8C6; /* Verde claro para mensagens enviadas */
     margin-left: auto;
     text-align: left; /* Texto alinhado à esquerda para mensagens enviadas */
 }
 
-.message.received {
+.chat-page .message.received {
     background-color: #d0e8ff;
     margin-right: auto;
     text-align: left; /* Texto alinhado à esquerda para mensagens recebidas */
 }
 
-.message .text {
+.chat-page .message .text {
     display: inline-block;
     margin-right: 35px;  /* Espaço reservado para a data */
 }
 
-.message .message-date {
+.chat-page .message .message-date {
     position: absolute;
     bottom: 5px;
     right: 10px;  /* Alinha a data no canto inferior direito da mensagem */

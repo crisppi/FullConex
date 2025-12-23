@@ -26,6 +26,7 @@ include_once("models/hospital.php");
 include_once("dao/hospitalDao.php");
 
 include_once("dao/indicadoresDao.php");
+require_once __DIR__ . '/app/services/PermanenciaForecastService.php';
 
 // -----------------------------
 // ENTRADAS E SESSÃO
@@ -94,6 +95,19 @@ $uti_geral        = $uti = new utiDAO($conn, $BASE_URL);
 $hospitalUser     = new hospitalUserDAO($conn, $BASE_URL);
 $hospital         = new hospitalDAO($conn, $BASE_URL);
 $indicadores      = new indicadoresDAO($conn, $BASE_URL);
+$forecastService  = new PermanenciaForecastService($conn);
+$forecastSummary  = ['updated' => 0, 'skipped' => 0, 'model' => 'permanencia-lite-v1'];
+$forecastRows     = [];
+try {
+    $forecastSummary = $forecastService->refreshActiveForecasts($hospital_selecionado ?: null);
+    $forecastRows    = $forecastService->fetchDashboardRows(
+        $hospital_selecionado ?: null,
+        $id_usuario_sessao ?: null,
+        $nivel_sessao ?? null
+    );
+} catch (Throwable $e) {
+    error_log('[ForecastService] ' . $e->getMessage());
+}
 
 // -----------------------------
 // LISTA DE HOSPITAIS POR PERFIL
@@ -555,6 +569,123 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
                 <div class="title-item"><i class="fa-solid fa-heart"></i> UTI Não Pertinente</div>
                 <div class="icon-item"><i class="fa-solid fa-chart-simple"></i></div>
                 <div class="badge-item badge-critical"><?= $uti_nao_pertinente[0] ?? 0 ?></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row m-t-25">
+            <div class="col-12">
+                <div class="header_div d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+                    <div>
+                        <span>Previsão de permanência (IA)</span>
+                        <i class="fa-solid fa-robot" style="color:white; margin-left:10px;"></i>
+                    </div>
+                    <small style="color:#f1f1f1">
+                        Modelo <?= htmlspecialchars($forecastSummary['model'] ?? 'n/d', ENT_QUOTES, 'UTF-8') ?> ·
+                        <?= (int)($forecastSummary['updated'] ?? 0) ?> recalculados agora
+                    </small>
+                </div>
+                <table class="table table-sm table-striped table-hover table-condensed" style="margin-top:10px;">
+                    <thead style="background: linear-gradient(135deg, #7a3a80, #5a296a);">
+                        <tr>
+                            <th style="width:18%">Hospital</th>
+                            <th style="width:22%">Paciente</th>
+                            <th style="width:12%">Dias atuais</th>
+                            <th style="width:14%">Previsto (dias)</th>
+                            <th style="width:14%">Alta estimada</th>
+                            <th style="width:12%">Intervalo</th>
+                            <th style="width:8%">Conf.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($forecastRows as $prev): ?>
+                        <?php
+                            $diasAtuais = (int)($prev['dias_internado'] ?? 0);
+                            $prevTotal = isset($prev['forecast_total_days']) ? (float)$prev['forecast_total_days'] : null;
+                            $tempoRestante = $prevTotal !== null ? round($prevTotal - $diasAtuais, 1) : null;
+                            $lower = isset($prev['forecast_lower_days']) ? (float)$prev['forecast_lower_days'] : null;
+                            $upper = isset($prev['forecast_upper_days']) ? (float)$prev['forecast_upper_days'] : null;
+                            $confidence = isset($prev['forecast_confidence']) ? (int)$prev['forecast_confidence'] : null;
+                            $statusClass = 'badge bg-secondary';
+                            $statusLabel = 'Sem IA';
+                            if ($tempoRestante !== null) {
+                                if ($tempoRestante <= 0) {
+                                    $statusClass = 'badge bg-danger';
+                                    $statusLabel = 'Atrasado';
+                                } elseif ($tempoRestante <= 2) {
+                                    $statusClass = 'badge bg-warning text-dark';
+                                    $statusLabel = 'Risco';
+                                } else {
+                                    $statusClass = 'badge bg-success';
+                                    $statusLabel = 'No prazo';
+                                }
+                            }
+                            $altaEstimativa = '-';
+                            if (!empty($prev['data_intern_int']) && $prevTotal !== null) {
+                                try {
+                                    $altaDate = new DateTime($prev['data_intern_int']);
+                                    $altaDate->modify('+' . ceil($prevTotal) . ' days');
+                                    $altaEstimativa = $altaDate->format('d/m');
+                                } catch (Throwable $e) {
+                                    $altaEstimativa = '-';
+                                }
+                            }
+                            $intervaloTexto = ($lower !== null && $upper !== null)
+                                ? sprintf('%sd - %sd', round($lower), round($upper))
+                                : '—';
+                            $tempoRestanteTexto = $tempoRestante !== null
+                                ? sprintf('%s%s d', $tempoRestante > 0 ? '+' : '', $tempoRestante)
+                                : '—';
+                            $confTexto = $confidence ? $confidence . '%' : '—';
+                            $atualizadoEm = '-';
+                            if (!empty($prev['forecast_generated_at'])) {
+                                try {
+                                    $atualizadoEm = (new DateTime($prev['forecast_generated_at']))->format('d/m H:i');
+                                } catch (Throwable $e) {
+                                    $atualizadoEm = '-';
+                                }
+                            }
+                            ?>
+                        <tr style="font-size:15px">
+                            <td>
+                                <?= htmlspecialchars($prev['nome_hosp'] ?? '', ENT_QUOTES, 'UTF-8') ?><br>
+                                <span class="<?= $statusClass ?>" style="font-size:0.75rem;">
+                                    <?= $statusLabel ?>
+                                </span>
+                            </td>
+                            <td>
+                                <a href="<?= $BASE_URL ?>show_internacao.php?id_internacao=<?= (int)$prev['id_internacao'] ?>">
+                                    <i class="bi bi-box-arrow-up-right fw-bold"
+                                        style="margin-right:6px; font-size:1.1em;"></i>
+                                </a>
+                                <?= htmlspecialchars($prev['nome_pac'] ?? '', ENT_QUOTES, 'UTF-8') ?><br>
+                                <small class="text-muted">Atualizado <?= $atualizadoEm ?></small>
+                            </td>
+                            <td><?= $diasAtuais ?> d</td>
+                            <td>
+                                <?= $prevTotal !== null ? round($prevTotal, 1) . ' d' : '—' ?><br>
+                                <?php if ($tempoRestante !== null): ?>
+                                <span class="fw-semibold"><?= htmlspecialchars($tempoRestanteTexto, ENT_QUOTES, 'UTF-8') ?></span>
+                                <?php else: ?>
+                                <span class="text-muted">—</span>
+                                <?php endif; ?>
+                            </td>
+                            <td><?= $altaEstimativa ?></td>
+                            <td><?= $intervaloTexto ?></td>
+                            <td><?= $confTexto ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                        <?php if (count($forecastRows) === 0): ?>
+                        <tr>
+                            <td colspan="7" class="text-center" style="font-size:15px;">
+                                Nenhuma previsão disponível ainda. Assim que tivermos histórico suficiente,
+                                exibiremos os casos prioritários aqui.
+                            </td>
+                        </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

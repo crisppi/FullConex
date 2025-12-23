@@ -51,6 +51,8 @@ include_once("array_dados.php");
 
 include_once("models/antecedente.php");
 include_once("dao/antecedenteDao.php");
+include_once("models/internacao_antecedente.php");
+include_once("dao/internacaoAntecedenteDao.php");
 
 $internacaoDao = new internacaoDAO($conn, $BASE_URL);
 
@@ -200,6 +202,12 @@ $jsonAcomodacoes = json_encode($acomodacoes);
 
 $antecedenteDao = new antecedenteDAO($conn, $BASE_URL);
 $antecedentes = $antecedenteDao->findGeral();
+$internAntecedenteDao = new InternacaoAntecedenteDAO($conn, $BASE_URL);
+$antecedentesInternacao = ($id_internacao)
+    ? $internAntecedenteDao->findByInternacao((int)$id_internacao)
+    : [];
+$antecedentesInternacao = is_array($antecedentesInternacao) ? $antecedentesInternacao : [];
+$antecedentesInternacaoIds = array_map('intval', array_column($antecedentesInternacao, 'intern_antec_ant_int'));
 
 ?>
 

@@ -64,4 +64,29 @@ class InternacaoAntecedenteDAO
         }
     }
 
+    /**
+     * Retorna todos os antecedentes vinculados à internação informada.
+     * Inclui o nome do antecedente para facilitar o uso em telas.
+     */
+    public function findByInternacao(int $internacaoId): array
+    {
+        if ($internacaoId <= 0) {
+            return [];
+        }
+
+        $stmt = $this->conn->prepare(
+            "SELECT ia.*, a.antecedente_ant 
+             FROM tb_intern_antec AS ia
+             LEFT JOIN tb_antecedente AS a ON a.id_antecedente = ia.intern_antec_ant_int
+             WHERE ia.fk_internacao_ant_int = :internacaoId
+             ORDER BY a.antecedente_ant ASC"
+        );
+
+        $stmt->bindValue(":internacaoId", $internacaoId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return is_array($rows) ? $rows : [];
+    }
+
 }

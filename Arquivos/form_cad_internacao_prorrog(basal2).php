@@ -4,15 +4,16 @@
     <input type="hidden" name="type" value="create">
     <div class="form-group col-sm-1">
         <?php
-        $a = ($gestaoIdMax[0]);
-        $ultimoReg = ($a["ultimoReg"]);
-        extract($findMaxProInt);
+        $a = $gestaoIdMax[0] ?? [];
+        $ultimoReg = isset($a["ultimoReg"]) ? (int)$a["ultimoReg"] : 0;
+        $findMaxProInt = is_array($findMaxProInt ?? null) ? $findMaxProInt : [];
+        $dataInternacaoAtual = $findMaxProInt[0]['data_intern_int'] ?? '';
         ?>
         <input type="hidden" class="form-control" id="fk_internacao_pror" name="fk_internacao_pror" value="<?= $ultimoReg ?>" placeholder="Relatório da auditoria">
     </div>
     <div class="form-group col-sm-2">
         <label class="control-label" for="data_inter_int2">Data internacao</label>
-        <input type="hidden" class="form-control" id="data_inter_int2" value="<?= $findMaxProInt['0']['data_intern_int'] ?>" name="data_inter_int2" readonly>
+        <input type="hidden" class="form-control" id="data_inter_int2" value="<?= $dataInternacaoAtual ?>" name="data_inter_int2" readonly>
     </div>
     <!-- PRORROGACAO 1 -->
     <div class="form-group row">
@@ -20,8 +21,10 @@
             <label class="control-label" for="acomod1_pror">Acomodação</label>
             <select class="form-control" id="acomod1_pror" name="acomod1_pror">
                 <option value="">Selecione acomodação</option>
-                <?php sort($dados_acomodacao, SORT_ASC);
-                foreach ($dados_acomodacao as $acomd) { ?>
+                <?php
+                $acomodacoes = is_array($dados_acomodacao ?? null) ? $dados_acomodacao : [];
+                sort($acomodacoes, SORT_ASC);
+                foreach ($acomodacoes as $acomd) { ?>
                     <option value="<?= $acomd; ?>"><?= $acomd; ?></option>
                 <?php } ?>
             </select>
@@ -55,8 +58,10 @@
                 <label class="control-label" for="acomod2_pror">Acomodação</label>
                 <select class="form-control" id="acomod2_pror" name="acomod2_pror">
                     <option value="">Selecione acomodação</option>
-                    <?php sort($dados_acomodacao, SORT_ASC);
-                    foreach ($dados_acomodacao as $acomd) { ?>
+                    <?php
+                    $acomodacoes = is_array($dados_acomodacao ?? null) ? $dados_acomodacao : [];
+                    sort($acomodacoes, SORT_ASC);
+                    foreach ($acomodacoes as $acomd) { ?>
                         <option value="<?= $acomd; ?>"><?= $acomd; ?></option>
                     <?php } ?>
                 </select>
@@ -92,8 +97,10 @@
                     <label class="control-label" for="acomod3_pror">Acomodação (3)</label>
                     <select class="form-control" id="acomod3_pror" name="acomod3_pror">
                         <option value="">Selecione acomodação</option>
-                        <?php sort($dados_acomodacao, SORT_ASC);
-                        foreach ($dados_acomodacao as $acomd) { ?>
+                        <?php
+                        $acomodacoes = is_array($dados_acomodacao ?? null) ? $dados_acomodacao : [];
+                        sort($acomodacoes, SORT_ASC);
+                        foreach ($acomodacoes as $acomd) { ?>
                             <option value="<?= $acomd; ?>"><?= $acomd; ?></option>
                         <?php } ?>
                     </select>
