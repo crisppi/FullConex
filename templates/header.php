@@ -576,6 +576,26 @@ if (!empty($_SESSION['id_usuario'])) {
                                             class="bi bi-arrow-down-right-circle"
                                             style="font-size: 1rem;margin-right:5px; color:#c6b5e8;"></i>
                                         Desospitalização</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>Opme.php"><i
+                                            class="bi bi-bandaid"
+                                            style="font-size: 1rem;margin-right:5px; color:#c8a6ff;"></i>
+                                        OPME</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>EventoAdverso.php"><i
+                                            class="bi bi-exclamation-octagon"
+                                            style="font-size: 1rem;margin-right:5px; color:#ff9f9f;"></i>
+                                        Evento Adverso</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>Sinistro.php"><i
+                                            class="bi bi-clipboard-data"
+                                            style="font-size: 1rem;margin-right:5px; color:#ff8fb1;"></i>
+                                        Sinistro BI</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>Producao.php"><i
+                                            class="bi bi-graph-up"
+                                            style="font-size: 1rem;margin-right:5px; color:#d071b0;"></i>
+                                        Producao BI</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>Indicadores.php"><i
+                                            class="bi bi-speedometer2"
+                                            style="font-size: 1rem;margin-right:5px; color:#9fd7ff;"></i>
+                                        Indicadores BI</a></li>
                                 <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi_sinistro_ytd.php"><i
                                             class="bi bi-bar-chart-steps"
                                             style="font-size: 1rem;margin-right:5px; color:#8dd0ff;"></i>
