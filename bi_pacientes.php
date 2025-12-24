@@ -108,7 +108,7 @@ $labelsMedio = array_map(fn($r) => $r['paciente'] ?: 'Paciente', $medioRows);
 $valsMedio = array_map(fn($r) => (float)$r['valor_medio'], $medioRows);
 ?>
 
-<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20251222">
+<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20251226">
 <script src="diversos/CoolAdmin-master/vendor/chartjs/Chart.bundle.min.js"></script>
 <script src="<?= $BASE_URL ?>js/bi.js?v=20251221"></script>
 <script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));</script>

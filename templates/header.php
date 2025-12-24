@@ -12,12 +12,16 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
 // ini_set('display_startup_errors', 1);
 // error_reporting(E_ALL);
 
+$sessionNivel = isset($_SESSION['nivel']) ? (int) $_SESSION['nivel'] : 0;
+$sessionUsuario = $_SESSION['usuario_user'] ?? '';
+$sessionIdUsuario = $_SESSION['id_usuario'] ?? null;
+
 $chatUnreadCount = 0;
 $chatAssistantLink = $BASE_URL . 'show_chat.php';
-if (!empty($_SESSION['id_usuario'])) {
+if (!empty($sessionIdUsuario)) {
     try {
         $stmtChat = $conn->prepare("SELECT COUNT(*) FROM tb_mensagem WHERE para_usuario = :para AND vista = 0");
-        $stmtChat->bindValue(':para', (int) $_SESSION['id_usuario'], PDO::PARAM_INT);
+        $stmtChat->bindValue(':para', (int) $sessionIdUsuario, PDO::PARAM_INT);
         $stmtChat->execute();
         $chatUnreadCount = (int) $stmtChat->fetchColumn();
     } catch (Exception $e) {
@@ -186,7 +190,7 @@ if (!empty($_SESSION['id_usuario'])) {
                         style="--bs-scroll-height: 80px;">
                         <!-- Ícone de mensagem -->
 
-                        <?php if ($_SESSION['nivel'] > 0) { ?>
+                        <?php if ($sessionNivel > 0) { ?>
 
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
@@ -269,7 +273,7 @@ if (!empty($_SESSION['id_usuario'])) {
                                             style="font-size: 1rem;margin-right:5px; color: #5e2363;"></i>
                                         Solicitação de Customização (PDF)
                                     </a></li>
-                                <?php if ($_SESSION['nivel'] > 3) { ?>
+                                <?php if ($sessionNivel > 3) { ?>
                                 <li class="nav-item">
                                     <a class="dropdown-item" href="<?= $BASE_URL ?>admin_permissao.php">
                                         <i class="bi bi-shield-lock"
@@ -286,7 +290,7 @@ if (!empty($_SESSION['id_usuario'])) {
 
 
 
-                        <?php if ($_SESSION['nivel'] > 3) { ?>
+                        <?php if ($sessionNivel > 3) { ?>
                         <li id="drop1" class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="<?= $BASE_URL ?>pacientes"
                                 id="navbarScrollingDropdown" role="button" data-bs-toggle="dropdown"
@@ -310,7 +314,7 @@ if (!empty($_SESSION['id_usuario'])) {
                         </li>
 
                         <?php }; ?>
-                        <?php if ($_SESSION['nivel'] > 3) { ?>
+                        <?php if ($sessionNivel > 3) { ?>
 
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
@@ -355,7 +359,7 @@ if (!empty($_SESSION['id_usuario'])) {
                         </li>
                         <?php }; ?>
 
-                        <?php if ($_SESSION['nivel'] >= 3) { ?>
+                        <?php if ($sessionNivel >= 3) { ?>
 
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarScrollingDropdown" role="button"
@@ -411,7 +415,7 @@ if (!empty($_SESSION['id_usuario'])) {
                             </ul>
                         </li>
                         <?php }; ?>
-                        <?php if ($_SESSION['nivel'] >= 3): ?>
+                        <?php if ($sessionNivel >= 3): ?>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="dropdownContasRah" role="button"
                                 data-bs-toggle="dropdown" aria-expanded="false">
@@ -437,7 +441,7 @@ if (!empty($_SESSION['id_usuario'])) {
                         </li>
                         <?php endif; ?>
 
-                        <?php if ($_SESSION['nivel'] >= 3) { ?>
+                        <?php if ($sessionNivel >= 3) { ?>
 
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
@@ -502,7 +506,7 @@ if (!empty($_SESSION['id_usuario'])) {
                             </ul>
                         </li>
                         <?php }; ?>
-                        <?php if ($_SESSION['nivel'] >= 3) { ?>
+                        <?php if ($sessionNivel >= 3) { ?>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
                                 data-bs-toggle="dropdown" aria-expanded="false">
@@ -534,7 +538,7 @@ if (!empty($_SESSION['id_usuario'])) {
                             </ul>
                         </li>
                         <?php }; ?>
-                        <?php if ($_SESSION['nivel'] >= 3) { ?>
+                        <?php if ($sessionNivel >= 3) { ?>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
                                 data-bs-toggle="dropdown" aria-expanded="false">
@@ -564,6 +568,42 @@ if (!empty($_SESSION['id_usuario'])) {
                                             class="bi bi-journal-text"
                                             style="font-size: 1rem;margin-right:5px; color:#f0b67f;"></i>
                                         Antecedente</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>LongaPermanenciaBI.php"><i
+                                            class="bi bi-hourglass-split"
+                                            style="font-size: 1rem;margin-right:5px; color:#9ad0f5;"></i>
+                                        Longa Permanencia</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>EstrategiaTerapeuticaBI.php"><i
+                                            class="bi bi-compass"
+                                            style="font-size: 1rem;margin-right:5px; color:#c6b5e8;"></i>
+                                        Estrategia Terapeutica</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>MedicoTitularBI.php"><i
+                                            class="bi bi-person-badge"
+                                            style="font-size: 1rem;margin-right:5px; color:#ffb3d1;"></i>
+                                        Medico Titular</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>AuditorBI.php"><i
+                                            class="bi bi-person-lines-fill"
+                                            style="font-size: 1rem;margin-right:5px; color:#b7d3ff;"></i>
+                                        Auditor</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>AuditorVisitasBI.php"><i
+                                            class="bi bi-table"
+                                            style="font-size: 1rem;margin-right:5px; color:#9fd7ff;"></i>
+                                        Auditor Visitas</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>SeguradoraBI.php"><i
+                                            class="bi bi-shield-check"
+                                            style="font-size: 1rem;margin-right:5px; color:#8dd0ff;"></i>
+                                        Seguradora</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>SeguradoraDetalhadoBI.php"><i
+                                            class="bi bi-shield-plus"
+                                            style="font-size: 1rem;margin-right:5px; color:#8dd0ff;"></i>
+                                        Seguradora Detalhado</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>ConsolidadoGestaoBI.php"><i
+                                            class="bi bi-layers"
+                                            style="font-size: 1rem;margin-right:5px; color:#7cc4ff;"></i>
+                                        Consolidado Gestao</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>ConsolidadoGestaoCardsBI.php"><i
+                                            class="bi bi-grid"
+                                            style="font-size: 1rem;margin-right:5px; color:#7cc4ff;"></i>
+                                        Consolidado Gestao Cards</a></li>
                                 <li><a class="dropdown-item" href="<?= $BASE_URL ?>AltoCusto.php"><i
                                             class="bi bi-exclamation-diamond"
                                             style="font-size: 1rem;margin-right:5px; color:#ff9fb3;"></i>
@@ -596,6 +636,7 @@ if (!empty($_SESSION['id_usuario'])) {
                                             class="bi bi-speedometer2"
                                             style="font-size: 1rem;margin-right:5px; color:#9fd7ff;"></i>
                                         Indicadores BI</a></li>
+                                <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi_sinistro_ytd.php"><i
                                             class="bi bi-bar-chart-steps"
                                             style="font-size: 1rem;margin-right:5px; color:#8dd0ff;"></i>
@@ -729,7 +770,7 @@ if (!empty($_SESSION['id_usuario'])) {
                                 onerror="this.onerror=null;this.src='<?= $defaultFoto ?>';" />
                         </div>
                         <div class="content">
-                            <a class="js-acc-btn" href="#"><?php print $_SESSION['usuario_user'] ?></a>
+                            <a class="js-acc-btn" href="#"><?php print $sessionUsuario ?></a>
                         </div>
                         <div class="account-dropdown js-dropdown">
 

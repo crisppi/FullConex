@@ -12,6 +12,15 @@ $links = [
     ['label' => 'Patologia', 'href' => 'bi_patologia.php'],
     ['label' => 'Grupo Patologia', 'href' => 'GrupoPatologia.php'],
     ['label' => 'Antecedente', 'href' => 'Antecedente.php'],
+    ['label' => 'Longa Permanencia', 'href' => 'LongaPermanenciaBI.php'],
+    ['label' => 'Estrategia Terapeutica', 'href' => 'EstrategiaTerapeuticaBI.php'],
+    ['label' => 'Medico Titular', 'href' => 'MedicoTitularBI.php'],
+    ['label' => 'Auditor', 'href' => 'AuditorBI.php'],
+    ['label' => 'Auditor Visitas', 'href' => 'AuditorVisitasBI.php'],
+    ['label' => 'Seguradora', 'href' => 'SeguradoraBI.php'],
+    ['label' => 'Seguradora Detalhado', 'href' => 'SeguradoraDetalhadoBI.php'],
+    ['label' => 'Consolidado Gestao', 'href' => 'ConsolidadoGestaoBI.php'],
+    ['label' => 'Consolidado Gestao Cards', 'href' => 'ConsolidadoGestaoCardsBI.php'],
     ['label' => 'Alto Custo', 'href' => 'AltoCusto.php'],
     ['label' => 'Home Care', 'href' => 'HomeCare.php'],
     ['label' => 'Desospitalizacao', 'href' => 'Desospitalizacao.php'],
@@ -35,7 +44,7 @@ $links = [
 ];
 ?>
 
-<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20251222">
+<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20251226">
 <script src="<?= $BASE_URL ?>js/bi.js?v=20251221"></script>
 <script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));</script>
 

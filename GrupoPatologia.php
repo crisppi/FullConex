@@ -107,7 +107,7 @@ function labelsAndValues(array $rows): array
 [$labelsMp, $valuesMp] = labelsAndValues($rowsMp);
 ?>
 
-<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20251222">
+<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20251226">
 <script src="diversos/CoolAdmin-master/vendor/chartjs/Chart.bundle.min.js"></script>
 <script src="<?= $BASE_URL ?>js/bi.js?v=20251221"></script>
 <script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));</script>
