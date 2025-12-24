@@ -60,57 +60,66 @@ if ($uti === 'n') {
 $sqlBase = "
     FROM tb_internacao i
     {$utiJoin}
-    LEFT JOIN tb_gestao g ON g.fk_internacao_ges = i.id_internacao
+    JOIN tb_gestao g ON g.fk_internacao_ges = i.id_internacao AND g.alto_custo_ges = 's'
+    LEFT JOIN tb_paciente pa ON pa.id_paciente = i.fk_paciente_int
+    LEFT JOIN tb_hospital h ON h.id_hospital = i.fk_hospital_int
     LEFT JOIN (
         SELECT fk_id_int_alt, MAX(data_alta_alt) AS data_alta_alt
         FROM tb_alta
         GROUP BY fk_id_int_alt
     ) al ON al.fk_id_int_alt = i.id_internacao
-    LEFT JOIN tb_patologia p ON p.id_patologia = i.fk_patologia_int
-    LEFT JOIN tb_capeante ca ON ca.fk_int_capeante = i.id_internacao
     WHERE {$where}
-      AND g.alto_custo_ges = 's'
 ";
 
-function distQuery(PDO $conn, string $labelExpr, string $sqlBase, array $params, string $metric, int $limit = 12): array
-{
-    $sql = "
-        SELECT {$labelExpr} AS label, {$metric} AS total
-        {$sqlBase}
-        GROUP BY label
-        ORDER BY total DESC
-        LIMIT {$limit}
-    ";
-    $stmt = $conn->prepare($sql);
-    foreach ($params as $key => $value) {
-        $stmt->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
-    }
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
-}
+$sqlStats = "
+    SELECT
+        COUNT(DISTINCT i.id_internacao) AS total_internacoes,
+        SUM(GREATEST(1, DATEDIFF(COALESCE(al.data_alta_alt, CURDATE()), i.data_intern_int) + 1)) AS total_diarias,
+        MAX(GREATEST(1, DATEDIFF(COALESCE(al.data_alta_alt, CURDATE()), i.data_intern_int) + 1)) AS maior_permanencia,
+        ROUND(AVG(GREATEST(1, DATEDIFF(COALESCE(al.data_alta_alt, CURDATE()), i.data_intern_int) + 1)), 1) AS mp,
+        COUNT(DISTINCT g.id_gestao) AS total_eventos
+    {$sqlBase}
+";
+$stmt = $conn->prepare($sqlStats);
+$stmt->execute($params);
+$stats = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
-$labelGrupo = "COALESCE(NULLIF(i.grupo_patologia_int,''), p.patologia_pat, 'Sem informacoes')";
+$totalInternacoes = (int)($stats['total_internacoes'] ?? 0);
+$totalDiarias = (int)($stats['total_diarias'] ?? 0);
+$maiorPermanencia = (int)($stats['maior_permanencia'] ?? 0);
+$mp = (float)($stats['mp'] ?? 0);
+$totalEventos = (int)($stats['total_eventos'] ?? 0);
 
-$rowsCusto = distQuery($conn, $labelGrupo, $sqlBase, $params, "SUM(COALESCE(ca.valor_final_capeante,0))", 10);
-$rowsIntern = distQuery($conn, $labelGrupo, $sqlBase, $params, "COUNT(DISTINCT i.id_internacao)", 10);
-$rowsDiarias = distQuery($conn, $labelGrupo, $sqlBase, $params, "SUM(GREATEST(1, DATEDIFF(COALESCE(al.data_alta_alt, CURDATE()), i.data_intern_int) + 1))", 10);
-$rowsMp = distQuery($conn, $labelGrupo, $sqlBase, $params, "ROUND(AVG(GREATEST(1, DATEDIFF(COALESCE(al.data_alta_alt, CURDATE()), i.data_intern_int) + 1)), 1)", 10);
+$sqlHosp = "
+    SELECT h.nome_hosp AS label, COUNT(*) AS total
+    {$sqlBase}
+    GROUP BY h.id_hospital
+    ORDER BY total DESC
+    LIMIT 12
+";
+$stmtHosp = $conn->prepare($sqlHosp);
+$stmtHosp->execute($params);
+$hospRows = $stmtHosp->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
-function labelsAndValues(array $rows): array
-{
-    $labels = array_map(fn($r) => $r['label'] ?? 'Sem informacoes', $rows);
-    $values = array_map(fn($r) => (float)($r['total'] ?? 0), $rows);
-    return [$labels, $values];
-}
+$tipoRows = [
+    ['label' => 'Alto Custo', 'total' => $totalEventos],
+];
 
-[$labelsCusto, $valuesCusto] = labelsAndValues($rowsCusto);
-[$labelsIntern, $valuesIntern] = labelsAndValues($rowsIntern);
-[$labelsDiarias, $valuesDiarias] = labelsAndValues($rowsDiarias);
-[$labelsMp, $valuesMp] = labelsAndValues($rowsMp);
+$sqlTable = "
+    SELECT
+        COALESCE(NULLIF(pa.nome_pac,''), 'Sem informacoes') AS paciente,
+        COALESCE(NULLIF(h.nome_hosp,''), 'Sem informacoes') AS hospital,
+        COALESCE(NULLIF(g.rel_alto_custo_ges,''), '-') AS relatorio
+    {$sqlBase}
+    ORDER BY i.data_intern_int DESC
+    LIMIT 60
+";
+$stmtTable = $conn->prepare($sqlTable);
+$stmtTable->execute($params);
+$rowsTable = $stmtTable->fetchAll(PDO::FETCH_ASSOC) ?: [];
 ?>
 
-<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20251221">
-<script src="diversos/CoolAdmin-master/vendor/chartjs/Chart.bundle.min.js"></script>
+<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20251222">
 <script src="<?= $BASE_URL ?>js/bi.js?v=20251221"></script>
 <script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));</script>
 
@@ -188,60 +197,77 @@ function labelsAndValues(array $rows): array
         </div>
     </form>
 
-    <div class="bi-grid fixed-2" style="margin-top:16px;">
-        <div class="bi-panel">
-            <h3>Custo por grupo de patologia</h3>
-            <div class="bi-chart"><canvas id="chartCusto"></canvas></div>
-        </div>
-        <div class="bi-panel">
-            <h3>Internacoes por grupo de patologia</h3>
-            <div class="bi-chart"><canvas id="chartIntern"></canvas></div>
+    <div class="bi-panel" style="margin-top:16px;">
+        <div class="bi-kpis kpi-compact">
+            <div class="bi-kpi kpi-berry kpi-compact"><small>Internacoes</small><strong><?= $totalInternacoes ?></strong></div>
+            <div class="bi-kpi kpi-teal kpi-compact"><small>Diarias</small><strong><?= $totalDiarias ?></strong></div>
+            <div class="bi-kpi kpi-indigo kpi-compact"><small>MP</small><strong><?= number_format($mp, 1, ',', '.') ?></strong></div>
+            <div class="bi-kpi kpi-rose kpi-compact"><small>Maior permanencia</small><strong><?= $maiorPermanencia ?></strong></div>
         </div>
     </div>
 
-    <div class="bi-grid fixed-2" style="margin-top:16px;">
+    <div class="bi-grid fixed-3" style="margin-top:16px;">
         <div class="bi-panel">
-            <h3>MP por grupo de patologia</h3>
-            <div class="bi-chart"><canvas id="chartMp"></canvas></div>
+            <h3>Hospitais</h3>
+            <div class="bi-list">
+                <?php if (!$hospRows): ?>
+                    <div class="bi-list-item"><span>Sem informacoes</span><span>0</span></div>
+                <?php endif; ?>
+                <?php foreach ($hospRows as $row): ?>
+                    <div class="bi-list-item">
+                        <span><?= e($row['label'] ?? 'Sem informacoes') ?></span>
+                        <span><?= (int)($row['total'] ?? 0) ?></span>
+                    </div>
+                <?php endforeach; ?>
+            </div>
         </div>
         <div class="bi-panel">
-            <h3>Diarias por grupo de patologia</h3>
-            <div class="bi-chart"><canvas id="chartDiarias"></canvas></div>
+            <h3>Tipo do evento</h3>
+            <div class="bi-list">
+                <?php foreach ($tipoRows as $row): ?>
+                    <div class="bi-list-item">
+                        <span><?= e($row['label'] ?? 'Alto Custo') ?></span>
+                        <span><?= (int)($row['total'] ?? 0) ?></span>
+                    </div>
+                <?php endforeach; ?>
+            </div>
         </div>
+        <div class="bi-panel bi-panel-compact">
+            <div class="bi-kpi kpi-white">
+                <small>No. de Alto Custo</small>
+                <strong class="bi-kpi-big"><?= $totalEventos ?></strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="bi-panel" style="margin-top:16px;">
+        <h3>Relatorios de Alto Custo</h3>
+        <table class="bi-table">
+            <thead>
+                <tr>
+                    <th>Paciente</th>
+                    <th>Hospital</th>
+                    <th>Tipo do evento</th>
+                    <th>Relatorio</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (!$rowsTable): ?>
+                    <tr>
+                        <td colspan="4">Sem informacoes para o filtro selecionado.</td>
+                    </tr>
+                <?php endif; ?>
+                <?php foreach ($rowsTable as $row): ?>
+                    <tr>
+                        <td><?= e($row['paciente'] ?? '-') ?></td>
+                        <td><?= e($row['hospital'] ?? '-') ?></td>
+                        <td>Alto Custo</td>
+                        <td><?= e($row['relatorio'] ?? '-') ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
     </div>
 </div>
-
-<script>
-const labelsCusto = <?= json_encode($labelsCusto) ?>;
-const valuesCusto = <?= json_encode($valuesCusto) ?>;
-const labelsIntern = <?= json_encode($labelsIntern) ?>;
-const valuesIntern = <?= json_encode($valuesIntern) ?>;
-const labelsMp = <?= json_encode($labelsMp) ?>;
-const valuesMp = <?= json_encode($valuesMp) ?>;
-const labelsDiarias = <?= json_encode($labelsDiarias) ?>;
-const valuesDiarias = <?= json_encode($valuesDiarias) ?>;
-
-function barChart(ctx, labels, data, color, yTickCallback) {
-    const scales = window.biChartScales ? window.biChartScales() : undefined;
-    if (scales && yTickCallback && scales.yAxes && scales.yAxes[0] && scales.yAxes[0].ticks) {
-        scales.yAxes[0].ticks.callback = yTickCallback;
-    }
-    return new Chart(ctx, {
-        type: 'bar',
-        data: { labels, datasets: [{ data, backgroundColor: color }] },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            legend: { display: false },
-            scales
-        }
-    });
-}
-
-barChart(document.getElementById('chartCusto'), labelsCusto, valuesCusto, 'rgba(141, 208, 255, 0.7)', window.biMoneyTick);
-barChart(document.getElementById('chartIntern'), labelsIntern, valuesIntern, 'rgba(121, 199, 255, 0.7)');
-barChart(document.getElementById('chartMp'), labelsMp, valuesMp, 'rgba(111, 223, 194, 0.7)');
-barChart(document.getElementById('chartDiarias'), labelsDiarias, valuesDiarias, 'rgba(255, 198, 108, 0.7)');
-</script>
 
 <?php require_once("templates/footer.php"); ?>

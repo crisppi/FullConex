@@ -275,12 +275,68 @@ body.bi-theme,
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
 }
 
+.bi-kpis.kpi-compact {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  justify-items: center;
+}
+
+.bi-kpi.kpi-compact {
+  max-width: 180px;
+  width: 100%;
+}
+
 .bi-kpi {
   background: rgba(255, 255, 255, 0.14);
   border: 1px solid var(--bi-border);
   border-radius: 14px;
   padding: 12px 14px;
   text-align: center;
+}
+
+.bi-kpi.kpi-white {
+  background: #ffffff;
+  color: #223245;
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+.bi-kpi.kpi-white small {
+  color: #5c6b7a;
+}
+
+.bi-kpi.kpi-berry {
+  background: linear-gradient(135deg, #6e2f5f, #4c1f46);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+.bi-kpi.kpi-teal {
+  background: linear-gradient(135deg, #1b7f86, #0f5f66);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+.bi-kpi.kpi-indigo {
+  background: linear-gradient(135deg, #4c5bd3, #2f3a96);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+.bi-kpi.kpi-rose {
+  background: linear-gradient(135deg, #b65b7a, #7a2e4a);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+.bi-kpi.kpi-amber {
+  background: linear-gradient(135deg, #c27b2f, #8a4f1c);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+.bi-kpi.kpi-steel {
+  background: linear-gradient(135deg, #475569, #334155);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #fff;
 }
 
 .bi-kpi small {
@@ -297,6 +353,33 @@ body.bi-theme,
   margin-top: 6px;
 }
 
+.bi-kpi-big {
+  font-size: 2.2rem;
+  line-height: 1.1;
+}
+
+.bi-panel-compact {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bi-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bi-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.95rem;
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
 .bi-chart {
   min-height: 340px;
 }
@@ -304,6 +387,10 @@ body.bi-theme,
 .bi-table {
   width: 100%;
   color: var(--bi-text);
+  border-collapse: collapse;
+  background: rgba(10, 38, 64, 0.35);
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .bi-table th {
@@ -311,13 +398,28 @@ body.bi-theme,
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--bi-muted);
+  background: rgba(255, 255, 255, 0.08);
   border-bottom: 1px solid var(--bi-border);
-  padding-bottom: 8px;
+  padding: 10px 12px;
+  text-align: left;
 }
 
 .bi-table td {
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  vertical-align: top;
+}
+
+.bi-table tbody tr:nth-child(odd) {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.bi-table tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.bi-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .bi-empty {

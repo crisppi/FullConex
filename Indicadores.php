@@ -119,7 +119,7 @@ $idxAltoCusto = $totalInternacoes > 0 ? ($altoCusto / $totalInternacoes) * 100 :
 $idxObitos = $totalInternacoes > 0 ? ($obitos / $totalInternacoes) * 100 : 0.0;
 ?>
 
-<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20251221">
+<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20251222">
 <script src="diversos/CoolAdmin-master/vendor/chartjs/Chart.bundle.min.js"></script>
 <script src="<?= $BASE_URL ?>js/bi.js?v=20251221"></script>
 <script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));</script>
@@ -199,29 +199,29 @@ $idxObitos = $totalInternacoes > 0 ? ($obitos / $totalInternacoes) * 100 : 0.0;
     </form>
 
     <div class="bi-panel" style="margin-top:16px;">
-        <div class="bi-kpis">
-            <div class="bi-kpi"><small>Internacoes</small><strong><?= $totalInternacoes ?></strong></div>
-            <div class="bi-kpi"><small>Diarias</small><strong><?= $totalDiarias ?></strong></div>
-            <div class="bi-kpi"><small>MP</small><strong><?= number_format($mp, 1, ',', '.') ?></strong></div>
-            <div class="bi-kpi"><small>Maior permanencia</small><strong><?= $maiorPermanencia ?></strong></div>
+        <div class="bi-kpis kpi-compact">
+            <div class="bi-kpi kpi-berry kpi-compact"><small>Internacoes</small><strong><?= $totalInternacoes ?></strong></div>
+            <div class="bi-kpi kpi-teal kpi-compact"><small>Diarias</small><strong><?= $totalDiarias ?></strong></div>
+            <div class="bi-kpi kpi-indigo kpi-compact"><small>MP</small><strong><?= number_format($mp, 1, ',', '.') ?></strong></div>
+            <div class="bi-kpi kpi-rose kpi-compact"><small>Maior permanencia</small><strong><?= $maiorPermanencia ?></strong></div>
         </div>
     </div>
 
     <div class="bi-panel" style="margin-top:16px;">
         <h3>Indicadores de performance</h3>
         <div class="bi-kpis" style="margin-top:12px;">
-            <div class="bi-kpi"><small>Internacoes</small><strong><?= $totalInternacoes ?></strong></div>
-            <div class="bi-kpi"><small>Internados</small><strong><?= $internados ?></strong></div>
-            <div class="bi-kpi"><small>Evento adverso</small><strong><?= $eventoAdverso ?></strong></div>
-            <div class="bi-kpi"><small>Home care</small><strong><?= $homeCare ?></strong></div>
-            <div class="bi-kpi"><small>OPME</small><strong><?= $opme ?></strong></div>
-            <div class="bi-kpi"><small>Alto custo</small><strong><?= $altoCusto ?></strong></div>
-            <div class="bi-kpi"><small>Obitos</small><strong><?= $obitos ?></strong></div>
-            <div class="bi-kpi"><small>Indice evento adverso</small><strong><?= fmtPct($idxEventoAdverso) ?></strong></div>
-            <div class="bi-kpi"><small>Indice home care</small><strong><?= fmtPct($idxHomeCare) ?></strong></div>
-            <div class="bi-kpi"><small>Indice opme</small><strong><?= fmtPct($idxOpme) ?></strong></div>
-            <div class="bi-kpi"><small>Indice alto custo</small><strong><?= fmtPct($idxAltoCusto) ?></strong></div>
-            <div class="bi-kpi"><small>Indice obitos</small><strong><?= fmtPct($idxObitos) ?></strong></div>
+            <div class="bi-kpi kpi-berry"><small>Internacoes</small><strong><?= $totalInternacoes ?></strong></div>
+            <div class="bi-kpi kpi-berry"><small>Internados</small><strong><?= $internados ?></strong></div>
+            <div class="bi-kpi kpi-teal"><small>Evento adverso</small><strong><?= $eventoAdverso ?></strong></div>
+            <div class="bi-kpi kpi-teal"><small>Home care</small><strong><?= $homeCare ?></strong></div>
+            <div class="bi-kpi kpi-indigo"><small>OPME</small><strong><?= $opme ?></strong></div>
+            <div class="bi-kpi kpi-indigo"><small>Alto custo</small><strong><?= $altoCusto ?></strong></div>
+            <div class="bi-kpi kpi-steel"><small>Obitos</small><strong><?= $obitos ?></strong></div>
+            <div class="bi-kpi kpi-rose"><small>Indice evento adverso</small><strong><?= fmtPct($idxEventoAdverso) ?></strong></div>
+            <div class="bi-kpi kpi-rose"><small>Indice home care</small><strong><?= fmtPct($idxHomeCare) ?></strong></div>
+            <div class="bi-kpi kpi-amber"><small>Indice opme</small><strong><?= fmtPct($idxOpme) ?></strong></div>
+            <div class="bi-kpi kpi-amber"><small>Indice alto custo</small><strong><?= fmtPct($idxAltoCusto) ?></strong></div>
+            <div class="bi-kpi kpi-steel"><small>Indice obitos</small><strong><?= fmtPct($idxObitos) ?></strong></div>
         </div>
     </div>
 </div>
