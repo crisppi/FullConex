@@ -256,6 +256,11 @@ body.bi-theme,
   gap: 12px;
 }
 
+.bi-stack::before {
+  content: none !important;
+  display: none !important;
+}
+
 .bi-filter-card {
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid var(--bi-border);
@@ -276,6 +281,13 @@ body.bi-theme,
   padding: 10px 12px 12px;
 }
 
+.bi-filter-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 6px;
+}
+
 .bi-filter-card select,
 .bi-filter-card input {
   width: 100%;
@@ -288,6 +300,9 @@ body.bi-theme,
 
 .bi-filter-card .bi-filter-btn {
   width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: none;
   border-radius: 10px;
   padding: 10px 12px;
@@ -295,6 +310,10 @@ body.bi-theme,
   background: linear-gradient(135deg, #8152a3, #5a2b63);
   color: #fff;
   cursor: pointer;
+}
+
+.bi-filter-card .bi-filter-btn + .bi-filter-btn {
+  margin-top: 10px;
 }
 
 .bi-filter-list {
