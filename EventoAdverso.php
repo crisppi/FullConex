@@ -127,8 +127,8 @@ $stmtTable->execute($params);
 $rowsTable = $stmtTable->fetchAll(PDO::FETCH_ASSOC) ?: [];
 ?>
 
-<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20251226">
-<script src="<?= $BASE_URL ?>js/bi.js?v=20251221"></script>
+<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260110">
+<script src="<?= $BASE_URL ?>js/bi.js?v=20260110"></script>
 <script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));</script>
 
 <div class="bi-wrapper bi-theme">
@@ -148,7 +148,7 @@ $rowsTable = $stmtTable->fetchAll(PDO::FETCH_ASSOC) ?: [];
             <select name="internado">
                 <option value="">Todos</option>
                 <option value="s" <?= $internado === 's' ? 'selected' : '' ?>>Sim</option>
-                <option value="n" <?= $internado === 'n' ? 'selected' : '' ?>>Nao</option>
+                <option value="n" <?= $internado === 'n' ? 'selected' : '' ?>>Não</option>
             </select>
         </div>
         <div class="bi-filter">
@@ -163,7 +163,7 @@ $rowsTable = $stmtTable->fetchAll(PDO::FETCH_ASSOC) ?: [];
             </select>
         </div>
         <div class="bi-filter">
-            <label>Tipo Internacao</label>
+            <label>Tipo Internação</label>
             <select name="tipo_internacao">
                 <option value="">Todos</option>
                 <?php foreach ($tiposInt as $tipo): ?>
@@ -189,11 +189,11 @@ $rowsTable = $stmtTable->fetchAll(PDO::FETCH_ASSOC) ?: [];
             <select name="uti">
                 <option value="">Todos</option>
                 <option value="s" <?= $uti === 's' ? 'selected' : '' ?>>Sim</option>
-                <option value="n" <?= $uti === 'n' ? 'selected' : '' ?>>Nao</option>
+                <option value="n" <?= $uti === 'n' ? 'selected' : '' ?>>Não</option>
             </select>
         </div>
         <div class="bi-filter">
-            <label>Data Internacao</label>
+            <label>Data Internação</label>
             <input type="date" name="data_ini" value="<?= e($dataIni) ?>">
         </div>
         <div class="bi-filter">

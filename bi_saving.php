@@ -100,9 +100,9 @@ $savingTipo = array_map(fn($r) => (float)$r['total_saving'], $tipoRows);
 $countTipo = array_map(fn($r) => (int)$r['total_registros'], $tipoRows);
 ?>
 
-<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20251226">
+<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260110">
 <script src="diversos/CoolAdmin-master/vendor/chartjs/Chart.bundle.min.js"></script>
-<script src="<?= $BASE_URL ?>js/bi.js?v=20251221"></script>
+<script src="<?= $BASE_URL ?>js/bi.js?v=20260110"></script>
 <script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));</script>
 
 <div class="bi-wrapper bi-theme">

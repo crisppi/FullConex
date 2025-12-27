@@ -204,91 +204,12 @@ if (!empty($sessionIdUsuario)) {
                                             class="bi bi-speedometer2"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
                                         Dashboard</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>dashboard_operacional.php"><i
-                                            class="bi bi-grid-3x3-gap"
-                                            style="font-size: 1rem;margin-right:5px; color:#5e2363;"></i>
-                                        Dashboard 360°</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>dashboard_performance.php"><i
-                                            class="bi bi-trophy"
-                                            style="font-size: 1rem;margin-right:5px; color:#7c3aed;"></i>
-                                        Performance equipes</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>faturamento_previsao.php"><i
-                                            class="bi bi-graph-up-arrow"
-                                            style="font-size: 1rem;margin-right:5px; color:#1d9ad8;"></i>
-                                        Previsão faturamento</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>dashboard_mensal.php"><i
-                                            class="bi bi-graph-up-arrow"
-                                            style="font-size: 1rem;margin-right:5px; color: rgb(94, 35, 99);"></i>
-                                        Painel Mensal</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>inteligencia_operadora.php"><i
-                                            class="bi bi-shield-check"
-                                            style="font-size: 1rem;margin-right:5px; color:#0ea5e9;"></i>
-                                        Inteligência da Operadora</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>relatorio_tmp.php"><i
-                                            class="bi bi-activity"
-                                            style="font-size: 1rem;margin-right:5px; color:#0ea5e9;"></i>
-                                        TMP por CID/Procedimento/Convênio</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>relatorio_prorrogacao_vs_alta.php"><i
-                                            class="bi bi-hourglass-split"
-                                            style="font-size: 1rem;margin-right:5px; color:#f59e0b;"></i>
-                                        Prorrogação vs Alta no prazo</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>relatorio_motivos_prorrogacao.php"><i
-                                            class="bi bi-list-check"
-                                            style="font-size: 1rem;margin-right:5px; color:#10b981;"></i>
-                                        Motivos de Prorrogação</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>relatorio_backlog_autorizacoes.php"><i
-                                            class="bi bi-card-checklist"
-                                            style="font-size: 1rem;margin-right:5px; color:#ef4444;"></i>
-                                        Backlog de Autorizações</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>operational_intelligence.php"><i
-                                            class="bi bi-robot"
-                                            style="font-size: 1rem;margin-right:5px; color:#20c997;"></i>
-                                        Previsões Operacionais</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>permanencia_alertas.php"><i
-                                            class="bi bi-clock-history"
-                                            style="font-size: 1rem;margin-right:5px; color:#0d9488;"></i>
-                                        Permanências e alertas</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>explicabilidade_insights.php"><i
-                                            class="bi bi-lightbulb"
-                                            style="font-size: 1rem;margin-right:5px; color:#f97316;"></i>
-                                        Insights explicáveis</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>risco_glosa.php"><i
-                                            class="bi bi-exclamation-octagon"
-                                            style="font-size: 1rem;margin-right:5px; color:#ef4444;"></i>
-                                        Oportunidade de glosa / contas</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>clusterizacao_clinica.php"><i
-                                            class="bi bi-diagram-3"
-                                            style="font-size: 1rem;margin-right:5px; color:#0ea5e9;"></i>
-                                        Clusterização clínica</a></li>
                                 <li><a class="dropdown-item" href="<?= $BASE_URL ?>manual.html"><i class="bi bi-person"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
                                         Manual</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>text_automation.php"><i
-                                            class="bi bi-pencil-square"
-                                            style="font-size: 1rem;margin-right:5px; color:#fb923c;"></i>
-                                        Assistente de Textos</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>solicitacao_customizacao_pdf.php"
-                                        target="_blank">
-                                        <i class="bi bi-file-earmark-text"
-                                            style="font-size: 1rem;margin-right:5px; color: #5e2363;"></i>
-                                        Solicitação de Customização (PDF)
-                                    </a></li>
-                                <?php if ($sessionNivel > 3) { ?>
-                                <li class="nav-item">
-                                    <a class="dropdown-item" href="<?= $BASE_URL ?>admin_permissao.php">
-                                        <i class="bi bi-shield-lock"
-                                            style="font-size: 1rem;margin-right:5px; color: rgb(21, 56, 210);"></i>
-                                        Permissões
-                                    </a>
-                                </li>
-                                <?php }; ?>
-
-
                                 <?php }; ?>
                             </ul>
                         </li>
-
-
 
                         <?php if ($sessionNivel > 3) { ?>
                         <li id="drop1" class="nav-item dropdown">
@@ -358,7 +279,6 @@ if (!empty($sessionIdUsuario)) {
                             </ul>
                         </li>
                         <?php }; ?>
-
                         <?php if ($sessionNivel >= 3) { ?>
 
                         <li class="nav-item dropdown">
@@ -546,129 +466,262 @@ if (!empty($sessionIdUsuario)) {
                                     class="bi bi-bar-chart-line edit-icon"></i>
                                 BI
                             </a>
-                            <ul class="dropdown-menu bi-dropdown" aria-labelledby="navbarScrollingDropdown">
-                                <li><a class="dropdown-item bi-dropdown-featured" href="<?= $BASE_URL ?>bi_navegacao.php"><i
+                            <ul class="dropdown-menu bi-dropdown bi-mega" aria-labelledby="navbarScrollingDropdown">
+                                <li class="bi-mega-col">
+                                    <span class="bi-mega-title">Resumo</span>
+                                    <ul class="bi-mega-list">
+                                        <li><a class="dropdown-item bi-dropdown-featured" href="<?= $BASE_URL ?>bi_navegacao.php"><i
+                                                    class="bi bi-grid-3x3-gap"
+                                                    style="font-size: 1rem;margin-right:5px; color:#9fd7ff;"></i>
+                                                Navegacao</a></li>
+                                        <li class="bi-submenu">
+                                            <a class="dropdown-item" href="#"><i
+                                                        class="bi bi-layers"
+                                                        style="font-size: 1rem;margin-right:5px; color:#7cc4ff;"></i>
+                                                Consolidado</a>
+                                            <ul class="bi-submenu-list">
+                                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>ConsolidadoGestaoCardsBI.php"><i
+                                                            class="bi bi-grid"
+                                                            style="font-size: 1rem;margin-right:5px; color:#7cc4ff;"></i>
+                                                        Consolidado Gestao Cards</a></li>
+                                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>ConsolidadoGestaoBI.php"><i
+                                                            class="bi bi-layers"
+                                                            style="font-size: 1rem;margin-right:5px; color:#7cc4ff;"></i>
+                                                        Consolidado Gestao</a></li>
+                                            </ul>
+                                        </li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>Indicadores.php"><i
+                                                    class="bi bi-speedometer2"
+                                                    style="font-size: 1rem;margin-right:5px; color:#9fd7ff;"></i>
+                                                Indicadores BI</a></li>
+                                    </ul>
+                                </li>
+                                <li class="bi-mega-col">
+                                    <span class="bi-mega-title">Clinico</span>
+                                    <ul class="bi-mega-list">
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi_uti.php"><i
+                                                    class="bi bi-heart-pulse"
+                                                    style="font-size: 1rem;margin-right:5px; color:#ff9fb3;"></i>
+                                                UTI</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi_patologia.php"><i
+                                                    class="bi bi-clipboard2-pulse"
+                                                    style="font-size: 1rem;margin-right:5px; color:#b7d3ff;"></i>
+                                                Patologia</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>GrupoPatologia.php"><i
+                                                    class="bi bi-diagram-3"
+                                                    style="font-size: 1rem;margin-right:5px; color:#a6d8c0;"></i>
+                                                Grupo Patologia</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>Antecedente.php"><i
+                                                    class="bi bi-journal-text"
+                                                    style="font-size: 1rem;margin-right:5px; color:#f0b67f;"></i>
+                                                Antecedente</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>LongaPermanenciaBI.php"><i
+                                                    class="bi bi-hourglass-split"
+                                                    style="font-size: 1rem;margin-right:5px; color:#9ad0f5;"></i>
+                                                Longa Permanencia</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>EstrategiaTerapeuticaBI.php"><i
+                                                    class="bi bi-compass"
+                                                    style="font-size: 1rem;margin-right:5px; color:#c6b5e8;"></i>
+                                                Estrategia Terapeutica</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>MedicoTitularBI.php"><i
+                                                    class="bi bi-person-badge"
+                                                    style="font-size: 1rem;margin-right:5px; color:#ffb3d1;"></i>
+                                                Medico Titular</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>AuditorBI.php"><i
+                                                    class="bi bi-person-lines-fill"
+                                                    style="font-size: 1rem;margin-right:5px; color:#b7d3ff;"></i>
+                                                Auditor</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>AuditorVisitasBI.php"><i
+                                                    class="bi bi-table"
+                                                    style="font-size: 1rem;margin-right:5px; color:#9fd7ff;"></i>
+                                                Auditor Visitas</a></li>
+                                    </ul>
+                                </li>
+                                <li class="bi-mega-col">
+                                    <span class="bi-mega-title">Operacional</span>
+                                    <ul class="bi-mega-list">
+                                        <li class="bi-submenu">
+                                            <a class="dropdown-item" href="#"><i
+                                                        class="bi bi-shield-check"
+                                                        style="font-size: 1rem;margin-right:5px; color:#8dd0ff;"></i>
+                                                Seguradora</a>
+                                            <ul class="bi-submenu-list">
+                                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>SeguradoraBI.php"><i
+                                                            class="bi bi-shield-check"
+                                                            style="font-size: 1rem;margin-right:5px; color:#8dd0ff;"></i>
+                                                        Seguradora</a></li>
+                                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>SeguradoraDetalhadoBI.php"><i
+                                                            class="bi bi-shield-plus"
+                                                            style="font-size: 1rem;margin-right:5px; color:#8dd0ff;"></i>
+                                                        Seguradora Detalhado</a></li>
+                                            </ul>
+                                        </li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>AltoCusto.php"><i
+                                                    class="bi bi-exclamation-diamond"
+                                                    style="font-size: 1rem;margin-right:5px; color:#ff9fb3;"></i>
+                                                Alto Custo</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>HomeCare.php"><i
+                                                    class="bi bi-house-heart"
+                                                    style="font-size: 1rem;margin-right:5px; color:#9ad0f5;"></i>
+                                                Home Care</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>Desospitalizacao.php"><i
+                                                    class="bi bi-arrow-down-right-circle"
+                                                    style="font-size: 1rem;margin-right:5px; color:#c6b5e8;"></i>
+                                                Desospitalização</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>Opme.php"><i
+                                                    class="bi bi-bandaid"
+                                                    style="font-size: 1rem;margin-right:5px; color:#c8a6ff;"></i>
+                                                OPME</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>EventoAdverso.php"><i
+                                                    class="bi bi-exclamation-octagon"
+                                                    style="font-size: 1rem;margin-right:5px; color:#ff9f9f;"></i>
+                                                Evento Adverso</a></li>
+                                    </ul>
+                                </li>
+                                <li class="bi-mega-col">
+                                    <span class="bi-mega-title">Financeiro</span>
+                                    <ul class="bi-mega-list">
+                                        <li class="bi-submenu">
+                                            <a class="dropdown-item" href="#"><i
+                                                        class="bi bi-clipboard-data"
+                                                        style="font-size: 1rem;margin-right:5px; color:#ff8fb1;"></i>
+                                                Sinistro</a>
+                                            <ul class="bi-submenu-list">
+                                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>Sinistro.php"><i
+                                                            class="bi bi-clipboard-data"
+                                                            style="font-size: 1rem;margin-right:5px; color:#ff8fb1;"></i>
+                                                        Sinistro BI</a></li>
+                                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi_sinistro_ytd.php"><i
+                                                            class="bi bi-bar-chart-steps"
+                                                            style="font-size: 1rem;margin-right:5px; color:#8dd0ff;"></i>
+                                                        Sinistro YTD</a></li>
+                                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi_perfil_sinistro.php"><i
+                                                            class="bi bi-pie-chart"
+                                                            style="font-size: 1rem;margin-right:5px; color:#7cc4ff;"></i>
+                                                        Perfil Sinistro</a></li>
+                                            </ul>
+                                        </li>
+                                        <li class="bi-submenu">
+                                            <a class="dropdown-item" href="#"><i
+                                                        class="bi bi-graph-up"
+                                                        style="font-size: 1rem;margin-right:5px; color:#d071b0;"></i>
+                                                Produção</a>
+                                            <ul class="bi-submenu-list">
+                                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>Producao.php"><i
+                                                            class="bi bi-graph-up"
+                                                            style="font-size: 1rem;margin-right:5px; color:#d071b0;"></i>
+                                                        Producao BI</a></li>
+                                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi_producao_ytd.php"><i
+                                                            class="bi bi-graph-up"
+                                                            style="font-size: 1rem;margin-right:5px; color:#d071b0;"></i>
+                                                        Produção YTD</a></li>
+                                            </ul>
+                                        </li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi_saving.php"><i
+                                                    class="bi bi-cash-coin"
+                                                    style="font-size: 1rem;margin-right:5px; color:#5fd3b5;"></i>
+                                                Saving</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi_pacientes.php"><i
+                                                    class="bi bi-people"
+                                                    style="font-size: 1rem;margin-right:5px; color:#ffc56c;"></i>
+                                                Pacientes</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi_hospitais.php"><i
+                                                    class="bi bi-hospital"
+                                                    style="font-size: 1rem;margin-right:5px; color:#a2b5ff;"></i>
+                                                Hospitais</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi_inteligencia.php"><i
+                                                    class="bi bi-lightbulb"
+                                                    style="font-size: 1rem;margin-right:5px; color:#8bd3ff;"></i>
+                                                Inteligencia Artificial</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        <?php }; ?>
+                        <?php if ($sessionNivel > 0) { ?>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                <i style="font-size: 1rem;margin-right:5px; color:#5e2363;" name="type" value="edite"
+                                    class="bi bi-robot edit-icon"></i>
+                                Inteligência Operacional
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>dashboard_operacional.php"><i
                                             class="bi bi-grid-3x3-gap"
-                                            style="font-size: 1rem;margin-right:5px; color:#9fd7ff;"></i>
-                                        Navegacao</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi_uti.php"><i
-                                            class="bi bi-heart-pulse"
-                                            style="font-size: 1rem;margin-right:5px; color:#ff9fb3;"></i>
-                                        UTI</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi_patologia.php"><i
-                                            class="bi bi-clipboard2-pulse"
-                                            style="font-size: 1rem;margin-right:5px; color:#b7d3ff;"></i>
-                                        Patologia</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>GrupoPatologia.php"><i
-                                            class="bi bi-diagram-3"
-                                            style="font-size: 1rem;margin-right:5px; color:#a6d8c0;"></i>
-                                        Grupo Patologia</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>Antecedente.php"><i
-                                            class="bi bi-journal-text"
-                                            style="font-size: 1rem;margin-right:5px; color:#f0b67f;"></i>
-                                        Antecedente</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>LongaPermanenciaBI.php"><i
-                                            class="bi bi-hourglass-split"
-                                            style="font-size: 1rem;margin-right:5px; color:#9ad0f5;"></i>
-                                        Longa Permanencia</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>EstrategiaTerapeuticaBI.php"><i
-                                            class="bi bi-compass"
-                                            style="font-size: 1rem;margin-right:5px; color:#c6b5e8;"></i>
-                                        Estrategia Terapeutica</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>MedicoTitularBI.php"><i
-                                            class="bi bi-person-badge"
-                                            style="font-size: 1rem;margin-right:5px; color:#ffb3d1;"></i>
-                                        Medico Titular</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>AuditorBI.php"><i
-                                            class="bi bi-person-lines-fill"
-                                            style="font-size: 1rem;margin-right:5px; color:#b7d3ff;"></i>
-                                        Auditor</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>AuditorVisitasBI.php"><i
-                                            class="bi bi-table"
-                                            style="font-size: 1rem;margin-right:5px; color:#9fd7ff;"></i>
-                                        Auditor Visitas</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>SeguradoraBI.php"><i
+                                            style="font-size: 1rem;margin-right:5px; color:#5e2363;"></i>
+                                        Dashboard 360°</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>dashboard_performance.php"><i
+                                            class="bi bi-trophy"
+                                            style="font-size: 1rem;margin-right:5px; color:#7c3aed;"></i>
+                                        Performance equipes</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>faturamento_previsao.php"><i
+                                            class="bi bi-graph-up-arrow"
+                                            style="font-size: 1rem;margin-right:5px; color:#1d9ad8;"></i>
+                                        Previsão faturamento</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>dashboard_mensal.php"><i
+                                            class="bi bi-graph-up-arrow"
+                                            style="font-size: 1rem;margin-right:5px; color: rgb(94, 35, 99);"></i>
+                                        Painel Mensal</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>inteligencia_operadora.php"><i
                                             class="bi bi-shield-check"
-                                            style="font-size: 1rem;margin-right:5px; color:#8dd0ff;"></i>
-                                        Seguradora</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>SeguradoraDetalhadoBI.php"><i
-                                            class="bi bi-shield-plus"
-                                            style="font-size: 1rem;margin-right:5px; color:#8dd0ff;"></i>
-                                        Seguradora Detalhado</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>ConsolidadoGestaoBI.php"><i
-                                            class="bi bi-layers"
-                                            style="font-size: 1rem;margin-right:5px; color:#7cc4ff;"></i>
-                                        Consolidado Gestao</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>ConsolidadoGestaoCardsBI.php"><i
-                                            class="bi bi-grid"
-                                            style="font-size: 1rem;margin-right:5px; color:#7cc4ff;"></i>
-                                        Consolidado Gestao Cards</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>AltoCusto.php"><i
-                                            class="bi bi-exclamation-diamond"
-                                            style="font-size: 1rem;margin-right:5px; color:#ff9fb3;"></i>
-                                        Alto Custo</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>HomeCare.php"><i
-                                            class="bi bi-house-heart"
-                                            style="font-size: 1rem;margin-right:5px; color:#9ad0f5;"></i>
-                                        Home Care</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>Desospitalizacao.php"><i
-                                            class="bi bi-arrow-down-right-circle"
-                                            style="font-size: 1rem;margin-right:5px; color:#c6b5e8;"></i>
-                                        Desospitalização</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>Opme.php"><i
-                                            class="bi bi-bandaid"
-                                            style="font-size: 1rem;margin-right:5px; color:#c8a6ff;"></i>
-                                        OPME</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>EventoAdverso.php"><i
-                                            class="bi bi-exclamation-octagon"
-                                            style="font-size: 1rem;margin-right:5px; color:#ff9f9f;"></i>
-                                        Evento Adverso</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>Sinistro.php"><i
-                                            class="bi bi-clipboard-data"
-                                            style="font-size: 1rem;margin-right:5px; color:#ff8fb1;"></i>
-                                        Sinistro BI</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>Producao.php"><i
-                                            class="bi bi-graph-up"
-                                            style="font-size: 1rem;margin-right:5px; color:#d071b0;"></i>
-                                        Producao BI</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>Indicadores.php"><i
-                                            class="bi bi-speedometer2"
-                                            style="font-size: 1rem;margin-right:5px; color:#9fd7ff;"></i>
-                                        Indicadores BI</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi_sinistro_ytd.php"><i
-                                            class="bi bi-bar-chart-steps"
-                                            style="font-size: 1rem;margin-right:5px; color:#8dd0ff;"></i>
-                                        Sinistro YTD</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi_producao_ytd.php"><i
-                                            class="bi bi-graph-up"
-                                            style="font-size: 1rem;margin-right:5px; color:#d071b0;"></i>
-                                        Produção YTD</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi_saving.php"><i
-                                            class="bi bi-cash-coin"
-                                            style="font-size: 1rem;margin-right:5px; color:#5fd3b5;"></i>
-                                        Saving</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi_pacientes.php"><i
-                                            class="bi bi-people"
-                                            style="font-size: 1rem;margin-right:5px; color:#ffc56c;"></i>
-                                        Pacientes</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi_hospitais.php"><i
-                                            class="bi bi-hospital"
-                                            style="font-size: 1rem;margin-right:5px; color:#a2b5ff;"></i>
-                                        Hospitais</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi_sinistro.php"><i
-                                            class="bi bi-clipboard-data"
-                                            style="font-size: 1rem;margin-right:5px; color:#ff8fb1;"></i>
-                                        Sinistro</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi_perfil_sinistro.php"><i
-                                            class="bi bi-pie-chart"
-                                            style="font-size: 1rem;margin-right:5px; color:#7cc4ff;"></i>
-                                        Perfil Sinistro</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi_inteligencia.php"><i
+                                            style="font-size: 1rem;margin-right:5px; color:#0ea5e9;"></i>
+                                        Inteligência da Operadora</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>relatorio_tmp.php"><i
+                                            class="bi bi-activity"
+                                            style="font-size: 1rem;margin-right:5px; color:#0ea5e9;"></i>
+                                        TMP por CID/Procedimento/Convênio</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>relatorio_prorrogacao_vs_alta.php"><i
+                                            class="bi bi-hourglass-split"
+                                            style="font-size: 1rem;margin-right:5px; color:#f59e0b;"></i>
+                                        Prorrogação vs Alta no prazo</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>relatorio_motivos_prorrogacao.php"><i
+                                            class="bi bi-list-check"
+                                            style="font-size: 1rem;margin-right:5px; color:#10b981;"></i>
+                                        Motivos de Prorrogação</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>relatorio_backlog_autorizacoes.php"><i
+                                            class="bi bi-card-checklist"
+                                            style="font-size: 1rem;margin-right:5px; color:#ef4444;"></i>
+                                        Backlog de Autorizações</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>operational_intelligence.php"><i
+                                            class="bi bi-robot"
+                                            style="font-size: 1rem;margin-right:5px; color:#20c997;"></i>
+                                        Previsões Operacionais</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>permanencia_alertas.php"><i
+                                            class="bi bi-clock-history"
+                                            style="font-size: 1rem;margin-right:5px; color:#0d9488;"></i>
+                                        Permanências e alertas</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>explicabilidade_insights.php"><i
                                             class="bi bi-lightbulb"
-                                            style="font-size: 1rem;margin-right:5px; color:#8bd3ff;"></i>
-                                        Inteligencia Artificial</a></li>
+                                            style="font-size: 1rem;margin-right:5px; color:#f97316;"></i>
+                                        Insights explicáveis</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>risco_glosa.php"><i
+                                            class="bi bi-exclamation-octagon"
+                                            style="font-size: 1rem;margin-right:5px; color:#ef4444;"></i>
+                                        Oportunidade de glosa / contas</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>clusterizacao_clinica.php"><i
+                                            class="bi bi-diagram-3"
+                                            style="font-size: 1rem;margin-right:5px; color:#0ea5e9;"></i>
+                                        Clusterização clínica</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>text_automation.php"><i
+                                            class="bi bi-pencil-square"
+                                            style="font-size: 1rem;margin-right:5px; color:#fb923c;"></i>
+                                        Assistente de Textos</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>solicitacao_customizacao_pdf.php"
+                                        target="_blank">
+                                        <i class="bi bi-file-earmark-text"
+                                            style="font-size: 1rem;margin-right:5px; color: #5e2363;"></i>
+                                        Solicitação de Customização (PDF)
+                                    </a></li>
+                                <?php if ($sessionNivel > 3) { ?>
+                                <li class="nav-item">
+                                    <a class="dropdown-item" href="<?= $BASE_URL ?>admin_permissao.php">
+                                        <i class="bi bi-shield-lock"
+                                            style="font-size: 1rem;margin-right:5px; color: rgb(21, 56, 210);"></i>
+                                        Permissões
+                                    </a>
+                                </li>
+                                <?php }; ?>
                             </ul>
                         </li>
                         <?php }; ?>
@@ -1372,6 +1425,61 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.style.display = 'none';
     }
     restoreFormDraft();
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var delay = 160;
+    document.querySelectorAll('.bi-dropdown.bi-mega').forEach(function(menu) {
+        menu.addEventListener('mouseleave', function() {
+            menu.querySelectorAll('.bi-submenu.open').forEach(function(openItem) {
+                openItem.classList.remove('open');
+            });
+        });
+    });
+
+    document.querySelectorAll('.bi-dropdown.bi-mega .bi-submenu').forEach(function(item) {
+        var timer;
+        item.addEventListener('mouseenter', function() {
+            timer = setTimeout(function() {
+                item.parentElement.querySelectorAll('.bi-submenu.open').forEach(function(openItem) {
+                    if (openItem !== item) {
+                        openItem.classList.remove('open');
+                    }
+                });
+                item.classList.add('open');
+                item.classList.remove('submenu-left');
+                var submenu = item.querySelector('.bi-submenu-list');
+                if (submenu) {
+                    var rect = submenu.getBoundingClientRect();
+                    if (rect.right > window.innerWidth) {
+                        item.classList.add('submenu-left');
+                    }
+                }
+            }, delay);
+        });
+        item.addEventListener('mouseleave', function() {
+            clearTimeout(timer);
+            item.classList.remove('open');
+            item.classList.remove('submenu-left');
+        });
+        item.addEventListener('focusin', function() {
+            item.classList.add('open');
+            item.classList.remove('submenu-left');
+            var submenu = item.querySelector('.bi-submenu-list');
+            if (submenu) {
+                var rect = submenu.getBoundingClientRect();
+                if (rect.right > window.innerWidth) {
+                    item.classList.add('submenu-left');
+                }
+            }
+        });
+        item.addEventListener('focusout', function() {
+            item.classList.remove('open');
+            item.classList.remove('submenu-left');
+        });
+    });
 });
 </script>
 

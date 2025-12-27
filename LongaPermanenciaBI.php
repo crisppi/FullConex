@@ -11,138 +11,109 @@ function e($v)
     return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 }
 
+$anoInput = filter_input(INPUT_GET, 'ano', FILTER_VALIDATE_INT);
+$mesInput = filter_input(INPUT_GET, 'mes', FILTER_VALIDATE_INT);
+$ano = ($anoInput !== null && $anoInput !== false) ? (int)$anoInput : null;
+$mes = ($mesInput !== null && $mesInput !== false) ? (int)$mesInput : null;
+if ($ano === null && !filter_has_var(INPUT_GET, 'ano')) {
+    $ano = (int)date('Y');
+}
+
 $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: null;
-$mes = filter_input(INPUT_GET, 'mes', FILTER_VALIDATE_INT) ?: null;
-$ano = filter_input(INPUT_GET, 'ano', FILTER_VALIDATE_INT) ?: null;
 
 $hospitais = $conn->query("SELECT id_hospital, nome_hosp FROM tb_hospital ORDER BY nome_hosp")
     ->fetchAll(PDO::FETCH_ASSOC);
 $anos = $conn->query("SELECT DISTINCT YEAR(data_intern_int) AS ano FROM tb_internacao WHERE data_intern_int IS NOT NULL AND data_intern_int <> '0000-00-00' ORDER BY ano DESC")
     ->fetchAll(PDO::FETCH_COLUMN);
-$meses = [
-    1 => 'Jan',
-    2 => 'Fev',
-    3 => 'Mar',
-    4 => 'Abr',
-    5 => 'Mai',
-    6 => 'Jun',
-    7 => 'Jul',
-    8 => 'Ago',
-    9 => 'Set',
-    10 => 'Out',
-    11 => 'Nov',
-    12 => 'Dez',
-];
 
-$conds = [];
+$where = "1=1";
 $params = [];
-if ($hospitalId) {
-    $conds[] = "i.fk_hospital_int = :hospital_id";
-    $params[':hospital_id'] = $hospitalId;
+if (!empty($ano)) {
+    $where .= " AND YEAR(i.data_intern_int) = :ano";
+    $params[':ano'] = (int)$ano;
 }
-if ($ano) {
-    $conds[] = "YEAR(i.data_intern_int) = :ano";
-    $params[':ano'] = $ano;
+if (!empty($mes)) {
+    $where .= " AND MONTH(i.data_intern_int) = :mes";
+    $params[':mes'] = (int)$mes;
 }
-if ($mes) {
-    $conds[] = "MONTH(i.data_intern_int) = :mes";
-    $params[':mes'] = $mes;
+if (!empty($hospitalId)) {
+    $where .= " AND i.fk_hospital_int = :hospital_id";
+    $params[':hospital_id'] = (int)$hospitalId;
 }
-$where = $conds ? ('AND ' . implode(' AND ', $conds)) : '';
 
 $sqlBase = "
     FROM tb_internacao i
+    LEFT JOIN tb_paciente pa ON pa.id_paciente = i.fk_paciente_int
+    LEFT JOIN tb_seguradora se ON se.id_seguradora = pa.fk_seguradora_pac
+    LEFT JOIN tb_hospital h ON h.id_hospital = i.fk_hospital_int
     LEFT JOIN (
         SELECT fk_id_int_alt, MAX(data_alta_alt) AS data_alta_alt
         FROM tb_alta
         GROUP BY fk_id_int_alt
     ) al ON al.fk_id_int_alt = i.id_internacao
-    LEFT JOIN tb_paciente pa ON pa.id_paciente = i.fk_paciente_int
-    LEFT JOIN tb_seguradora s ON s.id_seguradora = pa.fk_seguradora_pac
-    LEFT JOIN tb_patologia p ON p.id_patologia = i.fk_patologia_int
-    LEFT JOIN tb_hospital h ON h.id_hospital = i.fk_hospital_int
-    WHERE i.data_intern_int IS NOT NULL
-      AND i.data_intern_int <> '0000-00-00'
-      {$where}
+    WHERE {$where}
 ";
 
-$sqlKpis = "
-    SELECT
-        COUNT(*) AS total_internacoes,
-        SUM(diarias) AS total_diarias,
-        MAX(diarias) AS maior_permanencia
+$sqlLonga = "
+    SELECT t.*
     FROM (
         SELECT
             i.id_internacao,
-            (DATEDIFF(COALESCE(al.data_alta_alt, CURDATE()), i.data_intern_int) + 1) AS diarias,
-            COALESCE(NULLIF(p.dias_pato, 0), NULLIF(s.longa_permanencia_seg, 0), 20) AS prazo_dias
+            h.nome_hosp,
+            i.rel_int,
+            i.data_intern_int,
+            GREATEST(1, DATEDIFF(COALESCE(al.data_alta_alt, CURDATE()), i.data_intern_int) + 1) AS diarias,
+            COALESCE(NULLIF(se.longa_permanencia_seg, 0), 30) AS limiar
         {$sqlBase}
     ) t
-    WHERE t.diarias > t.prazo_dias
+    WHERE t.diarias >= t.limiar
 ";
-$stmt = $conn->prepare($sqlKpis);
-foreach ($params as $key => $value) {
-    $stmt->bindValue($key, $value, PDO::PARAM_INT);
-}
-$stmt->execute();
-$kpis = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
-$totalInternacoes = (int)($kpis['total_internacoes'] ?? 0);
-$totalDiarias = (int)($kpis['total_diarias'] ?? 0);
-$maiorPermanencia = (int)($kpis['maior_permanencia'] ?? 0);
-$mp = $totalInternacoes > 0 ? round($totalDiarias / $totalInternacoes, 1) : 0.0;
+$sqlStats = "
+    SELECT
+        COUNT(DISTINCT id_internacao) AS total_internacoes,
+        SUM(diarias) AS total_diarias,
+        MAX(diarias) AS maior_permanencia,
+        ROUND(AVG(diarias), 1) AS mp
+    FROM ({$sqlLonga}) x
+";
+$stmt = $conn->prepare($sqlStats);
+$stmt->execute($params);
+$stats = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+$totalInternacoes = (int)($stats['total_internacoes'] ?? 0);
+$totalDiarias = (int)($stats['total_diarias'] ?? 0);
+$maiorPermanencia = (int)($stats['maior_permanencia'] ?? 0);
+$mp = (float)($stats['mp'] ?? 0);
 
 $sqlHosp = "
-    SELECT
-        h.nome_hosp AS hospital,
-        COUNT(*) AS total
-    FROM (
-        SELECT
-            i.id_internacao,
-            i.fk_hospital_int,
-            (DATEDIFF(COALESCE(al.data_alta_alt, CURDATE()), i.data_intern_int) + 1) AS diarias,
-            COALESCE(NULLIF(p.dias_pato, 0), NULLIF(s.longa_permanencia_seg, 0), 20) AS prazo_dias
-        {$sqlBase}
-    ) t
-    INNER JOIN tb_hospital h ON h.id_hospital = t.fk_hospital_int
-    WHERE t.diarias > t.prazo_dias
-    GROUP BY h.nome_hosp
+    SELECT nome_hosp AS label, COUNT(*) AS total
+    FROM ({$sqlLonga}) x
+    GROUP BY nome_hosp
     ORDER BY total DESC
-    LIMIT 10
+    LIMIT 12
 ";
-$stmt = $conn->prepare($sqlHosp);
-foreach ($params as $key => $value) {
-    $stmt->bindValue($key, $value, PDO::PARAM_INT);
-}
-$stmt->execute();
-$rowsHosp = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+$stmtHosp = $conn->prepare($sqlHosp);
+$stmtHosp->execute($params);
+$hospRows = $stmtHosp->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
-$sqlTop = "
-    SELECT
-        i.id_internacao,
-        h.nome_hosp AS hospital,
-        pa.nome_pac AS paciente,
-        (DATEDIFF(COALESCE(al.data_alta_alt, CURDATE()), i.data_intern_int) + 1) AS diarias,
-        COALESCE(NULLIF(p.dias_pato, 0), NULLIF(s.longa_permanencia_seg, 0), 20) AS prazo_dias
-    {$sqlBase}
-    HAVING diarias > prazo_dias
+$sqlTable = "
+    SELECT diarias, nome_hosp, COALESCE(NULLIF(rel_int,''), 'Sem relatorio') AS relatorio
+    FROM ({$sqlLonga}) x
     ORDER BY diarias DESC
-    LIMIT 10
+    LIMIT 200
 ";
-$stmt = $conn->prepare($sqlTop);
-foreach ($params as $key => $value) {
-    $stmt->bindValue($key, $value, PDO::PARAM_INT);
-}
-$stmt->execute();
-$rowsTop = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+$stmtTable = $conn->prepare($sqlTable);
+$stmtTable->execute($params);
+$tableRows = $stmtTable->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
-$chartLabels = array_map(fn($r) => $r['hospital'] ?? 'Sem hospital', $rowsHosp);
-$chartValues = array_map(fn($r) => (int)($r['total'] ?? 0), $rowsHosp);
+$labelsHosp = array_map(fn($r) => $r['label'] ?? 'Sem informacoes', $hospRows);
+$valuesHosp = array_map(fn($r) => (int)($r['total'] ?? 0), $hospRows);
 ?>
 
-<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20251229">
+<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260110">
 <script src="diversos/CoolAdmin-master/vendor/chartjs/Chart.bundle.min.js"></script>
-<script src="<?= $BASE_URL ?>js/bi.js?v=20251221"></script>
+<script src="<?= $BASE_URL ?>js/bi.js?v=20260110"></script>
 <script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));</script>
 
 <div class="bi-wrapper bi-theme">
@@ -158,12 +129,12 @@ $chartValues = array_map(fn($r) => (int)($r['total'] ?? 0), $rowsHosp);
 
     <div class="bi-layout">
         <aside class="bi-sidebar bi-stack">
-            <form class="bi-filter-card" method="get">
+            <div class="bi-filter-card">
                 <div class="bi-filter-card-header">Filtros</div>
                 <div class="bi-filter-card-body bi-stack">
                     <div class="bi-filter">
                         <label>Hospital</label>
-                        <select name="hospital_id">
+                        <select name="hospital_id" form="lp-form">
                             <option value="">Todos</option>
                             <?php foreach ($hospitais as $h): ?>
                                 <option value="<?= (int)$h['id_hospital'] ?>" <?= $hospitalId == $h['id_hospital'] ? 'selected' : '' ?>>
@@ -174,47 +145,46 @@ $chartValues = array_map(fn($r) => (int)($r['total'] ?? 0), $rowsHosp);
                     </div>
                     <div class="bi-filter">
                         <label>Mes</label>
-                        <select name="mes">
+                        <select name="mes" form="lp-form">
                             <option value="">Todos</option>
-                            <?php foreach ($meses as $m => $label): ?>
-                                <option value="<?= $m ?>" <?= (int)$mes === $m ? 'selected' : '' ?>><?= e($label) ?></option>
-                            <?php endforeach; ?>
+                            <?php for ($m = 1; $m <= 12; $m++): ?>
+                                <option value="<?= $m ?>" <?= $mes == $m ? 'selected' : '' ?>><?= $m ?></option>
+                            <?php endfor; ?>
                         </select>
                     </div>
                     <div class="bi-filter">
                         <label>Ano</label>
-                        <select name="ano">
+                        <select name="ano" form="lp-form">
                             <option value="">Todos</option>
-                            <?php foreach ($anos as $a): ?>
-                                <option value="<?= (int)$a ?>" <?= (int)$ano === (int)$a ? 'selected' : '' ?>>
-                                    <?= (int)$a ?>
+                            <?php foreach ($anos as $anoOpt): ?>
+                                <option value="<?= (int)$anoOpt ?>" <?= $ano == $anoOpt ? 'selected' : '' ?>>
+                                    <?= (int)$anoOpt ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="bi-filter-actions">
+                    <form id="lp-form" method="get">
                         <button class="bi-filter-btn" type="submit">Aplicar</button>
-                        <a class="bi-filter-btn" href="<?= $BASE_URL ?>LongaPermanenciaBI.php">Limpar Filtros</a>
-                    </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         </aside>
 
         <section class="bi-main bi-stack">
             <div class="bi-kpis kpi-compact">
-                <div class="bi-kpi kpi-indigo kpi-compact">
+                <div class="bi-kpi kpi-white kpi-compact">
                     <small>Internacoes</small>
                     <strong><?= number_format($totalInternacoes, 0, ',', '.') ?></strong>
                 </div>
-                <div class="bi-kpi kpi-teal kpi-compact">
+                <div class="bi-kpi kpi-white kpi-compact">
                     <small>Diarias</small>
                     <strong><?= number_format($totalDiarias, 0, ',', '.') ?></strong>
                 </div>
-                <div class="bi-kpi kpi-amber kpi-compact">
+                <div class="bi-kpi kpi-white kpi-compact">
                     <small>MP</small>
                     <strong><?= number_format($mp, 1, ',', '.') ?></strong>
                 </div>
-                <div class="bi-kpi kpi-rose kpi-compact">
+                <div class="bi-kpi kpi-white kpi-compact">
                     <small>Maior Permanencia</small>
                     <strong><?= number_format($maiorPermanencia, 0, ',', '.') ?></strong>
                 </div>
@@ -237,21 +207,18 @@ $chartValues = array_map(fn($r) => (int)($r['total'] ?? 0), $rowsHosp);
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($rowsTop as $row): ?>
-                                <?php
-                                    $diarias = (int)($row['diarias'] ?? 0);
-                                    $paciente = $row['paciente'] ?? 'Sem paciente';
-                                ?>
+                            <?php if (!$tableRows): ?>
                                 <tr>
-                                    <td><?= number_format($diarias, 0, ',', '.') ?></td>
-                                    <td><?= e($row['hospital'] ?? 'Sem hospital') ?></td>
-                                    <td><?= e("Paciente {$paciente} - {$diarias} dias") ?></td>
+                                    <td colspan="3">Sem informacoes</td>
                                 </tr>
-                            <?php endforeach; ?>
-                            <?php if (!$rowsTop): ?>
-                                <tr>
-                                    <td colspan="3">Sem registros</td>
-                                </tr>
+                            <?php else: ?>
+                                <?php foreach ($tableRows as $row): ?>
+                                    <tr>
+                                        <td><?= number_format((int)$row['diarias'], 0, ',', '.') ?></td>
+                                        <td><?= e($row['nome_hosp'] ?? 'Sem informacoes') ?></td>
+                                        <td><?= e($row['relatorio'] ?? 'Sem relatorio') ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
                             <?php endif; ?>
                         </tbody>
                     </table>
@@ -262,14 +229,13 @@ $chartValues = array_map(fn($r) => (int)($r['total'] ?? 0), $rowsHosp);
 </div>
 
 <script>
-const lpLabels = <?= json_encode($chartLabels) ?>;
-const lpValues = <?= json_encode($chartValues) ?>;
+const lpLabels = <?= json_encode($labelsHosp) ?>;
+const lpValues = <?= json_encode($valuesHosp) ?>;
 new Chart(document.getElementById('chartLongaHosp'), {
   type: 'bar',
   data: {
     labels: lpLabels,
     datasets: [{
-      label: '',
       data: lpValues,
       backgroundColor: 'rgba(126, 150, 255, 0.8)',
       borderRadius: 10,
@@ -277,7 +243,6 @@ new Chart(document.getElementById('chartLongaHosp'), {
     }]
   },
   options: {
-    legend: { display: false },
     plugins: { legend: { display: false } },
     scales: {
       x: {
@@ -286,7 +251,6 @@ new Chart(document.getElementById('chartLongaHosp'), {
       },
       y: {
         ticks: { color: '#e8f1ff' },
-        beginAtZero: true,
         grid: { color: 'rgba(255,255,255,0.1)' }
       }
     }

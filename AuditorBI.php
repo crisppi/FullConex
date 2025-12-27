@@ -11,257 +11,154 @@ function e($v)
     return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 }
 
+$anoInput = filter_input(INPUT_GET, 'ano', FILTER_VALIDATE_INT);
+$mesInput = filter_input(INPUT_GET, 'mes', FILTER_VALIDATE_INT);
+$ano = ($anoInput !== null && $anoInput !== false) ? (int)$anoInput : null;
+$mes = ($mesInput !== null && $mesInput !== false) ? (int)$mesInput : null;
+if ($ano === null && !filter_has_var(INPUT_GET, 'ano')) {
+    $ano = (int)date('Y');
+}
+
 $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: null;
-$mes = filter_input(INPUT_GET, 'mes', FILTER_VALIDATE_INT) ?: null;
-$ano = filter_input(INPUT_GET, 'ano', FILTER_VALIDATE_INT) ?: null;
 $cargo = trim((string)(filter_input(INPUT_GET, 'cargo') ?? ''));
-$auditorId = filter_input(INPUT_GET, 'auditor_id', FILTER_VALIDATE_INT) ?: null;
+$auditorNome = trim((string)(filter_input(INPUT_GET, 'auditor') ?? ''));
 
 $hospitais = $conn->query("SELECT id_hospital, nome_hosp FROM tb_hospital ORDER BY nome_hosp")
     ->fetchAll(PDO::FETCH_ASSOC);
-$anos = $conn->query("SELECT DISTINCT YEAR(data_intern_int) AS ano FROM tb_internacao WHERE data_intern_int IS NOT NULL AND data_intern_int <> '0000-00-00' ORDER BY ano DESC")
+$cargos = $conn->query("SELECT DISTINCT cargo_user FROM tb_usuario WHERE cargo_user IS NOT NULL AND cargo_user <> '' ORDER BY cargo_user")
     ->fetchAll(PDO::FETCH_COLUMN);
-$meses = [
-    1 => 'Jan',
-    2 => 'Fev',
-    3 => 'Mar',
-    4 => 'Abr',
-    5 => 'Mai',
-    6 => 'Jun',
-    7 => 'Jul',
-    8 => 'Ago',
-    9 => 'Set',
-    10 => 'Out',
-    11 => 'Nov',
-    12 => 'Dez',
-];
 
-$cargoMap = [
-    'adm' => ['administrativo', 'adm', 'administrador'],
-    'enf' => ['enf_auditor', 'enfer_auditor', 'enfermeiro'],
-    'med' => ['med_auditor', 'medico_auditor', 'medico'],
-];
-$cargoValues = $cargoMap[$cargo] ?? array_merge(...array_values($cargoMap));
-
-$cargoWhere = '';
-$cargoParams = [];
-if ($cargoValues) {
-    $ph = [];
-    foreach ($cargoValues as $i => $val) {
-        $key = ":cargo{$i}";
-        $ph[] = $key;
-        $cargoParams[$key] = $val;
-    }
-    $cargoWhere = " AND LOWER(u.cargo_user) IN (" . implode(',', $ph) . ")";
-}
-
-function build_query(array $base, array $overrides = []): string
-{
-    $params = array_merge($base, $overrides);
-    $params = array_filter($params, fn($v) => $v !== null && $v !== '');
-    return http_build_query($params);
-}
-
-$baseQuery = [
-    'hospital_id' => $hospitalId,
-    'mes' => $mes,
-    'ano' => $ano,
-    'cargo' => $cargo,
-    'auditor_id' => $auditorId,
-];
-
-$sqlAuditores = "
-    SELECT id_usuario, usuario_user, cargo_user
-    FROM tb_user u
-    WHERE ativo_user = 1
-    {$cargoWhere}
-    ORDER BY usuario_user ASC
-";
-$stmt = $conn->prepare($sqlAuditores);
-foreach ($cargoParams as $key => $value) {
-    $stmt->bindValue($key, $value);
-}
-$stmt->execute();
-$auditores = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
-
-$capeanteWhere = ["ca.ref_date IS NOT NULL", "ca.ref_date <> '0000-00-00'"];
-$capeanteParams = [];
-if ($ano) {
-    $capeanteWhere[] = "YEAR(ca.ref_date) = :ano";
-    $capeanteParams[':ano'] = $ano;
-}
-if ($mes) {
-    $capeanteWhere[] = "MONTH(ca.ref_date) = :mes";
-    $capeanteParams[':mes'] = $mes;
-}
-if ($hospitalId) {
-    $capeanteWhere[] = "i.fk_hospital_int = :hospital_id";
-    $capeanteParams[':hospital_id'] = $hospitalId;
-}
-if ($auditorId) {
-    $capeanteWhere[] = "aud.auditor_id = :auditor_id";
-    $capeanteParams[':auditor_id'] = $auditorId;
-}
-$capeanteWhereSql = implode(' AND ', $capeanteWhere);
-
-$sqlCapeanteAuditores = "
-    SELECT
-        aud.auditor_id,
-        COALESCE(u.usuario_user, CONCAT('ID ', aud.auditor_id)) AS auditor,
-        SUM(COALESCE(ca.valor_apresentado_capeante,0)) AS total_contas,
-        SUM(COALESCE(ca.valor_glosa_total,0)) AS total_glosa,
-        COUNT(DISTINCT ca.id_capeante) AS contas_auditadas
-    FROM (
-        SELECT
-            ca.*,
-            COALESCE(NULLIF(ca.data_inicial_capeante,'0000-00-00'), NULLIF(ca.data_digit_capeante,'0000-00-00'), NULLIF(ca.data_fech_capeante,'0000-00-00')) AS ref_date
-        FROM tb_capeante ca
-    ) ca
-    INNER JOIN tb_internacao i ON i.id_internacao = ca.fk_int_capeante
-    LEFT JOIN (
-        SELECT
-            id_capeante,
-            COALESCE(NULLIF(fk_id_aud_med,0), NULLIF(fk_id_aud_enf,0), NULLIF(fk_id_aud_adm,0)) AS auditor_id
-        FROM tb_capeante
-    ) aud ON aud.id_capeante = ca.id_capeante
-    LEFT JOIN tb_user u ON u.id_usuario = aud.auditor_id
-    WHERE aud.auditor_id IS NOT NULL
-      AND {$capeanteWhereSql}
-      {$cargoWhere}
-    GROUP BY aud.auditor_id, auditor
-    ORDER BY total_contas DESC
-    LIMIT 12
-";
-$stmt = $conn->prepare($sqlCapeanteAuditores);
-foreach ($capeanteParams as $key => $value) {
-    $stmt->bindValue($key, $value, PDO::PARAM_INT);
-}
-foreach ($cargoParams as $key => $value) {
-    $stmt->bindValue($key, $value);
-}
-$stmt->execute();
-$rowsAuditores = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
-
-$visitWhere = [];
-$visitParams = [];
-if ($ano) {
-    $visitWhere[] = "YEAR(v.data_visita_vis) = :ano";
-    $visitParams[':ano'] = $ano;
-}
-if ($mes) {
-    $visitWhere[] = "MONTH(v.data_visita_vis) = :mes";
-    $visitParams[':mes'] = $mes;
-}
-if ($hospitalId) {
-    $visitWhere[] = "i.fk_hospital_int = :hospital_id";
-    $visitParams[':hospital_id'] = $hospitalId;
-}
-if ($auditorId) {
-    $visitWhere[] = "v.fk_usuario_vis = :auditor_id";
-    $visitParams[':auditor_id'] = $auditorId;
-}
-$visitWhereSql = $visitWhere ? ('AND ' . implode(' AND ', $visitWhere)) : '';
-
-$sqlVisitas = "
-    SELECT
-        v.fk_usuario_vis AS auditor_id,
-        COALESCE(u.usuario_user, CONCAT('ID ', v.fk_usuario_vis)) AS auditor,
-        COUNT(*) AS total
+$auditorListSql = "
+    SELECT DISTINCT COALESCE(u.usuario_user, NULLIF(v.visita_auditor_prof_med,''), NULLIF(v.visita_auditor_prof_enf,'')) AS auditor_nome
     FROM tb_visita v
-    INNER JOIN tb_internacao i ON i.id_internacao = v.fk_internacao_vis
-    LEFT JOIN tb_user u ON u.id_usuario = v.fk_usuario_vis
-    WHERE (v.retificado IS NULL OR v.retificado = 0)
-      {$visitWhereSql}
-      {$cargoWhere}
-    GROUP BY auditor_id, auditor
-    ORDER BY total DESC
-    LIMIT 12
+    LEFT JOIN tb_usuario u ON u.id_usuario = v.fk_usuario_vis
+    WHERE COALESCE(u.usuario_user, v.visita_auditor_prof_med, v.visita_auditor_prof_enf) IS NOT NULL
+    ORDER BY auditor_nome
 ";
-$stmt = $conn->prepare($sqlVisitas);
-foreach ($visitParams as $key => $value) {
-    $stmt->bindValue($key, $value, PDO::PARAM_INT);
-}
-foreach ($cargoParams as $key => $value) {
-    $stmt->bindValue($key, $value);
-}
-$stmt->execute();
-$rowsVisitas = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+$auditores = $conn->query($auditorListSql)->fetchAll(PDO::FETCH_COLUMN);
 
-$kpiWhere = [];
-$kpiParams = [];
-if ($hospitalId) {
-    $kpiWhere[] = "i.fk_hospital_int = :hospital_id";
-    $kpiParams[':hospital_id'] = $hospitalId;
+$where = "v.fk_internacao_vis IS NOT NULL";
+$params = [];
+if (!empty($ano)) {
+    $where .= " AND YEAR(v.data_visita_vis) = :ano";
+    $params[':ano'] = (int)$ano;
 }
-if ($ano) {
-    $kpiWhere[] = "YEAR(i.data_intern_int) = :ano";
-    $kpiParams[':ano'] = $ano;
+if (!empty($mes)) {
+    $where .= " AND MONTH(v.data_visita_vis) = :mes";
+    $params[':mes'] = (int)$mes;
 }
-if ($mes) {
-    $kpiWhere[] = "MONTH(i.data_intern_int) = :mes";
-    $kpiParams[':mes'] = $mes;
+if (!empty($hospitalId)) {
+    $where .= " AND i.fk_hospital_int = :hospital_id";
+    $params[':hospital_id'] = (int)$hospitalId;
 }
-$kpiJoin = '';
-if ($auditorId || $cargoValues) {
-    $kpiJoin = "
-        LEFT JOIN (
-            SELECT
-                fk_int_capeante,
-                COALESCE(NULLIF(fk_id_aud_med,0), NULLIF(fk_id_aud_enf,0), NULLIF(fk_id_aud_adm,0)) AS auditor_id
-            FROM tb_capeante
-        ) aud ON aud.fk_int_capeante = i.id_internacao
-        LEFT JOIN tb_user u ON u.id_usuario = aud.auditor_id
-    ";
-    if ($auditorId) {
-        $kpiWhere[] = "aud.auditor_id = :auditor_id";
-        $kpiParams[':auditor_id'] = $auditorId;
-    }
-    if ($cargoWhere) {
-        $kpiWhere[] = ltrim(str_replace('AND', '', $cargoWhere));
-    }
+if (!empty($cargo)) {
+    $where .= " AND u.cargo_user = :cargo";
+    $params[':cargo'] = $cargo;
 }
-$kpiWhereSql = $kpiWhere ? ('WHERE ' . implode(' AND ', $kpiWhere)) : '';
+if (!empty($auditorNome)) {
+    $where .= " AND COALESCE(u.usuario_user, NULLIF(v.visita_auditor_prof_med,''), NULLIF(v.visita_auditor_prof_enf,'')) = :auditor_nome";
+    $params[':auditor_nome'] = $auditorNome;
+}
 
-$sqlKpis = "
-    SELECT
-        COUNT(DISTINCT i.id_internacao) AS total_internacoes,
-        SUM(GREATEST(1, DATEDIFF(COALESCE(al.data_alta_alt, CURDATE()), i.data_intern_int) + 1)) AS total_diarias,
-        MAX(GREATEST(1, DATEDIFF(COALESCE(al.data_alta_alt, CURDATE()), i.data_intern_int) + 1)) AS maior_permanencia
-    FROM tb_internacao i
+$auditorExpr = "COALESCE(u.usuario_user, NULLIF(v.visita_auditor_prof_med,''), NULLIF(v.visita_auditor_prof_enf,''), 'Sem informacoes')";
+
+$sqlBaseIntern = "
+    SELECT DISTINCT i.id_internacao,
+        {$auditorExpr} AS auditor_nome,
+        GREATEST(1, DATEDIFF(COALESCE(al.data_alta_alt, CURDATE()), i.data_intern_int) + 1) AS diarias
+    FROM tb_visita v
+    LEFT JOIN tb_usuario u ON u.id_usuario = v.fk_usuario_vis
+    LEFT JOIN tb_internacao i ON i.id_internacao = v.fk_internacao_vis
     LEFT JOIN (
         SELECT fk_id_int_alt, MAX(data_alta_alt) AS data_alta_alt
         FROM tb_alta
         GROUP BY fk_id_int_alt
     ) al ON al.fk_id_int_alt = i.id_internacao
-    {$kpiJoin}
-    {$kpiWhereSql}
+    WHERE {$where}
 ";
-$stmt = $conn->prepare($sqlKpis);
-foreach ($kpiParams as $key => $value) {
-    $stmt->bindValue($key, $value, PDO::PARAM_INT);
-}
-foreach ($cargoParams as $key => $value) {
-    $stmt->bindValue($key, $value);
-}
-$stmt->execute();
-$kpis = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
-$totalInternacoes = (int)($kpis['total_internacoes'] ?? 0);
-$totalDiarias = (int)($kpis['total_diarias'] ?? 0);
-$maiorPermanencia = (int)($kpis['maior_permanencia'] ?? 0);
-$mp = $totalInternacoes > 0 ? round($totalDiarias / $totalInternacoes, 1) : 0.0;
 
-$auditorLabels = array_map(fn($r) => $r['auditor'], $rowsAuditores);
-$contasValues = array_map(fn($r) => (float)$r['total_contas'], $rowsAuditores);
-$glosaLabels = array_map(fn($r) => $r['auditor'], $rowsAuditores);
-$glosaValues = array_map(fn($r) => (float)$r['total_glosa'], $rowsAuditores);
-$auditadasValues = array_map(fn($r) => (int)$r['contas_auditadas'], $rowsAuditores);
-$visitasLabels = array_map(fn($r) => $r['auditor'], $rowsVisitas);
-$visitasValues = array_map(fn($r) => (int)$r['total'], $rowsVisitas);
+$sqlStats = "
+    SELECT
+        COUNT(DISTINCT id_internacao) AS total_internacoes,
+        SUM(diarias) AS total_diarias,
+        MAX(diarias) AS maior_permanencia,
+        ROUND(AVG(diarias), 1) AS mp
+    FROM ({$sqlBaseIntern}) t
+";
+$stmt = $conn->prepare($sqlStats);
+$stmt->execute($params);
+$stats = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+$totalInternacoes = (int)($stats['total_internacoes'] ?? 0);
+$totalDiarias = (int)($stats['total_diarias'] ?? 0);
+$maiorPermanencia = (int)($stats['maior_permanencia'] ?? 0);
+$mp = (float)($stats['mp'] ?? 0);
+
+$sqlContas = "
+    SELECT auditor_nome, SUM(COALESCE(ca.valor_apresentado_capeante,0)) AS total
+    FROM ({$sqlBaseIntern}) t
+    LEFT JOIN tb_capeante ca ON ca.fk_int_capeante = t.id_internacao
+    GROUP BY auditor_nome
+    ORDER BY total DESC
+    LIMIT 12
+";
+$stmt = $conn->prepare($sqlContas);
+$stmt->execute($params);
+$contasRows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+$sqlGlosa = "
+    SELECT auditor_nome, SUM(COALESCE(ca.valor_glosa_total,0)) AS total
+    FROM ({$sqlBaseIntern}) t
+    LEFT JOIN tb_capeante ca ON ca.fk_int_capeante = t.id_internacao
+    GROUP BY auditor_nome
+    ORDER BY total DESC
+    LIMIT 12
+";
+$stmt = $conn->prepare($sqlGlosa);
+$stmt->execute($params);
+$glosaRows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+$sqlAuditadas = "
+    SELECT auditor_nome, COUNT(DISTINCT id_internacao) AS total
+    FROM ({$sqlBaseIntern}) t
+    GROUP BY auditor_nome
+    ORDER BY total DESC
+    LIMIT 12
+";
+$stmt = $conn->prepare($sqlAuditadas);
+$stmt->execute($params);
+$auditadasRows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+$sqlVisitas = "
+    SELECT {$auditorExpr} AS auditor_nome, COUNT(*) AS total
+    FROM tb_visita v
+    LEFT JOIN tb_usuario u ON u.id_usuario = v.fk_usuario_vis
+    LEFT JOIN tb_internacao i ON i.id_internacao = v.fk_internacao_vis
+    WHERE {$where}
+    GROUP BY auditor_nome
+    ORDER BY total DESC
+    LIMIT 12
+";
+$stmt = $conn->prepare($sqlVisitas);
+$stmt->execute($params);
+$visitasRows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+function labelsAndValues(array $rows): array
+{
+    $labels = array_map(fn($r) => $r['auditor_nome'] ?? 'Sem informacoes', $rows);
+    $values = array_map(fn($r) => (float)($r['total'] ?? 0), $rows);
+    return [$labels, $values];
+}
+
+[$contasLabels, $contasValues] = labelsAndValues($contasRows);
+[$glosaLabels, $glosaValues] = labelsAndValues($glosaRows);
+[$auditadasLabels, $auditadasValues] = labelsAndValues($auditadasRows);
+[$visitasLabels, $visitasValues] = labelsAndValues($visitasRows);
 ?>
 
-<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20251229">
+<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260110">
 <script src="diversos/CoolAdmin-master/vendor/chartjs/Chart.bundle.min.js"></script>
-<script src="<?= $BASE_URL ?>js/bi.js?v=20251221"></script>
+<script src="<?= $BASE_URL ?>js/bi.js?v=20260110"></script>
 <script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));</script>
 
 <div class="bi-wrapper bi-theme">
@@ -280,18 +177,12 @@ $visitasValues = array_map(fn($r) => (int)$r['total'], $rowsVisitas);
             <div class="bi-panel">
                 <h3>Cargo</h3>
                 <div class="bi-filter-list">
-                    <?php
-                        $cargoOptions = [
-                            'adm' => 'Administrativo',
-                            'enf' => 'Auditor Enfermeira(o)',
-                            'med' => 'Auditor Medico(a)',
-                        ];
-                    ?>
-                    <?php foreach ($cargoOptions as $key => $label): ?>
-                        <?php $qs = build_query($baseQuery, ['cargo' => $key]); ?>
-                        <a class="bi-filter-pill <?= $cargo === $key ? 'active' : '' ?>" href="<?= $BASE_URL ?>AuditorBI.php<?= $qs ? ('?' . $qs) : '' ?>">
-                            <?= e($label) ?>
-                        </a>
+                    <?php foreach ($cargos as $c): ?>
+                        <div class="bi-filter-pill <?= $cargo === $c ? 'active' : '' ?>">
+                            <a href="?cargo=<?= e($c) ?>" style="color:inherit;text-decoration:none;display:block;">
+                                <?= e($c) ?>
+                            </a>
+                        </div>
                     <?php endforeach; ?>
                 </div>
             </div>
@@ -299,14 +190,12 @@ $visitasValues = array_map(fn($r) => (int)$r['total'], $rowsVisitas);
             <div class="bi-panel">
                 <h3>Auditor</h3>
                 <div class="bi-filter-list">
-                    <?php foreach ($auditores as $aud): ?>
-                        <?php
-                            $idAud = (int)$aud['id_usuario'];
-                            $qs = build_query($baseQuery, ['auditor_id' => $idAud]);
-                        ?>
-                        <a class="bi-filter-pill <?= $auditorId === $idAud ? 'active' : '' ?>" href="<?= $BASE_URL ?>AuditorBI.php<?= $qs ? ('?' . $qs) : '' ?>">
-                            <?= e($aud['usuario_user'] ?? 'Sem nome') ?>
-                        </a>
+                    <?php foreach ($auditores as $a): ?>
+                        <div class="bi-filter-pill <?= $auditorNome === $a ? 'active' : '' ?>">
+                            <a href="?auditor=<?= e($a) ?>" style="color:inherit;text-decoration:none;display:block;">
+                                <?= e($a) ?>
+                            </a>
+                        </div>
                     <?php endforeach; ?>
                 </div>
             </div>
@@ -329,47 +218,41 @@ $visitasValues = array_map(fn($r) => (int)$r['total'], $rowsVisitas);
                         <label>Mes</label>
                         <select name="mes">
                             <option value="">Todos</option>
-                            <?php foreach ($meses as $m => $label): ?>
-                                <option value="<?= $m ?>" <?= (int)$mes === $m ? 'selected' : '' ?>><?= e($label) ?></option>
-                            <?php endforeach; ?>
+                            <?php for ($m = 1; $m <= 12; $m++): ?>
+                                <option value="<?= $m ?>" <?= $mes == $m ? 'selected' : '' ?>><?= $m ?></option>
+                            <?php endfor; ?>
                         </select>
                     </div>
                     <div class="bi-filter">
                         <label>Ano</label>
-                        <select name="ano">
-                            <option value="">Todos</option>
-                            <?php foreach ($anos as $a): ?>
-                                <option value="<?= (int)$a ?>" <?= (int)$ano === (int)$a ? 'selected' : '' ?>>
-                                    <?= (int)$a ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                        <input type="number" name="ano" value="<?= e($ano) ?>" min="2000" max="2100">
                     </div>
-                    <input type="hidden" name="cargo" value="<?= e($cargo) ?>">
-                    <input type="hidden" name="auditor_id" value="<?= $auditorId ? (int)$auditorId : '' ?>">
-                    <div class="bi-filter-actions">
-                        <button class="bi-filter-btn" type="submit">Aplicar</button>
-                        <a class="bi-filter-btn" href="<?= $BASE_URL ?>AuditorBI.php">Limpar</a>
-                    </div>
+                    <?php if ($cargo !== ''): ?>
+                        <input type="hidden" name="cargo" value="<?= e($cargo) ?>">
+                    <?php endif; ?>
+                    <?php if ($auditorNome !== ''): ?>
+                        <input type="hidden" name="auditor" value="<?= e($auditorNome) ?>">
+                    <?php endif; ?>
+                    <button class="bi-filter-btn" type="submit">Aplicar</button>
                 </div>
             </form>
         </aside>
 
         <section class="bi-main bi-stack">
             <div class="bi-kpis kpi-compact">
-                <div class="bi-kpi kpi-indigo kpi-compact">
+                <div class="bi-kpi kpi-white kpi-compact">
                     <small>Internacoes</small>
                     <strong><?= number_format($totalInternacoes, 0, ',', '.') ?></strong>
                 </div>
-                <div class="bi-kpi kpi-teal kpi-compact">
+                <div class="bi-kpi kpi-white kpi-compact">
                     <small>Diarias</small>
                     <strong><?= number_format($totalDiarias, 0, ',', '.') ?></strong>
                 </div>
-                <div class="bi-kpi kpi-amber kpi-compact">
+                <div class="bi-kpi kpi-white kpi-compact">
                     <small>MP</small>
                     <strong><?= number_format($mp, 1, ',', '.') ?></strong>
                 </div>
-                <div class="bi-kpi kpi-rose kpi-compact">
+                <div class="bi-kpi kpi-white kpi-compact">
                     <small>Maior Permanencia</small>
                     <strong><?= number_format($maiorPermanencia, 0, ',', '.') ?></strong>
                 </div>
@@ -401,13 +284,30 @@ $visitasValues = array_map(fn($r) => (int)$r['total'], $rowsVisitas);
 </div>
 
 <script>
-const auditorLabels = <?= json_encode($auditorLabels) ?>;
+const contasLabels = <?= json_encode($contasLabels) ?>;
 const contasValues = <?= json_encode($contasValues) ?>;
-const glosaValues = <?= json_encode($glosaValues) ?>;
 const glosaLabels = <?= json_encode($glosaLabels) ?>;
+const glosaValues = <?= json_encode($glosaValues) ?>;
+const auditadasLabels = <?= json_encode($auditadasLabels) ?>;
 const auditadasValues = <?= json_encode($auditadasValues) ?>;
-const visitasValues = <?= json_encode($visitasValues) ?>;
 const visitasLabels = <?= json_encode($visitasLabels) ?>;
+const visitasValues = <?= json_encode($visitasValues) ?>;
+
+function barOptionsMoney() {
+  return {
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { color: '#e8f1ff' }, grid: { display: false } },
+      y: {
+        ticks: {
+          color: '#e8f1ff',
+          callback: (value) => window.biMoneyTick ? window.biMoneyTick(value) : value
+        },
+        grid: { color: 'rgba(255,255,255,0.1)' }
+      }
+    }
+  };
+}
 
 function barOptions() {
   return {
@@ -421,43 +321,19 @@ function barOptions() {
 
 new Chart(document.getElementById('chartAuditorContas'), {
   type: 'bar',
-  data: { labels: auditorLabels, datasets: [{ data: contasValues, backgroundColor: 'rgba(126,150,255,0.82)', borderRadius: 10 }] },
-  options: {
-    ...barOptions(),
-    scales: {
-      x: { ticks: { color: '#e8f1ff' }, grid: { display: false } },
-      y: {
-        ticks: {
-          color: '#e8f1ff',
-          callback: (value) => window.biMoneyTick ? window.biMoneyTick(value) : value
-        },
-        grid: { color: 'rgba(255,255,255,0.1)' }
-      }
-    }
-  }
+  data: { labels: contasLabels, datasets: [{ data: contasValues, backgroundColor: 'rgba(126,150,255,0.82)', borderRadius: 10 }] },
+  options: barOptionsMoney()
 });
 
 new Chart(document.getElementById('chartAuditorGlosa'), {
   type: 'bar',
   data: { labels: glosaLabels, datasets: [{ data: glosaValues, backgroundColor: 'rgba(126,150,255,0.82)', borderRadius: 10 }] },
-  options: {
-    ...barOptions(),
-    scales: {
-      x: { ticks: { color: '#e8f1ff' }, grid: { display: false } },
-      y: {
-        ticks: {
-          color: '#e8f1ff',
-          callback: (value) => window.biMoneyTick ? window.biMoneyTick(value) : value
-        },
-        grid: { color: 'rgba(255,255,255,0.1)' }
-      }
-    }
-  }
+  options: barOptionsMoney()
 });
 
 new Chart(document.getElementById('chartAuditorAuditadas'), {
   type: 'bar',
-  data: { labels: auditorLabels, datasets: [{ data: auditadasValues, backgroundColor: 'rgba(126,150,255,0.82)', borderRadius: 10 }] },
+  data: { labels: auditadasLabels, datasets: [{ data: auditadasValues, backgroundColor: 'rgba(126,150,255,0.82)', borderRadius: 10 }] },
   options: barOptions()
 });
 

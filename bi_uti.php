@@ -145,9 +145,9 @@ function labelsAndValues(array $rows): array
 [$labelsIdade, $valuesIdade] = labelsAndValues($rowsIdade);
 ?>
 
-<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20251226">
+<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260110">
 <script src="diversos/CoolAdmin-master/vendor/chartjs/Chart.bundle.min.js"></script>
-<script src="<?= $BASE_URL ?>js/bi.js?v=20251221"></script>
+<script src="<?= $BASE_URL ?>js/bi.js?v=20260110"></script>
 <script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));</script>
 
 <div class="bi-wrapper bi-theme">
@@ -155,7 +155,7 @@ function labelsAndValues(array $rows): array
         <h1 class="bi-title">Dashboard UTI</h1>
         <div class="bi-header-actions">
             <div class="text-end text-muted"></div>
-            <a class="bi-nav-icon" href="<?= $BASE_URL ?>bi_navegacao.php" title="Navegacao">
+            <a class="bi-nav-icon" href="<?= $BASE_URL ?>bi_navegacao.php" title="Navegação">
                 <i class="bi bi-grid-3x3-gap"></i>
             </a>
         </div>
@@ -167,7 +167,7 @@ function labelsAndValues(array $rows): array
             <select name="internado">
                 <option value="">Todos</option>
                 <option value="s" <?= $internado === 's' ? 'selected' : '' ?>>Sim</option>
-                <option value="n" <?= $internado === 'n' ? 'selected' : '' ?>>Nao</option>
+                <option value="n" <?= $internado === 'n' ? 'selected' : '' ?>>Não</option>
             </select>
         </div>
         <div class="bi-filter">
@@ -182,7 +182,7 @@ function labelsAndValues(array $rows): array
             </select>
         </div>
         <div class="bi-filter">
-            <label>Tipo Internacao</label>
+            <label>Tipo Internação</label>
             <select name="tipo_internacao">
                 <option value="">Todos</option>
                 <?php foreach ($tiposInt as $tipo): ?>
@@ -208,11 +208,11 @@ function labelsAndValues(array $rows): array
             <select name="internado_uti">
                 <option value="">Todos</option>
                 <option value="s" <?= $internadoUti === 's' ? 'selected' : '' ?>>Sim</option>
-                <option value="n" <?= $internadoUti === 'n' ? 'selected' : '' ?>>Nao</option>
+                <option value="n" <?= $internadoUti === 'n' ? 'selected' : '' ?>>Não</option>
             </select>
         </div>
         <div class="bi-filter">
-            <label>Data Internacao</label>
+            <label>Data Internação</label>
             <input type="date" name="data_ini" value="<?= e($dataIni) ?>">
         </div>
         <div class="bi-filter">
@@ -266,11 +266,11 @@ function labelsAndValues(array $rows): array
         <div class="bi-panel">
             <div class="bi-kpis">
                 <div class="bi-kpi">
-                    <small>Internacoes</small>
+                    <small>Internações</small>
                     <strong><?= $totalInternacoes ?></strong>
                 </div>
                 <div class="bi-kpi">
-                    <small>Diarias</small>
+                    <small>Diárias</small>
                     <strong><?= $totalDiarias ?></strong>
                 </div>
                 <div class="bi-kpi">
@@ -278,7 +278,7 @@ function labelsAndValues(array $rows): array
                     <strong><?= number_format($mp, 1, ',', '.') ?></strong>
                 </div>
                 <div class="bi-kpi">
-                    <small>Maior Permanencia</small>
+                    <small>Maior Permanência</small>
                     <strong><?= $maiorPermanencia ?></strong>
                 </div>
             </div>

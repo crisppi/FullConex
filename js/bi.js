@@ -42,24 +42,116 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.style.paddingTop = (navHeight + 16) + 'px';
   }
 
-  document.querySelectorAll('.bi-panel.bi-filters').forEach((panel) => {
-    panel.style.display = 'flex';
-    panel.style.flexWrap = 'nowrap';
-    panel.style.gap = '12px';
-    panel.style.alignItems = 'flex-end';
-    panel.style.overflowX = 'auto';
-    panel.style.paddingBottom = '6px';
-
-    panel.querySelectorAll('.bi-filter').forEach((filter) => {
-      filter.style.minWidth = '170px';
-      filter.style.flex = '0 0 170px';
-    });
-
-    panel.querySelectorAll('input[type="date"]').forEach((input) => {
+  const applyDateStyles = (root) => {
+    root.querySelectorAll('input[type="date"]').forEach((input) => {
       input.style.setProperty('background-color', 'var(--bi-panel-strong)', 'important');
       input.style.setProperty('color', '#eaf6ff', 'important');
       input.style.setProperty('border-color', 'rgba(255,255,255,0.35)', 'important');
       input.style.setProperty('-webkit-text-fill-color', '#eaf6ff', 'important');
     });
+  };
+
+  const setupFilterStates = (root) => {
+    const updateFilterState = (filter) => {
+      const control = filter.querySelector('select, input');
+      if (!control) {
+        return;
+      }
+      const label = filter.querySelector('label');
+      const value = (control.value || '').trim();
+      const isSelected = value !== '';
+      filter.classList.toggle('is-selected', isSelected);
+      if (isSelected) {
+        control.setAttribute('data-selected', '1');
+        control.style.setProperty('border-color', 'rgba(255, 220, 120, 0.95)', 'important');
+        control.style.setProperty('background-color', 'rgba(255, 220, 120, 0.2)', 'important');
+        control.style.setProperty('box-shadow', '0 0 0 2px rgba(255, 220, 120, 0.25)', 'important');
+        if (label) {
+          label.style.setProperty('color', '#ffe2a6', 'important');
+        }
+      } else {
+        control.removeAttribute('data-selected');
+        control.style.removeProperty('border-color');
+        control.style.removeProperty('background-color');
+        control.style.removeProperty('box-shadow');
+        if (label) {
+          label.style.removeProperty('color');
+        }
+      }
+    };
+
+    root.querySelectorAll('.bi-filter').forEach((filter) => {
+      updateFilterState(filter);
+      const control = filter.querySelector('select, input');
+      if (control) {
+        control.addEventListener('change', () => updateFilterState(filter));
+        control.addEventListener('input', () => updateFilterState(filter));
+      }
+    });
+  };
+
+  document.querySelectorAll('.bi-panel.bi-filters').forEach((panel) => {
+    const isWrap = panel.classList.contains('bi-filters-wrap');
+    if (!isWrap) {
+      panel.style.display = 'flex';
+      panel.style.flexWrap = 'nowrap';
+      panel.style.gap = '12px';
+      panel.style.alignItems = 'flex-end';
+      panel.style.overflowX = 'auto';
+      panel.style.paddingBottom = '6px';
+
+      panel.querySelectorAll('.bi-filter').forEach((filter) => {
+        filter.style.minWidth = '170px';
+        filter.style.flex = '0 0 170px';
+      });
+    }
+
+    applyDateStyles(panel);
+    setupFilterStates(panel);
+
+    const form = panel.closest('form');
+    if (form && !form.querySelector('.bi-btn-reset')) {
+      let actions = panel.querySelector('.bi-actions');
+      if (!actions) {
+        actions = document.createElement('div');
+        actions.className = 'bi-actions';
+        panel.appendChild(actions);
+      }
+      const resetBtn = document.createElement('button');
+      resetBtn.type = 'button';
+      resetBtn.className = 'bi-btn bi-btn-secondary bi-btn-reset';
+      resetBtn.textContent = 'Limpar';
+      resetBtn.addEventListener('click', () => {
+        const url = new URL(window.location.href);
+        url.search = '';
+        window.location.href = url.toString();
+      });
+      actions.appendChild(resetBtn);
+    }
+  });
+
+  document.querySelectorAll('.bi-filter-card').forEach((card) => {
+    applyDateStyles(card);
+    setupFilterStates(card);
+
+    const form = card.closest('form');
+    if (form && !form.querySelector('.bi-btn-reset')) {
+      let actions = card.querySelector('.bi-filter-actions');
+      if (!actions) {
+        actions = document.createElement('div');
+        actions.className = 'bi-filter-actions';
+        card.appendChild(actions);
+      }
+      const resetBtn = document.createElement('button');
+      resetBtn.type = 'button';
+      resetBtn.className = 'bi-filter-btn bi-filter-btn-secondary bi-btn-reset';
+      resetBtn.textContent = 'Limpar';
+      resetBtn.addEventListener('click', () => {
+        const url = new URL(window.location.href);
+        url.search = '';
+        window.location.href = url.toString();
+      });
+      actions.appendChild(resetBtn);
+    }
   });
 });

@@ -128,9 +128,9 @@ function labelsAndValues(array $rows, bool $formatMoney = false): array
 [$labelsCustoMedio, $valuesCustoMedio] = labelsAndValues($rowsCustoMedio);
 ?>
 
-<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20251226">
+<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260110">
 <script src="diversos/CoolAdmin-master/vendor/chartjs/Chart.bundle.min.js"></script>
-<script src="<?= $BASE_URL ?>js/bi.js?v=20251221"></script>
+<script src="<?= $BASE_URL ?>js/bi.js?v=20260110"></script>
 <script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));</script>
 
 <div class="bi-wrapper bi-theme">
@@ -138,7 +138,7 @@ function labelsAndValues(array $rows, bool $formatMoney = false): array
         <h1 class="bi-title">Dashboard Patologia</h1>
         <div class="bi-header-actions">
             <div class="text-end text-muted"></div>
-            <a class="bi-nav-icon" href="<?= $BASE_URL ?>bi_navegacao.php" title="Navegacao">
+            <a class="bi-nav-icon" href="<?= $BASE_URL ?>bi_navegacao.php" title="Navegação">
                 <i class="bi bi-grid-3x3-gap"></i>
             </a>
         </div>
@@ -150,7 +150,7 @@ function labelsAndValues(array $rows, bool $formatMoney = false): array
             <select name="internado">
                 <option value="">Todos</option>
                 <option value="s" <?= $internado === 's' ? 'selected' : '' ?>>Sim</option>
-                <option value="n" <?= $internado === 'n' ? 'selected' : '' ?>>Nao</option>
+                <option value="n" <?= $internado === 'n' ? 'selected' : '' ?>>Não</option>
             </select>
         </div>
         <div class="bi-filter">
@@ -165,7 +165,7 @@ function labelsAndValues(array $rows, bool $formatMoney = false): array
             </select>
         </div>
         <div class="bi-filter">
-            <label>Tipo Internacao</label>
+            <label>Tipo Internação</label>
             <select name="tipo_internacao">
                 <option value="">Todos</option>
                 <?php foreach ($tiposInt as $tipo): ?>
@@ -191,11 +191,11 @@ function labelsAndValues(array $rows, bool $formatMoney = false): array
             <select name="uti">
                 <option value="">Todos</option>
                 <option value="s" <?= $uti === 's' ? 'selected' : '' ?>>Sim</option>
-                <option value="n" <?= $uti === 'n' ? 'selected' : '' ?>>Nao</option>
+                <option value="n" <?= $uti === 'n' ? 'selected' : '' ?>>Não</option>
             </select>
         </div>
         <div class="bi-filter">
-            <label>Data Internacao</label>
+            <label>Data Internação</label>
             <input type="date" name="data_ini" value="<?= e($dataIni) ?>">
         </div>
         <div class="bi-filter">
@@ -218,14 +218,14 @@ function labelsAndValues(array $rows, bool $formatMoney = false): array
             <div class="bi-chart"><canvas id="chartCusto"></canvas></div>
         </div>
         <div class="bi-panel">
-            <h3>Custo medio internacao por patologia</h3>
+            <h3>Custo médio internacao por patologia</h3>
             <div class="bi-chart"><canvas id="chartCustoMedio"></canvas></div>
         </div>
     </div>
 
     <div class="bi-grid fixed-2" style="margin-top:16px;">
         <div class="bi-panel">
-            <h3>Internacoes por patologia</h3>
+            <h3>Internações por patologia</h3>
             <div class="bi-chart"><canvas id="chartIntern"></canvas></div>
         </div>
         <div class="bi-panel">
@@ -235,7 +235,7 @@ function labelsAndValues(array $rows, bool $formatMoney = false): array
     </div>
 
     <div class="bi-panel" style="margin-top:16px;">
-        <h3>Diarias por patologia</h3>
+        <h3>Diárias por patologia</h3>
         <div class="bi-chart"><canvas id="chartDiarias"></canvas></div>
     </div>
 </div>

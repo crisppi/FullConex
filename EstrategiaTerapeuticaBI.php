@@ -28,11 +28,13 @@ $mes = ($mesInput !== null && $mesInput !== false) ? (int)$mesInput : null;
 if ($ano === null && !filter_has_var(INPUT_GET, 'ano')) {
     $ano = (int)date('Y');
 }
+
 $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: null;
 $tipoInternacao = trim((string)(filter_input(INPUT_GET, 'tipo_internacao') ?? ''));
 $modoInternacao = trim((string)(filter_input(INPUT_GET, 'modo_internacao') ?? ''));
 $patologiaId = filter_input(INPUT_GET, 'patologia_id', FILTER_VALIDATE_INT) ?: null;
 $grupoPatologia = trim((string)(filter_input(INPUT_GET, 'grupo_patologia') ?? ''));
+$internado = trim((string)(filter_input(INPUT_GET, 'internado') ?? ''));
 $uti = trim((string)(filter_input(INPUT_GET, 'uti') ?? ''));
 $antecedenteId = filter_input(INPUT_GET, 'antecedente_id', FILTER_VALIDATE_INT) ?: null;
 $sexo = trim((string)(filter_input(INPUT_GET, 'sexo') ?? ''));
@@ -118,6 +120,10 @@ function build_where_internacao(array $filters, array &$params, bool $applyUti):
         $where .= " AND i.fk_patologia2 = :antecedente_id";
         $params[':antecedente_id'] = (int)$filters['antecedente_id'];
     }
+    if (!empty($filters['internado'])) {
+        $where .= " AND i.internado_int = :internado";
+        $params[':internado'] = $filters['internado'];
+    }
     if (!empty($filters['sexo'])) {
         $where .= " AND pa.sexo_pac = :sexo";
         $params[':sexo'] = $filters['sexo'];
@@ -131,10 +137,10 @@ function build_where_internacao(array $filters, array &$params, bool $applyUti):
 
     $utiJoin = "LEFT JOIN (SELECT DISTINCT fk_internacao_uti FROM tb_uti) ut ON ut.fk_internacao_uti = i.id_internacao";
     if ($applyUti) {
-        if ($filters['uti'] === 's') {
-            $where .= " AND ut.fk_internacao_uti IS NOT NULL";
-        } elseif ($filters['uti'] === 'n') {
-            $where .= " AND ut.fk_internacao_uti IS NULL";
+        if (($filters['uti'] ?? '') === 's') {
+            $where .= " AND fk_internacao_uti IS NOT NULL";
+        } elseif (($filters['uti'] ?? '') === 'n') {
+            $where .= " AND fk_internacao_uti IS NULL";
         }
     }
 
@@ -177,6 +183,10 @@ function build_where_financeiro(array $filters, array &$params, bool $applyUti):
         $where .= " AND fk_patologia2 = :antecedente_id";
         $params[':antecedente_id'] = (int)$filters['antecedente_id'];
     }
+    if (!empty($filters['internado'])) {
+        $where .= " AND internado_int = :internado";
+        $params[':internado'] = $filters['internado'];
+    }
     if (!empty($filters['sexo'])) {
         $where .= " AND sexo_pac = :sexo";
         $params[':sexo'] = $filters['sexo'];
@@ -188,10 +198,10 @@ function build_where_financeiro(array $filters, array &$params, bool $applyUti):
         }
     }
     if ($applyUti) {
-        if ($filters['uti'] === 's') {
-            $where .= " AND ut.fk_internacao_uti IS NOT NULL";
-        } elseif ($filters['uti'] === 'n') {
-            $where .= " AND ut.fk_internacao_uti IS NULL";
+        if (($filters['uti'] ?? '') === 's') {
+            $where .= " AND fk_internacao_uti IS NOT NULL";
+        } elseif (($filters['uti'] ?? '') === 'n') {
+            $where .= " AND fk_internacao_uti IS NULL";
         }
     }
 
@@ -241,74 +251,44 @@ function uti_stats(PDO $conn, array $filters): array
         return ['total_internacoes' => 0, 'total_diarias' => 0, 'mp' => 0.0];
     }
     $filters['uti'] = 's';
-
-    $params = [];
-    [$where] = build_where_internacao($filters, $params, false);
-
-    $sql = "
-        SELECT
-            COUNT(*) AS total_internacoes_uti,
-            SUM(GREATEST(1, DATEDIFF(COALESCE(u.max_data_alta, CURDATE()), u.min_data_internacao) + 1)) AS total_diarias_uti
-        FROM (
-            SELECT
-                u.fk_internacao_uti,
-                MIN(NULLIF(u.data_internacao_uti, '0000-00-00')) AS min_data_internacao,
-                MAX(NULLIF(u.data_alta_uti, '0000-00-00')) AS max_data_alta
-            FROM tb_uti u
-            WHERE u.data_internacao_uti IS NOT NULL AND u.data_internacao_uti <> '0000-00-00'
-            GROUP BY u.fk_internacao_uti
-        ) u
-        INNER JOIN tb_internacao i ON i.id_internacao = u.fk_internacao_uti
-        LEFT JOIN tb_paciente pa ON pa.id_paciente = i.fk_paciente_int
-        WHERE {$where}
-    ";
-    $stmt = $conn->prepare($sql);
-    foreach ($params as $key => $value) {
-        $stmt->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
-    }
-    $stmt->execute();
-    $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
-
-    $totalInternacoes = (int)($row['total_internacoes_uti'] ?? 0);
-    $totalDiarias = (int)($row['total_diarias_uti'] ?? 0);
-    $mp = $totalInternacoes > 0 ? ($totalDiarias / $totalInternacoes) : 0.0;
-
-    return [
-        'total_internacoes' => $totalInternacoes,
-        'total_diarias' => $totalDiarias,
-        'mp' => $mp,
-    ];
+    return internacao_stats($conn, $filters);
 }
 
 function financeiro_stats(PDO $conn, array $filters): array
 {
-    $dateExpr = "COALESCE(NULLIF(ca.data_inicial_capeante,'0000-00-00'), NULLIF(ca.data_digit_capeante,'0000-00-00'), NULLIF(ca.data_fech_capeante,'0000-00-00'))";
     $params = [];
     $where = build_where_financeiro($filters, $params, true);
 
     $sql = "
         SELECT
             SUM(COALESCE(t.valor_apresentado_capeante,0)) AS valor_apresentado,
-            COUNT(DISTINCT t.id_capeante) AS total_contas
+            SUM(COALESCE(t.valor_glosa_total,0)) AS glosa_total,
+            SUM(COALESCE(t.valor_glosa_med,0)) AS glosa_med,
+            SUM(COALESCE(t.valor_glosa_enf,0)) AS glosa_enf,
+            COUNT(DISTINCT t.id_internacao) AS total_contas
         FROM (
             SELECT
-                ca.id_capeante,
-                ca.fk_int_capeante,
-                ca.valor_apresentado_capeante,
-                {$dateExpr} AS ref_date,
-                ac.fk_hospital_int,
-                ac.tipo_admissao_int,
-                ac.modo_internacao_int,
-                ac.fk_patologia_int,
-                ac.grupo_patologia_int,
-                ac.fk_patologia2,
+                i.id_internacao,
+                i.data_intern_int AS ref_date,
+                i.fk_hospital_int,
+                i.tipo_admissao_int,
+                i.modo_internacao_int,
+                i.fk_patologia_int,
+                i.grupo_patologia_int,
+                i.fk_patologia2,
+                i.internado_int,
                 pa.sexo_pac,
-                pa.idade_pac
-            FROM tb_capeante ca
-            INNER JOIN tb_internacao ac ON ac.id_internacao = ca.fk_int_capeante
-            LEFT JOIN tb_paciente pa ON pa.id_paciente = ac.fk_paciente_int
+                pa.idade_pac,
+                ca.valor_apresentado_capeante,
+                ca.valor_glosa_total,
+                ca.valor_glosa_med,
+                ca.valor_glosa_enf,
+                ut.fk_internacao_uti
+            FROM tb_internacao i
+            LEFT JOIN tb_paciente pa ON pa.id_paciente = i.fk_paciente_int
+            LEFT JOIN tb_capeante ca ON ca.fk_int_capeante = i.id_internacao
+            LEFT JOIN (SELECT DISTINCT fk_internacao_uti FROM tb_uti) ut ON ut.fk_internacao_uti = i.id_internacao
         ) t
-        LEFT JOIN (SELECT DISTINCT fk_internacao_uti FROM tb_uti) ut ON ut.fk_internacao_uti = t.fk_int_capeante
         WHERE {$where}
     ";
     $stmt = $conn->prepare($sql);
@@ -320,6 +300,9 @@ function financeiro_stats(PDO $conn, array $filters): array
 
     return [
         'valor_apresentado' => (float)($row['valor_apresentado'] ?? 0),
+        'glosa_total' => (float)($row['glosa_total'] ?? 0),
+        'glosa_med' => (float)($row['glosa_med'] ?? 0),
+        'glosa_enf' => (float)($row['glosa_enf'] ?? 0),
         'total_contas' => (int)($row['total_contas'] ?? 0),
     ];
 }
@@ -332,47 +315,38 @@ $filtersSelected = [
     'modo_internacao' => $modoInternacao,
     'patologia_id' => $patologiaId,
     'grupo_patologia' => $grupoPatologia,
+    'internado' => $internado,
     'uti' => $uti,
     'antecedente_id' => $antecedenteId,
     'sexo' => $sexo,
     'faixa_etaria' => $faixaEtaria,
 ];
-
 $filtersGlobal = [
     'ano' => $ano,
     'mes' => $mes,
-    'hospital_id' => null,
-    'tipo_internacao' => '',
-    'modo_internacao' => '',
-    'patologia_id' => null,
-    'grupo_patologia' => '',
-    'uti' => '',
-    'antecedente_id' => null,
-    'sexo' => '',
-    'faixa_etaria' => '',
 ];
 
 $selInternacao = internacao_stats($conn, $filtersSelected);
-$selFinanceiro = financeiro_stats($conn, $filtersSelected);
 $selUti = uti_stats($conn, $filtersSelected);
-$selUtiFinanceiro = ($uti === 'n') ? ['valor_apresentado' => 0.0, 'total_contas' => 0] : financeiro_stats($conn, array_merge($filtersSelected, ['uti' => 's']));
-
-$globInternacao = internacao_stats($conn, $filtersGlobal);
-$globFinanceiro = financeiro_stats($conn, $filtersGlobal);
-$globUti = uti_stats($conn, $filtersGlobal);
-$globUtiFinanceiro = financeiro_stats($conn, array_merge($filtersGlobal, ['uti' => 's']));
+$selFinanceiro = financeiro_stats($conn, $filtersSelected);
+$selFinanceiroUti = financeiro_stats($conn, array_merge($filtersSelected, ['uti' => 's']));
 
 $selCustoMedioDiaria = $selInternacao['total_diarias'] > 0 ? ($selFinanceiro['valor_apresentado'] / $selInternacao['total_diarias']) : 0.0;
-$selCustoMedioDiariaUti = $selUti['total_diarias'] > 0 ? ($selUtiFinanceiro['valor_apresentado'] / $selUti['total_diarias']) : 0.0;
+$selCustoMedioDiariaUti = $selUti['total_diarias'] > 0 ? ($selFinanceiroUti['valor_apresentado'] / $selUti['total_diarias']) : 0.0;
 $selCustoMedioConta = $selFinanceiro['total_contas'] > 0 ? ($selFinanceiro['valor_apresentado'] / $selFinanceiro['total_contas']) : 0.0;
 
-$globCustoMedioDiaria = $globInternacao['total_diarias'] > 0 ? ($globFinanceiro['valor_apresentado'] / $globInternacao['total_diarias']) : 0.0;
-$globCustoMedioDiariaUti = $globUti['total_diarias'] > 0 ? ($globUtiFinanceiro['valor_apresentado'] / $globUti['total_diarias']) : 0.0;
-$globCustoMedioConta = $globFinanceiro['total_contas'] > 0 ? ($globFinanceiro['valor_apresentado'] / $globFinanceiro['total_contas']) : 0.0;
+$globalInternacao = internacao_stats($conn, $filtersGlobal);
+$globalUti = uti_stats($conn, $filtersGlobal);
+$globalFinanceiro = financeiro_stats($conn, $filtersGlobal);
+$globalFinanceiroUti = financeiro_stats($conn, array_merge($filtersGlobal, ['uti' => 's']));
+
+$globalCustoMedioDiaria = $globalInternacao['total_diarias'] > 0 ? ($globalFinanceiro['valor_apresentado'] / $globalInternacao['total_diarias']) : 0.0;
+$globalCustoMedioDiariaUti = $globalUti['total_diarias'] > 0 ? ($globalFinanceiroUti['valor_apresentado'] / $globalUti['total_diarias']) : 0.0;
+$globalCustoMedioConta = $globalFinanceiro['total_contas'] > 0 ? ($globalFinanceiro['valor_apresentado'] / $globalFinanceiro['total_contas']) : 0.0;
 ?>
 
-<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20251226">
-<script src="<?= $BASE_URL ?>js/bi.js?v=20251221"></script>
+<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260110">
+<script src="<?= $BASE_URL ?>js/bi.js?v=20260110"></script>
 <script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));</script>
 <style>
 .bi-header {
@@ -384,12 +358,6 @@ $globCustoMedioConta = $globFinanceiro['total_contas'] > 0 ? ($globFinanceiro['v
     top: 0;
 }
 .bi-wrapper .bi-grid-3x3-gap {
-    display: none !important;
-}
-.bi-grid .bi-nav-icon,
-.bi-grid .bi-grid-3x3-gap,
-.bi-grid i,
-.bi-grid svg {
     display: none !important;
 }
 .bi-nav-icon svg {
@@ -422,7 +390,7 @@ $globCustoMedioConta = $globFinanceiro['total_contas'] > 0 ? ($globFinanceiro['v
         </div>
     </div>
 
-    <form class="bi-panel bi-filters" method="get">
+    <form class="bi-panel bi-filters bi-filters-wrap bi-filters-compact" method="get">
         <div class="bi-filter">
             <label>Hospital</label>
             <select name="hospital_id">
@@ -435,7 +403,7 @@ $globCustoMedioConta = $globFinanceiro['total_contas'] > 0 ? ($globFinanceiro['v
             </select>
         </div>
         <div class="bi-filter">
-            <label>Internacao</label>
+            <label>Internação</label>
             <select name="tipo_internacao">
                 <option value="">Todos</option>
                 <?php foreach ($tiposInt as $tipo): ?>
@@ -446,7 +414,7 @@ $globCustoMedioConta = $globFinanceiro['total_contas'] > 0 ? ($globFinanceiro['v
             </select>
         </div>
         <div class="bi-filter">
-            <label>Modo internacao</label>
+            <label>Modo internação</label>
             <select name="modo_internacao">
                 <option value="">Todos</option>
                 <?php foreach ($modos as $modo): ?>
@@ -471,28 +439,28 @@ $globCustoMedioConta = $globFinanceiro['total_contas'] > 0 ? ($globFinanceiro['v
             <label>Grupo patologia</label>
             <select name="grupo_patologia">
                 <option value="">Todos</option>
-                <?php foreach ($grupos as $g): ?>
-                    <option value="<?= e($g) ?>" <?= $grupoPatologia === $g ? 'selected' : '' ?>>
-                        <?= e($g) ?>
+                <?php foreach ($grupos as $grupo): ?>
+                    <option value="<?= e($grupo) ?>" <?= $grupoPatologia === $grupo ? 'selected' : '' ?>>
+                        <?= e($grupo) ?>
                     </option>
                 <?php endforeach; ?>
             </select>
         </div>
         <div class="bi-filter">
-            <label>Internacao UTI</label>
+            <label>Internação UTI</label>
             <select name="uti">
                 <option value="">Todos</option>
                 <option value="s" <?= $uti === 's' ? 'selected' : '' ?>>Sim</option>
-                <option value="n" <?= $uti === 'n' ? 'selected' : '' ?>>Nao</option>
+                <option value="n" <?= $uti === 'n' ? 'selected' : '' ?>>Não</option>
             </select>
         </div>
         <div class="bi-filter">
             <label>Antecedente</label>
             <select name="antecedente_id">
                 <option value="">Todos</option>
-                <?php foreach ($antecedentes as $a): ?>
-                    <option value="<?= (int)$a['id_antecedente'] ?>" <?= $antecedenteId == $a['id_antecedente'] ? 'selected' : '' ?>>
-                        <?= e($a['antecedente_ant']) ?>
+                <?php foreach ($antecedentes as $ant): ?>
+                    <option value="<?= (int)$ant['id_antecedente'] ?>" <?= $antecedenteId == $ant['id_antecedente'] ? 'selected' : '' ?>>
+                        <?= e($ant['antecedente_ant']) ?>
                     </option>
                 <?php endforeach; ?>
             </select>
@@ -501,12 +469,12 @@ $globCustoMedioConta = $globFinanceiro['total_contas'] > 0 ? ($globFinanceiro['v
             <label>Sexo</label>
             <select name="sexo">
                 <option value="">Todos</option>
-                <option value="M" <?= $sexo === 'M' ? 'selected' : '' ?>>Masculino</option>
-                <option value="F" <?= $sexo === 'F' ? 'selected' : '' ?>>Feminino</option>
+                <option value="F" <?= $sexo === 'F' ? 'selected' : '' ?>>F</option>
+                <option value="M" <?= $sexo === 'M' ? 'selected' : '' ?>>M</option>
             </select>
         </div>
         <div class="bi-filter">
-            <label>Faixa etaria</label>
+            <label>Faixa etária</label>
             <select name="faixa_etaria">
                 <option value="">Todos</option>
                 <?php foreach ($faixasEtarias as $key => $label): ?>
@@ -520,9 +488,9 @@ $globCustoMedioConta = $globFinanceiro['total_contas'] > 0 ? ($globFinanceiro['v
             <label>Ano</label>
             <select name="ano">
                 <option value="">Todos</option>
-                <?php foreach ($anos as $a): ?>
-                    <option value="<?= (int)$a ?>" <?= (int)$ano === (int)$a ? 'selected' : '' ?>>
-                        <?= (int)$a ?>
+                <?php foreach ($anos as $anoOpt): ?>
+                    <option value="<?= (int)$anoOpt ?>" <?= $ano == $anoOpt ? 'selected' : '' ?>>
+                        <?= (int)$anoOpt ?>
                     </option>
                 <?php endforeach; ?>
             </select>
@@ -532,7 +500,7 @@ $globCustoMedioConta = $globFinanceiro['total_contas'] > 0 ? ($globFinanceiro['v
             <select name="mes">
                 <option value="">Todos</option>
                 <?php for ($m = 1; $m <= 12; $m++): ?>
-                    <option value="<?= $m ?>" <?= $mes === $m ? 'selected' : '' ?>><?= $m ?></option>
+                    <option value="<?= $m ?>" <?= $mes == $m ? 'selected' : '' ?>><?= $m ?></option>
                 <?php endfor; ?>
             </select>
         </div>
@@ -541,8 +509,8 @@ $globCustoMedioConta = $globFinanceiro['total_contas'] > 0 ? ($globFinanceiro['v
 
     <div class="bi-panel" style="margin-top:16px; text-align:center;">
         <div style="font-weight:600; letter-spacing:0.04em;">
-            SELECIONE OS FILTROS PARA DEFINIR QUAL A MELHOR ESTRATEGIA TERAPEUTICA PARA DETERMINADO
-            CASO E ONDE PODERA OBTER MELHORES RESULTADOS ASSISTENCIAIS.
+            Selecione os filtros para definir qual é a melhor estratégia terapêutica para determinado
+            caso e onde poderá obter melhores resultados assistenciais.
         </div>
     </div>
 
@@ -550,27 +518,27 @@ $globCustoMedioConta = $globFinanceiro['total_contas'] > 0 ? ($globFinanceiro['v
         <div class="bi-panel">
             <h3 class="text-center">Selecionado</h3>
             <div class="bi-kpis kpi-compact">
-                <div class="bi-kpi kpi-indigo kpi-compact"><small>Total internacoes</small><strong><?= fmt_num($selInternacao['total_internacoes']) ?></strong></div>
-                <div class="bi-kpi kpi-indigo kpi-compact"><small>Custo medio diaria</small><strong><?= fmt_money($selCustoMedioDiaria) ?></strong></div>
-                <div class="bi-kpi kpi-indigo kpi-compact"><small>MP</small><strong><?= fmt_num($selInternacao['mp']) ?></strong></div>
-                <div class="bi-kpi kpi-indigo kpi-compact"><small>Custo medio diaria UTI</small><strong><?= fmt_money($selCustoMedioDiariaUti) ?></strong></div>
-                <div class="bi-kpi kpi-indigo kpi-compact"><small>Internacao UTI</small><strong><?= fmt_num($selUti['total_internacoes']) ?></strong></div>
-                <div class="bi-kpi kpi-indigo kpi-compact"><small>Custo medio por conta</small><strong><?= fmt_money($selCustoMedioConta) ?></strong></div>
-                <div class="bi-kpi kpi-indigo kpi-compact"><small>Media permanencia UTI</small><strong><?= fmt_num($selUti['mp']) ?></strong></div>
+                <div class="bi-kpi kpi-indigo kpi-compact"><small>Total internações</small><strong><?= fmt_num($selInternacao['total_internacoes'], 0) ?></strong></div>
+                <div class="bi-kpi kpi-indigo kpi-compact"><small>Custo médio diária</small><strong><?= fmt_money($selCustoMedioDiaria) ?></strong></div>
+                <div class="bi-kpi kpi-indigo kpi-compact"><small>MP</small><strong><?= fmt_num($selInternacao['mp'], 2) ?></strong></div>
+                <div class="bi-kpi kpi-indigo kpi-compact"><small>Custo médio diária UTI</small><strong><?= fmt_money($selCustoMedioDiariaUti) ?></strong></div>
+                <div class="bi-kpi kpi-indigo kpi-compact"><small>Internação UTI</small><strong><?= fmt_num($selUti['total_internacoes'], 0) ?></strong></div>
+                <div class="bi-kpi kpi-indigo kpi-compact"><small>Custo médio por conta</small><strong><?= fmt_money($selCustoMedioConta) ?></strong></div>
+                <div class="bi-kpi kpi-indigo kpi-compact"><small>Média permanência UTI</small><strong><?= fmt_num($selUti['mp'], 2) ?></strong></div>
                 <div class="bi-kpi kpi-indigo kpi-compact"><small>Valor apresentado</small><strong><?= fmt_money($selFinanceiro['valor_apresentado']) ?></strong></div>
             </div>
         </div>
         <div class="bi-panel">
             <h3 class="text-center">Global</h3>
             <div class="bi-kpis kpi-compact">
-                <div class="bi-kpi kpi-rose kpi-compact"><small>Total internacoes</small><strong><?= fmt_num($globInternacao['total_internacoes']) ?></strong></div>
-                <div class="bi-kpi kpi-rose kpi-compact"><small>Custo medio diaria</small><strong><?= fmt_money($globCustoMedioDiaria) ?></strong></div>
-                <div class="bi-kpi kpi-rose kpi-compact"><small>MP</small><strong><?= fmt_num($globInternacao['mp']) ?></strong></div>
-                <div class="bi-kpi kpi-rose kpi-compact"><small>Custo medio diaria UTI</small><strong><?= fmt_money($globCustoMedioDiariaUti) ?></strong></div>
-                <div class="bi-kpi kpi-rose kpi-compact"><small>Internacao UTI</small><strong><?= fmt_num($globUti['total_internacoes']) ?></strong></div>
-                <div class="bi-kpi kpi-rose kpi-compact"><small>Custo medio por conta</small><strong><?= fmt_money($globCustoMedioConta) ?></strong></div>
-                <div class="bi-kpi kpi-rose kpi-compact"><small>Media permanencia UTI</small><strong><?= fmt_num($globUti['mp']) ?></strong></div>
-                <div class="bi-kpi kpi-rose kpi-compact"><small>Valor apresentado</small><strong><?= fmt_money($globFinanceiro['valor_apresentado']) ?></strong></div>
+                <div class="bi-kpi kpi-rose kpi-compact"><small>Total internações</small><strong><?= fmt_num($globalInternacao['total_internacoes'], 0) ?></strong></div>
+                <div class="bi-kpi kpi-rose kpi-compact"><small>Custo médio diária</small><strong><?= fmt_money($globalCustoMedioDiaria) ?></strong></div>
+                <div class="bi-kpi kpi-rose kpi-compact"><small>MP</small><strong><?= fmt_num($globalInternacao['mp'], 2) ?></strong></div>
+                <div class="bi-kpi kpi-rose kpi-compact"><small>Custo médio diária UTI</small><strong><?= fmt_money($globalCustoMedioDiariaUti) ?></strong></div>
+                <div class="bi-kpi kpi-rose kpi-compact"><small>Internação UTI</small><strong><?= fmt_num($globalUti['total_internacoes'], 0) ?></strong></div>
+                <div class="bi-kpi kpi-rose kpi-compact"><small>Custo médio por conta</small><strong><?= fmt_money($globalCustoMedioConta) ?></strong></div>
+                <div class="bi-kpi kpi-rose kpi-compact"><small>Média permanência UTI</small><strong><?= fmt_num($globalUti['mp'], 2) ?></strong></div>
+                <div class="bi-kpi kpi-rose kpi-compact"><small>Valor apresentado</small><strong><?= fmt_money($globalFinanceiro['valor_apresentado']) ?></strong></div>
             </div>
         </div>
     </div>

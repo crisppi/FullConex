@@ -239,8 +239,8 @@ $temUti = hasUtiData($utiAtual);
 $temAlgum = $temSinistro || $temInternacao || $temUti;
 ?>
 
-<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20251226">
-<script src="<?= $BASE_URL ?>js/bi.js?v=20251221"></script>
+<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260110">
+<script src="<?= $BASE_URL ?>js/bi.js?v=20260110"></script>
 <script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));</script>
 
 <div class="bi-wrapper bi-theme">
@@ -248,7 +248,7 @@ $temAlgum = $temSinistro || $temInternacao || $temUti;
         <h1 class="bi-title">Dashboard Inteligencia Artificial</h1>
         <div class="bi-header-actions">
             <div class="text-end text-muted"></div>
-            <a class="bi-nav-icon" href="<?= $BASE_URL ?>bi_navegacao.php" title="Navegacao">
+            <a class="bi-nav-icon" href="<?= $BASE_URL ?>bi_navegacao.php" title="Navegação">
                 <i class="bi bi-grid-3x3-gap"></i>
             </a>
         </div>
@@ -287,7 +287,7 @@ $temAlgum = $temSinistro || $temInternacao || $temUti;
     </form>
 
     <div class="bi-panel bi-report">
-        <h3>Relatorio Anual de Sinistralidade Hospitalar - <?= e($hospitalNome) ?> - (<?= e($ano) ?>)</h3>
+        <h3>Relatório Anual de Sinistralidade Hospitalar - <?= e($hospitalNome) ?> - (<?= e($ano) ?>)</h3>
         <div class="bi-report-meta">Tipo admissao: <?= e($tipoLabel) ?></div>
 
         <?php if (!$temAlgum): ?>
@@ -325,7 +325,7 @@ $temAlgum = $temSinistro || $temInternacao || $temUti;
 
         <?php if ($temInternacao): ?>
         <div class="bi-report-section">
-            <h4>3. Internacoes Gerais</h4>
+            <h4>3. Internações Gerais</h4>
             <p>
                 O total de internacoes registradas foi de <strong><?= fmtInt($internacaoAtual['total_internacoes']) ?></strong>,
                 com <strong><?= fmtInt($internacaoAtual['total_diarias']) ?></strong> diarias e MP de
@@ -345,7 +345,7 @@ $temAlgum = $temSinistro || $temInternacao || $temUti;
 
         <?php if ($temUti): ?>
         <div class="bi-report-section">
-            <h4>4. Internacoes em UTI</h4>
+            <h4>4. Internações em UTI</h4>
             <p>
                 Foram registradas <strong><?= fmtInt($utiAtual['total_internacoes']) ?></strong> internacoes em UTI,
                 com <strong><?= fmtInt($utiAtual['total_diarias']) ?></strong> diarias e MP UTI de

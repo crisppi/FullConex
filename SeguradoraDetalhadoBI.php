@@ -3,8 +3,8 @@ include_once("check_logado.php");
 require_once("templates/header.php");
 ?>
 
-<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20251226">
-<script src="<?= $BASE_URL ?>js/bi.js?v=20251221"></script>
+<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260110">
+<script src="<?= $BASE_URL ?>js/bi.js?v=20260110"></script>
 <script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));</script>
 
 <div class="bi-wrapper bi-theme">
@@ -12,7 +12,7 @@ require_once("templates/header.php");
         <h1 class="bi-title">Seguradora Detalhado</h1>
         <div class="bi-header-actions">
             <div class="text-end text-muted">Perfil Sinistro 2</div>
-            <a class="bi-nav-icon" href="<?= $BASE_URL ?>bi_navegacao.php" title="Navegacao">
+            <a class="bi-nav-icon" href="<?= $BASE_URL ?>bi_navegacao.php" title="Navegação">
                 <i class="bi bi-grid-3x3-gap"></i>
             </a>
         </div>
@@ -28,7 +28,7 @@ require_once("templates/header.php");
             </select>
         </div>
         <div class="bi-filter">
-            <label>Mes</label>
+            <label>Mês</label>
             <select>
                 <option>Todos</option>
                 <option>Outubro</option>
@@ -56,7 +56,7 @@ require_once("templates/header.php");
             <select>
                 <option>Todos</option>
                 <option>Enfermeiro</option>
-                <option>Medico</option>
+                <option>Médico</option>
             </select>
         </div>
         <div class="bi-actions">
