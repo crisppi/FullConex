@@ -20,19 +20,16 @@ if ($ano === null && !filter_has_var(INPUT_GET, 'ano')) {
 }
 
 $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: null;
-$cargo = trim((string)(filter_input(INPUT_GET, 'cargo') ?? ''));
 $auditorNome = trim((string)(filter_input(INPUT_GET, 'auditor') ?? ''));
 
 $hospitais = $conn->query("SELECT id_hospital, nome_hosp FROM tb_hospital ORDER BY nome_hosp")
     ->fetchAll(PDO::FETCH_ASSOC);
-$cargos = $conn->query("SELECT DISTINCT cargo_user FROM tb_usuario WHERE cargo_user IS NOT NULL AND cargo_user <> '' ORDER BY cargo_user")
-    ->fetchAll(PDO::FETCH_COLUMN);
-
 $auditorListSql = "
-    SELECT DISTINCT COALESCE(u.usuario_user, NULLIF(v.visita_auditor_prof_med,''), NULLIF(v.visita_auditor_prof_enf,'')) AS auditor_nome
+    SELECT DISTINCT COALESCE(u.usuario_user, u2.usuario_user) AS auditor_nome
     FROM tb_visita v
-    LEFT JOIN tb_usuario u ON u.id_usuario = v.fk_usuario_vis
-    WHERE COALESCE(u.usuario_user, v.visita_auditor_prof_med, v.visita_auditor_prof_enf) IS NOT NULL
+    LEFT JOIN tb_user u ON u.id_usuario = v.fk_usuario_vis
+    LEFT JOIN tb_user u2 ON u2.id_usuario = CAST(NULLIF(v.visita_auditor_prof_med,'') AS UNSIGNED)
+    WHERE COALESCE(u.usuario_user, u2.usuario_user) IS NOT NULL
     ORDER BY auditor_nome
 ";
 $auditores = $conn->query($auditorListSql)->fetchAll(PDO::FETCH_COLUMN);
@@ -51,23 +48,20 @@ if (!empty($hospitalId)) {
     $where .= " AND i.fk_hospital_int = :hospital_id";
     $params[':hospital_id'] = (int)$hospitalId;
 }
-if (!empty($cargo)) {
-    $where .= " AND u.cargo_user = :cargo";
-    $params[':cargo'] = $cargo;
-}
 if (!empty($auditorNome)) {
-    $where .= " AND COALESCE(u.usuario_user, NULLIF(v.visita_auditor_prof_med,''), NULLIF(v.visita_auditor_prof_enf,'')) = :auditor_nome";
+    $where .= " AND COALESCE(u.usuario_user, u2.usuario_user) = :auditor_nome";
     $params[':auditor_nome'] = $auditorNome;
 }
 
-$auditorExpr = "COALESCE(u.usuario_user, NULLIF(v.visita_auditor_prof_med,''), NULLIF(v.visita_auditor_prof_enf,''), 'Sem informacoes')";
+$auditorExpr = "COALESCE(u.usuario_user, u2.usuario_user, 'Sem informacoes')";
 
 $sqlBaseIntern = "
     SELECT DISTINCT i.id_internacao,
         {$auditorExpr} AS auditor_nome,
         GREATEST(1, DATEDIFF(COALESCE(al.data_alta_alt, CURDATE()), i.data_intern_int) + 1) AS diarias
     FROM tb_visita v
-    LEFT JOIN tb_usuario u ON u.id_usuario = v.fk_usuario_vis
+    LEFT JOIN tb_user u ON u.id_usuario = v.fk_usuario_vis
+    LEFT JOIN tb_user u2 ON u2.id_usuario = CAST(NULLIF(v.visita_auditor_prof_med,'') AS UNSIGNED)
     LEFT JOIN tb_internacao i ON i.id_internacao = v.fk_internacao_vis
     LEFT JOIN (
         SELECT fk_id_int_alt, MAX(data_alta_alt) AS data_alta_alt
@@ -132,7 +126,8 @@ $auditadasRows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 $sqlVisitas = "
     SELECT {$auditorExpr} AS auditor_nome, COUNT(*) AS total
     FROM tb_visita v
-    LEFT JOIN tb_usuario u ON u.id_usuario = v.fk_usuario_vis
+    LEFT JOIN tb_user u ON u.id_usuario = v.fk_usuario_vis
+    LEFT JOIN tb_user u2 ON u2.id_usuario = CAST(NULLIF(v.visita_auditor_prof_med,'') AS UNSIGNED)
     LEFT JOIN tb_internacao i ON i.id_internacao = v.fk_internacao_vis
     WHERE {$where}
     GROUP BY auditor_nome
@@ -175,19 +170,6 @@ function labelsAndValues(array $rows): array
     <div class="bi-layout">
         <aside class="bi-sidebar bi-stack">
             <div class="bi-panel">
-                <h3>Cargo</h3>
-                <div class="bi-filter-list">
-                    <?php foreach ($cargos as $c): ?>
-                        <div class="bi-filter-pill <?= $cargo === $c ? 'active' : '' ?>">
-                            <a href="?cargo=<?= e($c) ?>" style="color:inherit;text-decoration:none;display:block;">
-                                <?= e($c) ?>
-                            </a>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-
-            <div class="bi-panel">
                 <h3>Auditor</h3>
                 <div class="bi-filter-list">
                     <?php foreach ($auditores as $a): ?>
@@ -227,9 +209,6 @@ function labelsAndValues(array $rows): array
                         <label>Ano</label>
                         <input type="number" name="ano" value="<?= e($ano) ?>" min="2000" max="2100">
                     </div>
-                    <?php if ($cargo !== ''): ?>
-                        <input type="hidden" name="cargo" value="<?= e($cargo) ?>">
-                    <?php endif; ?>
                     <?php if ($auditorNome !== ''): ?>
                         <input type="hidden" name="auditor" value="<?= e($auditorNome) ?>">
                     <?php endif; ?>
@@ -240,20 +219,20 @@ function labelsAndValues(array $rows): array
 
         <section class="bi-main bi-stack">
             <div class="bi-kpis kpi-compact">
-                <div class="bi-kpi kpi-white kpi-compact">
-                    <small>Internacoes</small>
+                <div class="bi-kpi kpi-berry kpi-compact">
+                    <small>Internações</small>
                     <strong><?= number_format($totalInternacoes, 0, ',', '.') ?></strong>
                 </div>
-                <div class="bi-kpi kpi-white kpi-compact">
-                    <small>Diarias</small>
+                <div class="bi-kpi kpi-teal kpi-compact">
+                    <small>Diárias</small>
                     <strong><?= number_format($totalDiarias, 0, ',', '.') ?></strong>
                 </div>
-                <div class="bi-kpi kpi-white kpi-compact">
+                <div class="bi-kpi kpi-indigo kpi-compact">
                     <small>MP</small>
                     <strong><?= number_format($mp, 1, ',', '.') ?></strong>
                 </div>
-                <div class="bi-kpi kpi-white kpi-compact">
-                    <small>Maior Permanencia</small>
+                <div class="bi-kpi kpi-rose kpi-compact">
+                    <small>Maior permanência</small>
                     <strong><?= number_format($maiorPermanencia, 0, ',', '.') ?></strong>
                 </div>
             </div>
@@ -295,6 +274,7 @@ const visitasValues = <?= json_encode($visitasValues) ?>;
 
 function barOptionsMoney() {
   return {
+    legend: { display: false },
     plugins: { legend: { display: false } },
     scales: {
       x: { ticks: { color: '#e8f1ff' }, grid: { display: false } },
@@ -303,43 +283,64 @@ function barOptionsMoney() {
           color: '#e8f1ff',
           callback: (value) => window.biMoneyTick ? window.biMoneyTick(value) : value
         },
-        grid: { color: 'rgba(255,255,255,0.1)' }
-      }
+        grid: { color: 'rgba(255,255,255,0.1)' },
+        title: { display: true, text: 'Valor (R$)', color: '#e8f1ff' }
+      },
+      xAxes: [{ ticks: { fontColor: '#e8f1ff' }, gridLines: { display: false } }],
+      yAxes: [{
+        ticks: {
+          fontColor: '#e8f1ff',
+          callback: (value) => window.biMoneyTick ? window.biMoneyTick(value) : value
+        },
+        gridLines: { color: 'rgba(255,255,255,0.1)' },
+        scaleLabel: { display: true, labelString: 'Valor (R$)', fontColor: '#e8f1ff' }
+      }]
     }
   };
 }
 
 function barOptions() {
   return {
+    legend: { display: false },
     plugins: { legend: { display: false } },
     scales: {
       x: { ticks: { color: '#e8f1ff' }, grid: { display: false } },
-      y: { ticks: { color: '#e8f1ff' }, grid: { color: 'rgba(255,255,255,0.1)' } }
+      y: {
+        ticks: { color: '#e8f1ff' },
+        grid: { color: 'rgba(255,255,255,0.1)' },
+        title: { display: true, text: 'Quantidade', color: '#e8f1ff' }
+      },
+      xAxes: [{ ticks: { fontColor: '#e8f1ff' }, gridLines: { display: false } }],
+      yAxes: [{
+        ticks: { fontColor: '#e8f1ff' },
+        gridLines: { color: 'rgba(255,255,255,0.1)' },
+        scaleLabel: { display: true, labelString: 'Quantidade', fontColor: '#e8f1ff' }
+      }]
     }
   };
 }
 
 new Chart(document.getElementById('chartAuditorContas'), {
   type: 'bar',
-  data: { labels: contasLabels, datasets: [{ data: contasValues, backgroundColor: 'rgba(126,150,255,0.82)', borderRadius: 10 }] },
+  data: { labels: contasLabels, datasets: [{ label: '', data: contasValues, backgroundColor: 'rgba(126,150,255,0.82)', borderRadius: 10 }] },
   options: barOptionsMoney()
 });
 
 new Chart(document.getElementById('chartAuditorGlosa'), {
   type: 'bar',
-  data: { labels: glosaLabels, datasets: [{ data: glosaValues, backgroundColor: 'rgba(126,150,255,0.82)', borderRadius: 10 }] },
+  data: { labels: glosaLabels, datasets: [{ label: '', data: glosaValues, backgroundColor: 'rgba(126,150,255,0.82)', borderRadius: 10 }] },
   options: barOptionsMoney()
 });
 
 new Chart(document.getElementById('chartAuditorAuditadas'), {
   type: 'bar',
-  data: { labels: auditadasLabels, datasets: [{ data: auditadasValues, backgroundColor: 'rgba(126,150,255,0.82)', borderRadius: 10 }] },
+  data: { labels: auditadasLabels, datasets: [{ label: '', data: auditadasValues, backgroundColor: 'rgba(126,150,255,0.82)', borderRadius: 10 }] },
   options: barOptions()
 });
 
 new Chart(document.getElementById('chartAuditorVisitas'), {
   type: 'bar',
-  data: { labels: visitasLabels, datasets: [{ data: visitasValues, backgroundColor: 'rgba(126,150,255,0.82)', borderRadius: 10 }] },
+  data: { labels: visitasLabels, datasets: [{ label: '', data: visitasValues, backgroundColor: 'rgba(126,150,255,0.82)', borderRadius: 10 }] },
   options: barOptions()
 });
 </script>

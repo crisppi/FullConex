@@ -696,6 +696,37 @@ body.bi-theme,
   overflow: hidden;
 }
 
+table.bi-table::before,
+table.bi-table::after,
+.bi-table::before,
+.bi-table::after {
+  content: "" !important;
+  display: none !important;
+}
+
+.bi-table thead::before,
+.bi-table thead::after,
+.bi-table tr::before,
+.bi-table tr::after,
+.bi-table th::before,
+.bi-table th::after,
+.bi-table td::before,
+.bi-table td::after {
+  content: "" !important;
+  display: none !important;
+}
+
+.bi-table i.bi,
+.bi-table .bi {
+  display: none !important;
+}
+
+.bi-table *::before,
+.bi-table *::after {
+  content: none !important;
+  display: none !important;
+}
+
 .bi-table th {
   font-size: 0.75rem;
   text-transform: uppercase;

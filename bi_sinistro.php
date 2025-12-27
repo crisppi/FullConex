@@ -284,7 +284,7 @@ const series = <?= json_encode([
     'valor_final' => array_values($series['valor_final']),
 ]) ?>;
 
-function lineChart(ctx, key) {
+function lineChart(ctx, key, yLabel) {
     return new Chart(ctx, {
         type: 'line',
         data: {
@@ -303,14 +303,34 @@ function lineChart(ctx, key) {
             responsive: true,
             maintainAspectRatio: false,
             legend: window.biLegendWhite || {},
-            scales: window.biChartScales ? window.biChartScales() : undefined
+            scales: window.biChartScales ? (() => {
+                const scales = window.biChartScales();
+                if (scales.yAxes && scales.yAxes[0]) {
+                    scales.yAxes[0].scaleLabel = {
+                        display: true,
+                        labelString: yLabel,
+                        fontColor: '#eaf6ff'
+                    };
+                }
+                if (scales.y) {
+                    scales.y.title = { display: true, text: yLabel, color: '#eaf6ff' };
+                }
+                return scales;
+            })() : {
+                yAxes: [{
+                    ticks: { fontColor: '#eaf6ff' },
+                    gridLines: { color: 'rgba(255,255,255,0.12)' },
+                    scaleLabel: { display: true, labelString: yLabel, fontColor: '#eaf6ff' }
+                }],
+                y: { title: { display: true, text: yLabel, color: '#eaf6ff' } }
+            }
         }
     });
 }
 
-lineChart(document.getElementById('chartApresentado'), 'valor_apresentado');
-lineChart(document.getElementById('chartGlosa'), 'valor_glosa');
-lineChart(document.getElementById('chartFinal'), 'valor_final');
+lineChart(document.getElementById('chartApresentado'), 'valor_apresentado', 'Valor (R$)');
+lineChart(document.getElementById('chartGlosa'), 'valor_glosa', 'Valor (R$)');
+lineChart(document.getElementById('chartFinal'), 'valor_final', 'Valor (R$)');
 </script>
 
 <?php require_once("templates/footer.php"); ?>

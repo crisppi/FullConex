@@ -219,10 +219,41 @@ const valuesFinal = <?= json_encode($valuesFinal) ?>;
 const labelsIntern = <?= json_encode($labelsIntern) ?>;
 const valuesIntern = <?= json_encode($valuesIntern) ?>;
 
-function barChart(ctx, labels, data, color, yTickCallback) {
-    const scales = window.biChartScales ? window.biChartScales() : undefined;
-    if (scales && yTickCallback && scales.yAxes && scales.yAxes[0] && scales.yAxes[0].ticks) {
-        scales.yAxes[0].ticks.callback = yTickCallback;
+function barChart(ctx, labels, data, color, yTickCallback, yLabel) {
+    const scales = window.biChartScales ? window.biChartScales() : {};
+    if (!scales.xAxes) {
+        scales.xAxes = [{ ticks: { fontColor: '#e8f1ff' }, gridLines: { display: false } }];
+    }
+    if (!scales.yAxes) {
+        scales.yAxes = [{
+            ticks: { fontColor: '#e8f1ff' },
+            gridLines: { color: 'rgba(255,255,255,0.1)' }
+        }];
+    }
+    if (scales.yAxes[0]) {
+        scales.yAxes[0].ticks = scales.yAxes[0].ticks || {};
+        scales.yAxes[0].ticks.fontColor = '#e8f1ff';
+        if (yTickCallback) {
+            scales.yAxes[0].ticks.callback = yTickCallback;
+        }
+        if (yLabel) {
+            scales.yAxes[0].scaleLabel = {
+                display: true,
+                labelString: yLabel,
+                fontColor: '#e8f1ff'
+            };
+        }
+    }
+    scales.x = scales.x || { ticks: { color: '#e8f1ff' }, grid: { display: false } };
+    scales.y = scales.y || { ticks: { color: '#e8f1ff' }, grid: { color: 'rgba(255,255,255,0.1)' } };
+    if (scales.y.ticks) {
+        scales.y.ticks.color = '#e8f1ff';
+        if (yTickCallback) {
+            scales.y.ticks.callback = yTickCallback;
+        }
+    }
+    if (yLabel) {
+        scales.y.title = { display: true, text: yLabel, color: '#e8f1ff' };
     }
     return new Chart(ctx, {
         type: 'bar',
@@ -231,15 +262,16 @@ function barChart(ctx, labels, data, color, yTickCallback) {
             responsive: true,
             maintainAspectRatio: false,
             legend: { display: false },
+            plugins: { legend: { display: false } },
             scales
         }
     });
 }
 
-barChart(document.getElementById('chartApresentado'), labelsApresentado, valuesApresentado, 'rgba(141, 208, 255, 0.7)', window.biMoneyTick);
-barChart(document.getElementById('chartGlosa'), labelsGlosa, valuesGlosa, 'rgba(208, 113, 176, 0.7)', window.biMoneyTick);
-barChart(document.getElementById('chartFinal'), labelsFinal, valuesFinal, 'rgba(111, 223, 194, 0.7)', window.biMoneyTick);
-barChart(document.getElementById('chartIntern'), labelsIntern, valuesIntern, 'rgba(255, 198, 108, 0.7)');
+barChart(document.getElementById('chartApresentado'), labelsApresentado, valuesApresentado, 'rgba(141, 208, 255, 0.7)', window.biMoneyTick, 'Valor (R$)');
+barChart(document.getElementById('chartGlosa'), labelsGlosa, valuesGlosa, 'rgba(208, 113, 176, 0.7)', window.biMoneyTick, 'Valor (R$)');
+barChart(document.getElementById('chartFinal'), labelsFinal, valuesFinal, 'rgba(111, 223, 194, 0.7)', window.biMoneyTick, 'Valor (R$)');
+barChart(document.getElementById('chartIntern'), labelsIntern, valuesIntern, 'rgba(255, 198, 108, 0.7)', null, 'Quantidade');
 </script>
 
 <?php require_once("templates/footer.php"); ?>
