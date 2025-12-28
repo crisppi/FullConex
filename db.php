@@ -1,9 +1,10 @@
 <?php
 // Conexão principal (mydb_accert_ho - Hostinger)
-$host1   = "2.59.150.2";
-$user1   = "u650318666_diretoria20";
-$pass1   = "FullCare@BD2025!";
-$dbname1 = "u650318666_mydb_fullcare";
+
+$host1 = "2.59.150.2";
+$user1 = "u650318666_diretoria10";
+$pass1 = "FullCare@BD2025!";
+$dbname1 = "u650318666_mydb_accert_ho";
 
 // Conexão alternativa 1 (mydb_accert_new - UOLHOST)
 $host2 = "mydb-accert-new.mysql.uhserver.com";

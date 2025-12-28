@@ -95,17 +95,37 @@ if ($quinzenaSel !== '') {
 
 $params = [
     ':ini' => $periodoIni . ' 00:00:00',
-    ':fim' => $periodoFim . ' 23:59:59'
+    ':fim' => $periodoFim . ' 23:59:59',
+    ':ini_sub' => $periodoIni . ' 00:00:00',
+    ':fim_sub' => $periodoFim . ' 23:59:59'
 ];
 
 $filtroCampo = 'ca.data_digit_capeante';
 if (isset($_GET['filtro_data']) && $_GET['filtro_data'] === 'final') {
     $filtroCampo = 'COALESCE(ca.data_final_capeante, ca.data_fech_capeante, ca.data_digit_capeante)';
 }
-
+$filtroCampoSub = str_replace('ca.', 'ca3.', $filtroCampo);
 $where = "WHERE {$filtroCampo} BETWEEN :ini AND :fim
     AND (ca.conta_faturada_cap IS NULL OR ca.conta_faturada_cap = '' OR LOWER(ca.conta_faturada_cap) <> 's')
-    AND (ca.encerrado_cap = 's')";
+    AND (ca.encerrado_cap = 's')
+    AND NOT EXISTS (
+        SELECT 1
+        FROM tb_capeante ca_f
+        JOIN tb_internacao i_f ON i_f.id_internacao = ca_f.fk_int_capeante
+        WHERE i_f.senha_int = i.senha_int
+          AND LOWER(COALESCE(ca_f.conta_faturada_cap, '')) = 's'
+    )
+    AND ca.id_capeante = (
+        SELECT ca3.id_capeante
+        FROM tb_capeante ca3
+        JOIN tb_internacao i3 ON i3.id_internacao = ca3.fk_int_capeante
+        WHERE i3.senha_int = i.senha_int
+          AND {$filtroCampoSub} BETWEEN :ini_sub AND :fim_sub
+          AND (ca3.conta_faturada_cap IS NULL OR ca3.conta_faturada_cap = '' OR LOWER(ca3.conta_faturada_cap) <> 's')
+          AND (ca3.encerrado_cap = 's')
+        ORDER BY ca3.data_final_capeante DESC, ca3.id_capeante DESC
+        LIMIT 1
+    )";
 if ($nomePaciente !== '') {
     $where .= " AND pa.nome_pac LIKE :nome ";
     $params[':nome'] = "%{$nomePaciente}%";
@@ -359,6 +379,34 @@ $fieldIcons = [
         background: #2b4e2a;
         border-color: #2b4e2a;
     }
+    .field-chips {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 6px;
+    }
+    .field-chips .btn {
+        white-space: nowrap;
+    }
+    .filtros-row {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 6px;
+    }
+    .filtros-row > [class*="col-"] {
+        flex: 0 0 auto;
+    }
+    @media (min-width: 992px) {
+        .campos-header {
+            flex-wrap: nowrap !important;
+        }
+    }
+    .filtros-acoes {
+        flex-wrap: nowrap;
+        flex: 0 0 auto;
+    }
+    .filtros-acoes .btn {
+        white-space: nowrap;
+    }
 </style>
 
 <div class="container-fluid" style="margin-top:-10px;">
@@ -366,7 +414,7 @@ $fieldIcons = [
     <hr class="mt-1 mb-3">
 
     <form method="get" class="card p-3 mb-3 shadow-sm border-0" id="form-faturamento-mensal">
-        <div class="mb-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="mb-2 d-flex justify-content-between align-items-center flex-wrap gap-2 campos-header">
             <label class="form-label fw-semibold m-0 fs-5">Campos a exibir</label>
             <div class="d-flex gap-2">
                 <button type="button" class="btn btn-light btn-sm" id="btn-contas-check-all"><i class="bi bi-check2-all me-1"></i>Selecionar todos</button>
@@ -387,7 +435,7 @@ $fieldIcons = [
 
         <div class="mb-2"><label class="form-label fw-semibold m-0">Filtros</label></div>
 
-        <div class="row g-3 align-items-end">
+        <div class="row g-3 align-items-end filtros-row">
             <div class="col-12 col-lg-3">
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
@@ -457,7 +505,7 @@ $fieldIcons = [
                     <input type="date" name="dt_fim" class="form-control" value="<?= h($periodoFim) ?>" placeholder="Fim">
                 </div>
             </div>
-            <div class="col-12 col-xl-auto ms-xl-auto d-flex justify-content-end gap-2">
+            <div class="col-12 col-xl-auto ms-xl-auto d-flex justify-content-end gap-2 filtros-acoes">
                 <button class="btn btn-primary" type="submit"><i class="bi bi-funnel me-1"></i>Aplicar</button>
                 <button class="btn btn-success" type="submit" name="export" value="1">
                     <i class="bi bi-file-earmark-spreadsheet me-1"></i>Exportar XLSX (Excel)
@@ -620,6 +668,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.success) {
                 setTimeout(() => window.location.reload(), 1200);
             } else {
+                if (data.message) {
+                    window.alert(data.message);
+                }
                 btnFaturar.disabled = false;
                 btnFaturar.classList.remove('disabled');
             }
