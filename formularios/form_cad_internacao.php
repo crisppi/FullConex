@@ -1566,7 +1566,7 @@ const hospitalInsightsHelper = (function() {
                 const threshold = data.threshold ?? 0;
                 showAlert(
                     `Alerta: ${data.inter_uti} internações em UTI neste hospital (limite ${threshold}).`
-                    );
+                );
             } else {
                 hideAlert();
             }

@@ -38,6 +38,70 @@ if (empty($ids)) {
 
 try {
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    $sqlSenhas = "
+        SELECT ca.id_capeante, i.senha_int
+        FROM tb_capeante ca
+        JOIN tb_internacao i ON i.id_internacao = ca.fk_int_capeante
+        WHERE ca.id_capeante IN ($placeholders)
+    ";
+    $stmtSenhas = $conn->prepare($sqlSenhas);
+    foreach ($ids as $idx => $id) {
+        $stmtSenhas->bindValue($idx + 1, $id, PDO::PARAM_INT);
+    }
+    $stmtSenhas->execute();
+    $rows = $stmtSenhas->fetchAll(PDO::FETCH_ASSOC);
+    if (!$rows) {
+        echo json_encode(['success' => false, 'message' => 'Nenhuma conta válida encontrada.']);
+        exit;
+    }
+
+    $bySenha = [];
+    foreach ($rows as $r) {
+        $senha = trim((string)($r['senha_int'] ?? ''));
+        if ($senha === '') {
+            continue;
+        }
+        $bySenha[$senha][] = (int)$r['id_capeante'];
+    }
+    $dupSenhas = array_keys(array_filter($bySenha, fn($list) => count($list) > 1));
+    if ($dupSenhas) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Selecione apenas 1 conta por senha. Duplicadas: ' . implode(', ', $dupSenhas) . '.'
+        ]);
+        exit;
+    }
+
+    $senhas = array_keys($bySenha);
+    if ($senhas) {
+        $placeholdersSenhas = implode(',', array_fill(0, count($senhas), '?'));
+        $sqlBloq = "
+            SELECT DISTINCT i.senha_int
+            FROM tb_capeante ca
+            JOIN tb_internacao i ON i.id_internacao = ca.fk_int_capeante
+            WHERE i.senha_int IN ($placeholdersSenhas)
+              AND LOWER(COALESCE(ca.conta_faturada_cap, '')) = 's'
+              AND ca.id_capeante NOT IN ($placeholders)
+        ";
+        $stmtBloq = $conn->prepare($sqlBloq);
+        $p = 1;
+        foreach ($senhas as $senha) {
+            $stmtBloq->bindValue($p++, $senha);
+        }
+        foreach ($ids as $id) {
+            $stmtBloq->bindValue($p++, $id, PDO::PARAM_INT);
+        }
+        $stmtBloq->execute();
+        $bloqueadas = $stmtBloq->fetchAll(PDO::FETCH_COLUMN);
+        if (!empty($bloqueadas)) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Esta senha já foi faturada: ' . implode(', ', $bloqueadas) . '.'
+            ]);
+            exit;
+        }
+    }
+
     $sql = "
         UPDATE tb_capeante
            SET conta_faturada_cap = 's',

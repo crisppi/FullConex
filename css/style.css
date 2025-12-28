@@ -2,6 +2,7 @@
     --select-border: #777;
     --select-focus: blue;
     --select-arrow: var(--select-border);
+    --app-zoom: 0.8;
 }
 
 * {
@@ -18,8 +19,21 @@
 body {
     padding-top: 100px;
     zoom: 100%;
-    
     /* Ajuste este valor de acordo com a altura real do seu header */
+}
+
+@supports (zoom: 1) {
+    html {
+        zoom: var(--app-zoom);
+    }
+}
+
+@supports not (zoom: 1) {
+    body {
+        transform: scale(var(--app-zoom));
+        transform-origin: top left;
+        width: calc(100% / var(--app-zoom));
+    }
 }
 
 
