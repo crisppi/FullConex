@@ -23,13 +23,28 @@ $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: nul
 $auditorNome = trim((string)(filter_input(INPUT_GET, 'auditor') ?? ''));
 $profissional = trim((string)(filter_input(INPUT_GET, 'profissional') ?? ''));
 
+$hasUsuarioTable = false;
+try {
+    $hasUsuarioTable = (bool)$conn->query("SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'tb_usuario' LIMIT 1")
+        ->fetchColumn();
+} catch (Throwable $e) {
+    $hasUsuarioTable = false;
+}
+$usuarioJoin = $hasUsuarioTable ? "LEFT JOIN tb_usuario u ON u.id_usuario = v.fk_usuario_vis" : "";
+$auditorFilterExpr = $hasUsuarioTable
+    ? "COALESCE(u.usuario_user, NULLIF(v.visita_auditor_prof_med,''), NULLIF(v.visita_auditor_prof_enf,''))"
+    : "COALESCE(NULLIF(v.visita_auditor_prof_med,''), NULLIF(v.visita_auditor_prof_enf,''))";
+$auditorExpr = $hasUsuarioTable
+    ? "COALESCE(u.usuario_user, NULLIF(v.visita_auditor_prof_med,''), NULLIF(v.visita_auditor_prof_enf,''), 'Sem informacoes')"
+    : "COALESCE(NULLIF(v.visita_auditor_prof_med,''), NULLIF(v.visita_auditor_prof_enf,''), 'Sem informacoes')";
+
 $hospitais = $conn->query("SELECT id_hospital, nome_hosp FROM tb_hospital ORDER BY nome_hosp")
     ->fetchAll(PDO::FETCH_ASSOC);
 
-$auditores = $conn->query("SELECT DISTINCT COALESCE(u.usuario_user, NULLIF(v.visita_auditor_prof_med,''), NULLIF(v.visita_auditor_prof_enf,'')) AS auditor_nome
+$auditores = $conn->query("SELECT DISTINCT {$auditorFilterExpr} AS auditor_nome
     FROM tb_visita v
-    LEFT JOIN tb_usuario u ON u.id_usuario = v.fk_usuario_vis
-    WHERE COALESCE(u.usuario_user, v.visita_auditor_prof_med, v.visita_auditor_prof_enf) IS NOT NULL
+    {$usuarioJoin}
+    WHERE {$auditorFilterExpr} IS NOT NULL
     ORDER BY auditor_nome")
     ->fetchAll(PDO::FETCH_COLUMN);
 
@@ -48,7 +63,7 @@ if (!empty($hospitalId)) {
     $params[':hospital_id'] = (int)$hospitalId;
 }
 if (!empty($auditorNome)) {
-    $where .= " AND COALESCE(u.usuario_user, NULLIF(v.visita_auditor_prof_med,''), NULLIF(v.visita_auditor_prof_enf,'')) = :auditor_nome";
+    $where .= " AND {$auditorFilterExpr} = :auditor_nome";
     $params[':auditor_nome'] = $auditorNome;
 }
 if ($profissional === 'medico') {
@@ -57,8 +72,6 @@ if ($profissional === 'medico') {
     $where .= " AND (v.visita_enf_vis = 's' OR UPPER(v.visita_auditor_prof_enf) LIKE 'ENF%')";
 }
 
-$auditorExpr = "COALESCE(u.usuario_user, NULLIF(v.visita_auditor_prof_med,''), NULLIF(v.visita_auditor_prof_enf,''), 'Sem informacoes')";
-
 $sql = "
     SELECT
         {$auditorExpr} AS auditor_nome,
@@ -66,7 +79,7 @@ $sql = "
         h.nome_hosp,
         COUNT(*) AS total
     FROM tb_visita v
-    LEFT JOIN tb_usuario u ON u.id_usuario = v.fk_usuario_vis
+    {$usuarioJoin}
     LEFT JOIN tb_internacao i ON i.id_internacao = v.fk_internacao_vis
     LEFT JOIN tb_hospital h ON h.id_hospital = i.fk_hospital_int
     WHERE {$where}

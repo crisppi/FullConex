@@ -1,9 +1,9 @@
 <?php
 // Conexão principal (mydb_accert_ho - Hostinger)
-$host1 = "2.59.150.2";
-$user1 = "u650318666_diretoria10";
-$pass1 = "Fullcare12@";
-$dbname1 = "u650318666_mydb_accert_ho";
+$host1   = "2.59.150.2";
+$user1   = "u650318666_diretoria20";
+$pass1   = "FullCare@BD2025!";
+$dbname1 = "u650318666_mydb_fullcare";
 
 // Conexão alternativa 1 (mydb_accert_new - UOLHOST)
 $host2 = "mydb-accert-new.mysql.uhserver.com";
@@ -46,4 +46,28 @@ try {
             exit("❌ Falha nas conexões com os bancos de dados.");
         }
     }
+}
+
+try {
+    $userId = $_SESSION['id_usuario'] ?? null;
+    $userName = $_SESSION['usuario_user'] ?? null;
+    $userEmail = $_SESSION['email_user'] ?? null;
+    $ipAddr = $_SERVER['REMOTE_ADDR'] ?? null;
+    $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
+
+    $stmt = $conn->prepare(
+        "SET @app_user_id = :uid,
+             @app_user_nome = :uname,
+             @app_user_email = :uemail,
+             @app_ip = :ip,
+             @app_user_agent = :ua"
+    );
+    $stmt->bindValue(':uid', $userId, $userId === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
+    $stmt->bindValue(':uname', $userName);
+    $stmt->bindValue(':uemail', $userEmail);
+    $stmt->bindValue(':ip', $ipAddr);
+    $stmt->bindValue(':ua', $userAgent);
+    $stmt->execute();
+} catch (Throwable $e) {
+    // Se falhar, os triggers ainda registram sem contexto de usuario.
 }

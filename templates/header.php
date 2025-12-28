@@ -519,6 +519,10 @@ if (!empty($sessionIdUsuario)) {
                                                     class="bi bi-hourglass-split"
                                                     style="font-size: 1rem;margin-right:5px; color:#9ad0f5;"></i>
                                                 Longa Permanencia</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>ClinicoRealizadoBI.php"><i
+                                                    class="bi bi-activity"
+                                                    style="font-size: 1rem;margin-right:5px; color:#8bd3ff;"></i>
+                                                Clínico Realizado</a></li>
                                         <li><a class="dropdown-item" href="<?= $BASE_URL ?>EstrategiaTerapeuticaBI.php"><i
                                                     class="bi bi-compass"
                                                     style="font-size: 1rem;margin-right:5px; color:#c6b5e8;"></i>
@@ -535,6 +539,10 @@ if (!empty($sessionIdUsuario)) {
                                                     class="bi bi-table"
                                                     style="font-size: 1rem;margin-right:5px; color:#9fd7ff;"></i>
                                                 Auditor Visitas</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>AuditoriaProdutividadeBI.php"><i
+                                                    class="bi bi-bar-chart"
+                                                    style="font-size: 1rem;margin-right:5px; color:#9fd7ff;"></i>
+                                                Auditoria Produtividade</a></li>
                                     </ul>
                                 </li>
                                 <li class="bi-mega-col">
@@ -560,6 +568,14 @@ if (!empty($sessionIdUsuario)) {
                                                     class="bi bi-exclamation-diamond"
                                                     style="font-size: 1rem;margin-right:5px; color:#ff9fb3;"></i>
                                                 Alto Custo</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>InternacoesRiscoBI.php"><i
+                                                    class="bi bi-exclamation-triangle"
+                                                    style="font-size: 1rem;margin-right:5px; color:#ffb86c;"></i>
+                                                Internações com Risco</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>QualidadeGestaoBI.php"><i
+                                                    class="bi bi-clipboard-data"
+                                                    style="font-size: 1rem;margin-right:5px; color:#9ad0f5;"></i>
+                                                Qualidade e Gestão</a></li>
                                         <li><a class="dropdown-item" href="<?= $BASE_URL ?>HomeCare.php"><i
                                                     class="bi bi-house-heart"
                                                     style="font-size: 1rem;margin-right:5px; color:#9ad0f5;"></i>
@@ -601,6 +617,10 @@ if (!empty($sessionIdUsuario)) {
                                                         Perfil Sinistro</a></li>
                                             </ul>
                                         </li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>FinanceiroRealizadoBI.php"><i
+                                                    class="bi bi-currency-exchange"
+                                                    style="font-size: 1rem;margin-right:5px; color:#ffd166;"></i>
+                                                Financeiro Realizado</a></li>
                                         <li class="bi-submenu">
                                             <a class="dropdown-item" href="#"><i
                                                         class="bi bi-graph-up"
@@ -1441,6 +1461,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.querySelectorAll('.bi-dropdown.bi-mega .bi-submenu').forEach(function(item) {
         var timer;
+        var trigger = item.querySelector('.dropdown-item');
+        if (trigger) {
+            trigger.addEventListener('click', function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                item.parentElement.querySelectorAll('.bi-submenu.open').forEach(function(openItem) {
+                    if (openItem !== item) {
+                        openItem.classList.remove('open');
+                        openItem.classList.remove('submenu-left');
+                    }
+                });
+                if (item.classList.contains('open')) {
+                    item.classList.remove('open');
+                    item.classList.remove('submenu-left');
+                    return;
+                }
+                item.classList.add('open');
+                item.classList.remove('submenu-left');
+                var submenu = item.querySelector('.bi-submenu-list');
+                if (submenu) {
+                    var rect = submenu.getBoundingClientRect();
+                    if (rect.right > window.innerWidth) {
+                        item.classList.add('submenu-left');
+                    }
+                }
+            });
+        }
         item.addEventListener('mouseenter', function() {
             timer = setTimeout(function() {
                 item.parentElement.querySelectorAll('.bi-submenu.open').forEach(function(openItem) {
