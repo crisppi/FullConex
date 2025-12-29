@@ -22,8 +22,8 @@ function fmt_money($value): string
 }
 
 $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: null;
-$tipoInternacao = trim((string)(filter_input(INPUT_GET, 'tipo_internacao') ?? ''));
-$modoInternacao = trim((string)(filter_input(INPUT_GET, 'modo_internacao') ?? ''));
+$tipoInternação = trim((string)(filter_input(INPUT_GET, 'tipo_internacao') ?? ''));
+$modoInternação = trim((string)(filter_input(INPUT_GET, 'modo_internacao') ?? ''));
 $internado = trim((string)(filter_input(INPUT_GET, 'internado') ?? ''));
 $uti = trim((string)(filter_input(INPUT_GET, 'uti') ?? ''));
 $dataInicio = trim((string)(filter_input(INPUT_GET, 'data_inicio') ?? ''));
@@ -76,8 +76,8 @@ function build_where_medico(array $filters, array &$params): string
 
 $filtersSelected = [
     'hospital_id' => $hospitalId,
-    'tipo_internacao' => $tipoInternacao,
-    'modo_internacao' => $modoInternacao,
+    'tipo_internacao' => $tipoInternação,
+    'modo_internacao' => $modoInternação,
     'internado' => $internado,
     'uti' => $uti,
     'data_inicio' => $dataInicio,
@@ -188,7 +188,7 @@ $tableRows = $stmtTable->fetchAll(PDO::FETCH_ASSOC);
             <select name="tipo_internacao">
                 <option value="">Todos</option>
                 <?php foreach ($tiposInt as $tipo): ?>
-                    <option value="<?= e($tipo) ?>" <?= $tipoInternacao === $tipo ? 'selected' : '' ?>>
+                    <option value="<?= e($tipo) ?>" <?= $tipoInternação === $tipo ? 'selected' : '' ?>>
                         <?= e($tipo) ?>
                     </option>
                 <?php endforeach; ?>
@@ -199,7 +199,7 @@ $tableRows = $stmtTable->fetchAll(PDO::FETCH_ASSOC);
             <select name="modo_internacao">
                 <option value="">Todos</option>
                 <?php foreach ($modos as $modo): ?>
-                    <option value="<?= e($modo) ?>" <?= $modoInternacao === $modo ? 'selected' : '' ?>>
+                    <option value="<?= e($modo) ?>" <?= $modoInternação === $modo ? 'selected' : '' ?>>
                         <?= e($modo) ?>
                     </option>
                 <?php endforeach; ?>

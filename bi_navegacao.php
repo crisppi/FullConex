@@ -17,7 +17,7 @@ $links = [
     ['label' => 'Médico Titular', 'href' => 'MedicoTitularBI.php'],
     ['label' => 'Auditor', 'href' => 'AuditorBI.php'],
     ['label' => 'Auditor Visitas', 'href' => 'AuditorVisitasBI.php'],
-    ['label' => 'Internações com Risco', 'href' => 'InternacoesRiscoBI.php'],
+    ['label' => 'Internações com Risco', 'href' => 'InternaçõesRiscoBI.php'],
     ['label' => 'Seguradora', 'href' => 'SeguradoraBI.php'],
     ['label' => 'Seguradora Detalhado', 'href' => 'SeguradoraDetalhadoBI.php'],
     ['label' => 'Qualidade e Gestão', 'href' => 'QualidadeGestaoBI.php'],

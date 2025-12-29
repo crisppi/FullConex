@@ -14,14 +14,14 @@ function e($v)
 $anoBase = (int)(filter_input(INPUT_GET, 'ano_base', FILTER_VALIDATE_INT) ?: date('Y'));
 $anoComp = (int)(filter_input(INPUT_GET, 'ano_comp', FILTER_VALIDATE_INT) ?: ($anoBase - 1));
 $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: null;
-$tipoAdmissao = trim((string)(filter_input(INPUT_GET, 'tipo_admissao') ?? ''));
+$tipoAdmissão = trim((string)(filter_input(INPUT_GET, 'tipo_admissao') ?? ''));
 
 $hospitais = $conn->query("SELECT id_hospital, nome_hosp FROM tb_hospital ORDER BY nome_hosp")
     ->fetchAll(PDO::FETCH_ASSOC);
 $tiposAdm = $conn->query("SELECT DISTINCT tipo_admissao_int FROM tb_internacao WHERE tipo_admissao_int IS NOT NULL AND tipo_admissao_int <> '' ORDER BY tipo_admissao_int")
     ->fetchAll(PDO::FETCH_COLUMN);
 
-function sinistroSeries(PDO $conn, int $ano, ?int $hospitalId, string $tipoAdmissao): array
+function sinistroSeries(PDO $conn, int $ano, ?int $hospitalId, string $tipoAdmissão): array
 {
     $dateExpr = "COALESCE(NULLIF(ca.data_inicial_capeante,'0000-00-00'), NULLIF(ca.data_digit_capeante,'0000-00-00'), NULLIF(ca.data_fech_capeante,'0000-00-00'))";
     $where = "ref_date IS NOT NULL AND ref_date <> '0000-00-00' AND YEAR(ref_date) = :ano";
@@ -30,9 +30,9 @@ function sinistroSeries(PDO $conn, int $ano, ?int $hospitalId, string $tipoAdmis
         $where .= " AND fk_hospital_int = :hospital_id";
         $params[':hospital_id'] = $hospitalId;
     }
-    if ($tipoAdmissao !== '') {
+    if ($tipoAdmissão !== '') {
         $where .= " AND tipo_admissao_int = :tipo";
-        $params[':tipo'] = $tipoAdmissao;
+        $params[':tipo'] = $tipoAdmissão;
     }
 
     $sql = "
@@ -84,8 +84,8 @@ function sinistroSeries(PDO $conn, int $ano, ?int $hospitalId, string $tipoAdmis
     ];
 }
 
-$seriesBase = sinistroSeries($conn, $anoBase, $hospitalId, $tipoAdmissao);
-$seriesComp = sinistroSeries($conn, $anoComp, $hospitalId, $tipoAdmissao);
+$seriesBase = sinistroSeries($conn, $anoBase, $hospitalId, $tipoAdmissão);
+$seriesComp = sinistroSeries($conn, $anoComp, $hospitalId, $tipoAdmissão);
 $labels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 ?>
 
@@ -127,7 +127,7 @@ $labels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','De
             <select name="tipo_admissao">
                 <option value="">Todos</option>
                 <?php foreach ($tiposAdm as $tipo): ?>
-                    <option value="<?= e($tipo) ?>" <?= $tipoAdmissao === $tipo ? 'selected' : '' ?>>
+                    <option value="<?= e($tipo) ?>" <?= $tipoAdmissão === $tipo ? 'selected' : '' ?>>
                         <?= e($tipo) ?>
                     </option>
                 <?php endforeach; ?>

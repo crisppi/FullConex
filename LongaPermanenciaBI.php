@@ -81,8 +81,8 @@ $stmt = $conn->prepare($sqlStats);
 $stmt->execute($params);
 $stats = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
-$totalInternacoes = (int)($stats['total_internacoes'] ?? 0);
-$totalDiarias = (int)($stats['total_diarias'] ?? 0);
+$totalInternações = (int)($stats['total_internacoes'] ?? 0);
+$totalDiárias = (int)($stats['total_diarias'] ?? 0);
 $maiorPermanencia = (int)($stats['maior_permanencia'] ?? 0);
 $mp = (float)($stats['mp'] ?? 0);
 
@@ -91,14 +91,14 @@ $sqlHosp = "
     FROM ({$sqlLonga}) x
     GROUP BY nome_hosp
     ORDER BY total DESC
-    LIMIT 12
 ";
 $stmtHosp = $conn->prepare($sqlHosp);
 $stmtHosp->execute($params);
 $hospRows = $stmtHosp->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
 $sqlTable = "
-    SELECT diarias, nome_hosp, COALESCE(NULLIF(rel_int,''), 'Sem relatorio') AS relatorio
+    SELECT diarias, nome_hosp, data_intern_int,
+           COALESCE(NULLIF(rel_int,''), 'Sem relatório') AS relatorio
     FROM ({$sqlLonga}) x
     ORDER BY diarias DESC
     LIMIT 200
@@ -107,8 +107,13 @@ $stmtTable = $conn->prepare($sqlTable);
 $stmtTable->execute($params);
 $tableRows = $stmtTable->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
-$labelsHosp = array_map(fn($r) => $r['label'] ?? 'Sem informacoes', $hospRows);
-$valuesHosp = array_map(fn($r) => (int)($r['total'] ?? 0), $hospRows);
+$hospTotals = [];
+foreach ($hospRows as $row) {
+    $name = $row['label'] ?? 'Sem informações';
+    $hospTotals[$name] = (int)($row['total'] ?? 0);
+}
+$labelsHosp = array_map(fn($r) => $r['nome_hosp'], $hospitais);
+$valuesHosp = array_map(fn($r) => $hospTotals[$r['nome_hosp']] ?? 0, $hospitais);
 ?>
 
 <link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260110">
@@ -118,10 +123,10 @@ $valuesHosp = array_map(fn($r) => (int)($r['total'] ?? 0), $hospRows);
 
 <div class="bi-wrapper bi-theme">
     <div class="bi-header">
-        <h1 class="bi-title">Longa Permanencia</h1>
+        <h1 class="bi-title">Longa Permanência</h1>
         <div class="bi-header-actions">
             <div class="text-end text-muted"></div>
-            <a class="bi-nav-icon" href="<?= $BASE_URL ?>bi_navegacao.php" title="Navegacao">
+            <a class="bi-nav-icon" href="<?= $BASE_URL ?>bi_navegacao.php" title="Navegação">
                 <i class="bi bi-grid-3x3-gap"></i>
             </a>
         </div>
@@ -144,7 +149,7 @@ $valuesHosp = array_map(fn($r) => (int)($r['total'] ?? 0), $hospRows);
                         </select>
                     </div>
                     <div class="bi-filter">
-                        <label>Mes</label>
+                        <label>Mês</label>
                         <select name="mes" form="lp-form">
                             <option value="">Todos</option>
                             <?php for ($m = 1; $m <= 12; $m++): ?>
@@ -172,20 +177,20 @@ $valuesHosp = array_map(fn($r) => (int)($r['total'] ?? 0), $hospRows);
 
         <section class="bi-main bi-stack">
             <div class="bi-kpis kpi-compact">
-                <div class="bi-kpi kpi-white kpi-compact">
-                    <small>Internacoes</small>
-                    <strong><?= number_format($totalInternacoes, 0, ',', '.') ?></strong>
+                <div class="bi-kpi kpi-indigo kpi-compact">
+                    <small>Internações</small>
+                    <strong><?= number_format($totalInternações, 0, ',', '.') ?></strong>
                 </div>
-                <div class="bi-kpi kpi-white kpi-compact">
-                    <small>Diarias</small>
-                    <strong><?= number_format($totalDiarias, 0, ',', '.') ?></strong>
+                <div class="bi-kpi kpi-amber kpi-compact">
+                    <small>Diárias</small>
+                    <strong><?= number_format($totalDiárias, 0, ',', '.') ?></strong>
                 </div>
-                <div class="bi-kpi kpi-white kpi-compact">
+                <div class="bi-kpi kpi-teal kpi-compact">
                     <small>MP</small>
                     <strong><?= number_format($mp, 1, ',', '.') ?></strong>
                 </div>
-                <div class="bi-kpi kpi-white kpi-compact">
-                    <small>Maior Permanencia</small>
+                <div class="bi-kpi kpi-rose kpi-compact">
+                    <small>Maior Permanência</small>
                     <strong><?= number_format($maiorPermanencia, 0, ',', '.') ?></strong>
                 </div>
             </div>
@@ -196,27 +201,35 @@ $valuesHosp = array_map(fn($r) => (int)($r['total'] ?? 0), $hospRows);
             </div>
 
             <div class="bi-panel">
-                <h3>Diarias</h3>
+                <h3>Diárias</h3>
                 <div class="table-responsive">
                     <table class="bi-table">
                         <thead>
                             <tr>
-                                <th>Diarias</th>
+                                <th>Diárias</th>
                                 <th>Hospital</th>
-                                <th>Relatorio</th>
+                                <th>Data Internação</th>
+                                <th>Relatório</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if (!$tableRows): ?>
                                 <tr>
-                                    <td colspan="3">Sem informacoes</td>
+                                    <td colspan="4">Sem informações</td>
                                 </tr>
                             <?php else: ?>
                                 <?php foreach ($tableRows as $row): ?>
                                     <tr>
                                         <td><?= number_format((int)$row['diarias'], 0, ',', '.') ?></td>
-                                        <td><?= e($row['nome_hosp'] ?? 'Sem informacoes') ?></td>
-                                        <td><?= e($row['relatorio'] ?? 'Sem relatorio') ?></td>
+                                        <td><?= e($row['nome_hosp'] ?? 'Sem informações') ?></td>
+                                        <td>
+                                            <?php if (!empty($row['data_intern_int'])): ?>
+                                                <?= e(date('d/m/Y', strtotime($row['data_intern_int']))) ?>
+                                            <?php else: ?>
+                                                -
+                                            <?php endif; ?>
+                                        </td>
+                                        <td><?= e($row['relatorio'] ?? 'Sem relatório') ?></td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php endif; ?>
@@ -232,10 +245,11 @@ $valuesHosp = array_map(fn($r) => (int)($r['total'] ?? 0), $hospRows);
 const lpLabels = <?= json_encode($labelsHosp) ?>;
 const lpValues = <?= json_encode($valuesHosp) ?>;
 new Chart(document.getElementById('chartLongaHosp'), {
-  type: 'bar',
+  type: 'horizontalBar',
   data: {
     labels: lpLabels,
     datasets: [{
+      label: 'Internações',
       data: lpValues,
       backgroundColor: 'rgba(126, 150, 255, 0.8)',
       borderRadius: 10,
@@ -243,16 +257,16 @@ new Chart(document.getElementById('chartLongaHosp'), {
     }]
   },
   options: {
-    plugins: { legend: { display: false } },
+    legend: { display: false },
     scales: {
-      x: {
-        ticks: { color: '#e8f1ff' },
-        grid: { display: false }
-      },
-      y: {
-        ticks: { color: '#e8f1ff' },
-        grid: { color: 'rgba(255,255,255,0.1)' }
-      }
+      xAxes: [{
+        ticks: { fontColor: '#e8f1ff' },
+        gridLines: { display: false }
+      }],
+      yAxes: [{
+        ticks: { fontColor: '#e8f1ff', autoSkip: false },
+        gridLines: { color: 'rgba(255,255,255,0.1)' }
+      }]
     }
   }
 });

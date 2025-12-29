@@ -16,8 +16,8 @@ $dataIni = filter_input(INPUT_GET, 'data_ini') ?: date('Y-m-d', strtotime('-120 
 $dataFim = filter_input(INPUT_GET, 'data_fim') ?: $hoje;
 $internado = trim((string)(filter_input(INPUT_GET, 'internado') ?? ''));
 $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: null;
-$tipoInternacao = trim((string)(filter_input(INPUT_GET, 'tipo_internacao') ?? ''));
-$modoAdmissao = trim((string)(filter_input(INPUT_GET, 'modo_admissao') ?? ''));
+$tipoInternação = trim((string)(filter_input(INPUT_GET, 'tipo_internacao') ?? ''));
+$modoAdmissão = trim((string)(filter_input(INPUT_GET, 'modo_admissao') ?? ''));
 $uti = trim((string)(filter_input(INPUT_GET, 'uti') ?? ''));
 
 $hospitais = $conn->query("SELECT id_hospital, nome_hosp FROM tb_hospital ORDER BY nome_hosp")
@@ -40,13 +40,13 @@ if ($hospitalId) {
     $where .= " AND i.fk_hospital_int = :hospital_id";
     $params[':hospital_id'] = $hospitalId;
 }
-if ($tipoInternacao !== '') {
+if ($tipoInternação !== '') {
     $where .= " AND i.tipo_admissao_int = :tipo";
-    $params[':tipo'] = $tipoInternacao;
+    $params[':tipo'] = $tipoInternação;
 }
-if ($modoAdmissao !== '') {
+if ($modoAdmissão !== '') {
     $where .= " AND i.modo_internacao_int = :modo";
-    $params[':modo'] = $modoAdmissao;
+    $params[':modo'] = $modoAdmissão;
 }
 
 $utiJoin = "LEFT JOIN (SELECT DISTINCT fk_internacao_uti FROM tb_uti) ut ON ut.fk_internacao_uti = i.id_internacao";
@@ -90,7 +90,7 @@ function distQuery(PDO $conn, string $labelExpr, string $sqlBase, array $params,
 $labelGrupo = "COALESCE(NULLIF(i.grupo_patologia_int,''), p.patologia_pat, 'Sem informacoes')";
 
 $rowsIntern = distQuery($conn, $labelGrupo, $sqlBase, $params, "COUNT(DISTINCT i.id_internacao)", 10);
-$rowsDiarias = distQuery($conn, $labelGrupo, $sqlBase, $params, "SUM(GREATEST(1, DATEDIFF(COALESCE(al.data_alta_alt, CURDATE()), i.data_intern_int) + 1))", 10);
+$rowsDiárias = distQuery($conn, $labelGrupo, $sqlBase, $params, "SUM(GREATEST(1, DATEDIFF(COALESCE(al.data_alta_alt, CURDATE()), i.data_intern_int) + 1))", 10);
 $rowsMp = distQuery($conn, $labelGrupo, $sqlBase, $params, "ROUND(AVG(GREATEST(1, DATEDIFF(COALESCE(al.data_alta_alt, CURDATE()), i.data_intern_int) + 1)), 1)", 10);
 $rowsCusto = distQuery($conn, $labelGrupo, $sqlBase, $params, "SUM(COALESCE(ca.valor_final_capeante,0))", 10);
 
@@ -102,7 +102,7 @@ function labelsAndValues(array $rows): array
 }
 
 [$labelsIntern, $valuesIntern] = labelsAndValues($rowsIntern);
-[$labelsDiarias, $valuesDiarias] = labelsAndValues($rowsDiarias);
+[$labelsDiárias, $valuesDiárias] = labelsAndValues($rowsDiárias);
 [$labelsMp, $valuesMp] = labelsAndValues($rowsMp);
 [$labelsCusto, $valuesCusto] = labelsAndValues($rowsCusto);
 ?>
@@ -148,18 +148,18 @@ function labelsAndValues(array $rows): array
             <select name="tipo_internacao">
                 <option value="">Todos</option>
                 <?php foreach ($tiposInt as $tipo): ?>
-                    <option value="<?= e($tipo) ?>" <?= $tipoInternacao === $tipo ? 'selected' : '' ?>>
+                    <option value="<?= e($tipo) ?>" <?= $tipoInternação === $tipo ? 'selected' : '' ?>>
                         <?= e($tipo) ?>
                     </option>
                 <?php endforeach; ?>
             </select>
         </div>
         <div class="bi-filter">
-            <label>Modo Admissao</label>
+            <label>Modo Admissão</label>
             <select name="modo_admissao">
                 <option value="">Todos</option>
                 <?php foreach ($modosAdm as $modo): ?>
-                    <option value="<?= e($modo) ?>" <?= $modoAdmissao === $modo ? 'selected' : '' ?>>
+                    <option value="<?= e($modo) ?>" <?= $modoAdmissão === $modo ? 'selected' : '' ?>>
                         <?= e($modo) ?>
                     </option>
                 <?php endforeach; ?>
@@ -188,12 +188,12 @@ function labelsAndValues(array $rows): array
 
     <div class="bi-grid fixed-2" style="margin-top:16px;">
         <div class="bi-panel">
-            <h3>Internacoes</h3>
+            <h3>Internações</h3>
             <div class="bi-chart"><canvas id="chartIntern"></canvas></div>
         </div>
         <div class="bi-panel">
             <h3>Total de diárias</h3>
-            <div class="bi-chart"><canvas id="chartDiarias"></canvas></div>
+            <div class="bi-chart"><canvas id="chartDiárias"></canvas></div>
         </div>
     </div>
 
@@ -212,8 +212,8 @@ function labelsAndValues(array $rows): array
 <script>
 const labelsIntern = <?= json_encode($labelsIntern) ?>;
 const valuesIntern = <?= json_encode($valuesIntern) ?>;
-const labelsDiarias = <?= json_encode($labelsDiarias) ?>;
-const valuesDiarias = <?= json_encode($valuesDiarias) ?>;
+const labelsDiárias = <?= json_encode($labelsDiárias) ?>;
+const valuesDiárias = <?= json_encode($valuesDiárias) ?>;
 const labelsMp = <?= json_encode($labelsMp) ?>;
 const valuesMp = <?= json_encode($valuesMp) ?>;
 const labelsCusto = <?= json_encode($labelsCusto) ?>;
@@ -237,7 +237,7 @@ function barChart(ctx, labels, data, color, yTickCallback) {
 }
 
 barChart(document.getElementById('chartIntern'), labelsIntern, valuesIntern, 'rgba(121, 199, 255, 0.7)');
-barChart(document.getElementById('chartDiarias'), labelsDiarias, valuesDiarias, 'rgba(255, 198, 108, 0.7)');
+barChart(document.getElementById('chartDiárias'), labelsDiárias, valuesDiárias, 'rgba(255, 198, 108, 0.7)');
 barChart(document.getElementById('chartMp'), labelsMp, valuesMp, 'rgba(111, 223, 194, 0.7)');
 barChart(document.getElementById('chartCusto'), labelsCusto, valuesCusto, 'rgba(141, 208, 255, 0.7)', window.biMoneyTick);
 </script>

@@ -37,8 +37,8 @@ if ($ano === null && !filter_has_var(INPUT_GET, 'ano')) {
 }
 
 $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: null;
-$tipoInternacao = trim((string)(filter_input(INPUT_GET, 'tipo_internacao') ?? ''));
-$modoInternacao = trim((string)(filter_input(INPUT_GET, 'modo_internacao') ?? ''));
+$tipoInternação = trim((string)(filter_input(INPUT_GET, 'tipo_internacao') ?? ''));
+$modoInternação = trim((string)(filter_input(INPUT_GET, 'modo_internacao') ?? ''));
 $patologiaId = filter_input(INPUT_GET, 'patologia_id', FILTER_VALIDATE_INT) ?: null;
 $grupoPatologia = trim((string)(filter_input(INPUT_GET, 'grupo_patologia') ?? ''));
 $internado = trim((string)(filter_input(INPUT_GET, 'internado') ?? ''));
@@ -241,13 +241,13 @@ function internacao_stats(PDO $conn, array $filters): array
     $stmt->execute();
     $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
-    $totalInternacoes = (int)($row['total_internacoes'] ?? 0);
-    $totalDiarias = (int)($row['total_diarias'] ?? 0);
-    $mp = $totalInternacoes > 0 ? ($totalDiarias / $totalInternacoes) : 0.0;
+    $totalInternações = (int)($row['total_internacoes'] ?? 0);
+    $totalDiárias = (int)($row['total_diarias'] ?? 0);
+    $mp = $totalInternações > 0 ? ($totalDiárias / $totalInternações) : 0.0;
 
     return [
-        'total_internacoes' => $totalInternacoes,
-        'total_diarias' => $totalDiarias,
+        'total_internacoes' => $totalInternações,
+        'total_diarias' => $totalDiárias,
         'mp' => $mp,
     ];
 }
@@ -286,13 +286,13 @@ function uti_stats(PDO $conn, array $filters): array
     $stmt->execute();
     $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
-    $totalInternacoes = (int)($row['total_internacoes_uti'] ?? 0);
-    $totalDiarias = (int)($row['total_diarias_uti'] ?? 0);
-    $mp = $totalInternacoes > 0 ? ($totalDiarias / $totalInternacoes) : 0.0;
+    $totalInternações = (int)($row['total_internacoes_uti'] ?? 0);
+    $totalDiárias = (int)($row['total_diarias_uti'] ?? 0);
+    $mp = $totalInternações > 0 ? ($totalDiárias / $totalInternações) : 0.0;
 
     return [
-        'total_internacoes' => $totalInternacoes,
-        'total_diarias' => $totalDiarias,
+        'total_internacoes' => $totalInternações,
+        'total_diarias' => $totalDiárias,
         'mp' => $mp,
     ];
 }
@@ -358,8 +358,8 @@ $filtersSelected = [
     'ano' => $ano,
     'mes' => $mes,
     'hospital_id' => $hospitalId,
-    'tipo_internacao' => $tipoInternacao,
-    'modo_internacao' => $modoInternacao,
+    'tipo_internacao' => $tipoInternação,
+    'modo_internacao' => $modoInternação,
     'patologia_id' => $patologiaId,
     'grupo_patologia' => $grupoPatologia,
     'internado' => $internado,
@@ -369,7 +369,7 @@ $filtersSelected = [
     'faixa_etaria' => $faixaEtaria,
 ];
 
-$selInternacao = internacao_stats($conn, $filtersSelected);
+$selInternação = internacao_stats($conn, $filtersSelected);
 $selUti = uti_stats($conn, $filtersSelected);
 $selFinanceiro = financeiro_stats($conn, $filtersSelected);
 $selFinanceiroUti = ($uti === 'n')
@@ -379,25 +379,25 @@ $selFinanceiroUti = ($uti === 'n')
 if ($ano !== null) {
     $filtersPrev = $filtersSelected;
     $filtersPrev['ano'] = $ano - 1;
-    $prevInternacao = internacao_stats($conn, $filtersPrev);
+    $prevInternação = internacao_stats($conn, $filtersPrev);
     $prevUti = uti_stats($conn, $filtersPrev);
 } else {
-    $prevInternacao = ['total_internacoes' => 0, 'total_diarias' => 0, 'mp' => 0.0];
+    $prevInternação = ['total_internacoes' => 0, 'total_diarias' => 0, 'mp' => 0.0];
     $prevUti = ['total_internacoes' => 0, 'total_diarias' => 0, 'mp' => 0.0];
 }
 
-$varInternacoes = $selInternacao['total_internacoes'] - $prevInternacao['total_internacoes'];
-$varDiarias = $selInternacao['total_diarias'] - $prevInternacao['total_diarias'];
-$varMp = $selInternacao['mp'] - $prevInternacao['mp'];
+$varInternações = $selInternação['total_internacoes'] - $prevInternação['total_internacoes'];
+$varDiárias = $selInternação['total_diarias'] - $prevInternação['total_diarias'];
+$varMp = $selInternação['mp'] - $prevInternação['mp'];
 $varUtiInt = $selUti['total_internacoes'] - $prevUti['total_internacoes'];
-$varUtiDiarias = $selUti['total_diarias'] - $prevUti['total_diarias'];
+$varUtiDiárias = $selUti['total_diarias'] - $prevUti['total_diarias'];
 $varUtiMp = $selUti['mp'] - $prevUti['mp'];
 
 $glosaMedPct = $selFinanceiro['valor_apresentado'] > 0 ? ($selFinanceiro['glosa_med'] / $selFinanceiro['valor_apresentado'] * 100) : 0.0;
 $glosaEnfPct = $selFinanceiro['valor_apresentado'] > 0 ? ($selFinanceiro['glosa_enf'] / $selFinanceiro['valor_apresentado'] * 100) : 0.0;
 $glosaTotalPct = $selFinanceiro['valor_apresentado'] > 0 ? ($selFinanceiro['glosa_total'] / $selFinanceiro['valor_apresentado'] * 100) : 0.0;
 
-$custoMedioDiaria = $selInternacao['total_diarias'] > 0 ? ($selFinanceiro['valor_apresentado'] / $selInternacao['total_diarias']) : 0.0;
+$custoMedioDiaria = $selInternação['total_diarias'] > 0 ? ($selFinanceiro['valor_apresentado'] / $selInternação['total_diarias']) : 0.0;
 $custoMedioDiariaUti = $selUti['total_diarias'] > 0 ? ($selFinanceiroUti['valor_apresentado'] / $selUti['total_diarias']) : 0.0;
 $custoMedioConta = $selFinanceiro['total_contas'] > 0 ? ($selFinanceiro['valor_apresentado'] / $selFinanceiro['total_contas']) : 0.0;
 ?>
@@ -434,7 +434,7 @@ $custoMedioConta = $selFinanceiro['total_contas'] > 0 ? ($selFinanceiro['valor_a
             <select name="tipo_internacao">
                 <option value="">Todos</option>
                 <?php foreach ($tiposInt as $tipo): ?>
-                    <option value="<?= e($tipo) ?>" <?= $tipoInternacao === $tipo ? 'selected' : '' ?>>
+                    <option value="<?= e($tipo) ?>" <?= $tipoInternação === $tipo ? 'selected' : '' ?>>
                         <?= e($tipo) ?>
                     </option>
                 <?php endforeach; ?>
@@ -445,7 +445,7 @@ $custoMedioConta = $selFinanceiro['total_contas'] > 0 ? ($selFinanceiro['valor_a
             <select name="modo_internacao">
                 <option value="">Todos</option>
                 <?php foreach ($modos as $modo): ?>
-                    <option value="<?= e($modo) ?>" <?= $modoInternacao === $modo ? 'selected' : '' ?>>
+                    <option value="<?= e($modo) ?>" <?= $modoInternação === $modo ? 'selected' : '' ?>>
                         <?= e($modo) ?>
                     </option>
                 <?php endforeach; ?>
@@ -550,9 +550,9 @@ $custoMedioConta = $selFinanceiro['total_contas'] > 0 ? ($selFinanceiro['valor_a
                 <div class="bi-panel">
                     <h3 class="text-center">Ano Atual</h3>
                     <div class="bi-stack">
-                        <div class="bi-kpi kpi-indigo"><small>Total internações</small><strong><?= fmt_num($selInternacao['total_internacoes'], 0) ?></strong></div>
-                        <div class="bi-kpi kpi-indigo"><small>Total de diárias</small><strong><?= fmt_num($selInternacao['total_diarias'], 0) ?></strong></div>
-                        <div class="bi-kpi kpi-indigo"><small>MP</small><strong><?= fmt_num($selInternacao['mp'], 2) ?></strong></div>
+                        <div class="bi-kpi kpi-indigo"><small>Total internações</small><strong><?= fmt_num($selInternação['total_internacoes'], 0) ?></strong></div>
+                        <div class="bi-kpi kpi-indigo"><small>Total de diárias</small><strong><?= fmt_num($selInternação['total_diarias'], 0) ?></strong></div>
+                        <div class="bi-kpi kpi-indigo"><small>MP</small><strong><?= fmt_num($selInternação['mp'], 2) ?></strong></div>
                         <div class="bi-kpi kpi-indigo"><small>Internação UTI</small><strong><?= fmt_num($selUti['total_internacoes'], 0) ?></strong></div>
                         <div class="bi-kpi kpi-indigo"><small>Diárias UTI</small><strong><?= fmt_num($selUti['total_diarias'], 0) ?></strong></div>
                         <div class="bi-kpi kpi-indigo"><small>Média permanência UTI</small><strong><?= fmt_num($selUti['mp'], 2) ?></strong></div>
@@ -561,9 +561,9 @@ $custoMedioConta = $selFinanceiro['total_contas'] > 0 ? ($selFinanceiro['valor_a
                 <div class="bi-panel">
                     <h3 class="text-center">Ano Anterior</h3>
                     <div class="bi-stack">
-                        <div class="bi-kpi kpi-rose"><small>Total internações</small><strong><?= fmt_num($prevInternacao['total_internacoes'], 0) ?></strong></div>
-                        <div class="bi-kpi kpi-rose"><small>Total diárias (YTD)</small><strong><?= fmt_num($prevInternacao['total_diarias'], 0) ?></strong></div>
-                        <div class="bi-kpi kpi-rose"><small>MP - YTD</small><strong><?= fmt_num($prevInternacao['mp'], 2) ?></strong></div>
+                        <div class="bi-kpi kpi-rose"><small>Total internações</small><strong><?= fmt_num($prevInternação['total_internacoes'], 0) ?></strong></div>
+                        <div class="bi-kpi kpi-rose"><small>Total diárias (YTD)</small><strong><?= fmt_num($prevInternação['total_diarias'], 0) ?></strong></div>
+                        <div class="bi-kpi kpi-rose"><small>MP - YTD</small><strong><?= fmt_num($prevInternação['mp'], 2) ?></strong></div>
                         <div class="bi-kpi kpi-rose"><small>Internação UTI</small><strong><?= fmt_num($prevUti['total_internacoes'], 0) ?></strong></div>
                         <div class="bi-kpi kpi-rose"><small>Diárias UTI</small><strong><?= fmt_num($prevUti['total_diarias'], 0) ?></strong></div>
                         <div class="bi-kpi kpi-rose"><small>Média permanência UTI</small><strong><?= fmt_num($prevUti['mp'], 2) ?></strong></div>
@@ -572,11 +572,11 @@ $custoMedioConta = $selFinanceiro['total_contas'] > 0 ? ($selFinanceiro['valor_a
                 <div class="bi-panel">
                     <h3 class="text-center">Variação</h3>
                     <div class="bi-stack">
-                        <div class="bi-kpi kpi-steel"><small>Total internações</small><strong><?= fmt_delta($varInternacoes, 0) ?></strong></div>
-                        <div class="bi-kpi kpi-steel"><small>Total de diárias</small><strong><?= fmt_delta($varDiarias, 0) ?></strong></div>
+                        <div class="bi-kpi kpi-steel"><small>Total internações</small><strong><?= fmt_delta($varInternações, 0) ?></strong></div>
+                        <div class="bi-kpi kpi-steel"><small>Total de diárias</small><strong><?= fmt_delta($varDiárias, 0) ?></strong></div>
                         <div class="bi-kpi kpi-steel"><small>Media de permanencia</small><strong><?= fmt_delta($varMp, 2) ?></strong></div>
                         <div class="bi-kpi kpi-steel"><small>Internação UTI</small><strong><?= fmt_delta($varUtiInt, 0) ?></strong></div>
-                        <div class="bi-kpi kpi-steel"><small>Diárias UTI</small><strong><?= fmt_delta($varUtiDiarias, 0) ?></strong></div>
+                        <div class="bi-kpi kpi-steel"><small>Diárias UTI</small><strong><?= fmt_delta($varUtiDiárias, 0) ?></strong></div>
                         <div class="bi-kpi kpi-steel"><small>Média permanência UTI</small><strong><?= fmt_delta($varUtiMp, 2) ?></strong></div>
                     </div>
                 </div>

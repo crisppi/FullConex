@@ -58,8 +58,8 @@ $dateExpr = "COALESCE(NULLIF(ca.data_final_capeante,'0000-00-00'), NULLIF(ca.dat
 // Apresentado x pos-auditoria (mensal)
 $sqlValores = "
     SELECT DATE_FORMAT(ref_date, '%Y-%m') AS ym,
-           SUM(COALESCE(ca.valor_apresentado_capeante,0)) AS valor_apresentado,
-           SUM(COALESCE(ca.valor_final_capeante,0)) AS valor_final
+           SUM(COALESCE(valor_apresentado_capeante,0)) AS valor_apresentado,
+           SUM(COALESCE(valor_final_capeante,0)) AS valor_final
     FROM (
         SELECT ca.valor_apresentado_capeante,
                ca.valor_final_capeante,
@@ -118,7 +118,7 @@ if ($topSegIds) {
     $inPlaceholders = implode(',', array_fill(0, count($topSegIds), '?'));
     $sqlSegSeries = "
         SELECT s.id_seguradora, DATE_FORMAT(ref_date, '%Y-%m') AS ym,
-               SUM(COALESCE(ca.valor_apresentado_capeante,0)) AS total
+               SUM(COALESCE(valor_apresentado_capeante,0)) AS total
         FROM (
             SELECT ca.valor_apresentado_capeante,
                    {$dateExpr} AS ref_date,

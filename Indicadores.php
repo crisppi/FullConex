@@ -16,8 +16,8 @@ $dataIni = filter_input(INPUT_GET, 'data_ini') ?: date('Y-m-d', strtotime('-120 
 $dataFim = filter_input(INPUT_GET, 'data_fim') ?: $hoje;
 $internado = trim((string)(filter_input(INPUT_GET, 'internado') ?? ''));
 $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: null;
-$tipoInternacao = trim((string)(filter_input(INPUT_GET, 'tipo_internacao') ?? ''));
-$modoAdmissao = trim((string)(filter_input(INPUT_GET, 'modo_admissao') ?? ''));
+$tipoInternação = trim((string)(filter_input(INPUT_GET, 'tipo_internacao') ?? ''));
+$modoAdmissão = trim((string)(filter_input(INPUT_GET, 'modo_admissao') ?? ''));
 $uti = trim((string)(filter_input(INPUT_GET, 'uti') ?? ''));
 
 $hospitais = $conn->query("SELECT id_hospital, nome_hosp FROM tb_hospital ORDER BY nome_hosp")
@@ -40,13 +40,13 @@ if ($hospitalId) {
     $where .= " AND i.fk_hospital_int = :hospital_id";
     $params[':hospital_id'] = $hospitalId;
 }
-if ($tipoInternacao !== '') {
+if ($tipoInternação !== '') {
     $where .= " AND i.tipo_admissao_int = :tipo";
-    $params[':tipo'] = $tipoInternacao;
+    $params[':tipo'] = $tipoInternação;
 }
-if ($modoAdmissao !== '') {
+if ($modoAdmissão !== '') {
     $where .= " AND i.modo_internacao_int = :modo";
-    $params[':modo'] = $modoAdmissao;
+    $params[':modo'] = $modoAdmissão;
 }
 
 $utiJoin = "LEFT JOIN (SELECT DISTINCT fk_internacao_uti FROM tb_uti) ut ON ut.fk_internacao_uti = i.id_internacao";
@@ -80,11 +80,11 @@ $stmt = $conn->prepare($sqlStats);
 $stmt->execute($params);
 $stats = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
-$totalInternacoes = (int)($stats['total_internacoes'] ?? 0);
-$totalDiarias = (int)($stats['total_diarias'] ?? 0);
+$totalInternações = (int)($stats['total_internacoes'] ?? 0);
+$totalDiárias = (int)($stats['total_diarias'] ?? 0);
 $maiorPermanencia = (int)($stats['maior_permanencia'] ?? 0);
 $internados = (int)($stats['internados'] ?? 0);
-$mp = $totalInternacoes > 0 ? round($totalDiarias / $totalInternacoes, 1) : 0.0;
+$mp = $totalInternações > 0 ? round($totalDiárias / $totalInternações, 1) : 0.0;
 
 $sqlFlags = "
     SELECT
@@ -112,11 +112,11 @@ function fmtPct(float $value): string
     return number_format($value, 1, ',', '.') . '%';
 }
 
-$idxEventoAdverso = $totalInternacoes > 0 ? ($eventoAdverso / $totalInternacoes) * 100 : 0.0;
-$idxHomeCare = $totalInternacoes > 0 ? ($homeCare / $totalInternacoes) * 100 : 0.0;
-$idxOpme = $totalInternacoes > 0 ? ($opme / $totalInternacoes) * 100 : 0.0;
-$idxAltoCusto = $totalInternacoes > 0 ? ($altoCusto / $totalInternacoes) * 100 : 0.0;
-$idxObitos = $totalInternacoes > 0 ? ($obitos / $totalInternacoes) * 100 : 0.0;
+$idxEventoAdverso = $totalInternações > 0 ? ($eventoAdverso / $totalInternações) * 100 : 0.0;
+$idxHomeCare = $totalInternações > 0 ? ($homeCare / $totalInternações) * 100 : 0.0;
+$idxOpme = $totalInternações > 0 ? ($opme / $totalInternações) * 100 : 0.0;
+$idxAltoCusto = $totalInternações > 0 ? ($altoCusto / $totalInternações) * 100 : 0.0;
+$idxObitos = $totalInternações > 0 ? ($obitos / $totalInternações) * 100 : 0.0;
 ?>
 
 <link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260110">
@@ -160,18 +160,18 @@ $idxObitos = $totalInternacoes > 0 ? ($obitos / $totalInternacoes) * 100 : 0.0;
             <select name="tipo_internacao">
                 <option value="">Todos</option>
                 <?php foreach ($tiposInt as $tipo): ?>
-                    <option value="<?= e($tipo) ?>" <?= $tipoInternacao === $tipo ? 'selected' : '' ?>>
+                    <option value="<?= e($tipo) ?>" <?= $tipoInternação === $tipo ? 'selected' : '' ?>>
                         <?= e($tipo) ?>
                     </option>
                 <?php endforeach; ?>
             </select>
         </div>
         <div class="bi-filter">
-            <label>Modo Admissao</label>
+            <label>Modo Admissão</label>
             <select name="modo_admissao">
                 <option value="">Todos</option>
                 <?php foreach ($modosAdm as $modo): ?>
-                    <option value="<?= e($modo) ?>" <?= $modoAdmissao === $modo ? 'selected' : '' ?>>
+                    <option value="<?= e($modo) ?>" <?= $modoAdmissão === $modo ? 'selected' : '' ?>>
                         <?= e($modo) ?>
                     </option>
                 <?php endforeach; ?>
@@ -200,8 +200,8 @@ $idxObitos = $totalInternacoes > 0 ? ($obitos / $totalInternacoes) * 100 : 0.0;
 
     <div class="bi-panel" style="margin-top:16px;">
         <div class="bi-kpis kpi-compact">
-            <div class="bi-kpi kpi-berry kpi-compact"><small>Internacoes</small><strong><?= $totalInternacoes ?></strong></div>
-            <div class="bi-kpi kpi-teal kpi-compact"><small>Diarias</small><strong><?= $totalDiarias ?></strong></div>
+            <div class="bi-kpi kpi-berry kpi-compact"><small>Internações</small><strong><?= $totalInternações ?></strong></div>
+            <div class="bi-kpi kpi-teal kpi-compact"><small>Diárias</small><strong><?= $totalDiárias ?></strong></div>
             <div class="bi-kpi kpi-indigo kpi-compact"><small>MP</small><strong><?= number_format($mp, 1, ',', '.') ?></strong></div>
             <div class="bi-kpi kpi-rose kpi-compact"><small>Maior permanencia</small><strong><?= $maiorPermanencia ?></strong></div>
         </div>
@@ -210,7 +210,7 @@ $idxObitos = $totalInternacoes > 0 ? ($obitos / $totalInternacoes) * 100 : 0.0;
     <div class="bi-panel" style="margin-top:16px;">
         <h3>Indicadores de performance</h3>
         <div class="bi-kpis" style="margin-top:12px;">
-            <div class="bi-kpi kpi-berry"><small>Internacoes</small><strong><?= $totalInternacoes ?></strong></div>
+            <div class="bi-kpi kpi-berry"><small>Internações</small><strong><?= $totalInternações ?></strong></div>
             <div class="bi-kpi kpi-berry"><small>Internados</small><strong><?= $internados ?></strong></div>
             <div class="bi-kpi kpi-teal"><small>Evento adverso</small><strong><?= $eventoAdverso ?></strong></div>
             <div class="bi-kpi kpi-teal"><small>Home care</small><strong><?= $homeCare ?></strong></div>

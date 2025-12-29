@@ -14,14 +14,14 @@ function e($v)
 $anoBase = (int)(filter_input(INPUT_GET, 'ano_base', FILTER_VALIDATE_INT) ?: date('Y'));
 $anoComp = (int)(filter_input(INPUT_GET, 'ano_comp', FILTER_VALIDATE_INT) ?: ($anoBase - 1));
 $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: null;
-$tipoAdmissao = trim((string)(filter_input(INPUT_GET, 'tipo_admissao') ?? ''));
+$tipoAdmissão = trim((string)(filter_input(INPUT_GET, 'tipo_admissao') ?? ''));
 
 $hospitais = $conn->query("SELECT id_hospital, nome_hosp FROM tb_hospital ORDER BY nome_hosp")
     ->fetchAll(PDO::FETCH_ASSOC);
 $tiposAdm = $conn->query("SELECT DISTINCT tipo_admissao_int FROM tb_internacao WHERE tipo_admissao_int IS NOT NULL AND tipo_admissao_int <> '' ORDER BY tipo_admissao_int")
     ->fetchAll(PDO::FETCH_COLUMN);
 
-function producaoSeries(PDO $conn, int $ano, ?int $hospitalId, string $tipoAdmissao): array
+function producaoSeries(PDO $conn, int $ano, ?int $hospitalId, string $tipoAdmissão): array
 {
     $where = "YEAR(i.data_intern_int) = :ano";
     $params = [':ano' => $ano];
@@ -29,9 +29,9 @@ function producaoSeries(PDO $conn, int $ano, ?int $hospitalId, string $tipoAdmis
         $where .= " AND i.fk_hospital_int = :hospital_id";
         $params[':hospital_id'] = $hospitalId;
     }
-    if ($tipoAdmissao !== '') {
+    if ($tipoAdmissão !== '') {
         $where .= " AND i.tipo_admissao_int = :tipo";
-        $params[':tipo'] = $tipoAdmissao;
+        $params[':tipo'] = $tipoAdmissão;
     }
 
     $sql = "
@@ -79,8 +79,8 @@ function producaoSeries(PDO $conn, int $ano, ?int $hospitalId, string $tipoAdmis
     ];
 }
 
-$seriesBase = producaoSeries($conn, $anoBase, $hospitalId, $tipoAdmissao);
-$seriesComp = producaoSeries($conn, $anoComp, $hospitalId, $tipoAdmissao);
+$seriesBase = producaoSeries($conn, $anoBase, $hospitalId, $tipoAdmissão);
+$seriesComp = producaoSeries($conn, $anoComp, $hospitalId, $tipoAdmissão);
 $labels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 ?>
 
@@ -122,7 +122,7 @@ $labels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','De
             <select name="tipo_admissao">
                 <option value="">Todos</option>
                 <?php foreach ($tiposAdm as $tipo): ?>
-                    <option value="<?= e($tipo) ?>" <?= $tipoAdmissao === $tipo ? 'selected' : '' ?>>
+                    <option value="<?= e($tipo) ?>" <?= $tipoAdmissão === $tipo ? 'selected' : '' ?>>
                         <?= e($tipo) ?>
                     </option>
                 <?php endforeach; ?>
@@ -136,14 +136,14 @@ $labels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','De
     <div class="bi-panel">
         <h3>Total internações</h3>
         <div class="bi-chart">
-            <canvas id="chartInternacoes"></canvas>
+            <canvas id="chartInternações"></canvas>
         </div>
     </div>
 
     <div class="bi-panel">
         <h3>Total diárias</h3>
         <div class="bi-chart">
-            <canvas id="chartDiarias"></canvas>
+            <canvas id="chartDiárias"></canvas>
         </div>
     </div>
 
@@ -195,8 +195,8 @@ function lineChart(ctx, key) {
     });
 }
 
-lineChart(document.getElementById('chartInternacoes'), 'internacoes');
-lineChart(document.getElementById('chartDiarias'), 'diarias');
+lineChart(document.getElementById('chartInternações'), 'internacoes');
+lineChart(document.getElementById('chartDiárias'), 'diarias');
 lineChart(document.getElementById('chartMp'), 'mp');
 </script>
 

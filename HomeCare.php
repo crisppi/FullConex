@@ -16,8 +16,8 @@ $dataIni = filter_input(INPUT_GET, 'data_ini') ?: date('Y-m-d', strtotime('-120 
 $dataFim = filter_input(INPUT_GET, 'data_fim') ?: $hoje;
 $internado = trim((string)(filter_input(INPUT_GET, 'internado') ?? ''));
 $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: null;
-$tipoInternacao = trim((string)(filter_input(INPUT_GET, 'tipo_internacao') ?? ''));
-$modoAdmissao = trim((string)(filter_input(INPUT_GET, 'modo_admissao') ?? ''));
+$tipoInternação = trim((string)(filter_input(INPUT_GET, 'tipo_internacao') ?? ''));
+$modoAdmissão = trim((string)(filter_input(INPUT_GET, 'modo_admissao') ?? ''));
 $uti = trim((string)(filter_input(INPUT_GET, 'uti') ?? ''));
 
 $hospitais = $conn->query("SELECT id_hospital, nome_hosp FROM tb_hospital ORDER BY nome_hosp")
@@ -40,13 +40,13 @@ if ($hospitalId) {
     $where .= " AND i.fk_hospital_int = :hospital_id";
     $params[':hospital_id'] = $hospitalId;
 }
-if ($tipoInternacao !== '') {
+if ($tipoInternação !== '') {
     $where .= " AND i.tipo_admissao_int = :tipo";
-    $params[':tipo'] = $tipoInternacao;
+    $params[':tipo'] = $tipoInternação;
 }
-if ($modoAdmissao !== '') {
+if ($modoAdmissão !== '') {
     $where .= " AND i.modo_internacao_int = :modo";
-    $params[':modo'] = $modoAdmissao;
+    $params[':modo'] = $modoAdmissão;
 }
 
 $utiJoin = "LEFT JOIN (SELECT DISTINCT fk_internacao_uti FROM tb_uti) ut ON ut.fk_internacao_uti = i.id_internacao";
@@ -84,8 +84,8 @@ $stmt = $conn->prepare($sqlStats);
 $stmt->execute($params);
 $stats = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
-$totalInternacoes = (int)($stats['total_internacoes'] ?? 0);
-$totalDiarias = (int)($stats['total_diarias'] ?? 0);
+$totalInternações = (int)($stats['total_internacoes'] ?? 0);
+$totalDiárias = (int)($stats['total_diarias'] ?? 0);
 $maiorPermanencia = (int)($stats['maior_permanencia'] ?? 0);
 $mp = (float)($stats['mp'] ?? 0);
 $totalEventos = (int)($stats['total_eventos'] ?? 0);
@@ -159,18 +159,18 @@ $rowsTable = $stmtTable->fetchAll(PDO::FETCH_ASSOC) ?: [];
             <select name="tipo_internacao">
                 <option value="">Todos</option>
                 <?php foreach ($tiposInt as $tipo): ?>
-                    <option value="<?= e($tipo) ?>" <?= $tipoInternacao === $tipo ? 'selected' : '' ?>>
+                    <option value="<?= e($tipo) ?>" <?= $tipoInternação === $tipo ? 'selected' : '' ?>>
                         <?= e($tipo) ?>
                     </option>
                 <?php endforeach; ?>
             </select>
         </div>
         <div class="bi-filter">
-            <label>Modo Admissao</label>
+            <label>Modo Admissão</label>
             <select name="modo_admissao">
                 <option value="">Todos</option>
                 <?php foreach ($modosAdm as $modo): ?>
-                    <option value="<?= e($modo) ?>" <?= $modoAdmissao === $modo ? 'selected' : '' ?>>
+                    <option value="<?= e($modo) ?>" <?= $modoAdmissão === $modo ? 'selected' : '' ?>>
                         <?= e($modo) ?>
                     </option>
                 <?php endforeach; ?>
@@ -199,8 +199,8 @@ $rowsTable = $stmtTable->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
     <div class="bi-panel" style="margin-top:16px;">
         <div class="bi-kpis kpi-compact">
-            <div class="bi-kpi kpi-berry kpi-compact"><small>Internacoes</small><strong><?= $totalInternacoes ?></strong></div>
-            <div class="bi-kpi kpi-teal kpi-compact"><small>Diarias</small><strong><?= $totalDiarias ?></strong></div>
+            <div class="bi-kpi kpi-berry kpi-compact"><small>Internações</small><strong><?= $totalInternações ?></strong></div>
+            <div class="bi-kpi kpi-teal kpi-compact"><small>Diárias</small><strong><?= $totalDiárias ?></strong></div>
             <div class="bi-kpi kpi-indigo kpi-compact"><small>MP</small><strong><?= number_format($mp, 1, ',', '.') ?></strong></div>
             <div class="bi-kpi kpi-rose kpi-compact"><small>Maior permanencia</small><strong><?= $maiorPermanencia ?></strong></div>
         </div>

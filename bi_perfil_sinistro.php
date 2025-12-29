@@ -16,7 +16,7 @@ $mes = (int)(filter_input(INPUT_GET, 'mes', FILTER_VALIDATE_INT) ?: 0);
 $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: null;
 $patologiaId = filter_input(INPUT_GET, 'patologia_id', FILTER_VALIDATE_INT) ?: null;
 $grupoPatologia = trim((string)(filter_input(INPUT_GET, 'grupo_patologia') ?? ''));
-$modoInternacao = trim((string)(filter_input(INPUT_GET, 'modo_internacao') ?? ''));
+$modoInternação = trim((string)(filter_input(INPUT_GET, 'modo_internacao') ?? ''));
 $internado = trim((string)(filter_input(INPUT_GET, 'internado') ?? ''));
 $sexo = trim((string)(filter_input(INPUT_GET, 'sexo') ?? ''));
 $uti = trim((string)(filter_input(INPUT_GET, 'uti') ?? ''));
@@ -49,9 +49,9 @@ if ($grupoPatologia !== '') {
     $where .= " AND grupo_patologia_int = :grupo";
     $params[':grupo'] = $grupoPatologia;
 }
-if ($modoInternacao !== '') {
+if ($modoInternação !== '') {
     $where .= " AND modo_internacao_int = :modo";
-    $params[':modo'] = $modoInternacao;
+    $params[':modo'] = $modoInternação;
 }
 if ($internado !== '') {
     $where .= " AND internado_int = :internado";
@@ -171,7 +171,7 @@ $barValues = [
             <select name="modo_internacao">
                 <option value="">Todos</option>
                 <?php foreach ($modos as $m): ?>
-                    <option value="<?= e($m) ?>" <?= $modoInternacao === $m ? 'selected' : '' ?>>
+                    <option value="<?= e($m) ?>" <?= $modoInternação === $m ? 'selected' : '' ?>>
                         <?= e($m) ?>
                     </option>
                 <?php endforeach; ?>

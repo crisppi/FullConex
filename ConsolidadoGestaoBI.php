@@ -30,8 +30,8 @@ if ($ano === null && !filter_has_var(INPUT_GET, 'ano')) {
 }
 
 $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: null;
-$tipoInternacao = trim((string)(filter_input(INPUT_GET, 'tipo_internacao') ?? ''));
-$modoInternacao = trim((string)(filter_input(INPUT_GET, 'modo_internacao') ?? ''));
+$tipoInternação = trim((string)(filter_input(INPUT_GET, 'tipo_internacao') ?? ''));
+$modoInternação = trim((string)(filter_input(INPUT_GET, 'modo_internacao') ?? ''));
 $patologiaId = filter_input(INPUT_GET, 'patologia_id', FILTER_VALIDATE_INT) ?: null;
 $grupoPatologia = trim((string)(filter_input(INPUT_GET, 'grupo_patologia') ?? ''));
 $internado = trim((string)(filter_input(INPUT_GET, 'internado') ?? ''));
@@ -299,8 +299,8 @@ $filtersSelected = [
     'ano' => $ano,
     'mes' => $mes,
     'hospital_id' => $hospitalId,
-    'tipo_internacao' => $tipoInternacao,
-    'modo_internacao' => $modoInternacao,
+    'tipo_internacao' => $tipoInternação,
+    'modo_internacao' => $modoInternação,
     'patologia_id' => $patologiaId,
     'grupo_patologia' => $grupoPatologia,
     'internado' => $internado,
@@ -310,12 +310,12 @@ $filtersSelected = [
     'faixa_etaria' => $faixaEtaria,
 ];
 
-$selInternacao = internacao_stats($conn, $filtersSelected);
+$selInternação = internacao_stats($conn, $filtersSelected);
 $selFinanceiro = financeiro_stats($conn, $filtersSelected);
 $glosaMedPct = $selFinanceiro['valor_apresentado'] > 0 ? ($selFinanceiro['glosa_med'] / $selFinanceiro['valor_apresentado'] * 100) : 0.0;
 $glosaEnfPct = $selFinanceiro['valor_apresentado'] > 0 ? ($selFinanceiro['glosa_enf'] / $selFinanceiro['valor_apresentado'] * 100) : 0.0;
 $glosaTotalPct = $selFinanceiro['valor_apresentado'] > 0 ? ($selFinanceiro['glosa_total'] / $selFinanceiro['valor_apresentado'] * 100) : 0.0;
-$custoMedioDiaria = $selInternacao['total_diarias'] > 0 ? ($selFinanceiro['valor_apresentado'] / $selInternacao['total_diarias']) : 0.0;
+$custoMedioDiaria = $selInternação['total_diarias'] > 0 ? ($selFinanceiro['valor_apresentado'] / $selInternação['total_diarias']) : 0.0;
 ?>
 
 <link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260110">
@@ -351,7 +351,7 @@ $custoMedioDiaria = $selInternacao['total_diarias'] > 0 ? ($selFinanceiro['valor
             <select name="tipo_internacao">
                 <option value="">Todos</option>
                 <?php foreach ($tiposInt as $tipo): ?>
-                    <option value="<?= e($tipo) ?>" <?= $tipoInternacao === $tipo ? 'selected' : '' ?>>
+                    <option value="<?= e($tipo) ?>" <?= $tipoInternação === $tipo ? 'selected' : '' ?>>
                         <?= e($tipo) ?>
                     </option>
                 <?php endforeach; ?>
@@ -362,7 +362,7 @@ $custoMedioDiaria = $selInternacao['total_diarias'] > 0 ? ($selFinanceiro['valor
             <select name="modo_internacao">
                 <option value="">Todos</option>
                 <?php foreach ($modos as $modo): ?>
-                    <option value="<?= e($modo) ?>" <?= $modoInternacao === $modo ? 'selected' : '' ?>>
+                    <option value="<?= e($modo) ?>" <?= $modoInternação === $modo ? 'selected' : '' ?>>
                         <?= e($modo) ?>
                     </option>
                 <?php endforeach; ?>

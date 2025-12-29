@@ -16,8 +16,8 @@ $dataIni = filter_input(INPUT_GET, 'data_ini') ?: date('Y-m-d', strtotime('-120 
 $dataFim = filter_input(INPUT_GET, 'data_fim') ?: $hoje;
 $internado = trim((string)(filter_input(INPUT_GET, 'internado') ?? ''));
 $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: null;
-$tipoInternacao = trim((string)(filter_input(INPUT_GET, 'tipo_internacao') ?? ''));
-$modoAdmissao = trim((string)(filter_input(INPUT_GET, 'modo_admissao') ?? ''));
+$tipoInternação = trim((string)(filter_input(INPUT_GET, 'tipo_internacao') ?? ''));
+$modoAdmissão = trim((string)(filter_input(INPUT_GET, 'modo_admissao') ?? ''));
 $internadoUti = trim((string)(filter_input(INPUT_GET, 'internado_uti') ?? ''));
 
 $hospitais = $conn->query("SELECT id_hospital, nome_hosp FROM tb_hospital ORDER BY nome_hosp")
@@ -40,13 +40,13 @@ if ($hospitalId) {
     $where .= " AND i.fk_hospital_int = :hospital_id";
     $params[':hospital_id'] = $hospitalId;
 }
-if ($tipoInternacao !== '') {
+if ($tipoInternação !== '') {
     $where .= " AND i.tipo_admissao_int = :tipo";
-    $params[':tipo'] = $tipoInternacao;
+    $params[':tipo'] = $tipoInternação;
 }
-if ($modoAdmissao !== '') {
+if ($modoAdmissão !== '') {
     $where .= " AND i.modo_internacao_int = :modo";
-    $params[':modo'] = $modoAdmissao;
+    $params[':modo'] = $modoAdmissão;
 }
 if ($internadoUti !== '') {
     $where .= " AND u.internado_uti = :internado_uti";
@@ -123,10 +123,10 @@ foreach ($params as $key => $value) {
 }
 $stmt->execute();
 $kpis = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
-$totalInternacoes = (int)($kpis['total_internacoes'] ?? 0);
-$totalDiarias = (int)($kpis['total_diarias'] ?? 0);
+$totalInternações = (int)($kpis['total_internacoes'] ?? 0);
+$totalDiárias = (int)($kpis['total_diarias'] ?? 0);
 $maiorPermanencia = (int)($kpis['maior_permanencia'] ?? 0);
-$mp = $totalInternacoes > 0 ? round($totalDiarias / $totalInternacoes, 1) : 0.0;
+$mp = $totalInternações > 0 ? round($totalDiárias / $totalInternações, 1) : 0.0;
 
 function labelsAndValues(array $rows): array
 {
@@ -186,18 +186,18 @@ function labelsAndValues(array $rows): array
             <select name="tipo_internacao">
                 <option value="">Todos</option>
                 <?php foreach ($tiposInt as $tipo): ?>
-                    <option value="<?= e($tipo) ?>" <?= $tipoInternacao === $tipo ? 'selected' : '' ?>>
+                    <option value="<?= e($tipo) ?>" <?= $tipoInternação === $tipo ? 'selected' : '' ?>>
                         <?= e($tipo) ?>
                     </option>
                 <?php endforeach; ?>
             </select>
         </div>
         <div class="bi-filter">
-            <label>Modo Admissao</label>
+            <label>Modo Admissão</label>
             <select name="modo_admissao">
                 <option value="">Todos</option>
                 <?php foreach ($modosAdm as $modo): ?>
-                    <option value="<?= e($modo) ?>" <?= $modoAdmissao === $modo ? 'selected' : '' ?>>
+                    <option value="<?= e($modo) ?>" <?= $modoAdmissão === $modo ? 'selected' : '' ?>>
                         <?= e($modo) ?>
                     </option>
                 <?php endforeach; ?>
@@ -267,11 +267,11 @@ function labelsAndValues(array $rows): array
             <div class="bi-kpis">
                 <div class="bi-kpi">
                     <small>Internações</small>
-                    <strong><?= $totalInternacoes ?></strong>
+                    <strong><?= $totalInternações ?></strong>
                 </div>
                 <div class="bi-kpi">
                     <small>Diárias</small>
-                    <strong><?= $totalDiarias ?></strong>
+                    <strong><?= $totalDiárias ?></strong>
                 </div>
                 <div class="bi-kpi">
                     <small>MP</small>

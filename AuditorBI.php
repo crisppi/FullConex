@@ -83,8 +83,8 @@ $stmt = $conn->prepare($sqlStats);
 $stmt->execute($params);
 $stats = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
-$totalInternacoes = (int)($stats['total_internacoes'] ?? 0);
-$totalDiarias = (int)($stats['total_diarias'] ?? 0);
+$totalInternações = (int)($stats['total_internacoes'] ?? 0);
+$totalDiárias = (int)($stats['total_diarias'] ?? 0);
 $maiorPermanencia = (int)($stats['maior_permanencia'] ?? 0);
 $mp = (float)($stats['mp'] ?? 0);
 
@@ -221,11 +221,11 @@ function labelsAndValues(array $rows): array
             <div class="bi-kpis kpi-compact">
                 <div class="bi-kpi kpi-berry kpi-compact">
                     <small>Internações</small>
-                    <strong><?= number_format($totalInternacoes, 0, ',', '.') ?></strong>
+                    <strong><?= number_format($totalInternações, 0, ',', '.') ?></strong>
                 </div>
                 <div class="bi-kpi kpi-teal kpi-compact">
                     <small>Diárias</small>
-                    <strong><?= number_format($totalDiarias, 0, ',', '.') ?></strong>
+                    <strong><?= number_format($totalDiárias, 0, ',', '.') ?></strong>
                 </div>
                 <div class="bi-kpi kpi-indigo kpi-compact">
                     <small>MP</small>

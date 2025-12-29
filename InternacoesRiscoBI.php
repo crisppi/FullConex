@@ -188,10 +188,10 @@ foreach ($rows as $row) {
             <table class="bi-table">
                 <thead>
                     <tr>
-                        <th>Internacao</th>
+                        <th>Internação</th>
                         <th>Paciente</th>
                         <th style="min-width: 220px;">Hospital</th>
-                        <th>Dias Internacao</th>
+                        <th>Dias Internação</th>
                         <th>Dias Esperado</th>
                         <th>Ultima Visita</th>
                         <th>Dias Sem Visita</th>

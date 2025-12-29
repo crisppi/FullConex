@@ -126,8 +126,8 @@ foreach ($eventRows as $row) {
 $dateExpr = "COALESCE(NULLIF(ca.data_final_capeante,'0000-00-00'), NULLIF(ca.data_fech_capeante,'0000-00-00'), NULLIF(ca.data_create_cap,'0000-00-00'))";
 $sqlGlosa = "
     SELECT DATE_FORMAT(ref_date, '%Y-%m') AS ym,
-           SUM(COALESCE(ca.valor_glosa_total,0)) AS glosada,
-           SUM(GREATEST(COALESCE(ca.valor_apresentado_capeante,0) - COALESCE(ca.valor_glosa_total,0), 0)) AS evitada
+           SUM(COALESCE(valor_glosa_total,0)) AS glosada,
+           SUM(GREATEST(COALESCE(valor_apresentado_capeante,0) - COALESCE(valor_glosa_total,0), 0)) AS evitada
     FROM (
         SELECT ca.valor_apresentado_capeante,
                ca.valor_glosa_total,

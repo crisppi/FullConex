@@ -16,8 +16,8 @@ $dataIni = filter_input(INPUT_GET, 'data_ini') ?: date('Y-m-d', strtotime('-180 
 $dataFim = filter_input(INPUT_GET, 'data_fim') ?: $hoje;
 $internado = trim((string)(filter_input(INPUT_GET, 'internado') ?? ''));
 $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: null;
-$tipoInternacao = trim((string)(filter_input(INPUT_GET, 'tipo_internacao') ?? ''));
-$modoAdmissao = trim((string)(filter_input(INPUT_GET, 'modo_admissao') ?? ''));
+$tipoInternação = trim((string)(filter_input(INPUT_GET, 'tipo_internacao') ?? ''));
+$modoAdmissão = trim((string)(filter_input(INPUT_GET, 'modo_admissao') ?? ''));
 $uti = trim((string)(filter_input(INPUT_GET, 'uti') ?? ''));
 
 $hospitais = $conn->query("SELECT id_hospital, nome_hosp FROM tb_hospital ORDER BY nome_hosp")
@@ -40,13 +40,13 @@ if ($hospitalId) {
     $where .= " AND i.fk_hospital_int = :hospital_id";
     $params[':hospital_id'] = $hospitalId;
 }
-if ($tipoInternacao !== '') {
+if ($tipoInternação !== '') {
     $where .= " AND i.tipo_admissao_int = :tipo";
-    $params[':tipo'] = $tipoInternacao;
+    $params[':tipo'] = $tipoInternação;
 }
-if ($modoAdmissao !== '') {
+if ($modoAdmissão !== '') {
     $where .= " AND i.modo_internacao_int = :modo";
-    $params[':modo'] = $modoAdmissao;
+    $params[':modo'] = $modoAdmissão;
 }
 
 $utiJoin = "LEFT JOIN (SELECT DISTINCT fk_internacao_uti FROM tb_uti) ut ON ut.fk_internacao_uti = i.id_internacao";
@@ -77,10 +77,10 @@ foreach ($params as $key => $value) {
 }
 $stmt->execute();
 $stats = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
-$totalInternacoes = (int)($stats['total_internacoes'] ?? 0);
-$totalDiarias = (int)($stats['total_diarias'] ?? 0);
+$totalInternações = (int)($stats['total_internacoes'] ?? 0);
+$totalDiárias = (int)($stats['total_diarias'] ?? 0);
 $maiorPermanencia = (int)($stats['maior_permanencia'] ?? 0);
-$mp = $totalInternacoes > 0 ? round($totalDiarias / $totalInternacoes, 1) : 0;
+$mp = $totalInternações > 0 ? round($totalDiárias / $totalInternações, 1) : 0;
 
 $sqlHosp = "
     SELECT
@@ -169,7 +169,7 @@ $distIdade = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
 $labelsHosp = array_map(fn($r) => $r['hospital'] ?: 'Sem hospital', $hospRows);
 $valsIntern = array_map(fn($r) => (int)$r['total_internacoes'], $hospRows);
-$valsDiarias = array_map(fn($r) => (int)$r['total_diarias'], $hospRows);
+$valsDiárias = array_map(fn($r) => (int)$r['total_diarias'], $hospRows);
 $valsMp = array_map(fn($r) => round((float)$r['mp'], 1), $hospRows);
 
 function distToChart(array $rows, string $labelKey): array
@@ -226,7 +226,7 @@ $idadeChart = distToChart($distIdade, 'faixa');
             <select name="tipo_internacao">
                 <option value="">Todos</option>
                 <?php foreach ($tiposInt as $tipo): ?>
-                    <option value="<?= e($tipo) ?>" <?= $tipoInternacao === $tipo ? 'selected' : '' ?>>
+                    <option value="<?= e($tipo) ?>" <?= $tipoInternação === $tipo ? 'selected' : '' ?>>
                         <?= e($tipo) ?>
                     </option>
                 <?php endforeach; ?>
@@ -237,7 +237,7 @@ $idadeChart = distToChart($distIdade, 'faixa');
             <select name="modo_admissao">
                 <option value="">Todos</option>
                 <?php foreach ($modosAdm as $modo): ?>
-                    <option value="<?= e($modo) ?>" <?= $modoAdmissao === $modo ? 'selected' : '' ?>>
+                    <option value="<?= e($modo) ?>" <?= $modoAdmissão === $modo ? 'selected' : '' ?>>
                         <?= e($modo) ?>
                     </option>
                 <?php endforeach; ?>
@@ -266,8 +266,8 @@ $idadeChart = distToChart($distIdade, 'faixa');
 
     <div class="bi-panel">
         <div class="bi-kpis">
-            <div class="bi-kpi"><small>Diárias</small><strong><?= $totalDiarias ?></strong></div>
-            <div class="bi-kpi"><small>Internações</small><strong><?= $totalInternacoes ?></strong></div>
+            <div class="bi-kpi"><small>Diárias</small><strong><?= $totalDiárias ?></strong></div>
+            <div class="bi-kpi"><small>Internações</small><strong><?= $totalInternações ?></strong></div>
             <div class="bi-kpi"><small>Maior permanência</small><strong><?= $maiorPermanencia ?></strong></div>
             <div class="bi-kpi"><small>MP</small><strong><?= $mp ?></strong></div>
         </div>
@@ -311,7 +311,7 @@ $idadeChart = distToChart($distIdade, 'faixa');
 <script>
 const labelsHosp = <?= json_encode($labelsHosp) ?>;
 const valsIntern = <?= json_encode($valsIntern) ?>;
-const valsDiarias = <?= json_encode($valsDiarias) ?>;
+const valsDiárias = <?= json_encode($valsDiárias) ?>;
 const valsMp = <?= json_encode($valsMp) ?>;
 
 function barMulti(ctx) {
@@ -321,7 +321,7 @@ function barMulti(ctx) {
             labels: labelsHosp,
             datasets: [
                 { label: 'Internações', data: valsIntern, backgroundColor: 'rgba(141, 208, 255, 0.6)' },
-                { label: 'Diárias', data: valsDiarias, backgroundColor: 'rgba(208, 113, 176, 0.6)' },
+                { label: 'Diárias', data: valsDiárias, backgroundColor: 'rgba(208, 113, 176, 0.6)' },
                 { label: 'MP', data: valsMp, backgroundColor: 'rgba(111, 223, 194, 0.6)' }
             ]
         },

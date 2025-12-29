@@ -28,7 +28,7 @@ function hasSinistroData(array $sinistro): bool
         || ($sinistro['valor_glosa'] ?? 0) > 0;
 }
 
-function hasInternacaoData(array $internacao): bool
+function hasInternaçãoData(array $internacao): bool
 {
     return ($internacao['total_internacoes'] ?? 0) > 0
         || ($internacao['total_diarias'] ?? 0) > 0;
@@ -50,14 +50,14 @@ function pctOrNull($current, $previous): ?float
 
 $ano = (int)(filter_input(INPUT_GET, 'ano', FILTER_VALIDATE_INT) ?: date('Y'));
 $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: null;
-$tipoAdmissao = trim((string)(filter_input(INPUT_GET, 'tipo_admissao') ?? ''));
+$tipoAdmissão = trim((string)(filter_input(INPUT_GET, 'tipo_admissao') ?? ''));
 
 $hospitais = $conn->query("SELECT id_hospital, nome_hosp FROM tb_hospital ORDER BY nome_hosp")
     ->fetchAll(PDO::FETCH_ASSOC);
 $tiposAdm = $conn->query("SELECT DISTINCT tipo_admissao_int FROM tb_internacao WHERE tipo_admissao_int IS NOT NULL AND tipo_admissao_int <> '' ORDER BY tipo_admissao_int")
     ->fetchAll(PDO::FETCH_COLUMN);
 
-function sinistroTotals(PDO $conn, int $ano, ?int $hospitalId, string $tipoAdmissao): array
+function sinistroTotals(PDO $conn, int $ano, ?int $hospitalId, string $tipoAdmissão): array
 {
     $dateExpr = "COALESCE(NULLIF(ca.data_inicial_capeante,'0000-00-00'), NULLIF(ca.data_digit_capeante,'0000-00-00'), NULLIF(ca.data_fech_capeante,'0000-00-00'))";
     $where = "ref_date IS NOT NULL AND ref_date <> '0000-00-00' AND YEAR(ref_date) = :ano";
@@ -66,9 +66,9 @@ function sinistroTotals(PDO $conn, int $ano, ?int $hospitalId, string $tipoAdmis
         $where .= " AND fk_hospital_int = :hospital_id";
         $params[':hospital_id'] = $hospitalId;
     }
-    if ($tipoAdmissao !== '') {
+    if ($tipoAdmissão !== '') {
         $where .= " AND tipo_admissao_int = :tipo";
-        $params[':tipo'] = $tipoAdmissao;
+        $params[':tipo'] = $tipoAdmissão;
     }
 
     $sql = "
@@ -110,7 +110,7 @@ function sinistroTotals(PDO $conn, int $ano, ?int $hospitalId, string $tipoAdmis
     ];
 }
 
-function internacaoStats(PDO $conn, int $ano, ?int $hospitalId, string $tipoAdmissao): array
+function internacaoStats(PDO $conn, int $ano, ?int $hospitalId, string $tipoAdmissão): array
 {
     $where = "YEAR(i.data_intern_int) = :ano";
     $params = [':ano' => $ano];
@@ -118,9 +118,9 @@ function internacaoStats(PDO $conn, int $ano, ?int $hospitalId, string $tipoAdmi
         $where .= " AND i.fk_hospital_int = :hospital_id";
         $params[':hospital_id'] = $hospitalId;
     }
-    if ($tipoAdmissao !== '') {
+    if ($tipoAdmissão !== '') {
         $where .= " AND i.tipo_admissao_int = :tipo";
-        $params[':tipo'] = $tipoAdmissao;
+        $params[':tipo'] = $tipoAdmissão;
     }
 
     $sql = "
@@ -142,18 +142,18 @@ function internacaoStats(PDO $conn, int $ano, ?int $hospitalId, string $tipoAdmi
     $stmt->execute();
     $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
-    $totalInternacoes = (int)($row['total_internacoes'] ?? 0);
-    $totalDiarias = (int)($row['total_diarias'] ?? 0);
-    $mp = $totalInternacoes > 0 ? round($totalDiarias / $totalInternacoes, 1) : 0.0;
+    $totalInternações = (int)($row['total_internacoes'] ?? 0);
+    $totalDiárias = (int)($row['total_diarias'] ?? 0);
+    $mp = $totalInternações > 0 ? round($totalDiárias / $totalInternações, 1) : 0.0;
 
     return [
-        'total_internacoes' => $totalInternacoes,
-        'total_diarias' => $totalDiarias,
+        'total_internacoes' => $totalInternações,
+        'total_diarias' => $totalDiárias,
         'mp' => $mp,
     ];
 }
 
-function utiStats(PDO $conn, int $ano, ?int $hospitalId, string $tipoAdmissao): array
+function utiStats(PDO $conn, int $ano, ?int $hospitalId, string $tipoAdmissão): array
 {
     $where = "YEAR(data_intern_int) = :ano";
     $params = [':ano' => $ano];
@@ -161,9 +161,9 @@ function utiStats(PDO $conn, int $ano, ?int $hospitalId, string $tipoAdmissao): 
         $where .= " AND fk_hospital_int = :hospital_id";
         $params[':hospital_id'] = $hospitalId;
     }
-    if ($tipoAdmissao !== '') {
+    if ($tipoAdmissão !== '') {
         $where .= " AND tipo_admissao_int = :tipo";
-        $params[':tipo'] = $tipoAdmissao;
+        $params[':tipo'] = $tipoAdmissão;
     }
 
     $sql = "
@@ -193,25 +193,25 @@ function utiStats(PDO $conn, int $ano, ?int $hospitalId, string $tipoAdmissao): 
     $stmt->execute();
     $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
-    $totalInternacoes = (int)($row['total_internacoes_uti'] ?? 0);
-    $totalDiarias = (int)($row['total_diarias_uti'] ?? 0);
-    $mp = $totalInternacoes > 0 ? round($totalDiarias / $totalInternacoes, 1) : 0.0;
+    $totalInternações = (int)($row['total_internacoes_uti'] ?? 0);
+    $totalDiárias = (int)($row['total_diarias_uti'] ?? 0);
+    $mp = $totalInternações > 0 ? round($totalDiárias / $totalInternações, 1) : 0.0;
 
     return [
-        'total_internacoes' => $totalInternacoes,
-        'total_diarias' => $totalDiarias,
+        'total_internacoes' => $totalInternações,
+        'total_diarias' => $totalDiárias,
         'mp' => $mp,
     ];
 }
 
-$sinistroAtual = sinistroTotals($conn, $ano, $hospitalId, $tipoAdmissao);
-$sinistroPrev = sinistroTotals($conn, $ano - 1, $hospitalId, $tipoAdmissao);
+$sinistroAtual = sinistroTotals($conn, $ano, $hospitalId, $tipoAdmissão);
+$sinistroPrev = sinistroTotals($conn, $ano - 1, $hospitalId, $tipoAdmissão);
 
-$internacaoAtual = internacaoStats($conn, $ano, $hospitalId, $tipoAdmissao);
-$internacaoPrev = internacaoStats($conn, $ano - 1, $hospitalId, $tipoAdmissao);
+$internacaoAtual = internacaoStats($conn, $ano, $hospitalId, $tipoAdmissão);
+$internacaoPrev = internacaoStats($conn, $ano - 1, $hospitalId, $tipoAdmissão);
 
-$utiAtual = utiStats($conn, $ano, $hospitalId, $tipoAdmissao);
-$utiPrev = utiStats($conn, $ano - 1, $hospitalId, $tipoAdmissao);
+$utiAtual = utiStats($conn, $ano, $hospitalId, $tipoAdmissão);
+$utiPrev = utiStats($conn, $ano - 1, $hospitalId, $tipoAdmissão);
 
 $glosaPct = $sinistroAtual['valor_apresentado'] > 0
     ? ($sinistroAtual['valor_glosa'] / $sinistroAtual['valor_apresentado']) * 100
@@ -231,12 +231,12 @@ if ($hospitalId) {
         }
     }
 }
-$tipoLabel = $tipoAdmissao !== '' ? $tipoAdmissao : 'Todos';
+$tipoLabel = $tipoAdmissão !== '' ? $tipoAdmissão : 'Todos';
 
 $temSinistro = hasSinistroData($sinistroAtual);
-$temInternacao = hasInternacaoData($internacaoAtual);
+$temInternação = hasInternaçãoData($internacaoAtual);
 $temUti = hasUtiData($utiAtual);
-$temAlgum = $temSinistro || $temInternacao || $temUti;
+$temAlgum = $temSinistro || $temInternação || $temUti;
 ?>
 
 <link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260110">
@@ -271,11 +271,11 @@ $temAlgum = $temSinistro || $temInternacao || $temUti;
             </select>
         </div>
         <div class="bi-filter">
-            <label>Tipo admissao</label>
+            <label>Tipo admissão</label>
             <select name="tipo_admissao">
                 <option value="">Todos</option>
                 <?php foreach ($tiposAdm as $tipo): ?>
-                    <option value="<?= e($tipo) ?>" <?= $tipoAdmissao === $tipo ? 'selected' : '' ?>>
+                    <option value="<?= e($tipo) ?>" <?= $tipoAdmissão === $tipo ? 'selected' : '' ?>>
                         <?= e($tipo) ?>
                     </option>
                 <?php endforeach; ?>
@@ -288,7 +288,7 @@ $temAlgum = $temSinistro || $temInternacao || $temUti;
 
     <div class="bi-panel bi-report">
         <h3>Relatório Anual de Sinistralidade Hospitalar - <?= e($hospitalNome) ?> - (<?= e($ano) ?>)</h3>
-        <div class="bi-report-meta">Tipo admissao: <?= e($tipoLabel) ?></div>
+        <div class="bi-report-meta">Tipo admissão: <?= e($tipoLabel) ?></div>
 
         <?php if (!$temAlgum): ?>
             <p>Sem dados para o recorte selecionado.</p>
@@ -323,7 +323,7 @@ $temAlgum = $temSinistro || $temInternacao || $temUti;
         </div>
         <?php endif; ?>
 
-        <?php if ($temInternacao): ?>
+        <?php if ($temInternação): ?>
         <div class="bi-report-section">
             <h4>3. Internações Gerais</h4>
             <p>

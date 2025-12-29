@@ -15,8 +15,8 @@ $ano = (int)(filter_input(INPUT_GET, 'ano', FILTER_VALIDATE_INT) ?: date('Y'));
 $mes = (int)(filter_input(INPUT_GET, 'mes', FILTER_VALIDATE_INT) ?: 0);
 $internado = trim((string)(filter_input(INPUT_GET, 'internado') ?? ''));
 $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: null;
-$tipoInternacao = trim((string)(filter_input(INPUT_GET, 'tipo_internacao') ?? ''));
-$modoAdmissao = trim((string)(filter_input(INPUT_GET, 'modo_admissao') ?? ''));
+$tipoInternação = trim((string)(filter_input(INPUT_GET, 'tipo_internacao') ?? ''));
+$modoAdmissão = trim((string)(filter_input(INPUT_GET, 'modo_admissao') ?? ''));
 $uti = trim((string)(filter_input(INPUT_GET, 'uti') ?? ''));
 $seguradoraId = filter_input(INPUT_GET, 'seguradora_id', FILTER_VALIDATE_INT) ?: null;
 
@@ -43,13 +43,13 @@ if ($hospitalId) {
     $where .= " AND i.fk_hospital_int = :hospital_id";
     $params[':hospital_id'] = $hospitalId;
 }
-if ($tipoInternacao !== '') {
+if ($tipoInternação !== '') {
     $where .= " AND i.tipo_admissao_int = :tipo";
-    $params[':tipo'] = $tipoInternacao;
+    $params[':tipo'] = $tipoInternação;
 }
-if ($modoAdmissao !== '') {
+if ($modoAdmissão !== '') {
     $where .= " AND i.modo_internacao_int = :modo";
-    $params[':modo'] = $modoAdmissao;
+    $params[':modo'] = $modoAdmissão;
 }
 if ($seguradoraId) {
     $where .= " AND pa.fk_seguradora_pac = :seg";
@@ -85,10 +85,10 @@ foreach ($params as $key => $value) {
 }
 $stmt->execute();
 $stats = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
-$totalInternacoes = (int)($stats['total_internacoes'] ?? 0);
-$totalDiarias = (int)($stats['total_diarias'] ?? 0);
+$totalInternações = (int)($stats['total_internacoes'] ?? 0);
+$totalDiárias = (int)($stats['total_diarias'] ?? 0);
 $maiorPermanencia = (int)($stats['maior_permanencia'] ?? 0);
-$mp = $totalInternacoes > 0 ? round($totalDiarias / $totalInternacoes, 1) : 0;
+$mp = $totalInternações > 0 ? round($totalDiárias / $totalInternações, 1) : 0;
 
 $dateExpr = "COALESCE(NULLIF(ca.data_inicial_capeante,'0000-00-00'), NULLIF(ca.data_digit_capeante,'0000-00-00'), NULLIF(ca.data_fech_capeante,'0000-00-00'))";
 $whereFin = "YEAR(ref_date) = :ano";
@@ -101,13 +101,13 @@ if ($hospitalId) {
     $whereFin .= " AND fk_hospital_int = :hospital_id";
     $paramsFin[':hospital_id'] = $hospitalId;
 }
-if ($tipoInternacao !== '') {
+if ($tipoInternação !== '') {
     $whereFin .= " AND tipo_admissao_int = :tipo";
-    $paramsFin[':tipo'] = $tipoInternacao;
+    $paramsFin[':tipo'] = $tipoInternação;
 }
-if ($modoAdmissao !== '') {
+if ($modoAdmissão !== '') {
     $whereFin .= " AND modo_internacao_int = :modo";
-    $paramsFin[':modo'] = $modoAdmissao;
+    $paramsFin[':modo'] = $modoAdmissão;
 }
 if ($seguradoraId) {
     $whereFin .= " AND fk_seguradora_pac = :seg";
@@ -199,7 +199,7 @@ $labels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','De
             <select name="tipo_internacao">
                 <option value="">Todos</option>
                 <?php foreach ($tiposInt as $tipo): ?>
-                    <option value="<?= e($tipo) ?>" <?= $tipoInternacao === $tipo ? 'selected' : '' ?>>
+                    <option value="<?= e($tipo) ?>" <?= $tipoInternação === $tipo ? 'selected' : '' ?>>
                         <?= e($tipo) ?>
                     </option>
                 <?php endforeach; ?>
@@ -210,7 +210,7 @@ $labels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','De
             <select name="modo_admissao">
                 <option value="">Todos</option>
                 <?php foreach ($modosAdm as $modo): ?>
-                    <option value="<?= e($modo) ?>" <?= $modoAdmissao === $modo ? 'selected' : '' ?>>
+                    <option value="<?= e($modo) ?>" <?= $modoAdmissão === $modo ? 'selected' : '' ?>>
                         <?= e($modo) ?>
                     </option>
                 <?php endforeach; ?>
@@ -255,8 +255,8 @@ $labels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','De
 
     <div class="bi-panel">
         <div class="bi-kpis">
-            <div class="bi-kpi"><small>Internações</small><strong><?= $totalInternacoes ?></strong></div>
-            <div class="bi-kpi"><small>Diárias</small><strong><?= $totalDiarias ?></strong></div>
+            <div class="bi-kpi"><small>Internações</small><strong><?= $totalInternações ?></strong></div>
+            <div class="bi-kpi"><small>Diárias</small><strong><?= $totalDiárias ?></strong></div>
             <div class="bi-kpi"><small>MP</small><strong><?= $mp ?></strong></div>
             <div class="bi-kpi"><small>Maior permanência</small><strong><?= $maiorPermanencia ?></strong></div>
         </div>
