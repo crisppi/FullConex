@@ -1,18 +1,20 @@
 <?php
 
-if (!isset($_SESSION)) {
+if (session_status() === PHP_SESSION_NONE) {
     session_start();
-} else {
 }
 
-if (!isset($_SESSION['email_user'])) {
+if (empty($_SESSION['email_user'])) {
     header('location:index.php');
+    exit;
 }
 
-if ($_SESSION['ativo'] != 's') {
+$ativo = $_SESSION['ativo'] ?? null;
+if ($ativo !== 's') {
     $erro_login = "Usuário inativo";
     $_SESSION['mensagem'] = $erro_login;
     header('location:index.php');
+    exit;
 } else {
 };
 if (!defined('SKIP_HEADER') || !SKIP_HEADER) {

@@ -16,6 +16,12 @@ class Internacao
   public $data_lancamento_int;
   public $data_visita_int;
   public $timer_int;
+  public $forecast_total_days;
+  public $forecast_lower_days;
+  public $forecast_upper_days;
+  public $forecast_generated_at;
+  public $forecast_model;
+  public $forecast_confidence;
   public $especialidade_int;
   public $fk_antecedente_int;
   public $fk_patologia_int;

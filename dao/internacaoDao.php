@@ -104,6 +104,12 @@ class internacaoDAO implements internacaoDAOInterface
         $internacao->data_create_int = $data["data_create_int"];
         $internacao->usuario_create_int = $data["usuario_create_int"];
         $internacao->timer_int = $data["timer_int"] ?? null;
+        $internacao->forecast_total_days = $data["forecast_total_days"] ?? null;
+        $internacao->forecast_lower_days = $data["forecast_lower_days"] ?? null;
+        $internacao->forecast_upper_days = $data["forecast_upper_days"] ?? null;
+        $internacao->forecast_generated_at = $data["forecast_generated_at"] ?? null;
+        $internacao->forecast_model = $data["forecast_model"] ?? null;
+        $internacao->forecast_confidence = $data["forecast_confidence"] ?? null;
         $internacao->titular_int = $data["titular_int"];
         $internacao->especialidade_int = $data["especialidade_int"];
         $internacao->grupo_patologia_int = $data["grupo_patologia_int"];

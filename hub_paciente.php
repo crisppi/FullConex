@@ -11,6 +11,7 @@ include_once("dao/estipulanteDao.php");
 
 include_once("models/paciente.php");
 include_once("dao/pacienteDao.php");
+require_once("app/services/ReadmissionRiskService.php");
 
 
 include_once("models/internacao.php");      // se existir
@@ -81,6 +82,86 @@ function formatDateBr($dateYmd)
   return $dt ? $dt->format('d/m/Y') : $dateYmd;
 }
 
+function calcularIdadeAnos(?string $dataNasc): int
+{
+  if (!$dataNasc || $dataNasc === '0000-00-00') return 0;
+  try {
+    $dn = new DateTime($dataNasc);
+    $hoje = new DateTime();
+    return (int)$dn->diff($hoje)->y;
+  } catch (Throwable $e) {
+    return 0;
+  }
+}
+
+function logisticProbFromScore(float $score): float
+{
+  $x = ($score - 50) / 10;
+  return round(1 / (1 + exp(-$x)), 3);
+}
+
+function fallbackRiskFromIndicadores(array $pacienteRow, array $indicadores): ?array
+{
+  $totalIntern = (int)($indicadores['total_internacoes'] ?? 0);
+  if ($totalIntern <= 0) return null;
+
+  $idade = calcularIdadeAnos($pacienteRow['data_nasc_pac'] ?? null);
+  $score = 12;
+  if ($idade >= 65) $score += 18;
+  elseif ($idade >= 40) $score += 12;
+  elseif ($idade >= 18) $score += 8;
+  else $score += 6;
+
+  $anteced = (int)($indicadores['antecedentes'] ?? 0);
+  $score += min(18, $anteced * 4);
+
+  $internPrev = max(0, $totalIntern - 1);
+  $score += min(20, $internPrev * 6);
+
+  $mediaDias = (float)($indicadores['media_permanencia'] ?? 0);
+  if ($mediaDias >= 15) $score += 12;
+  elseif ($mediaDias >= 8) $score += 8;
+
+  if ((int)($indicadores['long_stay'] ?? 0) > 0) {
+    $score += 6;
+  }
+  if ((int)($indicadores['eventos_adversos'] ?? 0) > 0) {
+    $score += min(12, $indicadores['eventos_adversos'] * 4);
+  }
+
+  $score = max(5, min($score, 95));
+  $prob = logisticProbFromScore($score);
+  $riskLevel = $prob >= 0.7 ? 'alto' : ($prob >= 0.45 ? 'moderado' : 'baixo');
+  $recommendations = [];
+  if ($riskLevel === 'alto') {
+    $recommendations[] = 'Visita presencial prioritária e revisão do plano terapêutico.';
+    $recommendations[] = 'Confirmar rede de apoio para continuidade domiciliar.';
+  } elseif ($riskLevel === 'moderado') {
+    $recommendations[] = 'Programar visita extra ou telemonitoramento.';
+  } else {
+    $recommendations[] = 'Continuar rotina padrão e monitorar eventos.';
+  }
+
+  $expParts = [];
+  $expParts[] = "Idade {$idade} anos";
+  $expParts[] = "{$anteced} antecedente(s)";
+  $expParts[] = "{$totalIntern} internações históricas";
+  if ($mediaDias > 0) $expParts[] = "média de permanência {$mediaDias} dias";
+  if ((int)($indicadores['eventos_adversos'] ?? 0) > 0) $expParts[] = "eventos adversos registrados";
+
+  return [
+    'available' => true,
+    'fallback' => true,
+    'probability' => $prob,
+    'risk_level' => $riskLevel,
+    'threshold' => 0.55,
+    'internacao_referencia' => null,
+    'explanation' => 'Estimativa baseada em histórico consolidado: ' . implode(', ', $expParts) . '.',
+    'recommendations' => $recommendations,
+    'message' => 'Estimativa gerada pelo histórico do paciente.'
+  ];
+}
+
 // Campos formatados
 $cpf_fmt = formatCpf($p['cpf_pac'] ?? '');
 $tel1_fmt = formatPhone($p['telefone01_pac'] ?? '');
@@ -114,6 +195,95 @@ $ini = '';
 if ($nome_str) {
   $parts = preg_split('/\s+/', $nome_str);
   $ini = strtoupper(substr($parts[0] ?? '', 0, 1) . substr($parts[1] ?? '', 0, 1));
+}
+
+$riskOverview = ['available' => false];
+$riskInternacaoId = null;
+try {
+  $stmtLast = $conn->prepare("
+      SELECT id_internacao
+        FROM tb_internacao
+       WHERE fk_paciente_int = :pac
+       ORDER BY COALESCE(data_intern_int, '0000-00-00') DESC, id_internacao DESC
+       LIMIT 1
+    ");
+  $stmtLast->bindValue(':pac', (int)$id_paciente, PDO::PARAM_INT);
+  $stmtLast->execute();
+  $riskInternacaoId = (int)($stmtLast->fetchColumn() ?: 0);
+  if ($riskInternacaoId) {
+    $riskService = new ReadmissionRiskService($conn);
+    $riskOverview = $riskService->scoreInternacao($riskInternacaoId);
+    $riskOverview['internacao_referencia'] = $riskInternacaoId;
+  } else {
+    $riskOverview = [
+      'available' => false,
+      'message' => 'Ainda não há internações para estimar o risco.'
+    ];
+  }
+} catch (Throwable $e) {
+  $riskOverview = [
+    'available' => false,
+    'message' => 'Não foi possível calcular o risco de readmissão.'
+  ];
+}
+
+$indicadoresPaciente = [
+  'total_internacoes' => 0,
+  'media_permanencia' => 0.0,
+  'ultima_internacao' => null,
+  'eventos_adversos' => 0,
+  'antecedentes' => 0,
+  'long_stay' => 0
+];
+try {
+  $stmtResumo = $conn->prepare("
+      SELECT
+        COUNT(*) AS total_int,
+        AVG(GREATEST(DATEDIFF(COALESCE(al.data_alta_alt, CURRENT_DATE), ac.data_intern_int), 0)) AS media_dias,
+        MAX(ac.data_intern_int) AS ultima_data,
+        SUM(
+          CASE 
+            WHEN GREATEST(DATEDIFF(COALESCE(al.data_alta_alt, CURRENT_DATE), ac.data_intern_int), 0) >= 20
+            THEN 1 ELSE 0
+          END
+        ) AS longos
+      FROM tb_internacao ac
+      LEFT JOIN tb_alta al ON al.fk_id_int_alt = ac.id_internacao
+      WHERE ac.fk_paciente_int = :pac
+    ");
+  $stmtResumo->bindValue(':pac', (int)$id_paciente, PDO::PARAM_INT);
+  $stmtResumo->execute();
+  $rowResumo = $stmtResumo->fetch(PDO::FETCH_ASSOC) ?: [];
+  $indicadoresPaciente['total_internacoes'] = (int)($rowResumo['total_int'] ?? 0);
+  $indicadoresPaciente['media_permanencia'] = round((float)($rowResumo['media_dias'] ?? 0), 1);
+  $indicadoresPaciente['ultima_internacao'] = $rowResumo['ultima_data'] ?? null;
+  $indicadoresPaciente['long_stay'] = (int)($rowResumo['longos'] ?? 0);
+
+  $stmtEventos = $conn->prepare("
+      SELECT COUNT(*) FROM tb_gestao ge
+      INNER JOIN tb_internacao ac ON ac.id_internacao = ge.fk_internacao_ges
+      WHERE ac.fk_paciente_int = :pac
+        AND LOWER(IFNULL(ge.evento_adverso_ges,'')) = 's'
+    ");
+  $stmtEventos->bindValue(':pac', (int)$id_paciente, PDO::PARAM_INT);
+  $stmtEventos->execute();
+$indicadoresPaciente['eventos_adversos'] = (int)$stmtEventos->fetchColumn();
+
+  $stmtAnt = $conn->prepare("
+      SELECT COUNT(*) FROM tb_intern_antec WHERE fk_id_paciente = :pac
+    ");
+  $stmtAnt->bindValue(':pac', (int)$id_paciente, PDO::PARAM_INT);
+  $stmtAnt->execute();
+  $indicadoresPaciente['antecedentes'] = (int)$stmtAnt->fetchColumn();
+} catch (Throwable $e) {
+  // Mantém valores padrão silenciosamente
+}
+
+if (empty($riskOverview['available'])) {
+  $fallback = fallbackRiskFromIndicadores($p, $indicadoresPaciente);
+  if ($fallback) {
+    $riskOverview = $fallback;
+  }
 }
 ?>
 <!-- Você já tem Bootstrap do header.php. Aqui só estrutura da página -->
@@ -160,6 +330,18 @@ if ($nome_str) {
             <?php endif; ?>
 
           </div>
+          <?php if (!empty($riskOverview['available'])): ?>
+            <?php
+              $badgePalette = $riskColor[$riskLevel ?: 'baixo'];
+              $badgeInfo = $complexMap[$riskLevel ?: 'baixo'];
+            ?>
+            <div class="mt-2">
+              <span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:.8rem;font-weight:600;background:<?= $badgePalette['bg'] ?>;color:<?= $badgePalette['text'] ?>;border:1px solid <?= $badgePalette['border'] ?>;">
+                <i class="fa-solid fa-bolt"></i>
+                <?= $badgeInfo['label'] ?> — <?= $badgeInfo['prioridade'] ?>
+              </span>
+            </div>
+          <?php endif; ?>
         </div>
       </div>
       <div class="d-flex flex-column text-end">
@@ -172,8 +354,107 @@ if ($nome_str) {
           <?= htmlspecialchars($endereco_fmt) ?>
         </div>
       </div>
+  </div>
+</div>
+
+<?php
+$riskLevel = strtolower((string)($riskOverview['risk_level'] ?? ''));
+$riskColor = [
+  'alto' => ['bg' => '#ffe0e3', 'border' => '#c9184a', 'text' => '#5a071d'],
+  'moderado' => ['bg' => '#fff5d6', 'border' => '#f0a500', 'text' => '#6a4900'],
+  'baixo' => ['bg' => '#e6fff4', 'border' => '#0f8f5d', 'text' => '#065238']
+];
+$palette = $riskColor[$riskLevel ?: 'baixo'];
+$probPct = number_format((float)($riskOverview['probability'] ?? 0) * 100, 1, ',', '.');
+$thresholdPct = number_format((float)($riskOverview['threshold'] ?? 0.55) * 100, 0);
+$ultimaInternFmt = $indicadoresPaciente['ultima_internacao']
+  ? formatDateBr($indicadoresPaciente['ultima_internacao'])
+  : '—';
+$complexMap = [
+  'alto' => ['label' => 'Alta complexidade', 'prioridade' => 'Visita prioritária (<24h)'],
+  'moderado' => ['label' => 'Complexidade intermediária', 'prioridade' => 'Reforçar visita / contato'],
+  'baixo' => ['label' => 'Baixa complexidade', 'prioridade' => 'Rotina usual']
+];
+$complexInfo = $complexMap[$riskLevel ?: 'baixo'];
+?>
+
+<div class="row g-3 mb-3">
+  <div class="col-12 col-lg-5">
+    <div class="card shadow-sm h-100" style="border-radius:16px;border:2px solid <?= $palette['border'] ?>;background:<?= $palette['bg'] ?>;color:<?= $palette['text'] ?>;">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <small class="text-uppercase fw-semibold" style="letter-spacing:.08em;color:<?= $palette['text'] ?>;">Indicador de readmissão</small>
+            <?php if (!empty($riskOverview['available'])): ?>
+              <div style="font-size:2.6rem;font-weight:700;line-height:1;"><?= $probPct ?>%</div>
+              <div class="small">
+                Nível <?= strtoupper($riskLevel ?: 'BAIXO') ?> • limiar <?= $thresholdPct ?>%
+              </div>
+              <?php $refIntern = $riskOverview['internacao_referencia'] ?? null; ?>
+              <div class="small">
+                Ref. internação <?= $refIntern ? '#' . (int)$refIntern : '—' ?>
+              </div>
+              <div class="mt-2">
+                <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;font-weight:600;background:rgba(255,255,255,.55);color:<?= $palette['text'] ?>;border:1px solid rgba(0,0,0,.05);">
+                  <i class="fa-solid fa-triangle-exclamation"></i>
+                  <span><?= $complexInfo['label'] ?> · <?= $complexInfo['prioridade'] ?></span>
+                </span>
+              </div>
+            <?php else: ?>
+              <div class="small mt-2"><?= htmlspecialchars($riskOverview['message'] ?? 'Sem dados suficientes.', ENT_QUOTES, 'UTF-8') ?></div>
+            <?php endif; ?>
+          </div>
+          <i class="fa-solid fa-chart-line" style="font-size:1.8rem;"></i>
+        </div>
+        <?php if (!empty($riskOverview['available'])): ?>
+          <div class="small mb-2 text-dark" style="opacity:.85;">
+            <?= htmlspecialchars($riskOverview['explanation'] ?? '', ENT_QUOTES, 'UTF-8') ?>
+          </div>
+          <?php if (!empty($riskOverview['recommendations']) && is_array($riskOverview['recommendations'])): ?>
+            <ul class="small mb-0 ps-3">
+              <?php foreach (array_slice($riskOverview['recommendations'], 0, 3) as $rec): ?>
+                <li><?= htmlspecialchars($rec, ENT_QUOTES, 'UTF-8') ?></li>
+              <?php endforeach; ?>
+            </ul>
+          <?php endif; ?>
+        <?php endif; ?>
+      </div>
     </div>
   </div>
+  <div class="col-12 col-lg-7">
+    <div class="card shadow-sm h-100" style="border-radius:16px;">
+      <div class="card-body">
+        <small class="text-uppercase text-muted fw-semibold" style="letter-spacing:.08em;">Indicadores clínicos</small>
+        <div class="row mt-2 gy-3 text-secondary fw-semibold">
+          <div class="col-sm-6 col-xl-4">
+            <div class="small text-muted">Total de internações</div>
+            <div style="font-size:1.4rem;"><?= (int)$indicadoresPaciente['total_internacoes'] ?></div>
+          </div>
+          <div class="col-sm-6 col-xl-4">
+            <div class="small text-muted">Média de permanência</div>
+            <div style="font-size:1.4rem;"><?= number_format($indicadoresPaciente['media_permanencia'], 1, ',', '.') ?> dias</div>
+          </div>
+          <div class="col-sm-6 col-xl-4">
+            <div class="small text-muted">Longa permanência (&ge;20d)</div>
+            <div style="font-size:1.4rem;"><?= (int)$indicadoresPaciente['long_stay'] ?></div>
+          </div>
+          <div class="col-sm-6 col-xl-4">
+            <div class="small text-muted">Eventos adversos</div>
+            <div style="font-size:1.4rem;"><?= (int)$indicadoresPaciente['eventos_adversos'] ?></div>
+          </div>
+          <div class="col-sm-6 col-xl-4">
+            <div class="small text-muted">Antecedentes registrados</div>
+            <div style="font-size:1.4rem;"><?= (int)$indicadoresPaciente['antecedentes'] ?></div>
+          </div>
+          <div class="col-sm-6 col-xl-4">
+            <div class="small text-muted">Última internação</div>
+            <div style="font-size:1.4rem;"><?= htmlspecialchars($ultimaInternFmt) ?></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
   <!-- Abas -->
   <div class="card shadow-sm" style="border-radius:14px;">

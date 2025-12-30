@@ -127,8 +127,7 @@ if ($type === "create") {
     $tipo_admissao_int = filter_input(INPUT_POST, "tipo_admissao_int");
     $data_visita_int = filter_input(INPUT_POST, "data_visita_int") ?: null;
     $data_intern_int = filter_input(INPUT_POST, "data_intern_int") ?: null;
-    $data_lancamento_int_input = $_POST['data_lancamento_int'] ?? null;
-    $data_lancamento_int = normalizeDateTimeInput($data_lancamento_int_input) ?: date('Y-m-d H:i:s');
+    $data_lancamento_int = date('Y-m-d H:i:s');
     $especialidade_int = filter_input(INPUT_POST, "especialidade_int");
     $titular_int = filter_input(INPUT_POST, "titular_int");
 
@@ -431,8 +430,10 @@ if ($type === "create") {
             if (is_array($antecedentes)) {
                 foreach ($antecedentes as $antecedenteData) {
                     try {
-                        // se seu buildintern_antec precisar do fk da internação, injete aqui:
-                        $antecedenteData['fk_id_int'] = $lastId; // [FK:$lastId] — ajuste conforme seu modelo
+                        $antecedenteData['fk_internacao_ant_int'] = $lastId;
+                        if (empty($antecedenteData['fk_id_paciente']) && !empty($fk_paciente_int)) {
+                            $antecedenteData['fk_id_paciente'] = $fk_paciente_int;
+                        }
                         $intern_antec = $internAntecedenteDao->buildintern_antec($antecedenteData);
                         $internAntecedenteDao->create($intern_antec);
                     } catch (Exception $e) {
@@ -640,8 +641,6 @@ if ($type == "update") {
     $tipo_admissao_int = filter_input(INPUT_POST, "tipo_admissao_int");
     $data_visita_int = filter_input(INPUT_POST, "data_visita_int") ?: null;
     $data_intern_int = filter_input(INPUT_POST, "data_intern_int") ?: null;
-    $data_lancamento_int_input = $_POST['data_lancamento_int'] ?? null;
-    $data_lancamento_int = normalizeDateTimeInput($data_lancamento_int_input);
     $especialidade_int = filter_input(INPUT_POST, "especialidade_int");
     $titular_int = filter_input(INPUT_POST, "titular_int");
     $crm_int = filter_input(INPUT_POST, "crm_int");
@@ -727,6 +726,10 @@ if ($type == "update") {
     $internacao->grupo_patologia_int = $grupo_patologia_int;
     $internacao->data_visita_int = $data_visita_int;
     $internacao->data_intern_int = $data_intern_int;
+    $registroAtualInternacao = $id_internacao ? $internacaoDao->findById($id_internacao) : null;
+    $data_lancamento_int = $registroAtualInternacao && !empty($registroAtualInternacao->data_lancamento_int)
+        ? $registroAtualInternacao->data_lancamento_int
+        : null;
     $internacao->data_lancamento_int = $data_lancamento_int;
     $internacao->especialidade_int = $especialidade_int;
     $internacao->titular_int = $titular_int;

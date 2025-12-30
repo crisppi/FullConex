@@ -22,7 +22,11 @@
                     <a href="#sobre">Sobre</a>
                     <a href="#diferenciais">Diferenciais</a>
                     <a href="#fluxo">Fluxo</a>
+<<<<<<< Updated upstream
                     <a href="#modulos">Módulos</a>
+=======
+                    <a href="./inteligencia.php">Inteligência</a>
+>>>>>>> Stashed changes
                     <a href="#contato">Contato</a>
                 </div>
                 <a class="btn btn--ghost" href="../index.php">Entrar no sistema</a>

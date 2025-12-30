@@ -1,19 +1,55 @@
 <?php
 include_once("check_logado.php");
 include_once("globals.php");
-include_once("templates/header.php");
 include_once("models/mensagem.php");
 require_once("dao/mensagemDao.php");
 require_once("dao/usuarioDao.php");
+require_once("app/services/AssistenteVirtualService.php");
+
 $de_usuario = $_SESSION['id_usuario'];
-$para_usuario = isset($_GET['para_usuario']) ? $_GET['para_usuario'] : null;
+$para_usuario = isset($_GET['para_usuario']) ? (int) $_GET['para_usuario'] : null;
+
+$assistantService = new AssistenteVirtualService($conn, $BASE_URL);
+$assistantId = $assistantService->getAssistantUserId();
+$assistantSummary = $assistantService->getAssistantSummary();
+
+if ($para_usuario === null) {
+    $para_usuario = $assistantId;
+}
 
 $mensagemDao = new mensagemDAO($conn, $BASE_URL);
 $userDao = new UserDAO($conn, $BASE_URL);
+$assistantUserProfile = $userDao->findById_user($assistantId);
 $users = $userDao->findAllMensagens($de_usuario);
+
+$assistantInList = false;
+foreach ($users as $user) {
+    if ((int) $user['id_usuario'] === $assistantId) {
+        $assistantInList = true;
+        break;
+    }
+}
+
+if (!$assistantInList) {
+    $users = array_merge([[
+        'id_usuario' => $assistantId,
+        'usuario_user' => $assistantUserProfile ? $assistantUserProfile->usuario_user : $assistantSummary['titulo'],
+        'foto_usuario' => $assistantUserProfile ? $assistantUserProfile->foto_usuario : 'default-user.jpeg',
+        'ultima_mensagem' => $assistantSummary['descricao'],
+        'data_mensagem' => null,
+        'vista' => 1,
+        'para_usuario' => $de_usuario
+    ]], $users);
+}
+
 $user_para = $userDao->findById_user($para_usuario);
+if (!$user_para && $assistantService->isAssistantUser($para_usuario)) {
+    $user_para = $assistantUserProfile;
+}
 
 $mensagemDao->marcarMensagensComoLidas($de_usuario, $para_usuario);
+
+include_once("templates/header.php");
 ?>
 
 <!DOCTYPE html>
@@ -27,8 +63,8 @@ $mensagemDao->marcarMensagensComoLidas($de_usuario, $para_usuario);
 </head>
 
 <body>
-    <div class="container-fluid">
-        <div class="row d-flex align-items-stretch">
+    <div class="container-fluid chat-page">
+        <div class="row d-flex align-items-stretch chat-row">
             <div class="col-3 sidebar">
                 <ul class="user-list">
                     <?php foreach ($users as $user): ?>
@@ -71,21 +107,33 @@ $mensagemDao->marcarMensagensComoLidas($de_usuario, $para_usuario);
                 </div>
                 <?php endif; ?>
 
-                <div id="message-box" class="message-box flex-grow-1">
-                    <!-- Messages will be dynamically loaded here via AJAX -->
+                <?php if ($assistantService->isAssistantUser($para_usuario)): ?>
+                <div class="alert alert-info py-2">
+                    <strong><?= htmlspecialchars($assistantSummary['titulo']) ?>:</strong>
+                    <?= htmlspecialchars($assistantSummary['descricao']) ?>
+                    <br><small>As respostas são automáticas e precisam de revisão humana antes de seguir para o
+                        cliente.</small>
+                </div>
+                <?php endif; ?>
+
+                <div class="chat-body">
+                    <div id="message-box" class="message-box flex-grow-1">
+                        <!-- Messages will be dynamically loaded here via AJAX -->
+                    </div>
                 </div>
 
-                <form id="chat-form">
-                    <div class="input-group">
-                        <input type="text" id="message" class="form-control" placeholder="Digite sua mensagem..."
-                            required>
-                        <button type="button" class="btn btn-secondary" id="add-capeante-link">+</button>
-                        <button type="submit" class="btn btn-primary">Enviar</button>
-
-                    </div>
-                    <!-- Botão para adicionar o link capeante -->
-
-                </form>
+                <div class="chat-input">
+                    <form id="chat-form">
+                        <div class="input-group">
+                            <input type="hidden" id="chat-target" value="<?= (int) $para_usuario ?>">
+                            <input type="text" id="message" class="form-control" placeholder="Digite sua mensagem..."
+                                required autocomplete="off">
+                            <button type="button" class="btn btn-secondary" id="add-capeante-link"
+                                title="Adicionar referência de capeante">+</button>
+                            <button type="submit" class="btn btn-primary">Enviar</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -98,6 +146,7 @@ $mensagemDao->marcarMensagensComoLidas($de_usuario, $para_usuario);
     <script>
     // Variável de controle para saber se é a primeira vez que o chat está sendo carregado
     var isFirstLoad = true;
+    var chatTarget = parseInt($('#chat-target').val(), 10) || <?= (int) $assistantId ?>;
 
     function loadMessages() {
         var ultimo_id = $('#message-box .message').last().data('id') || 0;
@@ -106,8 +155,8 @@ $mensagemDao->marcarMensagensComoLidas($de_usuario, $para_usuario);
             url: 'load_messages.php',
             method: 'GET',
             data: {
-                de_usuario: <?php echo $de_usuario; ?>,
-                para_usuario: <?php echo $para_usuario ? $para_usuario : 'null'; ?>,
+                de_usuario: <?= (int) $de_usuario ?>,
+                para_usuario: chatTarget,
                 ultima_msg: ultimo_id
             },
             success: function(data) {
@@ -162,8 +211,8 @@ $mensagemDao->marcarMensagensComoLidas($de_usuario, $para_usuario);
             url: 'cad_mensagem.php',
             method: 'POST',
             data: {
-                de_usuario: <?php echo $de_usuario; ?>,
-                para_usuario: <?php echo $para_usuario; ?>,
+                de_usuario: <?= (int) $de_usuario ?>,
+                para_usuario: chatTarget,
                 mensagem: message
             },
             success: function() {

@@ -135,11 +135,6 @@ try {
         $int->data_intern_int = ($dataIntern === '') ? null : $dataIntern;
     }
 
-    $dataLancInput = $_POST['data_lancamento_int'] ?? null;
-    if ($dataLancInput !== null) {
-        $int->data_lancamento_int = normalizeDateTimeInput($dataLancInput);
-    }
-
     $int->especialidade_int = filter_input(INPUT_POST, 'especialidade_int') ?? $int->especialidade_int;
     $int->titular_int       = filter_input(INPUT_POST, 'titular_int')       ?? $int->titular_int;
     $int->crm_int           = filter_input(INPUT_POST, 'crm_int')           ?? $int->crm_int;
