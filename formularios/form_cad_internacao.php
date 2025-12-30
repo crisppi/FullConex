@@ -199,28 +199,9 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
     }
 }
 
-.hospital-tip button {
-    border: none;
-    background: #f4e9fb;
-    color: #5e2363;
-    border-radius: 999px;
-    width: 34px;
-    height: 34px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    cursor: pointer;
-    transition: transform .15s ease;
-}
-
 .hospital-tip button:disabled {
     opacity: .5;
     cursor: not-allowed;
-}
-
-.hospital-tip button:not(:disabled):hover {
-    transform: translateY(-1px);
 }
 
 @media (min-width: 768px) {
@@ -376,6 +357,22 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
     padding: 6px 10px !important;
     border: 2px solid #7a1e57 !important;
     box-shadow: 0 3px 8px rgba(122, 30, 87, 0.12) !important;
+}
+
+.hospital-select-btn {
+    height: 34px !important;
+    padding: 6px 10px !important;
+    border: 1px solid #555 !important;
+    box-shadow: none !important;
+    background-color: #fff !important;
+    color: #000 !important;
+}
+
+.hospital-select-btn:focus,
+.hospital-select-btn:active,
+.bootstrap-select.show > .hospital-select-btn {
+    border-color: #5e2363 !important;
+    box-shadow: 0 0 0 0.15rem rgba(94, 35, 99, 0.15) !important;
 }
 
 .patient-select-btn .filter-option {
@@ -592,14 +589,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     value="<?= ($ultimoReg + 1) ?>">
             </div> -->
             <div class="form-group mb-0 hospital-col">
-                <label class="control-label" for="hospital_selected" style="margin-bottom:2px;">
-                    <span style="color:red;">*</span> Hospital
-                </label>
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <label class="control-label mb-0" for="hospital_selected">
+                        <span style="color:red;">*</span> Hospital
+                    </label>
+                    <button type="button" id="hospitalTipButtonInline" class="patient-insight-inline-btn"
+                        title="Clique para mostrar/ocultar os insights" aria-expanded="false">i</button>
+                </div>
                 <div class="hospital-select-wrapper">
-                    <select onchange="myFunctionSelected()" class="form-select botao_select" id="hospital_selected"
-                        name="hospital_selected" required
-                        style="height:34px !important;border:1px solid #555;font-size:1em;background-color:#fff;color:#000;">
-                        <option value="">Selecione</option>
+                    <select onchange="myFunctionSelected()"
+                        class="botao_select selectpicker show-tick" id="hospital_selected"
+                        name="hospital_selected" required data-live-search="true"
+                        data-live-search-placeholder="Pesquise por Hospital" data-none-selected-text="Pesquise por Hospital"
+                        data-width="100%" data-style="hospital-select-btn"
+                        style="font-size:1em;background-color:#fff;color:#000;">
+                        <option value=""></option>
                         <?php if (!empty($listaHospitais)): ?>
                         <?php foreach ($listaHospitais as $h): ?>
                         <option value="<?= htmlspecialchars($h['id_hospital']) ?>">
@@ -610,12 +614,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         <option value="">Nenhum hospital disponível</option>
                         <?php endif; ?>
                     </select>
-                    <div class="hospital-tip" id="hospitalTipContainer">
-                        <button type="button" id="hospitalTipButton" title="Clique para mostrar/ocultar os insights"
-                            disabled>i</button>
-                        <div class="hospital-tip-popover" id="hospitalTipPopover">
-                            Selecione um hospital para ver negociações e internações em UTI.
-                        </div>
+                </div>
+                <div class="hospital-tip" id="hospitalTipContainer">
+                    <div class="hospital-tip-popover" id="hospitalTipPopover">
+                        Selecione um hospital para ver negociações e internações em UTI.
                     </div>
                 </div>
                 <div id="hospitalUtiAlert" class="hospital-uti-alert"></div>
@@ -1636,7 +1638,7 @@ $(function() {
 });
 
 const hospitalInsightsHelper = (function() {
-    const button = document.getElementById('hospitalTipButton');
+    const button = document.getElementById('hospitalTipButtonInline');
     const popover = document.getElementById('hospitalTipPopover');
     const alertBox = document.getElementById('hospitalUtiAlert');
     const defaultMessage = 'Selecione um hospital para ver negociações e pacientes em UTI.';
