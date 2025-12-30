@@ -458,41 +458,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if (timerStart === null) {
             timerStart = Date.now();
         }
-document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('myForm');
-    const timerField = document.getElementById('timer_int');
-    const pacienteSelect = document.getElementById('fk_paciente_int');
-
-    let timerStart = null;
-    let intervalId = null;
-
-    const startTimer = () => {
-        if (timerStart === null) timerStart = Date.now();
         if (intervalId) {
             clearInterval(intervalId);
             intervalId = null;
         }
-    };
+    }
 
-    const handlePacienteChange = () => {
-        if (!pacienteSelect) return;
-
-        const id = pacienteSelect.value;
-        const selectedText =
-            pacienteSelect.options?. [pacienteSelect.selectedIndex]?.text?.trim?.() || '';
-
-        if (id) startTimer();
-
-        // Evita ReferenceError se helper não existir
-        if (window.patientInsightsHelper && typeof window.patientInsightsHelper.fetch === 'function') {
-            window.patientInsightsHelper.fetch(id, selectedText);
-        }
-    };
-
-    const scheduleValueWatch = () => {
+    function scheduleValueWatch() {
         if (!pacienteSelect || intervalId) return;
-
-        intervalId = setInterval(() => {
+        intervalId = setInterval(function() {
             if (pacienteSelect.value) {
                 startTimer();
                 handlePacienteChange();
@@ -502,19 +476,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handlePacienteChange() {
         if (!pacienteSelect) return;
-        const selectedText = pacienteSelect.options[pacienteSelect.selectedIndex]?.text?.trim() || '';
-        const id = pacienteSelect.value;
+        var selectedText = pacienteSelect.options[pacienteSelect.selectedIndex]?.text?.trim() || '';
+        var id = pacienteSelect.value;
         if (matriculaField) {
-            const opt = pacienteSelect.options[pacienteSelect.selectedIndex];
-            const matricula = opt ? (opt.getAttribute('data-matricula') || '') : '';
+            var opt = pacienteSelect.options[pacienteSelect.selectedIndex];
+            var matricula = opt ? (opt.getAttribute('data-matricula') || '') : '';
             matriculaField.value = id ? matricula : '';
         }
         if (id) startTimer();
-        if (patientInsightsHelper && typeof patientInsightsHelper.fetch === 'function') {
-            patientInsightsHelper.fetch(id, selectedText);
+        if (window.patientInsightsHelper && typeof window.patientInsightsHelper.fetch === 'function') {
+            window.patientInsightsHelper.fetch(id, selectedText);
         }
     }
-    };
 
     if (pacienteSelect) {
         window.sortPacienteOptionsDesc();
@@ -532,34 +505,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
         pacienteSelect.addEventListener('change', handlePacienteChange);
 
-        // Bootstrap-select dispara changed.bs.select
         if (window.jQuery && window.jQuery.fn && typeof window.jQuery.fn.on === 'function') {
-            window.jQuery(() => {
-                window.jQuery('#fk_paciente_int').on('changed.bs.select', () => {
+            window.jQuery(function() {
+                window.jQuery('#fk_paciente_int').on('changed.bs.select', function() {
                     handlePacienteChange();
                 });
                 if (matriculaField) {
-                    $('#fk_paciente_int').on('show.bs.select', function() {
+                    window.jQuery('#fk_paciente_int').on('show.bs.select', function() {
                         matriculaField.value = '';
                     });
                 }
             });
         }
     } else {
-        // Sem select ainda: pelo menos inicia o timer
         startTimer();
     }
 
-    // Eventos customizados que você dispara em outros pontos
-    ['pacienteSelecionado', 'paciente-selecionado'].forEach((evtName) => {
+    ['pacienteSelecionado', 'paciente-selecionado'].forEach(function(evtName) {
         document.addEventListener(evtName, startTimer);
     });
 
-    // Grava tempo gasto no form no submit
     if (form && timerField) {
-        form.addEventListener('submit', () => {
-            const elapsed =
-                timerStart !== null ? Math.max(0, Math.round((Date.now() - timerStart) / 1000)) : 0;
+        form.addEventListener('submit', function() {
+            var elapsed = 0;
+            if (timerStart !== null) {
+                elapsed = Math.max(0, Math.round((Date.now() - timerStart) / 1000));
+            }
             timerField.value = elapsed;
         });
     }
@@ -657,19 +628,12 @@ document.addEventListener('DOMContentLoaded', () => {
   font-size: 1.2em;
   font-weight: 600;
   color: #000;
-background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
+	background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   white-space: nowrap;
 ">
                 </div>
 
-            </div>
-
-
-            <div class="d-flex justify-content-center align-items-center" style="flex:1">
-                <div id="hospitalNomeTexto"
-                    style="width:100%;display:none;max-width:500px;margin-left:-500px;height:75px;padding:0 50px;border:2px solid #28a745;border-radius:8px;font-size:1.2em;font-weight:600;color:#000;background-color:#f8fff8;align-items:center;justify-content:center;text-align:center;">
-                </div>
             </div>
         </div>
 
@@ -725,8 +689,6 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
                         data-matricula="<?= htmlspecialchars($matriculaPac) ?>"
                         data-tokens="<?= htmlspecialchars(trim((string) $paciente["nome_pac"] . ' ' . $matriculaPac)) ?>">
                         <?= htmlspecialchars($pacienteLabel) ?>
-                    <option value="<?= (int) $paciente["id_paciente"] ?>">
-                        <?= htmlspecialchars($paciente["nome_pac"]) ?>
                     </option>
                     <?php endforeach; ?>
                 </select>
@@ -1557,6 +1519,12 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
     </div>
 </div>
 
+<?php if (!empty($id_paciente_get)): ?>
+<script>
+(function preselectPaciente() {
+    var tentativas = 0;
+    var idPac = "<?= (int) $id_paciente_get ?>";
+
     function aplicar() {
         var $sel = $('#fk_paciente_int');
         if (!$sel.length) return false;
@@ -1594,7 +1562,6 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
 })();
 </script>
 <?php endif; ?>
-
 <script>
 function aumentarText(id) {
     const el = document.getElementById(id);
