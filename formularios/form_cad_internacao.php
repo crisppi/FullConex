@@ -386,6 +386,12 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
     border-color: #5e2363 !important;
     box-shadow: 0 0 0 0.2rem rgba(94, 35, 99, 0.2) !important;
 }
+
+/* Evita o select nativo ficar clicável por baixo do selectpicker */
+#hospital_selected.selectpicker,
+#fk_paciente_int.selectpicker {
+    display: none !important;
+}
 </style>
 
 <script>
@@ -585,7 +591,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="hospital-select-wrapper">
                     <select onchange="myFunctionSelected()"
-                        class="botao_select selectpicker show-tick" id="hospital_selected"
+                        class="botao_select selectpicker show-tick selectpicker-init-hide" id="hospital_selected"
                         name="hospital_selected" required data-live-search="true"
                         data-live-search-placeholder="Pesquise por Hospital" data-none-selected-text="Pesquise por Hospital"
                         data-width="100%" data-style="hospital-select-btn"
