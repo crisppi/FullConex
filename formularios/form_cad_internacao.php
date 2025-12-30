@@ -176,8 +176,8 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
 }
 
 .hospital-select-wrapper select {
-    flex: 1 1 260px;
-    min-width: 260px;
+    flex: 1 1 100%;
+    min-width: 100%;
 }
 
 .hospital-tip {
@@ -221,6 +221,28 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
 
 .hospital-tip button:not(:disabled):hover {
     transform: translateY(-1px);
+}
+
+@media (min-width: 768px) {
+    .hospital-col,
+    .patient-col {
+        flex: 0 0 33.333333%;
+        max-width: 33.333333%;
+    }
+}
+
+.internacao-head-row {
+    margin-left: -6px;
+    margin-right: -6px;
+}
+
+.internacao-head-row > .form-group {
+    padding-left: 6px;
+    padding-right: 6px;
+}
+
+.internacao-head-row label {
+    margin-bottom: 4px;
 }
 
 #myForm {
@@ -348,6 +370,25 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
 .patient-insight-inline-btn:not(:disabled):hover {
     transform: translateY(-1px);
 }
+
+.patient-select-btn {
+    height: 34px !important;
+    padding: 6px 10px !important;
+    border: 2px solid #7a1e57 !important;
+    box-shadow: 0 3px 8px rgba(122, 30, 87, 0.12) !important;
+}
+
+.patient-select-btn .filter-option {
+    display: flex;
+    align-items: center;
+}
+
+.patient-select-btn:focus,
+.patient-select-btn:active,
+.bootstrap-select.show > .patient-select-btn {
+    border-color: #5e2363 !important;
+    box-shadow: 0 0 0 0.2rem rgba(94, 35, 99, 0.2) !important;
+}
 </style>
 
 <!-- Shim BS4 -> BS5 (data-toggle -> data-bs-*) -->
@@ -410,8 +451,24 @@ document.addEventListener('DOMContentLoaded', function() {
     var form = document.getElementById('myForm');
     var timerField = document.getElementById('timer_int');
     var pacienteSelect = document.getElementById('fk_paciente_int');
+    var matriculaField = document.getElementById('matricula_paciente_display');
+    var dataInternDt = document.getElementById('data_intern_int_dt');
+    var dataIntern = document.getElementById('data_intern_int');
+    var horaIntern = document.getElementById('hora_intern_int');
     var timerStart = null;
     var intervalId = null;
+
+    window.sortPacienteOptionsDesc = function() {
+        var select = document.getElementById('fk_paciente_int');
+        if (!select || select.options.length <= 1) return;
+        var options = Array.from(select.options).slice(1);
+        options.sort(function(a, b) {
+            return parseInt(b.value || '0', 10) - parseInt(a.value || '0', 10);
+        });
+        options.forEach(function(opt) {
+            select.appendChild(opt);
+        });
+    };
 
     function startTimer() {
         if (timerStart === null) {
@@ -439,6 +496,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!pacienteSelect) return;
         const selectedText = pacienteSelect.options[pacienteSelect.selectedIndex]?.text?.trim() || '';
         const id = pacienteSelect.value;
+        if (matriculaField) {
+            const opt = pacienteSelect.options[pacienteSelect.selectedIndex];
+            const matricula = opt ? (opt.getAttribute('data-matricula') || '') : '';
+            matriculaField.value = id ? matricula : '';
+        }
         if (id) startTimer();
         if (patientInsightsHelper && typeof patientInsightsHelper.fetch === 'function') {
             patientInsightsHelper.fetch(id, selectedText);
@@ -446,11 +508,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (pacienteSelect) {
+        window.sortPacienteOptionsDesc();
         if (pacienteSelect.value) {
             startTimer();
             handlePacienteChange();
         } else {
             scheduleValueWatch();
+        }
+        if (matriculaField) {
+            pacienteSelect.addEventListener('focus', function() {
+                matriculaField.value = '';
+            });
         }
         pacienteSelect.addEventListener('change', handlePacienteChange);
 
@@ -459,6 +527,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 $('#fk_paciente_int').on('changed.bs.select', function() {
                     handlePacienteChange();
                 });
+                if (matriculaField) {
+                    $('#fk_paciente_int').on('show.bs.select', function() {
+                        matriculaField.value = '';
+                    });
+                }
             });
         }
     } else {
@@ -477,6 +550,27 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             timerField.value = elapsed;
         });
+    }
+
+    function syncInternacaoHidden() {
+        if (!dataInternDt || !dataIntern || !horaIntern) return;
+        if (!dataInternDt.value) {
+            dataIntern.value = '';
+            horaIntern.value = '';
+            return;
+        }
+        var parts = dataInternDt.value.split('T');
+        dataIntern.value = parts[0] || '';
+        horaIntern.value = parts[1] ? parts[1].slice(0, 5) : '';
+    }
+
+    if (dataInternDt) {
+        dataInternDt.addEventListener('change', syncInternacaoHidden);
+        dataInternDt.addEventListener('input', syncInternacaoHidden);
+        syncInternacaoHidden();
+    }
+    if (form) {
+        form.addEventListener('submit', syncInternacaoHidden);
     }
 });
 </script>
@@ -497,14 +591,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     style="height: 45px; background-color: #fff; color: #000; font-weight: 500; opacity: 1; cursor: default;"
                     value="<?= ($ultimoReg + 1) ?>">
             </div> -->
-            <div class="form-group mb-0" style="min-width:300px;">
+            <div class="form-group mb-0 hospital-col">
                 <label class="control-label" for="hospital_selected" style="margin-bottom:2px;">
                     <span style="color:red;">*</span> Hospital
                 </label>
                 <div class="hospital-select-wrapper">
                     <select onchange="myFunctionSelected()" class="form-select botao_select" id="hospital_selected"
                         name="hospital_selected" required
-                        style="height:45px !important;border:1px solid #555;font-size:1em;background-color:#fff;color:#000;">
+                        style="height:34px !important;border:1px solid #555;font-size:1em;background-color:#fff;color:#000;">
                         <option value="">Selecione</option>
                         <?php if (!empty($listaHospitais)): ?>
                         <?php foreach ($listaHospitais as $h): ?>
@@ -578,11 +672,11 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
         <!-- fk_usuario_int: padrão = usuário logado; Cadastro Central pode sobrescrever -->
         <input type="hidden" value="<?= htmlspecialchars($idSessao) ?>" id="fk_usuario_int" name="fk_usuario_int">
 
-        <div class="form-group row">
+        <div class="form-group row internacao-head-row">
             <input type="hidden" value="" name="fk_hospital_int" id="fk_hospital_int">
 
 
-            <div class="form-group col-sm-3" style="margin-bottom:-5px">
+            <div class="form-group col-sm-4 patient-col" style="margin-bottom:-5px">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <label class="control-label mb-0" for="fk_paciente_int">
                         <span style="color:red;">*</span> Paciente
@@ -590,20 +684,51 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
                     <button type="button" id="patientInsightToggle" class="patient-insight-inline-btn"
                         title="Mostrar resumo do paciente" aria-expanded="false">i</button>
                 </div>
-                <select data-size="5" data-live-search="true"
+                <select data-size="5" data-live-search="true" data-live-search-placeholder="Pesquise por Nome ou matrícula."
+                    data-style="patient-select-btn" data-width="100%"
+                    data-none-selected-text="Pesquise por Nome ou matrícula."
                     class="form-control form-control-sm selectpicker show-tick" id="fk_paciente_int"
                     name="fk_paciente_int" required>
-                    <option value="">Selecione</option>
+                    <option value=""></option>
                     <?php
                     if (!is_array($pacientes)) {
                         $pacientes = [];
                     };
-                    usort($pacientes, fn($a, $b) => strcmp($a["nome_pac"], $b["nome_pac"]));
+                    usort($pacientes, fn($a, $b) => ((int) $b["id_paciente"]) <=> ((int) $a["id_paciente"]));
                     foreach ($pacientes as $paciente): ?>
-                    <option value="<?= (int) $paciente["id_paciente"] ?>"><?= htmlspecialchars($paciente["nome_pac"]) ?>
+                    <?php
+                    $matriculaPac = trim((string) ($paciente["matricula_pac"] ?? ""));
+                    $pacienteLabel = $paciente["nome_pac"];
+                    if ($matriculaPac !== '') {
+                        $pacienteLabel .= ' - ' . $matriculaPac;
+                    }
+                    ?>
+                    <option value="<?= (int) $paciente["id_paciente"] ?>"
+                        data-matricula="<?= htmlspecialchars($matriculaPac) ?>"
+                        data-tokens="<?= htmlspecialchars(trim((string) $paciente["nome_pac"] . ' ' . $matriculaPac)) ?>">
+                        <?= htmlspecialchars($pacienteLabel) ?>
                     </option>
                     <?php endforeach; ?>
                 </select>
+                <script>
+                (function initPacienteSelectpicker() {
+                    var tries = 0;
+
+                    function attempt() {
+                        if (window.jQuery && jQuery.fn && typeof jQuery.fn.selectpicker === 'function') {
+                            var $sel = jQuery('#fk_paciente_int');
+                            if ($sel.length && !$sel.data('selectpicker')) {
+                                $sel.selectpicker();
+                                $sel.selectpicker('refresh');
+                            }
+                            return;
+                        }
+                        if (++tries < 60) setTimeout(attempt, 50);
+                    }
+
+                    attempt();
+                })();
+                </script>
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <a style="font-size:.8em;margin-left:7px;color:blue;" href="#"
                         onclick="openModalPac('<?= $BASE_URL ?>cad_paciente.php', 'Cadastrar paciente'); return false;">
@@ -624,20 +749,22 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
             </div>
 
             <div class="form-group col-sm-2">
-                <label class="control-label" for="data_intern_int"><span style="color:red;">*</span> Data
+                <label class="control-label" for="matricula_paciente_display">Matrícula</label>
+                <input type="text" class="form-control form-control-sm" id="matricula_paciente_display" readonly
+                    placeholder="Matrícula do paciente">
+            </div>
+
+            <div class="form-group col-sm-1">
+                <label class="control-label" for="data_intern_int_dt"><span style="color:red;">*</span> Data
                     Internação</label>
-                <input type="date" class="form-control form-control-sm" id="data_intern_int" required value=""
-                    name="data_intern_int">
+                <input type="datetime-local" class="form-control form-control-sm" id="data_intern_int_dt" required
+                    value="" name="data_intern_int_dt">
+                <input type="hidden" id="data_intern_int" name="data_intern_int" value="">
+                <input type="hidden" id="hora_intern_int" name="hora_intern_int" value="">
                 <p id="erro-data-internacao" style="color:red;font-size:.7em;display:none;margin-top:5px;"></p>
             </div>
 
             <div class="form-group col-sm-1">
-                <label class="control-label" for="hora_intern_int">Hora</label>
-                <input type="time" class="form-control form-control-sm" id="hora_intern_int" value=""
-                    name="hora_intern_int">
-            </div>
-
-            <div class="form-group col-sm-2">
                 <label class="control-label" for="data_lancamento_int">Data lançamento</label>
                 <input type="datetime-local" class="form-control form-control-sm" id="data_lancamento_int"
                     name="data_lancamento_int" value="<?= $agoraLanc ?>">
@@ -707,10 +834,10 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
         <div id="cadastro-central-wrapper" class="form-group row"
             style="margin-top:8px;display:block !important;border:2px dashed #8a2be2;padding:10px;border-radius:8px;">
             <div class="form-group col-sm-12" style="margin-bottom:6px;">
-                <span style="font-weight:700;color:#5e2363;">Cadastro Central ativo</span>
+                <span style="font-weight:700;color:#5e2363;">Cadastro Central</span>
                 <?php if ($cadastroCentralObrigatorio): ?>
                 <small style="margin-left:8px;color:#b02a37;font-weight:600;">Cadastro central obrigatório: selecione o
-                    tipo e o responsável.</small>
+                    tipo de profissional e o responsável.</small>
                 <?php else: ?>
                 <small style="margin-left:8px;color:#666;">(opcional: escolha o tipo e o responsável)</small>
                 <?php endif; ?>
@@ -1426,6 +1553,11 @@ background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
             $sel.selectpicker('refresh');
         }
 
+        var el = document.getElementById('fk_paciente_int');
+        if (el) {
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
         // dispara sua verificação de internação ativa
         if (typeof window.triggerInternacaoCheck === 'function') {
             try {
@@ -1482,8 +1614,23 @@ $(function() {
     if ($.fn.selectpicker) {
         $('.selectpicker').selectpicker();
         $('.selectpicker').selectpicker('refresh');
+        var $pacientePicker = $('#fk_paciente_int');
+        if ($pacientePicker.length) {
+            var picker = $pacientePicker.data('selectpicker');
+            var $searchInput = picker && picker.$searchbox ? picker.$searchbox.find('input') : null;
+            if ($searchInput && $searchInput.length) {
+                $searchInput.attr('placeholder', 'Pesquise por Nome ou matrícula.');
+            }
+        }
         $('.selectpicker').on('loaded.bs.select', function() {
-            $('.bs-searchbox input').attr('placeholder', 'Digite para pesquisar...');
+            var $picker = $(this).data('selectpicker');
+            var $searchInput = $picker && $picker.$searchbox ? $picker.$searchbox.find('input') : null;
+            if (!$searchInput || !$searchInput.length) return;
+            if ($(this).attr('id') === 'fk_paciente_int') {
+                $searchInput.attr('placeholder', 'Pesquise por Nome ou matrícula.');
+            } else {
+                $searchInput.attr('placeholder', 'Digite para pesquisar...');
+            }
         });
     }
 });
@@ -2592,10 +2739,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (pacienteSelect) {
-        pacienteSelect.addEventListener('change', function() {
+        var onPacienteChange = function() {
             hideRetroBanner();
-            consultarInternacaoAtiva(this.value, false);
-        });
+            consultarInternacaoAtiva(pacienteSelect.value, false);
+        };
+        pacienteSelect.addEventListener('change', onPacienteChange);
+        if (window.jQuery && jQuery.fn && typeof jQuery.fn.on === 'function') {
+            jQuery(function($) {
+                $('#fk_paciente_int').on('changed.bs.select', function() {
+                    onPacienteChange();
+                });
+            });
+        }
     }
 
     if (confirmBtn) {
@@ -2611,6 +2766,8 @@ document.addEventListener('DOMContentLoaded', function() {
         cancelBtn.addEventListener('click', function() {
             modalInstance && modalInstance.hide();
             activeInfo = null;
+            var matriculaField = document.getElementById('matricula_paciente_display');
+            if (matriculaField) matriculaField.value = '';
             if (pacienteSelect) {
                 pacienteSelect.value = '';
                 if (window.jQuery && jQuery.fn.selectpicker && jQuery(pacienteSelect).hasClass(
@@ -2685,6 +2842,7 @@ document.addEventListener('paciente:cadastrado', function(event) {
 
     let option = Array.from(select.options).find(opt => String(opt.value) === String(novoId));
     const label = data.nome || data.nome_pac || `Paciente #${novoId}`;
+    const matricula = data.matricula || data.matricula_pac || '';
 
     if (!option) {
         option = new Option(label, novoId, true, true);
@@ -2693,6 +2851,13 @@ document.addEventListener('paciente:cadastrado', function(event) {
         option.selected = true;
         option.textContent = label;
     }
+    if (matricula) {
+        option.setAttribute('data-matricula', matricula);
+    }
+
+    if (typeof window.sortPacienteOptionsDesc === 'function') {
+        window.sortPacienteOptionsDesc();
+    }
 
     if (window.$ && $.fn.selectpicker && $(select).hasClass('selectpicker')) {
         $(select).selectpicker('refresh');
@@ -2700,6 +2865,7 @@ document.addEventListener('paciente:cadastrado', function(event) {
     } else {
         select.value = novoId;
     }
+    select.dispatchEvent(new Event('change', { bubbles: true }));
 });
 </script>
 

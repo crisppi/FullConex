@@ -62,7 +62,7 @@ $limite = filter_input(INPUT_GET, 'limite', FILTER_VALIDATE_INT);
 if (!$limite || $limite < 1)
     $limite = 10;
 
-$ordenar = filter_input(INPUT_GET, 'ordenar') ?: ''; // campo para ORDER BY
+$ordenar = filter_input(INPUT_GET, 'ordenar') ?: 'id_capeante_desc'; // campo para ORDER BY
 
 $pesquisa_nome = filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS);
 $pesquisa_pac = filter_input(INPUT_GET, 'pesquisa_pac', FILTER_SANITIZE_SPECIAL_CHARS);
@@ -177,13 +177,14 @@ $paginaAtual = (int) ($_GET['pag'] ?? 1);
 // Monta ORDER BY seguro (só permite colunas conhecidas)
 $mapOrder = [
     'id_internacao' => 'ac.id_internacao',
+    'id_capeante_desc' => 'ca.id_capeante DESC',
     'id_capeante' => 'ca.id_capeante',
     'senha_int' => 'ac.senha_int',
     'nome_pac' => 'pa.nome_pac',
     'nome_hosp' => 'ho.nome_hosp',
     'data_intern_int' => 'ac.data_intern_int',
 ];
-$orderBy = $mapOrder[$ordenar] ?? 'ca.id_capeante';
+$orderBy = $mapOrder[$ordenar] ?? 'ca.id_capeante DESC';
 
 // Calcula LIMIT (ex.: "0,10")
 $offset = max(0, ($paginaAtual - 1) * $limite);
@@ -344,10 +345,12 @@ if ($havePages) {
                         <select class="form-control form-control-sm"
                             style="margin-top:7px;font-size:.8em; color:#878787" id="ordenar" name="ordenar">
                             <option value="">Classificar por</option>
+                            <option value="id_capeante_desc" <?= $ordenar == 'id_capeante_desc' ? 'selected' : '' ?>>
+                                No.capeante (desc)</option>
                             <option value="id_internacao" <?= $ordenar == 'id_internacao' ? 'selected' : '' ?>>
                                 Internação</option>
                             <option value="id_capeante" <?= $ordenar == 'id_capeante' ? 'selected' : '' ?>>
-                                No.capeante</option>
+                                No.capeante (asc)</option>
                             <option value="senha_int" <?= $ordenar == 'senha_int' ? 'selected' : '' ?>>Senha
                             </option>
                             <option value="nome_pac" <?= $ordenar == 'nome_pac' ? 'selected' : '' ?>>Paciente

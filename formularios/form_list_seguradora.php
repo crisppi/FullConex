@@ -18,7 +18,7 @@
     // METODO DE BUSCA DE PAGINACAO
     $pesquisa_nome = filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS);
     $limite = filter_input(INPUT_GET, 'limite') ? filter_input(INPUT_GET, 'limite') : 10;
-    $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : 1;
+    $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : 'id_seguradora_desc';
     // $buscaAtivo = in_array($buscaAtivo, ['s', 'n']) ?: "";
     $seguradoraInicio = ' 1 ';
 
@@ -28,7 +28,7 @@
 
     ];
     $condicoes = array_filter($condicoes);
-    $order = 1;
+    $order = 'id_seguradora DESC';
     // REMOVE POSICOES VAZIAS DO FILTRO
     $where = implode(' AND ', $condicoes);
 
@@ -39,7 +39,17 @@
     $obLimite = $obPagination->getLimit();
 
     // PREENCHIMENTO DO FORMULARIO COM QUERY
-    $query = $seguradora->selectAllSeguradora($where, $ordenar, $obLimite);
+    if ($ordenar === 'id_seguradora_desc') {
+        $order = 'id_seguradora DESC';
+    } elseif ($ordenar === 'id_seguradora') {
+        $order = 'id_seguradora';
+    } elseif ($ordenar === 'seguradora_seg') {
+        $order = 'seguradora_seg';
+    } else {
+        $order = 'id_seguradora DESC';
+    }
+
+    $query = $seguradora->selectAllSeguradora($where, $order, $obLimite);
 
     $totalcasos = ceil($qtdIntItens / 5);
 
@@ -130,8 +140,12 @@
                             <select class="form-control mb-3  form-control-sm"
                                 style="margin-top:7px;font-size:.8em; color:#878787" id="ordenar" name="ordenar">
                                 <option value="">Classificar por</option>
+                                <option value="id_seguradora_desc"
+                                    <?= $ordenar == 'id_seguradora_desc' ? 'selected' : null ?>>Id Seguradora (desc)
+                                </option>
                                 <option value="id_seguradora" <?= $ordenar == 'id_seguradora' ? 'selected' : null ?>>Id
-                                    Seguradora</option>
+                                    Seguradora (asc)
+                                </option>
                                 <option value="seguradora_seg" <?= $ordenar == 'seguradora_seg' ? 'selected' : null ?>>
                                     Seguradora</option>
                             </select>
@@ -151,7 +165,7 @@
 
             // PREENCHIMENTO DO FORMULARIO COM QUERY
 
-            $query = $seguradora->selectAllSeguradora($where, $ordenar, $obLimite);
+    $query = $seguradora->selectAllSeguradora($where, $order, $obLimite);
 
 
             // PAGINACAO

@@ -19,7 +19,7 @@
     $pesquisa_nome = filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS);
     $buscaAtivo = filter_input(INPUT_GET, 'ativo_hos');
     $limite = filter_input(INPUT_GET, 'limite_pag') ? filter_input(INPUT_GET, 'limite_pag') : 10;
-    $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : 1;
+    $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : 'id_hospital_desc';
     $hospitalInicio = ' 1 ';
 
     $condicoes = [
@@ -37,7 +37,15 @@
     $qtdHospItens1 = $QtdTotalpac->selectAllhospital($where, $order, $obLimite ?? null);
     $qtdIntItens = count($qtdHospItens1); // total de registros
 
-    $order = $ordenar;
+    if ($ordenar === 'id_hospital_desc') {
+        $order = 'id_hospital DESC';
+    } elseif ($ordenar === 'id_hospital') {
+        $order = 'id_hospital';
+    } elseif ($ordenar === 'nome_hosp') {
+        $order = 'nome_hosp';
+    } else {
+        $order = 'id_hospital DESC';
+    }
 
     // PAGINACAO
     $obPagination = new pagination($qtdIntItens, $_GET['pag'] ?? 1, $limite ?? 10);
@@ -114,6 +122,12 @@
                             <select class="form-control sm-3 form-control-sm"
                                 style="margin-top:7px;font-size:.8em; color:#878787" id="ordenar" name="ordenar">
                                 <option value="">Classificar por</option>
+                                <option value="id_hospital_desc"
+                                    <?= $ordenar == 'id_hospital_desc' ? 'selected' : null ?>>Id Hospital (desc)
+                                </option>
+                                <option value="id_hospital" <?= $ordenar == 'id_hospital' ? 'selected' : null ?>>Id
+                                    Hospital (asc)
+                                </option>
                                 <option value="nome_hosp" <?= $ordenar == 'nome_hosp' ? 'selected' : null ?>>Hospital
                                 </option>
                             </select>

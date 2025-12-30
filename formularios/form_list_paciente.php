@@ -21,7 +21,7 @@
     $pesquisa_nome = filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS);
     $buscaAtivo = filter_input(INPUT_GET, 'ativo_pac', FILTER_SANITIZE_SPECIAL_CHARS);
     $limite = filter_input(INPUT_GET, 'limite') ? filter_input(INPUT_GET, 'limite') : 10;
-    $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : 1;
+    $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : 'id_paciente_desc';
     $buscaAtivo = in_array($buscaAtivo, ['s', 'n']) ?: "";
     $pacienteInicio = ' 1 ';
     $condicoes = [
@@ -41,7 +41,15 @@
 
     $condicoes = array_filter($condicoes);
     // print_r($condicoes);
-    $order = $ordenar;
+    if ($ordenar === 'id_paciente_desc') {
+        $order = 'pa.id_paciente DESC';
+    } elseif ($ordenar === 'id_paciente') {
+        $order = 'pa.id_paciente';
+    } elseif ($ordenar === 'nome_pac') {
+        $order = 'pa.nome_pac';
+    } else {
+        $order = 'pa.id_paciente DESC';
+    }
 
     // REMOVE POSICOES VAZIAS DO FILTRO
     $where = implode(' AND ', $condicoes);
@@ -143,8 +151,11 @@
                             <select class="form-control form-control-sm"
                                 style="margin-top:7px;font-size:.8em; color:#878787" id="ordenar" name="ordenar">
                                 <option value="">Classificar por</option>
+                                <option value="id_paciente_desc"
+                                    <?= $ordenar == 'id_paciente_desc' ? 'selected' : null ?>>Id Paciente (desc)
+                                </option>
                                 <option value="id_paciente" <?= $ordenar == 'id_paciente' ? 'selected' : null ?>>Id
-                                    Paciente
+                                    Paciente (asc)
                                 </option>
                                 <option value="nome_pac" <?= $ordenar == 'nome_pac' ? 'selected' : null ?>>Nome Paciente
                                 </option>

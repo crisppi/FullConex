@@ -59,7 +59,7 @@ $patologiaDao     = new patologiaDAO($conn, $BASE_URL);
 // =====================================================================
 $limite_pag       = filter_input(INPUT_GET, 'limite_pag') ? filter_input(INPUT_GET, 'limite_pag') : 10;
 $limite           = filter_input(INPUT_GET, 'limite')     ? filter_input(INPUT_GET, 'limite')     : 10;
-$ordenar          = filter_input(INPUT_GET, 'ordenar')    ? filter_input(INPUT_GET, 'ordenar')    : 1;
+$ordenar          = filter_input(INPUT_GET, 'ordenar')    ? filter_input(INPUT_GET, 'ordenar')    : 'id_capeante_desc';
 
 $pesquisa_nome       = filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS);
 $pesquisa_pac        = filter_input(INPUT_GET, 'pesquisa_pac',  FILTER_SANITIZE_SPECIAL_CHARS);
@@ -172,7 +172,16 @@ $qtdIntItens = count($__ids_total);
 $totalcasos     = ceil(max($qtdIntItens, 1) / max((int)$limite, 1));
 $pesqInternado  = null;
 
-$order          = $ordenar;
+$mapOrder = [
+    'id_internacao' => 'ac.id_internacao',
+    'id_capeante_desc' => 'ca.id_capeante DESC',
+    'id_capeante' => 'ca.id_capeante',
+    'senha_int' => 'ac.senha_int',
+    'nome_pac' => 'pa.nome_pac',
+    'nome_hosp' => 'ho.nome_hosp',
+    'data_intern_int' => 'ac.data_intern_int',
+];
+$order = $mapOrder[$ordenar] ?? 'ca.id_capeante DESC';
 $obPagination   = new pagination($qtdIntItens, $_GET['pag'] ?? 1, $limite ?? 10);
 $obLimite       = $obPagination->getLimit();
 
@@ -286,11 +295,15 @@ if ($qtdIntItens > $limite) {
                         <select class="form-control form-control-sm"
                             style="margin-top:7px;font-size:.8em; color:#878787" id="ordenar" name="ordenar">
                             <option value="">Classificar por</option>
+                            <option value="id_capeante_desc"
+                                <?= $ordenar == 'id_capeante_desc' ? 'selected' : '' ?>>
+                                No.capeante (desc)
+                            </option>
                             <option value="id_internacao" <?= $ordenar == 'id_internacao'  ? 'selected' : '' ?>>
                                 Internação
                             </option>
                             <option value="id_capeante" <?= $ordenar == 'id_capeante'    ? 'selected' : '' ?>>
-                                No.capeante
+                                No.capeante (asc)
                             </option>
                             <option value="senha_int" <?= $ordenar == 'senha_int'       ? 'selected' : '' ?>>Senha
                             </option>

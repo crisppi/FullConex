@@ -516,7 +516,7 @@ class PacienteDAO implements PacienteDAOInterface
 
         $pacientes = [];
 
-        $stmt = $this->conn->query("SELECT * FROM tb_paciente where deletado_pac <> 's' ORDER BY id_paciente");
+        $stmt = $this->conn->query("SELECT * FROM tb_paciente where deletado_pac <> 's' ORDER BY id_paciente DESC");
 
         $stmt->execute();
 
@@ -538,6 +538,8 @@ class PacienteDAO implements PacienteDAOInterface
         $allowedOrder = [
             'pa.id_paciente',
             'id_paciente',
+            'pa.id_paciente DESC',
+            'id_paciente DESC',
             'pa.nome_pac',
             'nome_pac',
             'se.seguradora_seg',
