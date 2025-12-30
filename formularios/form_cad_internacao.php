@@ -827,9 +827,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 <?php if ($cadastroCentralObrigatorio): ?>
                 <small style="margin-left:8px;color:#b02a37;font-weight:600;">Cadastro central obrigatório: selecione o
                     tipo de profissional e o responsável.</small>
-                <small style="margin-left:8px;color:#b02a37;font-weight:600;">Cadastro central obrigatório:
-                    selecione o
-                    tipo e o responsável.</small>
                 <?php else: ?>
                 <small style="margin-left:8px;color:#666;">(opcional: escolha o tipo e o responsável)</small>
                 <?php endif; ?>
