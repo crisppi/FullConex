@@ -248,7 +248,7 @@ $temAlgum = $temSinistro || $temInternação || $temUti;
         <h1 class="bi-title">Dashboard Inteligencia Artificial</h1>
         <div class="bi-header-actions">
             <div class="text-end text-muted"></div>
-            <a class="bi-nav-icon" href="<?= $BASE_URL ?>bi_navegacao.php" title="Navegação">
+            <a class="bi-nav-icon" href="<?= $BASE_URL ?>bi/navegacao" title="Navegação">
                 <i class="bi bi-grid-3x3-gap"></i>
             </a>
         </div>

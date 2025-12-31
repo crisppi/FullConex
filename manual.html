@@ -184,7 +184,7 @@
         <div class="hero-layout">
             <div class="hero-logo-wrap"><img src="img/LogoFullCare.png" alt="FullCare" class="hero-logo"></div>
             <div class="hero-body">
-                <div class="pill">Manual Operacional • v0.2</div>
+                <div class="pill">Manual Operacional • v0.3</div>
                 <h1>FullCare</h1>
                 <p>Página inicial do manual. Cada módulo possui um guia próprio. Use os atalhos abaixo para abrir o conteúdo detalhado.</p>
             </div>
@@ -265,6 +265,11 @@
                     <span>Operação</span>
                     <strong>Listas &amp; Rota</strong>
                     <p>Gráficos de negociações, internações sem senha e rota consolidada.</p>
+                </a>
+                <a class="link-card" href="#bi-inteligencia">
+                    <span>Indicadores</span>
+                    <strong>BI &amp; Inteligência Operacional</strong>
+                    <p>Dashboards, navegação e URLs amigáveis para relatórios.</p>
                 </a>
                 <a class="link-card" href="#menu-principal">
                     <span>Navegação</span>
@@ -475,13 +480,35 @@
             </div>
         </section>
 
+        <section id="bi-inteligencia">
+            <h2>BI e Inteligência Operacional</h2>
+            <div class="cards-grid">
+                <article class="card">
+                    <h3>BI (dashboards)</h3>
+                    <ul class="list">
+                        <li>Entrada principal em <code>/bi</code> ou <code>/bi/navegacao</code>.</li>
+                        <li>Links amigáveis: <code>/bi/uti</code>, <code>/bi/seguradora</code>, <code>/bi/financeiro-realizado</code>.</li>
+                        <li>Topbar e chips facilitam trocar de relatório sem perder o contexto.</li>
+                    </ul>
+                </article>
+                <article class="card">
+                    <h3>Inteligência Operacional</h3>
+                    <ul class="list">
+                        <li>Entrada principal em <code>/inteligencia</code> (Dashboard 360°).</li>
+                        <li>Rotas rápidas: <code>/inteligencia/performance-equipes</code> e <code>/inteligencia/painel-mensal</code>.</li>
+                        <li>Previsões e alertas: <code>/inteligencia/previsoes-operacionais</code> e <code>/inteligencia/permanencias-alertas</code>.</li>
+                    </ul>
+                </article>
+            </div>
+        </section>
+
         <section id="menu-principal">
             <h2>Menu principal</h2>
             <div class="cards-grid">
                 <article class="card">
                     <h3>Painel mensal</h3>
                     <ul class="list">
-                        <li>Link direto abre <code>dashboard_mensal.php</code> (nível ≥ 1) com filtros hospital, seguradora e janela (6/12/24 meses).</li>
+                        <li>Link direto abre <code>/inteligencia/painel-mensal</code> (nível ≥ 1) com filtros hospital, seguradora e janela (6/12/24 meses).</li>
                         <li>Mostra internações por mês, valor apresentado x final, diárias e MP global.</li>
                         <li>Ranking dos 5 hospitais com mais internações ajuda a direcionar equipes.</li>
                     </ul>
@@ -492,6 +519,7 @@
                         <li>Menu inclui “Solicitação de Customização (PDF)” abrindo arquivo interativo.</li>
                         <li>Campos preenchíveis: solicitante, módulo, tipo de demanda, impacto, prioridade e anexos.</li>
                         <li>Área final permite a equipe FullCare responder com prazo, custo e aprovação.</li>
+                        <li>Permissões ficam no mesmo menu (visível apenas para nível ≥ 4).</li>
                     </ul>
                 </article>
             </div>
@@ -519,7 +547,7 @@
     </main>
 
     <footer>
-        Manual interno FullCare • versão 0.2
+        Manual interno FullCare • versão 0.3
     </footer>
 </body>
 

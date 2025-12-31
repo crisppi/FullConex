@@ -8,44 +8,44 @@ function e($v)
 }
 
 $links = [
-    ['label' => 'UTI', 'href' => 'bi_uti.php'],
-    ['label' => 'Patologia', 'href' => 'bi_patologia.php'],
-    ['label' => 'Grupo Patologia', 'href' => 'GrupoPatologia.php'],
-    ['label' => 'Antecedente', 'href' => 'Antecedente.php'],
-    ['label' => 'Longa Permanência', 'href' => 'LongaPermanenciaBI.php'],
-    ['label' => 'Estratégia Terapêutica', 'href' => 'EstrategiaTerapeuticaBI.php'],
-    ['label' => 'Médico Titular', 'href' => 'MedicoTitularBI.php'],
-    ['label' => 'Auditor', 'href' => 'AuditorBI.php'],
-    ['label' => 'Auditor Visitas', 'href' => 'AuditorVisitasBI.php'],
-    ['label' => 'Internações com Risco', 'href' => 'InternaçõesRiscoBI.php'],
-    ['label' => 'Seguradora', 'href' => 'SeguradoraBI.php'],
-    ['label' => 'Seguradora Detalhado', 'href' => 'SeguradoraDetalhadoBI.php'],
-    ['label' => 'Qualidade e Gestão', 'href' => 'QualidadeGestaoBI.php'],
-    ['label' => 'Financeiro Realizado', 'href' => 'FinanceiroRealizadoBI.php'],
-    ['label' => 'Clínico Realizado', 'href' => 'ClinicoRealizadoBI.php'],
-    ['label' => 'Auditoria Produtividade', 'href' => 'AuditoriaProdutividadeBI.php'],
-    ['label' => 'Consolidado Gestão', 'href' => 'ConsolidadoGestaoBI.php'],
-    ['label' => 'Consolidado Gestão Cards', 'href' => 'ConsolidadoGestaoCardsBI.php'],
-    ['label' => 'Alto Custo', 'href' => 'AltoCusto.php'],
-    ['label' => 'Home Care', 'href' => 'HomeCare.php'],
-    ['label' => 'Desospitalizacao', 'href' => 'Desospitalizacao.php'],
-    ['label' => 'OPME', 'href' => 'Opme.php'],
-    ['label' => 'Evento Adverso', 'href' => 'EventoAdverso.php'],
-    ['label' => 'Sinistro BI', 'href' => 'Sinistro.php'],
-    ['label' => 'Producao BI', 'href' => 'Producao.php'],
-    ['label' => 'Indicadores BI', 'href' => 'Indicadores.php'],
-    ['label' => 'Sinistro YTD', 'href' => 'bi_sinistro_ytd.php'],
-    ['label' => 'Producao YTD', 'href' => 'bi_producao_ytd.php'],
-    ['label' => 'Saving', 'href' => 'bi_saving.php'],
-    ['label' => 'Pacientes', 'href' => 'bi_pacientes.php'],
-    ['label' => 'Hospitais', 'href' => 'bi_hospitais.php'],
-    ['label' => 'Sinistro', 'href' => 'bi_sinistro.php'],
-    ['label' => 'Perfil Sinistro', 'href' => 'bi_perfil_sinistro.php'],
-    ['label' => 'Inteligencia Artificial', 'href' => 'bi_inteligencia.php'],
-    ['label' => 'Tempo Médio Permanência', 'href' => 'relatorio_tmp.php'],
-    ['label' => 'Prorrogacao x Alta', 'href' => 'relatorio_prorrogacao_vs_alta.php'],
-    ['label' => 'Motivos Prorrogacao', 'href' => 'relatorio_motivos_prorrogacao.php'],
-    ['label' => 'Backlog Autorizacoes', 'href' => 'relatorio_backlog_autorizacoes.php'],
+    ['label' => 'UTI', 'href' => 'bi/uti'],
+    ['label' => 'Patologia', 'href' => 'bi/patologia'],
+    ['label' => 'Grupo Patologia', 'href' => 'bi/grupo-patologia'],
+    ['label' => 'Antecedente', 'href' => 'bi/antecedente'],
+    ['label' => 'Longa Permanência', 'href' => 'bi/longa-permanencia'],
+    ['label' => 'Estratégia Terapêutica', 'href' => 'bi/estrategia-terapeutica'],
+    ['label' => 'Médico Titular', 'href' => 'bi/medico-titular'],
+    ['label' => 'Auditor', 'href' => 'bi/auditor'],
+    ['label' => 'Auditor Visitas', 'href' => 'bi/auditor-visitas'],
+    ['label' => 'Internações com Risco', 'href' => 'bi/internacoes-risco'],
+    ['label' => 'Seguradora', 'href' => 'bi/seguradora'],
+    ['label' => 'Seguradora Detalhado', 'href' => 'bi/seguradora-detalhado'],
+    ['label' => 'Qualidade e Gestão', 'href' => 'bi/qualidade-gestao'],
+    ['label' => 'Financeiro Realizado', 'href' => 'bi/financeiro-realizado'],
+    ['label' => 'Clínico Realizado', 'href' => 'bi/clinico-realizado'],
+    ['label' => 'Auditoria Produtividade', 'href' => 'bi/auditoria-produtividade'],
+    ['label' => 'Consolidado Gestão', 'href' => 'bi/consolidado'],
+    ['label' => 'Consolidado Gestão Cards', 'href' => 'bi/consolidado-cards'],
+    ['label' => 'Alto Custo', 'href' => 'bi/alto-custo'],
+    ['label' => 'Home Care', 'href' => 'bi/home-care'],
+    ['label' => 'Desospitalizacao', 'href' => 'bi/desospitalizacao'],
+    ['label' => 'OPME', 'href' => 'bi/opme'],
+    ['label' => 'Evento Adverso', 'href' => 'bi/evento-adverso'],
+    ['label' => 'Sinistro BI', 'href' => 'bi/sinistro'],
+    ['label' => 'Producao BI', 'href' => 'bi/producao'],
+    ['label' => 'Indicadores BI', 'href' => 'bi/indicadores'],
+    ['label' => 'Sinistro YTD', 'href' => 'bi/sinistro-ytd'],
+    ['label' => 'Producao YTD', 'href' => 'bi/producao-ytd'],
+    ['label' => 'Saving', 'href' => 'bi/saving'],
+    ['label' => 'Pacientes', 'href' => 'bi/pacientes'],
+    ['label' => 'Hospitais', 'href' => 'bi/hospitais'],
+    ['label' => 'Sinistro', 'href' => 'bi/sinistro-bi'],
+    ['label' => 'Perfil Sinistro', 'href' => 'bi/perfil-sinistro'],
+    ['label' => 'Inteligencia Artificial', 'href' => 'bi/inteligencia'],
+    ['label' => 'Tempo Médio Permanência', 'href' => 'inteligencia/tmp'],
+    ['label' => 'Prorrogacao x Alta', 'href' => 'inteligencia/prorrogacao-vs-alta'],
+    ['label' => 'Motivos Prorrogacao', 'href' => 'inteligencia/motivos-prorrogacao'],
+    ['label' => 'Backlog Autorizacoes', 'href' => 'inteligencia/backlog-autorizacoes'],
 ];
 ?>
 
@@ -58,7 +58,7 @@ $links = [
         <h1 class="bi-title">Navegação BI</h1>
         <div class="bi-header-actions">
             <div class="text-end text-muted"></div>
-            <a class="bi-nav-icon" href="<?= $BASE_URL ?>bi_navegacao.php" title="Navegação">
+            <a class="bi-nav-icon" href="<?= $BASE_URL ?>bi/navegacao" title="Navegação">
                 <i class="bi bi-grid-3x3-gap"></i>
             </a>
         </div>
@@ -68,7 +68,7 @@ $links = [
         <div class="bi-nav-title">Painel de Navegação</div>
         <div class="bi-nav-grid">
             <?php foreach ($links as $link): ?>
-                <a class="bi-nav-card" href="<?= e($link['href']) ?>">
+                <a class="bi-nav-card" href="<?= $BASE_URL . e($link['href']) ?>">
                     <?= e($link['label']) ?>
                 </a>
             <?php endforeach; ?>

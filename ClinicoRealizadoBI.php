@@ -157,7 +157,7 @@ $comorbValues = array_map(fn($r) => (int)$r['total'], $comorbRows);
         <h1 class="bi-title">Clínico Realizado</h1>
         <div class="bi-header-actions">
             <div class="text-end text-muted">Últimos 12 meses</div>
-            <a class="bi-nav-icon" href="<?= $BASE_URL ?>bi_navegacao.php" title="Navegação">
+            <a class="bi-nav-icon" href="<?= $BASE_URL ?>bi/navegacao" title="Navegação">
                 <i class="bi bi-grid-3x3-gap"></i>
             </a>
         </div>

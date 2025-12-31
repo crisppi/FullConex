@@ -5,46 +5,47 @@ if (!isset($BASE_URL)) {
 
 $biSections = [
     'Resumo' => [
-        ['label' => 'Navegação', 'href' => 'bi_navegacao.php'],
-        ['label' => 'Consolidado', 'href' => 'ConsolidadoGestaoBI.php'],
-        ['label' => 'Indicadores BI', 'href' => 'Indicadores.php'],
+        ['label' => 'Navegação', 'href' => 'bi/navegacao', 'file' => 'bi_navegacao.php'],
+        ['label' => 'Consolidado', 'href' => 'bi/consolidado', 'file' => 'ConsolidadoGestaoBI.php'],
+        ['label' => 'Consolidado Cards', 'href' => 'bi/consolidado-cards', 'file' => 'ConsolidadoGestaoCardsBI.php'],
+        ['label' => 'Indicadores BI', 'href' => 'bi/indicadores', 'file' => 'Indicadores.php'],
     ],
     'Clínico' => [
-        ['label' => 'UTI', 'href' => 'bi_uti.php'],
-        ['label' => 'Patologia', 'href' => 'bi_patologia.php'],
-        ['label' => 'Grupo Patologia', 'href' => 'GrupoPatologia.php'],
-        ['label' => 'Antecedente', 'href' => 'Antecedente.php'],
-        ['label' => 'Longa Permanência', 'href' => 'LongaPermanenciaBI.php'],
-        ['label' => 'Clínico Realizado', 'href' => 'ClinicoRealizadoBI.php'],
-        ['label' => 'Estratégia Terapêutica', 'href' => 'EstrategiaTerapeuticaBI.php'],
-        ['label' => 'Médico Titular', 'href' => 'MedicoTitularBI.php'],
-        ['label' => 'Auditor', 'href' => 'AuditorBI.php'],
-        ['label' => 'Auditor Visitas', 'href' => 'AuditorVisitasBI.php'],
-        ['label' => 'Auditoria Produtividade', 'href' => 'AuditoriaProdutividadeBI.php'],
+        ['label' => 'UTI', 'href' => 'bi/uti', 'file' => 'bi_uti.php'],
+        ['label' => 'Patologia', 'href' => 'bi/patologia', 'file' => 'bi_patologia.php'],
+        ['label' => 'Grupo Patologia', 'href' => 'bi/grupo-patologia', 'file' => 'GrupoPatologia.php'],
+        ['label' => 'Antecedente', 'href' => 'bi/antecedente', 'file' => 'Antecedente.php'],
+        ['label' => 'Longa Permanência', 'href' => 'bi/longa-permanencia', 'file' => 'LongaPermanenciaBI.php'],
+        ['label' => 'Clínico Realizado', 'href' => 'bi/clinico-realizado', 'file' => 'ClinicoRealizadoBI.php'],
+        ['label' => 'Estratégia Terapêutica', 'href' => 'bi/estrategia-terapeutica', 'file' => 'EstrategiaTerapeuticaBI.php'],
+        ['label' => 'Médico Titular', 'href' => 'bi/medico-titular', 'file' => 'MedicoTitularBI.php'],
+        ['label' => 'Auditor', 'href' => 'bi/auditor', 'file' => 'AuditorBI.php'],
+        ['label' => 'Auditor Visitas', 'href' => 'bi/auditor-visitas', 'file' => 'AuditorVisitasBI.php'],
+        ['label' => 'Auditoria Produtividade', 'href' => 'bi/auditoria-produtividade', 'file' => 'AuditoriaProdutividadeBI.php'],
     ],
     'Operacional' => [
-        ['label' => 'Seguradora', 'href' => 'SeguradoraBI.php'],
-        ['label' => 'Seguradora Detalhado', 'href' => 'SeguradoraDetalhadoBI.php'],
-        ['label' => 'Alto Custo', 'href' => 'AltoCusto.php'],
-        ['label' => 'Internações com Risco', 'href' => 'InternacoesRiscoBI.php'],
-        ['label' => 'Qualidade e Gestão', 'href' => 'QualidadeGestaoBI.php'],
-        ['label' => 'Home Care', 'href' => 'HomeCare.php'],
-        ['label' => 'Desospitalização', 'href' => 'Desospitalizacao.php'],
-        ['label' => 'OPME', 'href' => 'Opme.php'],
-        ['label' => 'Evento Adverso', 'href' => 'EventoAdverso.php'],
+        ['label' => 'Seguradora', 'href' => 'bi/seguradora', 'file' => 'SeguradoraBI.php'],
+        ['label' => 'Seguradora Detalhado', 'href' => 'bi/seguradora-detalhado', 'file' => 'SeguradoraDetalhadoBI.php'],
+        ['label' => 'Alto Custo', 'href' => 'bi/alto-custo', 'file' => 'AltoCusto.php'],
+        ['label' => 'Internações com Risco', 'href' => 'bi/internacoes-risco', 'file' => 'InternacoesRiscoBI.php'],
+        ['label' => 'Qualidade e Gestão', 'href' => 'bi/qualidade-gestao', 'file' => 'QualidadeGestaoBI.php'],
+        ['label' => 'Home Care', 'href' => 'bi/home-care', 'file' => 'HomeCare.php'],
+        ['label' => 'Desospitalização', 'href' => 'bi/desospitalizacao', 'file' => 'Desospitalizacao.php'],
+        ['label' => 'OPME', 'href' => 'bi/opme', 'file' => 'Opme.php'],
+        ['label' => 'Evento Adverso', 'href' => 'bi/evento-adverso', 'file' => 'EventoAdverso.php'],
     ],
     'Financeiro' => [
-        ['label' => 'Sinistro', 'href' => 'Sinistro.php'],
-        ['label' => 'Perfil Sinistro', 'href' => 'bi_perfil_sinistro.php'],
-        ['label' => 'Sinistro YTD', 'href' => 'bi_sinistro_ytd.php'],
-        ['label' => 'Financeiro Realizado', 'href' => 'FinanceiroRealizadoBI.php'],
-        ['label' => 'Produção', 'href' => 'Producao.php'],
-        ['label' => 'Produção YTD', 'href' => 'bi_producao_ytd.php'],
-        ['label' => 'Saving', 'href' => 'bi_saving.php'],
-        ['label' => 'Pacientes', 'href' => 'bi_pacientes.php'],
-        ['label' => 'Hospitais', 'href' => 'bi_hospitais.php'],
-        ['label' => 'Inteligência Artificial', 'href' => 'bi_inteligencia.php'],
-        ['label' => 'Sinistro BI', 'href' => 'bi_sinistro.php'],
+        ['label' => 'Sinistro', 'href' => 'bi/sinistro', 'file' => 'Sinistro.php'],
+        ['label' => 'Perfil Sinistro', 'href' => 'bi/perfil-sinistro', 'file' => 'bi_perfil_sinistro.php'],
+        ['label' => 'Sinistro YTD', 'href' => 'bi/sinistro-ytd', 'file' => 'bi_sinistro_ytd.php'],
+        ['label' => 'Financeiro Realizado', 'href' => 'bi/financeiro-realizado', 'file' => 'FinanceiroRealizadoBI.php'],
+        ['label' => 'Produção', 'href' => 'bi/producao', 'file' => 'Producao.php'],
+        ['label' => 'Produção YTD', 'href' => 'bi/producao-ytd', 'file' => 'bi_producao_ytd.php'],
+        ['label' => 'Saving', 'href' => 'bi/saving', 'file' => 'bi_saving.php'],
+        ['label' => 'Pacientes', 'href' => 'bi/pacientes', 'file' => 'bi_pacientes.php'],
+        ['label' => 'Hospitais', 'href' => 'bi/hospitais', 'file' => 'bi_hospitais.php'],
+        ['label' => 'Inteligência Artificial', 'href' => 'bi/inteligencia', 'file' => 'bi_inteligencia.php'],
+        ['label' => 'Sinistro BI', 'href' => 'bi/sinistro-bi', 'file' => 'bi_sinistro.php'],
     ],
 ];
 
@@ -55,8 +56,9 @@ $flatPages = [];
 
 foreach ($biSections as $section => $items) {
     foreach ($items as $item) {
-        $flatPages[] = $item['href'];
-        if ($item['href'] === $currentPage) {
+        $file = $item['file'] ?? $item['href'];
+        $flatPages[] = $file;
+        if ($file === $currentPage) {
             $currentSection = $section;
             $currentLabel = $item['label'];
         }
@@ -195,7 +197,8 @@ if (!in_array($currentPage, $flatPages, true)) {
             <?php foreach ($biSections as $section => $items): ?>
             <optgroup label="<?= htmlspecialchars($section, ENT_QUOTES, 'UTF-8') ?>">
                 <?php foreach ($items as $item): ?>
-                <option value="<?= $BASE_URL . $item['href'] ?>" <?= $item['href'] === $currentPage ? 'selected' : '' ?>>
+                <?php $itemFile = $item['file'] ?? $item['href']; ?>
+                <option value="<?= $BASE_URL . $item['href'] ?>" <?= $itemFile === $currentPage ? 'selected' : '' ?>>
                     <?= htmlspecialchars($item['label'], ENT_QUOTES, 'UTF-8') ?>
                 </option>
                 <?php endforeach; ?>
@@ -206,7 +209,8 @@ if (!in_array($currentPage, $flatPages, true)) {
     <div class="bi-chipbar">
         <?php foreach ($biSections as $section => $items): ?>
         <?php foreach ($items as $item): ?>
-        <a class="bi-chip <?= $item['href'] === $currentPage ? 'is-active' : '' ?>"
+        <?php $itemFile = $item['file'] ?? $item['href']; ?>
+        <a class="bi-chip <?= $itemFile === $currentPage ? 'is-active' : '' ?>"
             href="<?= $BASE_URL . $item['href'] ?>"
             title="<?= htmlspecialchars($section . ' • ' . $item['label'], ENT_QUOTES, 'UTF-8') ?>">
             <?= htmlspecialchars($item['label'], ENT_QUOTES, 'UTF-8') ?>

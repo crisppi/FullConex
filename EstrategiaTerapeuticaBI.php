@@ -374,7 +374,7 @@ $globalCustoMedioConta = $globalFinanceiro['total_contas'] > 0 ? ($globalFinance
         <h1 class="bi-title">Estrategia Terapeutica</h1>
         <div class="bi-header-actions bi-header-floating">
             <div class="text-end text-muted"></div>
-            <a class="bi-nav-icon" href="<?= $BASE_URL ?>bi_navegacao.php" title="Navegacao">
+            <a class="bi-nav-icon" href="<?= $BASE_URL ?>bi/navegacao" title="Navegacao">
                 <svg viewBox="0 0 16 16" aria-hidden="true">
                     <circle cx="3" cy="3" r="1.2"></circle>
                     <circle cx="8" cy="3" r="1.2"></circle>
