@@ -44,7 +44,7 @@ class patologiaDAO implements patologiaDAOInterface
 
         $stmt = $this->conn->prepare("SELECT * FROM tb_patologia p
         LEFT JOIN tb_cid c ON p.fk_cid_10_pat = c.id_cid
-        ORDER BY id_patologia asc");
+        ORDER BY id_patologia DESC");
 
         $stmt->execute();
 
@@ -57,7 +57,7 @@ class patologiaDAO implements patologiaDAOInterface
 
         $patologia = [];
 
-        $stmt = $this->conn->query("SELECT * FROM tb_patologia ORDER BY id_patologia asc");
+        $stmt = $this->conn->query("SELECT * FROM tb_patologia ORDER BY id_patologia DESC");
 
         $stmt->execute();
 
@@ -81,7 +81,7 @@ class patologiaDAO implements patologiaDAOInterface
         $stmt = $this->conn->prepare("SELECT * FROM tb_patologia p
                                     LEFT JOIN tb_cid c ON p.fk_cid_10_pat = c.id_cid
                                     WHERE patologia_pat = :patologia_pat
-                                    ORDER BY id_patologia asc");
+                                    ORDER BY id_patologia DESC");
 
         $stmt->bindParam(":patologia_pat", $patologia_pat);
 
@@ -233,7 +233,7 @@ class patologiaDAO implements patologiaDAOInterface
         $patologia = [];
 
         $stmt = $this->conn->query("SELECT * FROM tb_patologia p
-        LEFT JOIN tb_cid c ON p.fk_cid_10_pat = c.id_cid WHERE p.id_patologia > 1 ORDER BY id_patologia asc");
+        LEFT JOIN tb_cid c ON p.fk_cid_10_pat = c.id_cid WHERE p.id_patologia > 1 ORDER BY id_patologia DESC");
 
         $stmt->execute();
 

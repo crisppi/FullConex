@@ -37,7 +37,7 @@ class tussAnsDAO implements tussAnsDAOInterface
         $tussAns = [];
 
         $stmt = $this->conn->prepare("SELECT * FROM tb_tuss_ans
-        ORDER BY id_tuss asc");
+        ORDER BY id_tuss DESC");
 
         $stmt->execute();
 

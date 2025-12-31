@@ -37,7 +37,7 @@ class cidDAO implements cidDAOInterface
         $cid = [];
 
         $stmt = $this->conn->prepare("SELECT * FROM tb_cid
-        ORDER BY id_cid asc");
+        ORDER BY id_cid DESC");
 
         $stmt->execute();
 

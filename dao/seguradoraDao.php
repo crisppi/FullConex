@@ -74,7 +74,7 @@ class seguradoraDAO implements seguradoraDAOInterface
     {
         $seguradora = [];
 
-        $stmt = $this->conn->query("SELECT * FROM tb_seguradora ORDER BY id_seguradora asc");
+        $stmt = $this->conn->query("SELECT * FROM tb_seguradora ORDER BY id_seguradora DESC");
 
         $stmt->execute();
 
@@ -88,7 +88,7 @@ class seguradoraDAO implements seguradoraDAOInterface
 
         $seguradora = [];
 
-        $stmt = $this->conn->query("SELECT * FROM tb_seguradora ORDER BY id_seguradora asc");
+        $stmt = $this->conn->query("SELECT * FROM tb_seguradora ORDER BY id_seguradora DESC");
 
         $stmt->execute();
 
@@ -111,7 +111,7 @@ class seguradoraDAO implements seguradoraDAOInterface
 
         $stmt = $this->conn->prepare("SELECT * FROM tb_seguradora
                                     WHERE seguradora_seg = :seguradora_seg
-                                    ORDER BY id_seguradora asc");
+                                    ORDER BY id_seguradora DESC");
 
         $stmt->bindParam(":seguradora_seg", $seguradora_seg);
 
@@ -356,7 +356,7 @@ class seguradoraDAO implements seguradoraDAOInterface
 
         $seguradora = [];
 
-        $stmt = $this->conn->query("SELECT * FROM tb_seguradora ORDER BY id_seguradora asc");
+        $stmt = $this->conn->query("SELECT * FROM tb_seguradora ORDER BY id_seguradora DESC");
 
         $stmt->execute();
 

@@ -55,7 +55,7 @@ class negociacaoDAO implements negociacaoDAOInterface
         $negociacao = [];
 
         $stmt = $this->conn->prepare("SELECT * FROM tb_negociacao
-        ORDER BY id_negociacao asc");
+        ORDER BY id_negociacao DESC");
 
         $stmt->execute();
 
@@ -83,7 +83,7 @@ class negociacaoDAO implements negociacaoDAOInterface
 
         $negociacao = [];
 
-        $stmt = $this->conn->query("SELECT * FROM tb_negociacao ORDER BY id_negociacao asc");
+        $stmt = $this->conn->query("SELECT * FROM tb_negociacao ORDER BY id_negociacao DESC");
 
         $stmt->execute();
 
@@ -106,7 +106,7 @@ class negociacaoDAO implements negociacaoDAOInterface
 
         $stmt = $this->conn->prepare("SELECT * FROM tb_negociacao
                                     WHERE nome_est = :nome_est
-                                    ORDER BY id_negociacao asc");
+                                    ORDER BY id_negociacao DESC");
 
         $stmt->bindParam(":nome_est", $nome_est);
 

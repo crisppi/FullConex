@@ -42,7 +42,7 @@ class hospitalUserDAO implements hospitalUserDAOInterface
     ========================== */
     public function findAll()
     {
-        $sql = "SELECT * FROM " . self::TBL_LINK . " ORDER BY id_hospitalUser ASC";
+        $sql = "SELECT * FROM " . self::TBL_LINK . " ORDER BY id_hospitalUser DESC";
         return $this->conn->query($sql)->fetchAll();
     }
 
@@ -97,7 +97,7 @@ class hospitalUserDAO implements hospitalUserDAOInterface
     ========================== */
     public function findGeral()
     {
-        $sql = "SELECT * FROM " . self::TBL_LINK . " ORDER BY id_hospitalUser ASC";
+        $sql = "SELECT * FROM " . self::TBL_LINK . " ORDER BY id_hospitalUser DESC";
         return $this->conn->query($sql)->fetchAll();
     }
 
@@ -119,7 +119,7 @@ class hospitalUserDAO implements hospitalUserDAOInterface
 
     public function gethospitalUser()
     {
-        $sql = "SELECT * FROM " . self::TBL_LINK . " ORDER BY id_hospitalUser ASC";
+        $sql = "SELECT * FROM " . self::TBL_LINK . " ORDER BY id_hospitalUser DESC";
         $rows = $this->conn->query($sql)->fetchAll();
         $out = [];
         foreach ($rows as $row) {
@@ -203,7 +203,7 @@ class hospitalUserDAO implements hospitalUserDAOInterface
                 FROM " . self::TBL_LINK . " hu
                 LEFT JOIN " . self::TBL_HOSP . " h ON h.id_hospital = hu.fk_hospital_user
                 LEFT JOIN " . self::TBL_USER . " u ON u.id_usuario  = hu.fk_usuario_hosp
-                ORDER BY hu.id_hospitalUser ASC";
+                ORDER BY hu.id_hospitalUser DESC";
         return $this->conn->query($sql)->fetchAll();
     }
 
@@ -262,7 +262,7 @@ class hospitalUserDAO implements hospitalUserDAOInterface
                 LEFT JOIN " . self::TBL_HOSP . " h ON h.id_hospital = hu.fk_hospital_user
                 LEFT JOIN " . self::TBL_USER . " u ON u.id_usuario  = hu.fk_usuario_hosp
                 WHERE hu.fk_usuario_hosp = :id
-                ORDER BY hu.id_hospitalUser ASC
+                ORDER BY hu.id_hospitalUser DESC
                 ";
         $st = $this->conn->prepare($sql);
         $st->bindValue(":id", $id, PDO::PARAM_INT);

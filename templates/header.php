@@ -78,7 +78,7 @@ if (!empty($sessionIdUsuario)) {
         href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta2/css/bootstrap-select.min.css">
     <link href="<?= $BASE_URL ?>css/style.css" rel="stylesheet">
     <link href="<?= $BASE_URL ?>css/legendas.css" rel="stylesheet">
-    <link href="<?= $BASE_URL ?>css/styleMenu.css" rel="stylesheet">
+    <link href="<?= $BASE_URL ?>css/styleMenu.css?v=<?= @filemtime(__DIR__ . '/../css/styleMenu.css') ?>" rel="stylesheet">
     <link href="<?= $BASE_URL ?>css/style_show_internacao.css" rel="stylesheet">
 
     <!-- ======= APENAS DESIGN (logos alinhados e simétricos) ======= -->
@@ -932,6 +932,7 @@ if (!empty($sessionIdUsuario)) {
 
 <!-- Jquery JS-->
 <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta2/js/bootstrap-select.min.js"></script>
 
 <!-- Bootstrap JS-->
 <script src="./diversos/CoolAdmin-master/vendor/bootstrap-4.1/popper.min.js"></script>
