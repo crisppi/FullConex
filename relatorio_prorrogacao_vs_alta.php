@@ -150,8 +150,10 @@ $altasComPrazo = $altasDentro + $altasFora;
 
 <style>
 .report-wrapper {
-    width: min(1200px, 94vw);
-    margin: 90px auto 60px;
+    width: 100%;
+    max-width: none;
+    margin: 90px 0 60px;
+    padding: 0 24px;
 }
 .report-header {
     background: linear-gradient(120deg, #fef6ff, #f3e6f9);

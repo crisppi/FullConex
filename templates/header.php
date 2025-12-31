@@ -207,6 +207,21 @@ if (!empty($sessionIdUsuario)) {
                                 <li><a class="dropdown-item" href="<?= $BASE_URL ?>manual.html"><i class="bi bi-person"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
                                         Manual</a></li>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>solicitacao_customizacao_pdf.php"
+                                        target="_blank">
+                                        <i class="bi bi-file-earmark-text"
+                                            style="font-size: 1rem;margin-right:5px; color: #5e2363;"></i>
+                                        Solicitação de Customização (PDF)
+                                    </a></li>
+                                <?php if ($sessionNivel > 3) { ?>
+                                <li class="nav-item">
+                                    <a class="dropdown-item" href="<?= $BASE_URL ?>admin_permissao.php">
+                                        <i class="bi bi-shield-lock"
+                                            style="font-size: 1rem;margin-right:5px; color: rgb(21, 56, 210);"></i>
+                                        Permissões
+                                    </a>
+                                </li>
+                                <?php }; ?>
                                 <?php }; ?>
                             </ul>
                         </li>
@@ -727,21 +742,6 @@ if (!empty($sessionIdUsuario)) {
                                             class="bi bi-pencil-square"
                                             style="font-size: 1rem;margin-right:5px; color:#fb923c;"></i>
                                         Assistente de Textos</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>solicitacao_customizacao_pdf.php"
-                                        target="_blank">
-                                        <i class="bi bi-file-earmark-text"
-                                            style="font-size: 1rem;margin-right:5px; color: #5e2363;"></i>
-                                        Solicitação de Customização (PDF)
-                                    </a></li>
-                                <?php if ($sessionNivel > 3) { ?>
-                                <li class="nav-item">
-                                    <a class="dropdown-item" href="<?= $BASE_URL ?>admin_permissao.php">
-                                        <i class="bi bi-shield-lock"
-                                            style="font-size: 1rem;margin-right:5px; color: rgb(21, 56, 210);"></i>
-                                        Permissões
-                                    </a>
-                                </li>
-                                <?php }; ?>
                             </ul>
                         </li>
                         <?php }; ?>
@@ -870,6 +870,7 @@ if (!empty($sessionIdUsuario)) {
                 </div>
             </div>
         </nav>
+        <?php include_once(__DIR__ . '/bi_topbar.php'); ?>
 
         <!-- notification message -->
         <?php if (session_status() !== PHP_SESSION_ACTIVE) session_start(); ?>

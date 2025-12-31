@@ -712,8 +712,10 @@ function perfTimerLabel($seconds)
 
 <style>
 .performance-wrapper {
-    width: min(1650px, 96vw);
-    margin: 24px auto 60px;
+    width: 100%;
+    max-width: none;
+    margin: 24px 0 60px;
+    padding: 0 24px;
     font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont;
 }
 .perf-hero {

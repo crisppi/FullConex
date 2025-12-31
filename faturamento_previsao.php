@@ -108,8 +108,10 @@ for ($i = 0; $i < 4; $i++) {
 
 <style>
 .forecast-wrapper {
-    width: min(1620px, 96vw);
-    margin: 24px auto 70px;
+    width: 100%;
+    max-width: none;
+    margin: 24px 0 70px;
+    padding: 0 24px;
     font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont;
 }
 .forecast-hero {

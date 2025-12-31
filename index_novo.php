@@ -16,7 +16,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 100vh;
+        min-height: 100vh;
         font-family: Arial, sans-serif;
         background: linear-gradient(45deg, #5e2363 50%, #5bd9f3 50%);
         opacity: 0;
@@ -60,6 +60,7 @@
 
     .login-form-logo {
         width: 100%;
+        max-width: 320px;
         margin-bottom: 20px;
         display: block;
     }
@@ -138,7 +139,7 @@
         background: #421849;
         color: #fff;
         width: 40%;
-        height: 570px;
+        min-height: 570px;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
@@ -277,6 +278,72 @@
         font-size: 17px;
         animation: fadeIn .5s ease-in-out;
         z-index: 1000;
+    }
+
+    /* ===============================
+       Responsivo
+    =============================== */
+    @media (max-width: 1024px) {
+        body {
+            padding: 24px 16px;
+            height: auto;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 860px;
+        }
+
+        .form-content {
+            width: 70%;
+        }
+    }
+
+    @media (max-width: 900px) {
+        .login-container {
+            flex-direction: column;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .login-form,
+        .side-panel {
+            width: 100%;
+            border-radius: 0;
+        }
+
+        .login-form {
+            padding: 32px 24px;
+        }
+
+        .side-panel {
+            min-height: 0;
+            margin: 0;
+            padding: 28px 24px 32px;
+        }
+
+        .side-panel-content {
+            margin-top: calc(var(--conex-side-top) + var(--conex-side-h) + var(--conex-tagline-gap) + 24px);
+        }
+    }
+
+    @media (max-width: 600px) {
+        .side-panel {
+            display: none;
+        }
+
+        .login-form {
+            padding: 28px 20px;
+        }
+
+        .login-form-logo {
+            max-width: 240px;
+            margin-bottom: 16px;
+        }
+
+        .form-content {
+            width: 100%;
+        }
     }
     </style>
 </head>

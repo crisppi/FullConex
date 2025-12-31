@@ -137,8 +137,10 @@ try {
 
 <style>
 .dashboard-wrapper {
-    width: min(1650px, 96vw);
-    margin: 24px auto 60px;
+    width: 100%;
+    max-width: none;
+    margin: 24px 0 60px;
+    padding: 0 24px;
 }
 .dash-hero {
     background: linear-gradient(120deg, #fff6fb, #fbe1f2 60%, #f3cee6);
