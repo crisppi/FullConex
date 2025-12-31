@@ -21,7 +21,7 @@
     $pesquisa_nome = filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS);
     $buscaAtivo = filter_input(INPUT_GET, 'ativo_pac', FILTER_SANITIZE_SPECIAL_CHARS);
     $limite = filter_input(INPUT_GET, 'limite') ? filter_input(INPUT_GET, 'limite') : 10;
-    $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : 1;
+    $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : '';
     $buscaAtivo = in_array($buscaAtivo, ['s', 'n']) ?: "";
     $pacienteInicio = ' 1 ';
     $condicoes = [
@@ -41,7 +41,7 @@
 
     $condicoes = array_filter($condicoes);
     // print_r($condicoes);
-    $order = $ordenar;
+    $order = $ordenar ?: 'id_paciente DESC';
 
     // REMOVE POSICOES VAZIAS DO FILTRO
     $where = implode(' AND ', $condicoes);

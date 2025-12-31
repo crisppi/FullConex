@@ -20,7 +20,7 @@ $pesquisa_hosp = trim((string)(filter_input(INPUT_GET, 'pesquisa_hosp', FILTER_S
 $pesquisa_pac  = trim((string)(filter_input(INPUT_GET, 'pesquisa_pac', FILTER_SANITIZE_SPECIAL_CHARS) ?: ''));
 $pesquisa_matricula = trim((string)(filter_input(INPUT_GET, 'pesquisa_matricula', FILTER_SANITIZE_SPECIAL_CHARS) ?: ''));
 $limite        = filter_input(INPUT_GET, 'limite', FILTER_VALIDATE_INT) ?: 10;
-$ordenar       = filter_input(INPUT_GET, 'ordenar', FILTER_SANITIZE_SPECIAL_CHARS) ?: 'data_intern_int ASC';
+$ordenar       = filter_input(INPUT_GET, 'ordenar', FILTER_SANITIZE_SPECIAL_CHARS) ?: 'data_intern_int DESC';
 $pagAtual      = filter_input(INPUT_GET, 'pag', FILTER_VALIDATE_INT) ?: 1;
 
 $condicoes = ['ac.internado_int = "s"'];

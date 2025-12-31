@@ -49,7 +49,7 @@ $limite = filter_input(INPUT_GET, 'limite') ? filter_input(INPUT_GET, 'limite') 
 $pesquisa_pac = filter_input(INPUT_GET, 'pesquisa_pac', FILTER_SANITIZE_SPECIAL_CHARS) ?: null;
 $senha_int = filter_input(INPUT_GET, 'senha_int', FILTER_SANITIZE_SPECIAL_CHARS) ?: null;
 $lote = filter_input(INPUT_GET, 'lote', FILTER_SANITIZE_SPECIAL_CHARS) ?: null;
-$ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : 1;
+$ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : '';
 $data_intern_int = filter_input(INPUT_GET, 'data_intern_int') ?: null;
 $data_intern_int_max = filter_input(INPUT_GET, 'data_intern_int_max') ?: null;
 
@@ -184,7 +184,7 @@ $limite = filter_input(INPUT_GET, 'limite') ? filter_input(INPUT_GET, 'limite') 
 $pesquisa_pac = filter_input(INPUT_GET, 'pesquisa_pac', FILTER_SANITIZE_SPECIAL_CHARS);
 $senha_int = filter_input(INPUT_GET, 'senha_int', FILTER_SANITIZE_SPECIAL_CHARS);
 $lote = filter_input(INPUT_GET, 'lote', FILTER_SANITIZE_SPECIAL_CHARS);
-$ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : 1;
+$ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : '';
 $data_intern_int = filter_input(INPUT_GET, 'data_intern_int') ?: null;
 $data_intern_int_max = filter_input(INPUT_GET, 'data_intern_int_max');
 if (empty($data_intern_int_max)) {
@@ -215,7 +215,7 @@ $qtdIntItens1 = $QtdTotalInt->QtdInternacaoCapList($where);
 $qtdIntItens = ($qtdIntItens1['qtd']) ?? 0;
 
 // PAGINACAO
-$order = $ordenar;
+$order = $ordenar ?: 'id_internacao DESC';
 
 $obPagination = new pagination($qtdIntItens, $_GET['pag'] ?? 1, $limite ?? 10);
 

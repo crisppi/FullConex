@@ -18,7 +18,7 @@
     // METODO DE BUSCA DE PAGINACAO
     $pesquisa_nome = filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS);
     $limite = filter_input(INPUT_GET, 'limite') ? filter_input(INPUT_GET, 'limite') : 10;
-    $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : 1;
+    $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : '';
     // $buscaAtivo = in_array($buscaAtivo, ['s', 'n']) ?: "";
     $seguradoraInicio = ' 1 ';
 
@@ -28,7 +28,7 @@
 
     ];
     $condicoes = array_filter($condicoes);
-    $order = 1;
+    $order = $ordenar ?: 'id_seguradora DESC';
     // REMOVE POSICOES VAZIAS DO FILTRO
     $where = implode(' AND ', $condicoes);
 
@@ -39,7 +39,7 @@
     $obLimite = $obPagination->getLimit();
 
     // PREENCHIMENTO DO FORMULARIO COM QUERY
-    $query = $seguradora->selectAllSeguradora($where, $ordenar, $obLimite);
+    $query = $seguradora->selectAllSeguradora($where, $order, $obLimite);
 
     $totalcasos = ceil($qtdIntItens / 5);
 
@@ -151,7 +151,7 @@
 
             // PREENCHIMENTO DO FORMULARIO COM QUERY
 
-            $query = $seguradora->selectAllSeguradora($where, $ordenar, $obLimite);
+            $query = $seguradora->selectAllSeguradora($where, $order, $obLimite);
 
 
             // PAGINACAO

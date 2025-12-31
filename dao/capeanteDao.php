@@ -419,7 +419,7 @@ class capeanteDAO implements capeanteDAOInterface
     /** Listagem geral simples */
     public function findGeral()
     {
-        $stmt = $this->conn->query("SELECT * FROM tb_capeante ORDER BY id_capeante");
+        $stmt = $this->conn->query("SELECT * FROM tb_capeante ORDER BY id_capeante DESC");
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -428,7 +428,8 @@ class capeanteDAO implements capeanteDAOInterface
     public function selectAllcapeante($where = null, $order = null, $limite = null)
     {
         $where  = strlen($where)  ? 'WHERE ' . $where  : '';
-        $order  = strlen($order)  ? 'ORDER BY ' . $order : '';
+        $order  = strlen($order)  ? $order : 'ca.id_capeante DESC';
+        $order  = 'ORDER BY ' . $order;
         $limite = strlen($limite) ? 'LIMIT ' . $limite : '';
         $group  = " GROUP BY ca.id_capeante ";
 

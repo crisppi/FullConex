@@ -14,7 +14,7 @@ $QtdTotalaco = new acomodacaoDAO($conn, $BASE_URL);
 $pesquisa_nome = filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS);
 $pesquisa_hosp = filter_input(INPUT_GET, 'pesquisa_hosp', FILTER_SANITIZE_SPECIAL_CHARS);
 $limite = filter_input(INPUT_GET, 'limite') ? filter_input(INPUT_GET, 'limite') : 10;
-$ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : 1;
+$ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : '';
 // $buscaAtivo = in_array($buscaAtivo, ['s', 'n']) ?: "";
 
 $condicoes = [
@@ -26,8 +26,7 @@ $condicoes = array_filter($condicoes);
 
 // REMOVE POSICOES VAZIAS DO FILTRO
 $where = implode(' AND ', $condicoes);
-$order = 1;
-$order = $ordenar;
+$order = $ordenar ?: 'id_acomodacao DESC';
 $qtdAcoItens1 = $QtdTotalaco->selectAllacomodacao($where, $order, $obLimite ?? null);
 $qtdIntItens = count($qtdAcoItens1); // total de registros
 

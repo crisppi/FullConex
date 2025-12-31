@@ -15,7 +15,7 @@ $busca = filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS)
 $pesquisa_nome = filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS);
 $buscaAtivo = filter_input(INPUT_GET, 'ativo_pac');
 $limite = filter_input(INPUT_GET, 'limite') ? filter_input(INPUT_GET, 'limite') : 10;
-$ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : 1;
+$ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : '';
 $estipulanteInicio = ' 1 ';
 
 
@@ -29,7 +29,7 @@ $condicoes = array_filter($condicoes);
 
 // REMOVE POSICOES VAZIAS DO FILTRO
 $where = implode(' AND ', $condicoes);
-$order = 1;
+$order = $ordenar ?: 'id_estipulante DESC';
 $qtdEstItens1 = $QtdTotalest->selectAllEstipulante($where, $order, $obLimite ?? null);
 
 $qtdIntItens = count($qtdEstItens1); // total de registros
@@ -39,7 +39,7 @@ $obPagination = new pagination($qtdIntItens, $_GET['pag'] ?? 1, $limite ?? 10);
 $obLimite = $obPagination->getLimit();
 
 // PREENCHIMENTO DO FORMULARIO COM QUERY
-$query = $estipulante->selectAllEstipulante($where, $ordenar, $obLimite);
+$query = $estipulante->selectAllEstipulante($where, $order, $obLimite);
 
 
 $totalcasos = ceil($qtdIntItens / 5);

@@ -38,7 +38,7 @@ $pesquisa_pac    = filter_input(INPUT_GET, 'pesquisa_pac',   FILTER_SANITIZE_SPE
 $pesquisa_matricula = filter_input(INPUT_GET, 'pesquisa_matricula', FILTER_SANITIZE_SPECIAL_CHARS) ?: '';
 $pesqInternado   = filter_input(INPUT_GET, 'pesqInternado',  FILTER_SANITIZE_SPECIAL_CHARS) ?: 's';
 $limite          = filter_input(INPUT_GET, 'limite', FILTER_VALIDATE_INT) ?: 10;
-$ordenar         = filter_input(INPUT_GET, 'ordenar', FILTER_SANITIZE_SPECIAL_CHARS) ?: 'id_internacao';
+$ordenar         = filter_input(INPUT_GET, 'ordenar', FILTER_SANITIZE_SPECIAL_CHARS) ?: '';
 $data_alta       = filter_input(INPUT_GET, 'data_alta', FILTER_SANITIZE_SPECIAL_CHARS) ?: '';
 $data_alta_max   = filter_input(INPUT_GET, 'data_alta_max', FILTER_SANITIZE_SPECIAL_CHARS) ?: '';
 
@@ -75,14 +75,14 @@ $where     = implode(' AND ', $condicoes);
 
 /* ===================== CONTAGEM + PAGINAÇÃO ===================== */
 
-$qtdIntItens1 = $altaDao->findAltaWhere($where, $ordenar ?: null, null);
+$order = $ordenar ?: 'id_internacao DESC';
+$qtdIntItens1 = $altaDao->findAltaWhere($where, $order, null);
 $qtdIntItens  = is_countable($qtdIntItens1) ? count($qtdIntItens1) : 0;
 
-$order        = $ordenar;
 $obPagination = new pagination($qtdIntItens, $_GET['pag'] ?? 1, $limite ?? 10);
 $obLimite     = $obPagination->getLimit();
 
-$query = $altaDao->findAltaWhere($where, $order ?: null, $obLimite ?: null);
+$query = $altaDao->findAltaWhere($where, $order, $obLimite ?: null);
 
 if ($qtdIntItens > $limite) {
     $paginas     = $obPagination->getPages();

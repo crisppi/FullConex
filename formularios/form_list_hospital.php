@@ -19,7 +19,7 @@
     $pesquisa_nome = filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS);
     $buscaAtivo = filter_input(INPUT_GET, 'ativo_hos');
     $limite = filter_input(INPUT_GET, 'limite_pag') ? filter_input(INPUT_GET, 'limite_pag') : 10;
-    $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : 1;
+    $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : '';
     $hospitalInicio = ' 1 ';
 
     $condicoes = [
@@ -29,7 +29,7 @@
     ];
 
     $condicoes = array_filter($condicoes);
-    $order = 1;
+    $order = $ordenar ?: 'id_hospital DESC';
     $limite_pag = 10;
     // REMOVE POSICOES VAZIAS DO FILTRO
     $where = implode(' AND ', $condicoes);
@@ -37,7 +37,7 @@
     $qtdHospItens1 = $QtdTotalpac->selectAllhospital($where, $order, $obLimite ?? null);
     $qtdIntItens = count($qtdHospItens1); // total de registros
 
-    $order = $ordenar;
+    $order = $ordenar ?: 'id_hospital DESC';
 
     // PAGINACAO
     $obPagination = new pagination($qtdIntItens, $_GET['pag'] ?? 1, $limite ?? 10);

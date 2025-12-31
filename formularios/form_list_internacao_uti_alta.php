@@ -129,7 +129,7 @@ $uti = new utiDAO($conn, $BASE_URL);
         // $pesqInternado = filter_input(INPUT_GET, 'pesqInternado');
         $limite = filter_input(INPUT_GET, 'limite_pag') ? filter_input(INPUT_GET, 'limite_pag') : 10;
         $pesquisa_pac = filter_input(INPUT_GET, 'pesquisa_pac', FILTER_SANITIZE_SPECIAL_CHARS);
-        $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : 1;
+        $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : '';
         $data_intern_int = filter_input(INPUT_GET, 'data_intern_int') ?: null;
         $pesqInternado = 's';
         $uti_internado = 's';
@@ -146,6 +146,7 @@ $uti = new utiDAO($conn, $BASE_URL);
         $condicoes = array_filter($condicoes);
         // REMOVE POSICOES VAZIAS DO FILTRO
         $where = implode(' AND ', $condicoes);
+        $order = $ordenar ?: 'id_internacao DESC';
 
         // QUANTIDADE InternacaoS
         $qtdIntItens1 = $QtdTotalIntUTI->QtdInternacaoUTIList($where);
@@ -157,7 +158,6 @@ $uti = new utiDAO($conn, $BASE_URL);
         $obLimite = $obPagination->getLimit();
 
         // PREENCHIMENTO DO FORMULARIO COM QUERY
-        $order = $ordenar;
         $query = $internacao->selectAllInternacao($where, $order, $obLimite);
 
         // PAGINACAO

@@ -534,17 +534,23 @@ class PacienteDAO implements PacienteDAOInterface
         }
 
         // ORDER BY seguro (whitelist simples)
-        $order = $order ?: 'pa.id_paciente';
+        $order = $order ?: 'pa.id_paciente DESC';
         $allowedOrder = [
             'pa.id_paciente',
+            'pa.id_paciente DESC',
             'id_paciente',
+            'id_paciente DESC',
             'pa.nome_pac',
+            'pa.nome_pac DESC',
             'nome_pac',
+            'nome_pac DESC',
             'se.seguradora_seg',
-            'seguradora_seg'
+            'se.seguradora_seg DESC',
+            'seguradora_seg',
+            'seguradora_seg DESC'
         ];
         if (!in_array($order, $allowedOrder, true)) {
-            $order = 'pa.id_paciente';
+            $order = 'pa.id_paciente DESC';
         }
         $orderSql  = 'ORDER BY ' . $order;
 
