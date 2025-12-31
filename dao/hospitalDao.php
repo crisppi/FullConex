@@ -58,7 +58,7 @@ class HospitalDAO implements HospitalDAOInterface
         $stmt = $this->conn->prepare("
             SELECT * FROM tb_hospital
             WHERE id_hospital > 1
-            ORDER BY id_hospital ASC
+            ORDER BY id_hospital DESC
         ");
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -82,7 +82,7 @@ class HospitalDAO implements HospitalDAOInterface
     {
         $stmt = $this->conn->prepare("
             SELECT * FROM tb_hospital
-            ORDER BY id_hospital ASC
+            ORDER BY id_hospital DESC
         ");
         $stmt->execute();
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -99,7 +99,7 @@ class HospitalDAO implements HospitalDAOInterface
         $stmt = $this->conn->prepare("
             SELECT * FROM tb_hospital
             WHERE nome_hosp = :nome_hosp
-            ORDER BY id_hospital ASC
+            ORDER BY id_hospital DESC
         ");
         $stmt->bindValue(":nome_hosp", $nome_hosp);
         $stmt->execute();

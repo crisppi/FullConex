@@ -141,7 +141,7 @@ class internacaoDAO implements internacaoDAOInterface
         $internacao = [];
 
         $stmt = $this->conn->prepare("SELECT * FROM tb_internacao
-        ORDER BY id_internacao asc");
+        ORDER BY id_internacao DESC");
 
         $stmt->execute();
 
@@ -155,7 +155,7 @@ class internacaoDAO implements internacaoDAOInterface
 
         $stmt = $this->conn->prepare("SELECT * FROM tb_internacao
                                     WHERE nome_pac = :nome_pac
-                                    ORDER BY id_internacao asc");
+                                    ORDER BY id_internacao DESC");
 
         $stmt->bindParam(":nome_pac", $nome_pac);
         $stmt->execute();
@@ -531,7 +531,7 @@ class internacaoDAO implements internacaoDAOInterface
 
         $internacao = [];
 
-        $stmt = $this->conn->query("SELECT * FROM tb_internacao ORDER BY id_internacao asc");
+        $stmt = $this->conn->query("SELECT * FROM tb_internacao ORDER BY id_internacao DESC");
 
         $stmt->execute();
 
@@ -915,7 +915,7 @@ class internacaoDAO implements internacaoDAOInterface
         ac.fk_hospital_int = ho.id_hospital
 
         left join tb_paciente as pa on
-        ac.fk_paciente_int = pa.id_paciente ORDER BY id_internacao asc limit $inicio, $limite");
+        ac.fk_paciente_int = pa.id_paciente ORDER BY id_internacao DESC limit $inicio, $limite");
 
         $stmt->execute();
 

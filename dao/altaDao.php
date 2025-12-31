@@ -118,7 +118,7 @@
 
             $alta = [];
 
-            $stmt = $this->conn->query("SELECT * FROM tb_alta ORDER BY id_alta asc");
+            $stmt = $this->conn->query("SELECT * FROM tb_alta ORDER BY id_alta DESC");
 
             $stmt->execute();
 

@@ -97,14 +97,14 @@ class capeanteDAO implements capeanteDAOInterface
     /** Listas básicas */
     public function findAll()
     {
-        $stmt = $this->conn->prepare("SELECT * FROM tb_capeante ORDER BY id_capeante ASC");
+        $stmt = $this->conn->prepare("SELECT * FROM tb_capeante ORDER BY id_capeante DESC");
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function getcapeantesBynome_pac($nome_pac)
     {
-        $stmt = $this->conn->prepare("SELECT * FROM tb_capeante WHERE nome_pac = :nome_pac ORDER BY id_capeante ASC");
+        $stmt = $this->conn->prepare("SELECT * FROM tb_capeante WHERE nome_pac = :nome_pac ORDER BY id_capeante DESC");
         $stmt->bindParam(":nome_pac", $nome_pac);
         $stmt->execute();
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -419,7 +419,7 @@ class capeanteDAO implements capeanteDAOInterface
     /** Listagem geral simples */
     public function findGeral()
     {
-        $stmt = $this->conn->query("SELECT * FROM tb_capeante ORDER BY id_capeante");
+        $stmt = $this->conn->query("SELECT * FROM tb_capeante ORDER BY id_capeante DESC");
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

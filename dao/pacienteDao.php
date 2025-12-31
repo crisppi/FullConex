@@ -65,7 +65,7 @@ class PacienteDAO implements PacienteDAOInterface
         $paciente = [];
 
         $stmt = $this->conn->prepare("SELECT * FROM tb_paciente
-        ORDER BY id_paciente asc");
+        ORDER BY id_paciente DESC");
 
         $stmt->execute();
 
@@ -79,7 +79,7 @@ class PacienteDAO implements PacienteDAOInterface
 
         $stmt = $this->conn->prepare("SELECT * FROM tb_paciente
                                     WHERE nome_pac = :nome_pac
-                                    ORDER BY id_paciente asc");
+                                    ORDER BY id_paciente DESC");
 
         $stmt->bindParam(":nome_pac", $nome_pac);
         $stmt->execute();

@@ -43,7 +43,7 @@ class antecedenteDAO implements antecedenteDAOInterface
         $antecedente = [];
 
         $stmt = $this->conn->prepare("SELECT * FROM tb_antecedente a LEFT JOIN tb_cid c ON a.fk_cid_10_ant = c.id_cid
-        ORDER BY id_antecedente asc");
+        ORDER BY id_antecedente DESC");
 
         $stmt->execute();
 
@@ -76,7 +76,7 @@ class antecedenteDAO implements antecedenteDAOInterface
 
         $stmt = $this->conn->prepare("SELECT * FROM tb_antecedente a LEFT JOIN tb_cid c ON a.fk_cid_10_ant = c.id_cid
                                     WHERE antecedente_ant = :antecedente_ant
-                                    ORDER BY id_antecedente asc");
+                                    ORDER BY id_antecedente DESC");
 
         $stmt->bindParam(":antecedente_ant", $antecedente_ant);
 
@@ -184,7 +184,7 @@ class antecedenteDAO implements antecedenteDAOInterface
 
         $stmt = $this->conn->query("SELECT * FROM tb_antecedente a LEFT JOIN tb_cid c ON a.fk_cid_10_ant = c.id_cid
         WHERE id_antecedente > 1
-        ORDER BY id_antecedente asc");
+        ORDER BY id_antecedente DESC");
 
         $stmt->execute();
 

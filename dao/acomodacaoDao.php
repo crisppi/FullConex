@@ -45,7 +45,7 @@ class acomodacaoDAO implements acomodacaoDAOInterface
          FROM tb_acomodacao ac 
          iNNER JOIN tb_hospital as ho On  
          ac.fk_hospital = ho.id_hospital
-         ORDER BY ac.id_acomodacao asc");
+         ORDER BY ac.id_acomodacao DESC");
         $stmt->execute();
         $acomodacao = $stmt->fetchAll();
         return $acomodacao;
@@ -74,7 +74,7 @@ class acomodacaoDAO implements acomodacaoDAOInterface
 
         $acomodacao = [];
 
-        $stmt = $this->conn->query("SELECT * FROM tb_acomodacao ORDER BY id_acomodacao asc");
+        $stmt = $this->conn->query("SELECT * FROM tb_acomodacao ORDER BY id_acomodacao DESC");
 
         $stmt->execute();
 
@@ -97,7 +97,7 @@ class acomodacaoDAO implements acomodacaoDAOInterface
 
         $stmt = $this->conn->prepare("SELECT * FROM tb_acomodacao
                                     WHERE acomodacao_aco = :acomodacao_aco
-                                    ORDER BY id_acomodacao asc");
+                                    ORDER BY id_acomodacao DESC");
 
         $stmt->bindParam(":acomodacao_aco", $acomodacao_aco);
 
@@ -113,7 +113,7 @@ class acomodacaoDAO implements acomodacaoDAOInterface
 
         $stmt = $this->conn->prepare("SELECT * FROM tb_hospital
                                     WHERE acomodacao_aco = :acomodacao_aco
-                                    ORDER BY id_acomodacao asc");
+                                    ORDER BY id_acomodacao DESC");
 
         $stmt->bindParam(":acomodacao_aco", $acomodacao_aco);
 
@@ -238,7 +238,7 @@ class acomodacaoDAO implements acomodacaoDAOInterface
 
         $acomodacao = [];
 
-        $stmt = $this->conn->query("SELECT * FROM tb_acomodacao ORDER BY id_acomodacao asc");
+        $stmt = $this->conn->query("SELECT * FROM tb_acomodacao ORDER BY id_acomodacao DESC");
 
         $stmt->execute();
 
@@ -252,7 +252,7 @@ class acomodacaoDAO implements acomodacaoDAOInterface
 
         $acomodacao = [];
 
-        $stmt = $this->conn->query("SELECT * FROM tb_acomodacao WHERE fk_hospital = $id_hospital ORDER BY id_acomodacao asc");
+        $stmt = $this->conn->query("SELECT * FROM tb_acomodacao WHERE fk_hospital = $id_hospital ORDER BY id_acomodacao DESC");
 
         $stmt->execute();
 

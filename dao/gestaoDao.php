@@ -72,7 +72,7 @@ class gestaoDAO implements gestaoDAOInterface
          FROM tb_gestao ac 
          iNNER JOIN tb_hospital as ho On  
          ac.fk_hospital = ho.id_hospital
-         ORDER BY ac.id_gestao asc");
+         ORDER BY ac.id_gestao DESC");
         $stmt->execute();
         $gestao = $stmt->fetchAll();
         return $gestao;
@@ -102,7 +102,7 @@ class gestaoDAO implements gestaoDAOInterface
 
         $gestao = [];
 
-        $stmt = $this->conn->query("SELECT * FROM tb_gestao ORDER BY id_gestao asc");
+        $stmt = $this->conn->query("SELECT * FROM tb_gestao ORDER BY id_gestao DESC");
 
         $stmt->execute();
 
@@ -407,7 +407,7 @@ class gestaoDAO implements gestaoDAOInterface
 
         $gestao = [];
 
-        $stmt = $this->conn->query("SELECT * FROM tb_gestao ORDER BY id_gestao asc");
+        $stmt = $this->conn->query("SELECT * FROM tb_gestao ORDER BY id_gestao DESC");
 
         $stmt->execute();
 
@@ -464,7 +464,7 @@ class gestaoDAO implements gestaoDAOInterface
         if ($id_internacao <= 0) {
             return [];
         }
-        $stmt = $this->conn->prepare("SELECT * FROM tb_gestao WHERE fk_internacao_ges = :id ORDER BY id_gestao ASC");
+        $stmt = $this->conn->prepare("SELECT * FROM tb_gestao WHERE fk_internacao_ges = :id ORDER BY id_gestao DESC");
         $stmt->bindValue(':id', $id_internacao, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -478,7 +478,7 @@ class gestaoDAO implements gestaoDAOInterface
         if ($visitaId <= 0) {
             return [];
         }
-        $stmt = $this->conn->prepare("SELECT * FROM tb_gestao WHERE fk_visita_ges = :visita ORDER BY id_gestao ASC");
+        $stmt = $this->conn->prepare("SELECT * FROM tb_gestao WHERE fk_visita_ges = :visita ORDER BY id_gestao DESC");
         $stmt->bindValue(':visita', $visitaId, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];

@@ -72,7 +72,7 @@ class imagemDAO implements imagemDAOInterface
 
         $imagem = [];
 
-        $stmt = $this->conn->query("SELECT * FROM tb_imagens ORDER BY id_imagem asc");
+        $stmt = $this->conn->query("SELECT * FROM tb_imagens ORDER BY id_imagem DESC");
 
         $stmt->execute();
 

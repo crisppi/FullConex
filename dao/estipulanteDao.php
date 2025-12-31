@@ -56,7 +56,7 @@ class EstipulanteDAO implements EstipulanteDAOInterface
         $estipulante = [];
 
         $stmt = $this->conn->prepare("SELECT * FROM tb_estipulante
-        ORDER BY id_estipulante asc");
+        ORDER BY id_estipulante DESC");
 
         $stmt->execute();
 
@@ -84,7 +84,7 @@ class EstipulanteDAO implements EstipulanteDAOInterface
 
         $estipulante = [];
 
-        $stmt = $this->conn->query("SELECT * FROM tb_estipulante ORDER BY id_estipulante asc");
+        $stmt = $this->conn->query("SELECT * FROM tb_estipulante ORDER BY id_estipulante DESC");
 
         $stmt->execute();
 
@@ -107,7 +107,7 @@ class EstipulanteDAO implements EstipulanteDAOInterface
 
         $stmt = $this->conn->prepare("SELECT * FROM tb_estipulante
                                     WHERE nome_est = :nome_est
-                                    ORDER BY id_estipulante asc");
+                                    ORDER BY id_estipulante DESC");
 
         $stmt->bindParam(":nome_est", $nome_est);
 
@@ -339,7 +339,7 @@ class EstipulanteDAO implements EstipulanteDAOInterface
 
         $estipulante = [];
 
-        $stmt = $this->conn->query("SELECT * FROM tb_estipulante ORDER BY id_estipulante asc");
+        $stmt = $this->conn->query("SELECT * FROM tb_estipulante ORDER BY id_estipulante DESC");
 
         $stmt->execute();
 

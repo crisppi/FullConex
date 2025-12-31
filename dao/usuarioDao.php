@@ -264,7 +264,7 @@ class UserDAO implements UserDAOInterface
         $usuario = [];
 
         $stmt = $this->conn->prepare("SELECT * FROM tb_user
-        ORDER BY id_usuario asc");
+        ORDER BY id_usuario DESC");
 
         $stmt->execute();
 
@@ -424,7 +424,7 @@ class UserDAO implements UserDAOInterface
 
         $usuarios = [];
 
-        $stmt = $this->conn->query("SELECT * FROM tb_user ORDER BY id_usuario asc");
+        $stmt = $this->conn->query("SELECT * FROM tb_user ORDER BY id_usuario DESC");
 
         $stmt->execute();
 
@@ -453,7 +453,7 @@ class UserDAO implements UserDAOInterface
 
         $usuarios = [];
 
-        $stmt = $this->conn->query("SELECT * FROM tb_user ORDER BY id_usuario asc");
+        $stmt = $this->conn->query("SELECT * FROM tb_user ORDER BY id_usuario DESC");
 
         $stmt->execute();
 

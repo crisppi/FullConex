@@ -46,7 +46,7 @@ $patologias = $patologiaDao->findGeral();
 $internacao = new internacaoDAO($conn, $BASE_URL);
 
 $limite = filter_input(INPUT_GET, 'limite_pag') ? filter_input(INPUT_GET, 'limite_pag') : 10;
-$ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : 1;
+$ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : 'ac.id_internacao DESC';
 
 ?>
 
@@ -232,7 +232,7 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar
             $limite_pag = filter_input(INPUT_GET, 'limite_pag') ? filter_input(INPUT_GET, 'limite_pag') : 10;
             $pesquisa_pac = filter_input(INPUT_GET, 'pesquisa_pac');
             $pesquisa_matricula = filter_input(INPUT_GET, 'pesquisa_matricula');
-            $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : 1;
+            $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : 'ac.id_internacao DESC';
             $data_intern_int = filter_input(INPUT_GET, 'data_intern_int');
             $data_intern_int_max = filter_input(INPUT_GET, 'data_intern_int_max');
             if (empty($data_intern_int_max)) {

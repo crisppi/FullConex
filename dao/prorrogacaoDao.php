@@ -95,7 +95,7 @@ class prorrogacaoDAO implements prorrogacaoDAOInterface
          FROM tb_prorrogacao ac 
          iNNER JOIN tb_hospital as ho On  
          ac.fk_hospital = ho.id_hospital
-         ORDER BY ac.id_prorrogacao asc");
+         ORDER BY ac.id_prorrogacao DESC");
         $stmt->execute();
         $prorrogacao = $stmt->fetchAll();
         return $prorrogacao;
@@ -144,7 +144,7 @@ class prorrogacaoDAO implements prorrogacaoDAOInterface
         if ($id_internacao <= 0) {
             return [];
         }
-        $stmt = $this->conn->prepare("SELECT * FROM tb_prorrogacao WHERE fk_internacao_pror = :id ORDER BY id_prorrogacao ASC");
+        $stmt = $this->conn->prepare("SELECT * FROM tb_prorrogacao WHERE fk_internacao_pror = :id ORDER BY id_prorrogacao DESC");
         $stmt->bindValue(':id', $id_internacao, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -158,7 +158,7 @@ class prorrogacaoDAO implements prorrogacaoDAOInterface
         if ($visitaId <= 0) {
             return [];
         }
-        $stmt = $this->conn->prepare("SELECT * FROM tb_prorrogacao WHERE fk_visita_pror = :visita ORDER BY id_prorrogacao ASC");
+        $stmt = $this->conn->prepare("SELECT * FROM tb_prorrogacao WHERE fk_visita_pror = :visita ORDER BY id_prorrogacao DESC");
         $stmt->bindValue(':visita', $visitaId, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -278,7 +278,7 @@ class prorrogacaoDAO implements prorrogacaoDAOInterface
 
         $prorrogacao = [];
 
-        $stmt = $this->conn->query("SELECT * FROM tb_prorrogacao ORDER BY id_prorrogacao asc");
+        $stmt = $this->conn->query("SELECT * FROM tb_prorrogacao ORDER BY id_prorrogacao DESC");
 
         $stmt->execute();
 

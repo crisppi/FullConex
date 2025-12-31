@@ -38,7 +38,7 @@ $pesquisa_pac    = filter_input(INPUT_GET, 'pesquisa_pac',   FILTER_SANITIZE_SPE
 $pesquisa_matricula = filter_input(INPUT_GET, 'pesquisa_matricula', FILTER_SANITIZE_SPECIAL_CHARS) ?: '';
 $pesqInternado   = filter_input(INPUT_GET, 'pesqInternado',  FILTER_SANITIZE_SPECIAL_CHARS) ?: 's';
 $limite          = filter_input(INPUT_GET, 'limite', FILTER_VALIDATE_INT) ?: 10;
-$ordenar         = filter_input(INPUT_GET, 'ordenar', FILTER_SANITIZE_SPECIAL_CHARS) ?: 'id_internacao';
+$ordenar         = filter_input(INPUT_GET, 'ordenar', FILTER_SANITIZE_SPECIAL_CHARS) ?: 'id_internacao DESC';
 $data_alta       = filter_input(INPUT_GET, 'data_alta', FILTER_SANITIZE_SPECIAL_CHARS) ?: '';
 $data_alta_max   = filter_input(INPUT_GET, 'data_alta_max', FILTER_SANITIZE_SPECIAL_CHARS) ?: '';
 

@@ -62,7 +62,7 @@ class utiDAO implements utiDAOInterface
          FROM tb_uti ac 
          iNNER JOIN tb_hospital as ho On  
          ac.fk_hospital = ho.id_hospital
-         ORDER BY ac.id_uti asc");
+         ORDER BY ac.id_uti DESC");
         $stmt->execute();
         $uti = $stmt->fetchAll();
         return $uti;
@@ -97,7 +97,7 @@ class utiDAO implements utiDAOInterface
 
         $uti = [];
 
-        $stmt = $this->conn->query("SELECT * FROM tb_uti ORDER BY id_uti asc");
+        $stmt = $this->conn->query("SELECT * FROM tb_uti ORDER BY id_uti DESC");
 
         $stmt->execute();
 
@@ -121,7 +121,7 @@ class utiDAO implements utiDAOInterface
         if ($id_internacao <= 0) {
             return [];
         }
-        $stmt = $this->conn->prepare("SELECT * FROM tb_uti WHERE fk_internacao_uti = :id ORDER BY id_uti ASC");
+        $stmt = $this->conn->prepare("SELECT * FROM tb_uti WHERE fk_internacao_uti = :id ORDER BY id_uti DESC");
         $stmt->bindValue(':id', $id_internacao, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -135,7 +135,7 @@ class utiDAO implements utiDAOInterface
         if ($visitaId <= 0) {
             return [];
         }
-        $stmt = $this->conn->prepare("SELECT * FROM tb_uti WHERE fk_visita_uti = :visita ORDER BY id_uti ASC");
+        $stmt = $this->conn->prepare("SELECT * FROM tb_uti WHERE fk_visita_uti = :visita ORDER BY id_uti DESC");
         $stmt->bindValue(':visita', $visitaId, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -750,7 +750,7 @@ class utiDAO implements utiDAOInterface
 
         $uti = [];
 
-        $stmt = $this->conn->query("SELECT * FROM tb_uti ORDER BY id_uti asc");
+        $stmt = $this->conn->query("SELECT * FROM tb_uti ORDER BY id_uti DESC");
 
         $stmt->execute();
 

@@ -45,7 +45,7 @@ class tussDAO implements tussDAOInterface
         $tuss = [];
 
         $stmt = $this->conn->prepare("SELECT * FROM tb_tuss
-        ORDER BY id_tuss asc");
+        ORDER BY id_tuss DESC");
 
         $stmt->execute();
 
@@ -235,7 +235,7 @@ class tussDAO implements tussDAOInterface
             SELECT *
             FROM tb_tuss
             WHERE fk_int_tuss = :id
-            ORDER BY id_tuss ASC
+            ORDER BY id_tuss DESC
         ");
         $stmt->bindValue(':id', $id_internacao, PDO::PARAM_INT);
         $stmt->execute();

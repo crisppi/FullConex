@@ -425,14 +425,14 @@ class visitaDAO
        ====================================================== */
     public function findAll(): array
     {
-        $stmt = $this->conn->query("SELECT * FROM " . self::TABLE . " ORDER BY id_visita ASC");
+        $stmt = $this->conn->query("SELECT * FROM " . self::TABLE . " ORDER BY id_visita DESC");
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
     /** Primeira linha (historicamente usada como “geral”) */
     public function findGeral(): ?array
     {
-        $stmt = $this->conn->query("SELECT * FROM " . self::TABLE . " ORDER BY id_visita ASC LIMIT 1");
+        $stmt = $this->conn->query("SELECT * FROM " . self::TABLE . " ORDER BY id_visita DESC LIMIT 1");
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ?: null;
     }
@@ -584,7 +584,7 @@ class visitaDAO
         LEFT JOIN tb_paciente pa ON ac.fk_paciente_int = pa.id_paciente
         LEFT JOIN tb_user u ON vi.fk_usuario_vis = u.id_usuario
         WHERE vi.id_visita = :id_visita
-        ORDER BY ac.id_internacao ASC";
+        ORDER BY ac.id_internacao DESC";
 
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':id_visita', $id_visita, PDO::PARAM_INT);
