@@ -117,6 +117,10 @@ $data_inicial   = datePOST("data_inicial_capeante");
 $data_final     = datePOST("data_final_capeante");
 $data_fech      = datePOST("data_fech_capeante");
 $data_digit     = datePOST("data_digit_capeante");
+$timer_cap      = filter_input(INPUT_POST, "timer_cap", FILTER_VALIDATE_INT);
+if ($timer_cap === false) {
+    $timer_cap = null;
+}
 
 if (!$data_digit) {
     $message->setMessage("Data de digitação é obrigatória.", "error", "back");
@@ -333,6 +337,33 @@ $total_cobrado  = (float)$diarias_cob + $ap_cob + $uti_cob + $cc_cob + $outros_c
 $total_glosado  = (float)$diarias_glo + $ap_glo + $uti_glo + $cc_glo + $outros_glo;
 $total_liberado = (float)$diarias_lib + $ap_lib + $uti_lib + $cc_lib + $outros_lib;
 
+$hasLancamento = ($total_cobrado > 0) || ($total_glosado > 0) || ($total_liberado > 0);
+$sessionUserId = $_SESSION['id_usuario'] ?? null;
+$sessionUserName = $_SESSION['usuario_user'] ?? $_SESSION['login_user'] ?? $_SESSION['email_user'] ?? null;
+$now = date('Y-m-d H:i:s');
+$timer_start_cap = null;
+$timer_end_cap = null;
+$existing_timer_cap = null;
+if ($id_capeante) {
+    $stmtTimer = $conn->prepare("SELECT timer_start_cap, timer_end_cap, timer_cap FROM tb_capeante WHERE id_capeante = :id");
+    $stmtTimer->bindValue(':id', (int)$id_capeante, PDO::PARAM_INT);
+    $stmtTimer->execute();
+    $timerRow = $stmtTimer->fetch(PDO::FETCH_ASSOC) ?: [];
+    $timer_start_cap = $timerRow['timer_start_cap'] ?? null;
+    $timer_end_cap = $timerRow['timer_end_cap'] ?? null;
+    $existing_timer_cap = $timerRow['timer_cap'] ?? null;
+}
+if (empty($timer_start_cap) && $hasLancamento) {
+    $timer_start_cap = $now;
+}
+$finalizando = true;
+if ($finalizando && $existing_timer_cap === null && $timer_start_cap) {
+    $timer_end_cap = $now;
+    $timer_cap = max(0, strtotime($timer_end_cap) - strtotime($timer_start_cap));
+} else {
+    $timer_cap = $existing_timer_cap;
+}
+
 /* Totais por categoria (para capeante) */
 $cat_sum = function ($key) use ($ap_calc, $uti_calc, $cc_calc) {
     return (float)($ap_calc[$key]['lib'] + $uti_calc[$key]['lib'] + $cc_calc[$key]['lib']);
@@ -385,6 +416,9 @@ $cap->data_inicial_capeante     = $data_inicial;
 $cap->data_final_capeante       = $data_final;
 $cap->data_fech_capeante        = $data_fech;
 $cap->data_digit_capeante       = $data_digit;
+$cap->timer_start_cap           = $timer_start_cap;
+$cap->timer_end_cap             = $timer_end_cap;
+$cap->timer_cap                 = $timer_cap;
 
 /* Parcelas/pacote */
 $cap->pacote                    = $pacote;
@@ -418,6 +452,12 @@ $cap->glosa_oxig                = $glosa_oxig;
 $cap->valor_glosa_total         = $valor_glosa_total;
 
 $cap->desconto_valor_cap        = $desconto_valor_cap;
+if ($hasLancamento && $sessionUserId) {
+    $cap->fk_user_cap = (int)$sessionUserId;
+}
+if ($hasLancamento && $sessionUserName) {
+    $cap->usuario_create_cap = $sessionUserName;
+}
 
 /* ======= PROFISSIONAIS (FKs) ======= */
 $cap->fk_id_aud_med             = $fk_med ?: null;

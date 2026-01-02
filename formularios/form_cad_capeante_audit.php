@@ -317,6 +317,7 @@ if ($type === 'create' && $lastCapeanteFinal) {
             readonly>
 
         <input type="hidden" id="nivel_user" value="<?= (int)($_SESSION['nivel'] ?? 0) ?>">
+        <input type="hidden" id="timer_cap" name="timer_cap" value="">
 
         <input type="hidden" id="fk_int_capeante" name="fk_int_capeante"
             value="<?= $hi($val('id_internacao') ?: $id_internacao) ?>">
@@ -1078,6 +1079,7 @@ function prevStep(n) {
 <script src="js/stepper.js"></script>
 <script src="js/scriptPdf.js" defer></script>
 <script src="js/valoresCapeante.js"></script>
+<script src="js/form_cad_capeante_timer.js"></script>
 
 <!-- Bootstrap 5 (bundle com Popper) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>

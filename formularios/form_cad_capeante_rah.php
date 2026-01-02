@@ -310,6 +310,7 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
     <input type="hidden" name="med_check" value="<?= $h($fv('med_check') ?? 'n') ?>">
     <input type="hidden" name="enfer_check" value="<?= $h($fv('enfer_check') ?? 'n') ?>">
     <input type="hidden" name="adm_check" value="<?= $h($fv('adm_check') ?? 'n') ?>">
+    <input type="hidden" id="timer_cap" name="timer_cap" value="">
 
 
     <!-- IDENTIFICAÇÃO -->
@@ -1399,6 +1400,7 @@ $listaParciaisData = base64_encode(json_encode($parciaisLista ?? [], JSON_UNESCA
 <script src="<?= $h($BASE_URL) ?>js/rah-ui.js" defer></script>
 <script src="<?= $h($BASE_URL) ?>js/rah-pdf.js" defer></script>
 <script src="<?= $h($BASE_URL) ?>js/rah-cadcentral.js" defer></script>
+<script src="<?= $h($BASE_URL) ?>js/form_cad_capeante_timer.js" defer></script>
 <script defer>
 document.addEventListener('DOMContentLoaded', function () {
     var textarea = document.getElementById('comentarios_obs');

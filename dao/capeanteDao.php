@@ -8,7 +8,6 @@ class capeanteDAO implements capeanteDAOInterface
     private $conn;
     private $url;
     public $message;
-
     public function __construct(PDO $conn, $url)
     {
         $this->conn = $conn;
@@ -59,6 +58,9 @@ class capeanteDAO implements capeanteDAOInterface
         $capeante->valor_sadt                 = $data["valor_sadt"]              ?? null;
         $capeante->valor_opme                 = $data["valor_opme"]              ?? null;
         $capeante->data_digit_capeante        = $data['data_digit_capeante']     ?? null;
+        $capeante->timer_start_cap            = $data['timer_start_cap']         ?? null;
+        $capeante->timer_end_cap              = $data['timer_end_cap']           ?? null;
+        $capeante->timer_cap                  = $data['timer_cap']               ?? null;
 
         $capeante->valor_hemoderivados        = $data["valor_hemoderivados"]     ?? null;
         $capeante->glosa_hemoderivados        = $data["glosa_hemoderivados"]     ?? null;
@@ -166,6 +168,7 @@ class capeanteDAO implements capeanteDAOInterface
                 senha_finalizada, desconto_valor_cap, negociado_desconto_cap,
                 em_auditoria_cap, aberto_cap, encerrado_cap, valor_taxa,
                 usuario_create_cap, data_create_cap, conta_parada_cap, parada_motivo_cap,
+                timer_start_cap, timer_end_cap, timer_cap,
                 fk_id_aud_enf, fk_id_aud_med, fk_id_aud_adm, fk_id_aud_hosp,
                 valor_medicamentos, valor_materiais, glosa_medicamentos, glosa_materiais
             ) VALUES (
@@ -181,6 +184,7 @@ class capeanteDAO implements capeanteDAOInterface
                 :senha_finalizada, :desconto_valor_cap, :negociado_desconto_cap,
                 :em_auditoria_cap, :aberto_cap, :encerrado_cap, :valor_taxa,
                 :usuario_create_cap, :data_create_cap, :conta_parada_cap, :parada_motivo_cap,
+                :timer_start_cap, :timer_end_cap, :timer_cap,
                 :fk_id_aud_enf, :fk_id_aud_med, :fk_id_aud_adm, :fk_id_aud_hosp,
                 :valor_medicamentos, :valor_materiais, :glosa_medicamentos, :glosa_materiais
             )
@@ -236,6 +240,9 @@ class capeanteDAO implements capeanteDAOInterface
         $stmt->bindParam(":data_create_cap", $capeante->data_create_cap);
         $stmt->bindParam(":conta_parada_cap", $capeante->conta_parada_cap);
         $stmt->bindParam(":parada_motivo_cap", $capeante->parada_motivo_cap);
+        $stmt->bindParam(":timer_start_cap", $capeante->timer_start_cap);
+        $stmt->bindParam(":timer_end_cap", $capeante->timer_end_cap);
+        $stmt->bindParam(":timer_cap", $capeante->timer_cap);
         $stmt->bindParam(":fk_id_aud_enf", $capeante->fk_id_aud_enf);
         $stmt->bindParam(":fk_id_aud_med", $capeante->fk_id_aud_med);
         $stmt->bindParam(":fk_id_aud_adm", $capeante->fk_id_aud_adm);
@@ -306,6 +313,9 @@ class capeanteDAO implements capeanteDAOInterface
                 data_create_cap = :data_create_cap,
                 conta_parada_cap = :conta_parada_cap,
                 parada_motivo_cap = :parada_motivo_cap,
+                timer_start_cap = :timer_start_cap,
+                timer_end_cap = :timer_end_cap,
+                timer_cap = :timer_cap,
                 impresso_cap = :impresso_cap,
                 fk_id_aud_enf = :fk_id_aud_enf,
                 fk_id_aud_med = :fk_id_aud_med,
@@ -369,6 +379,9 @@ class capeanteDAO implements capeanteDAOInterface
             $stmt->bindParam(":encerrado_cap", $capeante->encerrado_cap);
             $stmt->bindParam(":conta_parada_cap", $capeante->conta_parada_cap);
             $stmt->bindParam(":parada_motivo_cap", $capeante->parada_motivo_cap);
+            $stmt->bindParam(":timer_start_cap", $capeante->timer_start_cap);
+            $stmt->bindParam(":timer_end_cap", $capeante->timer_end_cap);
+            $stmt->bindParam(":timer_cap", $capeante->timer_cap);
             $stmt->bindParam(":usuario_create_cap", $capeante->usuario_create_cap);
             $stmt->bindParam(":data_create_cap", $capeante->data_create_cap);
             $stmt->bindParam(":id_capeante", $capeante->id_capeante, PDO::PARAM_INT);

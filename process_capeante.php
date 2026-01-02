@@ -26,6 +26,20 @@ function limparCampo($valor)
     return $valor;
 }
 
+function flagAtivo($valor): bool
+{
+    $t = is_string($valor) ? strtolower(trim($valor)) : $valor;
+    return in_array($t, ['s', '1', 1, true, 'on', 'true'], true);
+}
+
+function valorLancado($valor): bool
+{
+    if ($valor === null || $valor === '') {
+        return false;
+    }
+    return (float)$valor > 0;
+}
+
 if ($type === "create") {
     // Receber os dados dos inputs
     $adm_capeante = filter_input(INPUT_POST, "adm_capeante");
@@ -39,6 +53,10 @@ if ($type === "create") {
     $data_final_capeante = filter_input(INPUT_POST, "data_final_capeante") ?: null;
     $data_fech_capeante = filter_input(INPUT_POST, "data_fech_capeante") ?: null;
     $data_digit_capeante = filter_input(INPUT_POST, "data_digit_capeante") ?: null;
+    $timer_cap = filter_input(INPUT_POST, "timer_cap", FILTER_VALIDATE_INT);
+    if ($timer_cap === false) {
+        $timer_cap = null;
+    }
     $diarias_capeante = filter_input(INPUT_POST, "diarias_capeante");
     $lote_cap = filter_input(INPUT_POST, "lote_cap");
     $acomodacao_cap = filter_input(INPUT_POST, "acomodacao_cap");
@@ -72,6 +90,7 @@ if ($type === "create") {
     $valor_apresentado_capeante = limparCampo(filter_input(INPUT_POST, "valor_apresentado_capeante"));
     $valor_final_capeante = limparCampo(filter_input(INPUT_POST, "valor_final_capeante"));
     $valor_diarias = limparCampo(filter_input(INPUT_POST, "valor_diarias"));
+    $valor_matmed = limparCampo(filter_input(INPUT_POST, "valor_matmed"));
     $valor_materiais = limparCampo(filter_input(INPUT_POST, "valor_materiais"));
     $valor_medicamentos = limparCampo(filter_input(INPUT_POST, "valor_medicamentos"));
     $valor_oxig = limparCampo(filter_input(INPUT_POST, "valor_oxig"));
@@ -87,14 +106,105 @@ if ($type === "create") {
     $fk_user_cap = filter_input(INPUT_POST, "fk_user_cap");
     $usuario_create_cap = filter_input(INPUT_POST, "usuario_create_cap");
     $data_create_cap = filter_input(INPUT_POST, "data_create_cap");
+    $sessionUserId = $_SESSION['id_usuario'] ?? null;
+    $sessionUserName = $_SESSION['usuario_user'] ?? $_SESSION['login_user'] ?? $_SESSION['email_user'] ?? null;
+    $sessionUserId = $_SESSION['id_usuario'] ?? null;
+    $sessionUserName = $_SESSION['usuario_user'] ?? $_SESSION['login_user'] ?? $_SESSION['email_user'] ?? null;
+
+    $hasLancamento = false;
+    foreach ([
+        $valor_diarias,
+        $valor_matmed,
+        $valor_materiais,
+        $valor_medicamentos,
+        $valor_oxig,
+        $valor_sadt,
+        $valor_taxa,
+        $valor_honorarios,
+        $valor_opme,
+        $valor_apresentado_capeante,
+        $valor_final_capeante,
+    ] as $valorItem) {
+        if (valorLancado($valorItem)) {
+            $hasLancamento = true;
+            break;
+        }
+    }
+
+    $now = date('Y-m-d H:i:s');
+    $timer_start_cap = null;
+    $timer_end_cap = null;
+    $existing_timer_cap = null;
+    if (!empty($id_capeante)) {
+        $stmtTimer = $conn->prepare("SELECT timer_start_cap, timer_end_cap, timer_cap FROM tb_capeante WHERE id_capeante = :id");
+        $stmtTimer->bindValue(':id', (int)$id_capeante, PDO::PARAM_INT);
+        $stmtTimer->execute();
+        $timerRow = $stmtTimer->fetch(PDO::FETCH_ASSOC) ?: [];
+        $timer_start_cap = $timerRow['timer_start_cap'] ?? null;
+        $timer_end_cap = $timerRow['timer_end_cap'] ?? null;
+        $existing_timer_cap = $timerRow['timer_cap'] ?? null;
+    }
+    if (empty($timer_start_cap) && $hasLancamento) {
+        $timer_start_cap = $now;
+    }
+    $finalizando = flagAtivo($encerrado_cap) || flagAtivo($senha_finalizada);
+    if ($finalizando && $existing_timer_cap === null && $timer_start_cap) {
+        $timer_end_cap = $now;
+        $timer_cap = max(0, strtotime($timer_end_cap) - strtotime($timer_start_cap));
+    } else {
+        $timer_cap = $existing_timer_cap;
+    }
+    if ($hasLancamento && $sessionUserId) {
+        $fk_user_cap = (int)$sessionUserId;
+    }
+    if ($hasLancamento && $sessionUserName) {
+        $usuario_create_cap = $sessionUserName;
+    }
+
+    $hasLancamento = false;
+    foreach ([
+        $valor_diarias,
+        $valor_matmed,
+        $valor_materiais,
+        $valor_medicamentos,
+        $valor_oxig,
+        $valor_sadt,
+        $valor_taxa,
+        $valor_honorarios,
+        $valor_opme,
+        $valor_apresentado_capeante,
+        $valor_final_capeante,
+    ] as $valorItem) {
+        if (valorLancado($valorItem)) {
+            $hasLancamento = true;
+            break;
+        }
+    }
+
+    $now = date('Y-m-d H:i:s');
+    if (empty($data_create_cap)) {
+        $data_create_cap = $now;
+    }
+    $timer_start_cap = $hasLancamento ? ($data_create_cap ?: $now) : null;
+    $timer_end_cap = null;
+    $finalizando = flagAtivo($encerrado_cap) || flagAtivo($senha_finalizada);
+    if ($finalizando && $timer_start_cap) {
+        $timer_end_cap = $now;
+        $timer_cap = max(0, strtotime($timer_end_cap) - strtotime($timer_start_cap));
+    } else {
+        $timer_cap = null;
+    }
+    if ($hasLancamento && $sessionUserId) {
+        $fk_user_cap = (int)$sessionUserId;
+    }
+    if ($hasLancamento && $sessionUserName) {
+        $usuario_create_cap = $sessionUserName;
+    }
 
     $fk_id_aud_enf = filter_input(INPUT_POST, "fk_id_aud_enf");
     $fk_id_aud_med = filter_input(INPUT_POST, "fk_id_aud_med");
     $fk_id_aud_adm = filter_input(INPUT_POST, "fk_id_aud_adm");
     $fk_id_aud_hosp = filter_input(INPUT_POST, "fk_id_aud_hosp");
-
-    $encerrado_cap = filter_input(INPUT_POST, "encerrado_cap");
-    $aberto_cap = filter_input(INPUT_POST, "aberto_cap");
 
     $checkbox_imprimir = filter_input(INPUT_POST, "checkbox_imprimir");
 
@@ -117,6 +227,7 @@ if ($type === "create") {
         $capeante->data_digit_capeante = $data_digit_capeante;
         $capeante->data_final_capeante = $data_final_capeante;
         $capeante->data_inicial_capeante = $data_inicial_capeante;
+        $capeante->timer_cap = $timer_cap;
         $capeante->diarias_capeante = $diarias_capeante;
         $capeante->lote_cap = $lote_cap;
         $capeante->acomodacao_cap = $acomodacao_cap;
@@ -160,6 +271,8 @@ if ($type === "create") {
         $capeante->fk_user_cap = $fk_user_cap;
         $capeante->usuario_create_cap = $usuario_create_cap;
         $capeante->data_create_cap = $data_create_cap;
+        $capeante->timer_start_cap = $timer_start_cap;
+        $capeante->timer_end_cap = $timer_end_cap;
         $capeante->last_cap = $last_cap;
 
         $capeante->fk_id_aud_enf = $fk_id_aud_enf;
@@ -186,6 +299,10 @@ if ($type === "update") {
     $data_fech_capeante = filter_input(INPUT_POST, "data_fech_capeante") ?: null;
     $data_final_capeante = filter_input(INPUT_POST, "data_final_capeante") ?: null;
     $data_digit_capeante = filter_input(INPUT_POST, "data_digit_capeante") ?: null;
+    $timer_cap = filter_input(INPUT_POST, "timer_cap", FILTER_VALIDATE_INT);
+    if ($timer_cap === false) {
+        $timer_cap = null;
+    }
     $diarias_capeante = filter_input(INPUT_POST, "diarias_capeante");
     $lote_cap = filter_input(INPUT_POST, "lote_cap");
     $acomodacao_cap = filter_input(INPUT_POST, "acomodacao_cap");
@@ -262,6 +379,9 @@ if ($type === "update") {
     $capeanteUpdate->data_digit_capeante = $data_digit_capeante;
     $capeanteUpdate->data_final_capeante = $data_final_capeante;
         $capeanteUpdate->data_inicial_capeante = $data_inicial_capeante;
+        $capeanteUpdate->timer_start_cap = $timer_start_cap;
+        $capeanteUpdate->timer_end_cap = $timer_end_cap;
+        $capeanteUpdate->timer_cap = $timer_cap;
         $capeanteUpdate->diarias_capeante = $diarias_capeante;
         $capeanteUpdate->lote_cap = $lote_cap;
         $capeanteUpdate->acomodacao_cap = $acomodacao_cap;
@@ -316,6 +436,9 @@ if ($type === "update") {
         $capeanteUpdate->fk_user_cap = $fk_user_cap;
         $capeanteUpdate->usuario_create_cap = $usuario_create_cap;
         $capeanteUpdate->data_create_cap = $data_create_cap;
+        $capeanteUpdate->timer_start_cap = $timer_start_cap;
+        $capeanteUpdate->timer_end_cap = $timer_end_cap;
+        $capeanteUpdate->timer_cap = $timer_cap;
 
         // $capeanteUpdate->impresso_cap = $impresso_cap;
         $capeanteUpdate->fk_id_aud_enf = $fk_id_aud_enf;

@@ -826,8 +826,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                 <div class="form-group col-sm-12" style="margin-bottom:6px;">
                     <span style="font-weight:700;color:#5e2363;">Cadastro Central</span>
                     <?php if ($cadastroCentralObrigatorio): ?>
-                        <small style="margin-left:8px;color:#b02a37;font-weight:600;">Cadastro central obrigatório: selecione o
-                            tipo de profissional e o responsável.</small>
+                        <small style="margin-left:8px;color:#b02a37;font-weight:600;">(Obrigatório selecionar o tipo de profissional e o responsável.)</small>
                     <?php else: ?>
                         <small style="margin-left:8px;color:#666;">(opcional: escolha o tipo e o responsável)</small>
                     <?php endif; ?>
