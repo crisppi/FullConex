@@ -599,10 +599,6 @@ if (!empty($sessionIdUsuario)) {
                                                     class="bi bi-table"
                                                     style="font-size: 1rem;margin-right:5px; color:#9fd7ff;"></i>
                                                 Auditor Visitas</a></li>
-                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/auditoria-produtividade"><i
-                                                    class="bi bi-bar-chart"
-                                                    style="font-size: 1rem;margin-right:5px; color:#9fd7ff;"></i>
-                                                Auditoria Produtividade</a></li>
                                     </ul>
                                 </li>
                                 <li class="bi-mega-col">
@@ -718,7 +714,7 @@ if (!empty($sessionIdUsuario)) {
                             </ul>
                         </li>
                         <?php }; ?>
-                        <?php if ($sessionNivel > 0) { ?>
+                        <?php if (false && $sessionNivel > 0) { ?>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
                                 data-bs-toggle="dropdown" aria-expanded="false">

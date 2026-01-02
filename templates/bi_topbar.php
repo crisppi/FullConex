@@ -26,6 +26,7 @@ $biSections = [
     'Operacional' => [
         ['label' => 'Seguradora', 'href' => 'bi/seguradora', 'file' => 'SeguradoraBI.php'],
         ['label' => 'Seguradora Detalhado', 'href' => 'bi/seguradora-detalhado', 'file' => 'SeguradoraDetalhadoBI.php'],
+        ['label' => 'Performance Rede Hospitalar', 'href' => 'bi/performance-rede-hospitalar', 'file' => 'bi_performance_rede_hospitalar.php'],
         ['label' => 'Alto Custo', 'href' => 'bi/alto-custo', 'file' => 'AltoCusto.php'],
         ['label' => 'Internações com Risco', 'href' => 'bi/internacoes-risco', 'file' => 'InternacoesRiscoBI.php'],
         ['label' => 'Qualidade e Gestão', 'href' => 'bi/qualidade-gestao', 'file' => 'QualidadeGestaoBI.php'],
@@ -33,6 +34,16 @@ $biSections = [
         ['label' => 'Desospitalização', 'href' => 'bi/desospitalizacao', 'file' => 'Desospitalizacao.php'],
         ['label' => 'OPME', 'href' => 'bi/opme', 'file' => 'Opme.php'],
         ['label' => 'Evento Adverso', 'href' => 'bi/evento-adverso', 'file' => 'EventoAdverso.php'],
+    ],
+    'Rede Hospitalar' => [
+        ['label' => 'Comparativa', 'href' => 'bi/rede-comparativa', 'file' => 'bi_rede_comparativa.php'],
+        ['label' => 'Custo por hospital', 'href' => 'bi/rede-custo', 'file' => 'bi_rede_custo.php'],
+        ['label' => 'Glosa por hospital', 'href' => 'bi/rede-glosa', 'file' => 'bi_rede_glosa.php'],
+        ['label' => 'Rejeição Capeante', 'href' => 'bi/rede-rejeicao-capeante', 'file' => 'bi_rede_rejeicao_capeante.php'],
+        ['label' => 'Permanência média', 'href' => 'bi/rede-permanencia', 'file' => 'bi_rede_permanencia.php'],
+        ['label' => 'Eventos adversos', 'href' => 'bi/rede-eventos-adversos', 'file' => 'bi_rede_eventos_adversos.php'],
+        ['label' => 'Readmissão 30d', 'href' => 'bi/rede-readmissao', 'file' => 'bi_rede_readmissao.php'],
+        ['label' => 'Ranking', 'href' => 'bi/rede-ranking', 'file' => 'bi_rede_ranking.php'],
     ],
     'Financeiro' => [
         ['label' => 'Sinistro', 'href' => 'bi/sinistro', 'file' => 'Sinistro.php'],
