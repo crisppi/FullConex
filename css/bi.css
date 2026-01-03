@@ -447,9 +447,12 @@ body.bi-theme,
   border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
-.bi-filter-pill.active {
-  background: rgba(255, 255, 255, 0.96);
-  color: #3b2b3f;
+.bi-filter-pill.active,
+button.bi-filter-pill.active {
+  background: linear-gradient(135deg, #ffcc6b, #ff8a3d) !important;
+  color: #2c1b0a !important;
+  border-color: rgba(255, 170, 85, 0.9) !important;
+  box-shadow: 0 8px 18px rgba(255, 140, 64, 0.28);
 }
 
 @media (max-width: 992px) {
@@ -541,6 +544,16 @@ body.bi-theme,
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
 }
 
+.bi-kpi-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.bi-kpi-grid .bi-kpi {
+  min-width: 0;
+}
+
 .bi-kpis.kpi-compact {
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   justify-items: center;
@@ -561,12 +574,20 @@ body.bi-theme,
 }
 
 @media (max-width: 1100px) {
+  .bi-kpi-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .bi-kpis.kpi-grid-4 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 860px) {
+  .bi-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .bi-kpis.kpi-grid-4 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -809,6 +830,66 @@ table.bi-table::after,
   display: grid;
   gap: 14px;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.bi-obitos-hero {
+  background: linear-gradient(135deg, rgba(18, 115, 176, 0.95), rgba(63, 120, 175, 0.95));
+  border-radius: 16px;
+  padding: 18px 18px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 12px 24px rgba(12, 32, 52, 0.2);
+  margin-bottom: 16px;
+}
+
+.bi-obitos-header h1 {
+  margin: 0;
+  font-size: 1.3rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.bi-obitos-header p {
+  margin: 6px 0 0;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.bi-obitos-filters {
+  margin-top: 12px;
+  background: rgba(9, 20, 40, 0.18);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 14px;
+}
+
+.bi-obitos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.bi-obitos-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+.bi-obitos-kpis {
+  background: linear-gradient(135deg, rgba(14, 80, 130, 0.45), rgba(30, 90, 150, 0.45));
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.bi-obitos-kpis .bi-panel-header {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #eaf6ff;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 900px) {
+  .bi-obitos-actions {
+    flex-direction: column;
+  }
 }
 
 .bi-nav-card {

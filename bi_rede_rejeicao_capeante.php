@@ -1,17 +1,17 @@
 <?php
-$pageTitle = 'Rejeicao de capeante por hospital';
-$pageSubtitle = 'Taxa de contas rejeitadas';
+$pageTitle = 'Contas paradas por hospital';
+$pageSubtitle = 'Taxa de contas paradas';
 $clearUrl = 'bi/rede-rejeicao-capeante';
 $redeCurrent = 'rejeicao';
 require_once('bi_rede_bootstrap.php');
 
 $rowsSorted = $rows;
 usort($rowsSorted, function ($a, $b) {
-    return ($b['rejeicao_rate'] ?? 0) <=> ($a['rejeicao_rate'] ?? 0);
+    return ($b['contas_paradas_rate'] ?? 0) <=> ($a['contas_paradas_rate'] ?? 0);
 });
 $chartRows = array_slice($rowsSorted, 0, 10);
 $chartLabels = array_map(fn($r) => $r['hospital'] ?: 'Sem hospital', $chartRows);
-$chartVals = array_map(fn($r) => round((float)($r['rejeicao_rate'] ?? 0) * 100, 1), $chartRows);
+$chartVals = array_map(fn($r) => round((float)($r['contas_paradas_rate'] ?? 0) * 100, 1), $chartRows);
 ?>
 
 <div class="bi-wrapper bi-theme">
@@ -31,12 +31,12 @@ $chartVals = array_map(fn($r) => round((float)($r['rejeicao_rate'] ?? 0) * 100, 
         <h3>Indicadores-chave</h3>
         <div class="bi-kpis kpi-compact">
             <div class="bi-kpi">
-                <small>Rejeicao media</small>
-                <strong><?= number_format($network['rejeicao_rate'] * 100, 1, ',', '.') ?>%</strong>
+                <small>Taxa media</small>
+                <strong><?= number_format($network['contas_paradas_rate'] * 100, 1, ',', '.') ?>%</strong>
             </div>
             <div class="bi-kpi">
-                <small>Contas rejeitadas</small>
-                <strong><?= (int)$totals['rejeitadas'] ?></strong>
+                <small>Contas paradas</small>
+                <strong><?= (int)$totals['contas_paradas'] ?></strong>
             </div>
             <div class="bi-kpi">
                 <small>Total de contas</small>
@@ -46,7 +46,7 @@ $chartVals = array_map(fn($r) => round((float)($r['rejeicao_rate'] ?? 0) * 100, 
     </div>
 
     <div class="bi-panel">
-        <h3>Rejeicao por hospital</h3>
+        <h3>Contas paradas por hospital</h3>
         <div class="bi-chart">
             <canvas id="chartRejeicao"></canvas>
         </div>
@@ -58,8 +58,8 @@ $chartVals = array_map(fn($r) => round((float)($r['rejeicao_rate'] ?? 0) * 100, 
             <thead>
                 <tr>
                     <th>Hospital</th>
-                    <th>Rejeicao</th>
-                    <th>Contas rejeitadas</th>
+                    <th>Taxa</th>
+                    <th>Contas paradas</th>
                     <th>Total de contas</th>
                     <th>Casos</th>
                 </tr>
@@ -73,8 +73,8 @@ $chartVals = array_map(fn($r) => round((float)($r['rejeicao_rate'] ?? 0) * 100, 
                     <?php foreach ($rowsSorted as $row): ?>
                         <tr>
                             <td><?= e($row['hospital'] ?: 'Sem hospital') ?></td>
-                            <td><?= number_format((float)$row['rejeicao_rate'] * 100, 1, ',', '.') ?>%</td>
-                            <td><?= (int)($row['contas_rejeitadas'] ?? 0) ?></td>
+                            <td><?= number_format((float)$row['contas_paradas_rate'] * 100, 1, ',', '.') ?>%</td>
+                            <td><?= (int)($row['contas_paradas'] ?? 0) ?></td>
                             <td><?= (int)($row['total_contas'] ?? 0) ?></td>
                             <td><?= (int)($row['total_internacoes'] ?? 0) ?></td>
                         </tr>

@@ -11,20 +11,24 @@ function e($v)
     return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 }
 
+$hospitais = $conn->query("SELECT id_hospital, nome_hosp FROM tb_hospital ORDER BY nome_hosp")
+    ->fetchAll(PDO::FETCH_ASSOC);
+$anos = $conn->query("SELECT DISTINCT YEAR(data_intern_int) AS ano FROM tb_internacao WHERE data_intern_int IS NOT NULL AND data_intern_int <> '0000-00-00' ORDER BY ano DESC")
+    ->fetchAll(PDO::FETCH_COLUMN);
+
 $anoInput = filter_input(INPUT_GET, 'ano', FILTER_VALIDATE_INT);
 $mesInput = filter_input(INPUT_GET, 'mes', FILTER_VALIDATE_INT);
 $ano = ($anoInput !== null && $anoInput !== false) ? (int)$anoInput : null;
 $mes = ($mesInput !== null && $mesInput !== false) ? (int)$mesInput : null;
 if ($ano === null && !filter_has_var(INPUT_GET, 'ano')) {
-    $ano = (int)date('Y');
+    $ano = !empty($anos) ? (int)$anos[0] : (int)date('Y');
 }
 
 $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: null;
-
-$hospitais = $conn->query("SELECT id_hospital, nome_hosp FROM tb_hospital ORDER BY nome_hosp")
-    ->fetchAll(PDO::FETCH_ASSOC);
-$anos = $conn->query("SELECT DISTINCT YEAR(data_intern_int) AS ano FROM tb_internacao WHERE data_intern_int IS NOT NULL AND data_intern_int <> '0000-00-00' ORDER BY ano DESC")
-    ->fetchAll(PDO::FETCH_COLUMN);
+$limiarInput = filter_input(INPUT_GET, 'limiar', FILTER_VALIDATE_INT);
+$limiarSelecionado = ($limiarInput !== null && $limiarInput !== false && $limiarInput > 0) ? (int)$limiarInput : null;
+$limiarPadrao = 30;
+$limiarOpcoes = [15, 20, 25, 30, 45, 60];
 
 $where = "1=1";
 $params = [];
@@ -39,6 +43,16 @@ if (!empty($mes)) {
 if (!empty($hospitalId)) {
     $where .= " AND i.fk_hospital_int = :hospital_id";
     $params[':hospital_id'] = (int)$hospitalId;
+}
+
+$limiarExpr = $limiarSelecionado !== null
+    ? ':limiar_selecionado'
+    : 'COALESCE(NULLIF(se.longa_permanencia_seg, 0), :limiar_padrao)';
+
+if ($limiarSelecionado !== null) {
+    $params[':limiar_selecionado'] = $limiarSelecionado;
+} else {
+    $params[':limiar_padrao'] = $limiarPadrao;
 }
 
 $sqlBase = "
@@ -63,7 +77,7 @@ $sqlLonga = "
             i.rel_int,
             i.data_intern_int,
             GREATEST(1, DATEDIFF(COALESCE(al.data_alta_alt, CURDATE()), i.data_intern_int) + 1) AS diarias,
-            COALESCE(NULLIF(se.longa_permanencia_seg, 0), 30) AS limiar
+            {$limiarExpr} AS limiar
         {$sqlBase}
     ) t
     WHERE t.diarias >= t.limiar
@@ -116,7 +130,7 @@ $labelsHosp = array_map(fn($r) => $r['nome_hosp'], $hospitais);
 $valuesHosp = array_map(fn($r) => $hospTotals[$r['nome_hosp']] ?? 0, $hospitais);
 ?>
 
-<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260110">
+<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260111">
 <script src="diversos/CoolAdmin-master/vendor/chartjs/Chart.bundle.min.js"></script>
 <script src="<?= $BASE_URL ?>js/bi.js?v=20260110"></script>
 <script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));</script>
@@ -168,7 +182,21 @@ $valuesHosp = array_map(fn($r) => $hospTotals[$r['nome_hosp']] ?? 0, $hospitais)
                             <?php endforeach; ?>
                         </select>
                     </div>
+                    <div class="bi-filter">
+                        <label>Longa permanência</label>
+                        <div class="bi-filter-list" id="lp-limiar-list">
+                            <button type="button" class="bi-filter-pill <?= $limiarSelecionado === null ? 'active' : '' ?>" data-limiar="">
+                                Seguradora
+                            </button>
+                            <?php foreach ($limiarOpcoes as $opt): ?>
+                                <button type="button" class="bi-filter-pill <?= $limiarSelecionado === $opt ? 'active' : '' ?>" data-limiar="<?= (int)$opt ?>">
+                                    <?= (int)$opt ?> dias
+                                </button>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
                     <form id="lp-form" method="get">
+                        <input type="hidden" name="limiar" value="<?= $limiarSelecionado !== null ? (int)$limiarSelecionado : '' ?>">
                         <button class="bi-filter-btn" type="submit">Aplicar</button>
                     </form>
                 </div>
@@ -240,6 +268,22 @@ $valuesHosp = array_map(fn($r) => $hospTotals[$r['nome_hosp']] ?? 0, $hospitais)
         </section>
     </div>
 </div>
+
+<script>
+const limiarList = document.getElementById('lp-limiar-list');
+const limiarInput = document.querySelector('#lp-form input[name="limiar"]');
+if (limiarList && limiarInput) {
+  limiarList.addEventListener('click', (event) => {
+    const btn = event.target.closest('button[data-limiar]');
+    if (!btn) return;
+    event.preventDefault();
+    const value = btn.getAttribute('data-limiar') || '';
+    limiarInput.value = value;
+    limiarList.querySelectorAll('.bi-filter-pill').forEach((el) => el.classList.remove('active'));
+    btn.classList.add('active');
+  });
+}
+</script>
 
 <script>
 const lpLabels = <?= json_encode($labelsHosp) ?>;

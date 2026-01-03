@@ -536,6 +536,46 @@ if (!empty($sessionIdUsuario)) {
                                                 Navegacao</a></li>
                                         <li class="bi-submenu">
                                             <a class="dropdown-item" href="#"><i
+                                                        class="bi bi-bar-chart-line"
+                                                        style="font-size: 1rem;margin-right:5px; color:#9fd7ff;"></i>
+                                                Comparativa Rede Hospitalar</a>
+                                            <ul class="bi-submenu-list">
+                                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/rede-comparativa"><i
+                                                            class="bi bi-graph-up"
+                                                            style="font-size: 1rem;margin-right:5px; color:#9fd7ff;"></i>
+                                                        Comparativa</a></li>
+                                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/rede-custo"><i
+                                                            class="bi bi-currency-dollar"
+                                                            style="font-size: 1rem;margin-right:5px; color:#9fd7ff;"></i>
+                                                        Custo por hospital</a></li>
+                                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/rede-glosa"><i
+                                                            class="bi bi-percent"
+                                                            style="font-size: 1rem;margin-right:5px; color:#9fd7ff;"></i>
+                                                        Glosa por hospital</a></li>
+                                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/rede-rejeicao-capeante"><i
+                                                            class="bi bi-x-circle"
+                                                            style="font-size: 1rem;margin-right:5px; color:#9fd7ff;"></i>
+                                                        Rejeição capeante</a></li>
+                                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/rede-permanencia"><i
+                                                            class="bi bi-hourglass-split"
+                                                            style="font-size: 1rem;margin-right:5px; color:#9fd7ff;"></i>
+                                                        Permanência média</a></li>
+                                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/rede-eventos-adversos"><i
+                                                            class="bi bi-exclamation-triangle"
+                                                            style="font-size: 1rem;margin-right:5px; color:#9fd7ff;"></i>
+                                                        Eventos adversos</a></li>
+                                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/rede-readmissao"><i
+                                                            class="bi bi-arrow-repeat"
+                                                            style="font-size: 1rem;margin-right:5px; color:#9fd7ff;"></i>
+                                                        Readmissão 30d</a></li>
+                                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/rede-ranking"><i
+                                                            class="bi bi-trophy"
+                                                            style="font-size: 1rem;margin-right:5px; color:#9fd7ff;"></i>
+                                                        Ranking</a></li>
+                                            </ul>
+                                        </li>
+                                        <li class="bi-submenu">
+                                            <a class="dropdown-item" href="#"><i
                                                         class="bi bi-layers"
                                                         style="font-size: 1rem;margin-right:5px; color:#7cc4ff;"></i>
                                                 Consolidado</a>
@@ -579,6 +619,14 @@ if (!empty($sessionIdUsuario)) {
                                                     class="bi bi-hourglass-split"
                                                     style="font-size: 1rem;margin-right:5px; color:#9ad0f5;"></i>
                                                 Longa Permanencia</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/evolucao"><i
+                                                    class="bi bi-journal-text"
+                                                    style="font-size: 1rem;margin-right:5px; color:#9ad0f5;"></i>
+                                                Evolução</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/visita-inicial"><i
+                                                    class="bi bi-clipboard2-pulse"
+                                                    style="font-size: 1rem;margin-right:5px; color:#9ad0f5;"></i>
+                                                Visita Inicial</a></li>
                                         <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/clinico-realizado"><i
                                                     class="bi bi-activity"
                                                     style="font-size: 1rem;margin-right:5px; color:#8bd3ff;"></i>
@@ -709,6 +757,132 @@ if (!empty($sessionIdUsuario)) {
                                                     class="bi bi-lightbulb"
                                                     style="font-size: 1rem;margin-right:5px; color:#8bd3ff;"></i>
                                                 Inteligencia Artificial</a></li>
+                                    </ul>
+                                </li>
+                                <li class="bi-mega-col">
+                                    <span class="bi-mega-title">Controle de Gastos</span>
+                                    <ul class="bi-mega-list">
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/gastos-patologia"><i
+                                                    class="bi bi-activity"
+                                                    style="font-size: 1rem;margin-right:5px; color:#ff8fa3;"></i>
+                                                Sinistralidade por Patologia</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/gastos-hospital"><i
+                                                    class="bi bi-hospital"
+                                                    style="font-size: 1rem;margin-right:5px; color:#ff8fa3;"></i>
+                                                Sinistralidade por Hospital</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/gastos-tendencia"><i
+                                                    class="bi bi-graph-up"
+                                                    style="font-size: 1rem;margin-right:5px; color:#ff8fa3;"></i>
+                                                Tendência de Custo</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/gastos-alto-custo"><i
+                                                    class="bi bi-exclamation-diamond"
+                                                    style="font-size: 1rem;margin-right:5px; color:#ff8fa3;"></i>
+                                                Análise de Alto Custo</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/gastos-custo-evitavel"><i
+                                                    class="bi bi-clock-history"
+                                                    style="font-size: 1rem;margin-right:5px; color:#ff8fa3;"></i>
+                                                Custo Evitável</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/gastos-concentracao"><i
+                                                    class="bi bi-pie-chart"
+                                                    style="font-size: 1rem;margin-right:5px; color:#ff8fa3;"></i>
+                                                Concentração de Risco</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/gastos-provisao-realizado"><i
+                                                    class="bi bi-currency-exchange"
+                                                    style="font-size: 1rem;margin-right:5px; color:#ff8fa3;"></i>
+                                                Provisão vs Realizado</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/custo-medio-diarias"><i
+                                                    class="bi bi-bar-chart-line"
+                                                    style="font-size: 1rem;margin-right:5px; color:#ff8fa3;"></i>
+                                                Custo Médio Diárias</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/ranking-patologia"><i
+                                                    class="bi bi-graph-up"
+                                                    style="font-size: 1rem;margin-right:5px; color:#ff8fa3;"></i>
+                                                Ranking Patologia</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/ranking-hospitais"><i
+                                                    class="bi bi-hospital"
+                                                    style="font-size: 1rem;margin-right:5px; color:#ff8fa3;"></i>
+                                                Ranking Hospitais</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/ranking-pacientes"><i
+                                                    class="bi bi-people"
+                                                    style="font-size: 1rem;margin-right:5px; color:#ff8fa3;"></i>
+                                                Ranking Pacientes</a></li>
+                                    </ul>
+                                </li>
+                                <li class="bi-mega-col">
+                                    <span class="bi-mega-title">Anomalias & Fraude</span>
+                                    <ul class="bi-mega-list">
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/anomalias-permanencia"><i
+                                                    class="bi bi-exclamation-triangle"
+                                                    style="font-size: 1rem;margin-right:5px; color:#ff7b7b;"></i>
+                                                Outliers de Permanência</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/anomalias-negociacao"><i
+                                                    class="bi bi-arrow-left-right"
+                                                    style="font-size: 1rem;margin-right:5px; color:#ff7b7b;"></i>
+                                                Negociações Suspeitas</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/anomalias-opme"><i
+                                                    class="bi bi-bandaid"
+                                                    style="font-size: 1rem;margin-right:5px; color:#ff7b7b;"></i>
+                                                OPME sem Justificativa</a></li>
+                                    </ul>
+                                </li>
+                                <li class="bi-mega-col">
+                                    <span class="bi-mega-title">Conformidade & Auditoria</span>
+                                    <ul class="bi-mega-list">
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/auditoria-documentacao"><i
+                                                    class="bi bi-clipboard-check"
+                                                    style="font-size: 1rem;margin-right:5px; color:#61d2c6;"></i>
+                                                Documentação Completa</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/auditoria-resposta"><i
+                                                    class="bi bi-stopwatch"
+                                                    style="font-size: 1rem;margin-right:5px; color:#61d2c6;"></i>
+                                                Tempo de Resposta</a></li>
+                                    </ul>
+                                </li>
+                                <li class="bi-mega-col">
+                                    <span class="bi-mega-title">Segmentação de Risco</span>
+                                    <ul class="bi-mega-list">
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/risco-cronicos"><i
+                                                    class="bi bi-person-exclamation"
+                                                    style="font-size: 1rem;margin-right:5px; color:#ffd36e;"></i>
+                                                Pacientes Crônicos</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/risco-readmissao"><i
+                                                    class="bi bi-arrow-repeat"
+                                                    style="font-size: 1rem;margin-right:5px; color:#ffd36e;"></i>
+                                                Risco Readmissão</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/risco-casos-caros"><i
+                                                    class="bi bi-cash-coin"
+                                                    style="font-size: 1rem;margin-right:5px; color:#ffd36e;"></i>
+                                                Casos Caros Previsíveis</a></li>
+                                    </ul>
+                                </li>
+                                <li class="bi-mega-col">
+                                    <span class="bi-mega-title">Negociação & Rede</span>
+                                    <ul class="bi-mega-list">
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/rede-volume-custo"><i
+                                                    class="bi bi-bar-chart-line"
+                                                    style="font-size: 1rem;margin-right:5px; color:#72d2ff;"></i>
+                                                Volume vs Custo</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/rede-mix-casos"><i
+                                                    class="bi bi-diagram-3"
+                                                    style="font-size: 1rem;margin-right:5px; color:#72d2ff;"></i>
+                                                Mix de Casos</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/rede-elasticidade"><i
+                                                    class="bi bi-graph-up"
+                                                    style="font-size: 1rem;margin-right:5px; color:#72d2ff;"></i>
+                                                Elasticidade de Preço</a></li>
+                                    </ul>
+                                </li>
+                                <li class="bi-mega-col">
+                                    <span class="bi-mega-title">Qualidade & Desfecho</span>
+                                    <ul class="bi-mega-list">
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/qualidade-eventos"><i
+                                                    class="bi bi-exclamation-octagon"
+                                                    style="font-size: 1rem;margin-right:5px; color:#b897ff;"></i>
+                                                Eventos Adversos</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/qualidade-obitos"><i
+                                                    class="bi bi-heartbreak"
+                                                    style="font-size: 1rem;margin-right:5px; color:#b897ff;"></i>
+                                                Óbitos</a></li>
                                     </ul>
                                 </li>
                             </ul>
