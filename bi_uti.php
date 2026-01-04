@@ -31,6 +31,14 @@ if (!$dataIni || !$dataFim) {
     $dataIni = $dataIni ?: ($minDt ?: date('Y-m-d', strtotime('-120 days')));
     $dataFim = $dataFim ?: ($maxDt ?: $hoje);
 }
+
+$fonteConexao = $GLOBALS['fonte_conexao'] ?? '';
+$utiCount = 0;
+try {
+    $utiCount = (int)$conn->query("SELECT COUNT(*) FROM tb_uti")->fetchColumn();
+} catch (Throwable $e) {
+    $utiCount = 0;
+}
 $internado = trim((string)(filter_input(INPUT_GET, 'internado') ?? ''));
 $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: null;
 $tipoInternação = trim((string)(filter_input(INPUT_GET, 'tipo_internacao') ?? ''));
@@ -171,7 +179,9 @@ function labelsAndValues(array $rows): array
     <div class="bi-header">
         <h1 class="bi-title">Dashboard UTI</h1>
         <div class="bi-header-actions">
-            <div class="text-end text-muted"></div>
+            <div class="text-end text-muted" style="font-size:0.75rem;">
+                <?= e($fonteConexao) ?> · UTI: <?= (int)$utiCount ?>
+            </div>
             <a class="bi-nav-icon" href="<?= $BASE_URL ?>bi/navegacao" title="Navegação">
                 <i class="bi bi-grid-3x3-gap"></i>
             </a>
