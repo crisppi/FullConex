@@ -108,6 +108,8 @@ $labelPat = "COALESCE(NULLIF(CONCAT(c.cat, ' - ', c.descricao), ' - '), NULLIF(c
 $labelAcom = "COALESCE(NULLIF(i.acomodacao_int,''), 'Sem informações')";
 
 $rowsAcom = distQuery($conn, $labelAcom, $sqlBase, $params, "COUNT(DISTINCT i.id_internacao)", 8);
+
+// Remover o LIMIT para mostrar todas as patologias
 $rowsCusto = distQuery($conn, $labelPat, $sqlBase, $params, "SUM(COALESCE(ca.valor_final_capeante,0))", 10);
 $rowsIntern = distQuery($conn, $labelPat, $sqlBase, $params, "COUNT(DISTINCT i.id_internacao)", 10);
 $rowsDiárias = distQuery($conn, $labelPat, $sqlBase, $params, "SUM(GREATEST(1, DATEDIFF(COALESCE(al.data_alta_alt, CURDATE()), i.data_intern_int) + 1))", 10);
@@ -148,7 +150,9 @@ function labelsAndValues(array $rows, bool $formatMoney = false): array
 <link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260110">
 <script src="diversos/chartjs/Chart.min.js"></script>
 <script src="<?= $BASE_URL ?>js/bi.js?v=20260110"></script>
-<script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));</script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));
+</script>
 
 <div class="bi-wrapper bi-theme">
     <div class="bi-header">
@@ -260,55 +264,128 @@ function labelsAndValues(array $rows, bool $formatMoney = false): array
 </div>
 
 <script>
-const labelsAcom = <?= json_encode($labelsAcom) ?>;
-const valuesAcom = <?= json_encode($valuesAcom) ?>;
-const labelsCusto = <?= json_encode($labelsCusto) ?>;
-const valuesCusto = <?= json_encode($valuesCusto) ?>;
-const labelsCustoMedio = <?= json_encode($labelsCustoMedio) ?>;
-const valuesCustoMedio = <?= json_encode($valuesCustoMedio) ?>;
-const labelsIntern = <?= json_encode($labelsIntern) ?>;
-const valuesIntern = <?= json_encode($valuesIntern) ?>;
-const labelsMp = <?= json_encode($labelsMp) ?>;
-const valuesMp = <?= json_encode($valuesMp) ?>;
-const labelsDiárias = <?= json_encode($labelsDiárias) ?>;
-const valuesDiárias = <?= json_encode($valuesDiárias) ?>;
+    const labelsAcom = <?= json_encode($labelsAcom) ?>;
+    const valuesAcom = <?= json_encode($valuesAcom) ?>;
+    const labelsCusto = <?= json_encode($labelsCusto) ?>;
+    const valuesCusto = <?= json_encode($valuesCusto) ?>;
+    const labelsCustoMedio = <?= json_encode($labelsCustoMedio) ?>;
+    const valuesCustoMedio = <?= json_encode($valuesCustoMedio) ?>;
+    const labelsIntern = <?= json_encode($labelsIntern) ?>;
+    const valuesIntern = <?= json_encode($valuesIntern) ?>;
+    const labelsMp = <?= json_encode($labelsMp) ?>;
+    const valuesMp = <?= json_encode($valuesMp) ?>;
+    const labelsDiárias = <?= json_encode($labelsDiárias) ?>;
+    const valuesDiárias = <?= json_encode($valuesDiárias) ?>;
 
-function barChart(ctx, labels, data, color, yTickCallback) {
-    const scales = window.biChartScales ? window.biChartScales() : undefined;
-    if (scales && yTickCallback && scales.yAxes && scales.yAxes[0] && scales.yAxes[0].ticks) {
-        scales.yAxes[0].ticks.callback = yTickCallback;
+    function buildScales(yTickCallback) {
+        const scales = window.biChartScales ? window.biChartScales() : {
+            xAxes: [{
+                ticks: {}
+            }],
+            yAxes: [{
+                ticks: {}
+            }]
+        };
+        if (!scales.xAxes || !scales.xAxes[0]) {
+            scales.xAxes = [{
+                ticks: {}
+            }];
+        }
+        if (!scales.yAxes || !scales.yAxes[0]) {
+            scales.yAxes = [{
+                ticks: {}
+            }];
+        }
+        scales.xAxes[0].ticks = Object.assign({
+            display: true,
+            padding: 6,
+            fontColor: '#eaf6ff',
+            autoSkip: false,
+            maxRotation: 90,
+            minRotation: 45
+        }, scales.xAxes[0].ticks || {});
+        scales.yAxes[0].ticks = Object.assign({
+            display: true,
+            beginAtZero: true,
+            padding: 8,
+            fontColor: '#eaf6ff',
+            autoSkip: false,
+            maxRotation: 0,
+            minRotation: 0,
+            mirror: false
+        }, scales.yAxes[0].ticks || {});
+        if (yTickCallback) {
+            scales.yAxes[0].ticks.callback = yTickCallback;
+        }
+        return scales;
     }
-    return new Chart(ctx, {
-        type: 'bar',
-        data: { labels, datasets: [{ data, backgroundColor: color }] },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            legend: { display: false },
-            scales
-        }
-    });
-}
 
-function horizontalBar(ctx, labels, data, color) {
-    return new Chart(ctx, {
-        type: 'horizontalBar',
-        data: { labels, datasets: [{ data, backgroundColor: color }] },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            legend: { display: false },
-            scales: window.biChartScales ? window.biChartScales() : undefined
-        }
-    });
-}
+    function barChart(ctx, labels, data, color, yTickCallback) {
+        const scales = buildScales(yTickCallback);
+        return new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    data,
+                    backgroundColor: color
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                legend: {
+                    display: false
+                },
+                layout: {
+                    padding: {
+                        left: 18,
+                        right: 8,
+                        top: 6,
+                        bottom: 6
+                    }
+                },
+                scales
+            }
+        });
+    }
 
-horizontalBar(document.getElementById('chartAcom'), labelsAcom, valuesAcom, 'rgba(127, 196, 255, 0.7)');
-barChart(document.getElementById('chartCusto'), labelsCusto, valuesCusto, 'rgba(141, 208, 255, 0.7)', window.biMoneyTick);
-barChart(document.getElementById('chartCustoMedio'), labelsCustoMedio, valuesCustoMedio, 'rgba(208, 113, 176, 0.7)', window.biMoneyTick);
-barChart(document.getElementById('chartIntern'), labelsIntern, valuesIntern, 'rgba(121, 199, 255, 0.7)');
-barChart(document.getElementById('chartMp'), labelsMp, valuesMp, 'rgba(111, 223, 194, 0.7)');
-barChart(document.getElementById('chartDiárias'), labelsDiárias, valuesDiárias, 'rgba(255, 198, 108, 0.7)');
+    function horizontalBar(ctx, labels, data, color) {
+        const scales = buildScales();
+        return new Chart(ctx, {
+            type: 'horizontalBar',
+            data: {
+                labels,
+                datasets: [{
+                    data,
+                    backgroundColor: color
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                legend: {
+                    display: false
+                },
+                layout: {
+                    padding: {
+                        left: 18,
+                        right: 8,
+                        top: 6,
+                        bottom: 6
+                    }
+                },
+                scales
+            }
+        });
+    }
+
+    horizontalBar(document.getElementById('chartAcom'), labelsAcom, valuesAcom, 'rgba(127, 196, 255, 0.7)');
+    barChart(document.getElementById('chartCusto'), labelsCusto, valuesCusto, 'rgba(141, 208, 255, 0.7)', window.biMoneyTick);
+    barChart(document.getElementById('chartCustoMedio'), labelsCustoMedio, valuesCustoMedio, 'rgba(208, 113, 176, 0.7)', window.biMoneyTick);
+    barChart(document.getElementById('chartIntern'), labelsIntern, valuesIntern, 'rgba(121, 199, 255, 0.7)');
+    barChart(document.getElementById('chartMp'), labelsMp, valuesMp, 'rgba(111, 223, 194, 0.7)');
+    barChart(document.getElementById('chartDiárias'), labelsDiárias, valuesDiárias, 'rgba(255, 198, 108, 0.7)');
 </script>
 
 <?php require_once("templates/footer.php"); ?>

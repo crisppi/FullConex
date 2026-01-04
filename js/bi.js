@@ -5,20 +5,25 @@ if (typeof Chart !== 'undefined') {
   }
   if (Chart.defaults.scale && Chart.defaults.scale.ticks) {
     Chart.defaults.scale.ticks.fontColor = '#eaf6ff';
+    Chart.defaults.scale.ticks.display = true;
+    Chart.defaults.scale.ticks.padding = 6;
   }
   if (Chart.defaults.scale && Chart.defaults.scale.gridLines) {
     Chart.defaults.scale.gridLines.color = 'rgba(255,255,255,0.12)';
+  }
+  if (Chart.defaults.global && Chart.defaults.global.layout) {
+    Chart.defaults.global.layout.padding = { left: 18, right: 8, top: 6, bottom: 6 };
   }
 }
 
 window.biChartScales = function () {
   return {
     xAxes: [{
-      ticks: { fontColor: '#eaf6ff' },
+      ticks: { fontColor: '#eaf6ff', display: true, padding: 6 },
       gridLines: { color: 'rgba(255,255,255,0.12)' }
     }],
     yAxes: [{
-      ticks: { fontColor: '#eaf6ff' },
+      ticks: { fontColor: '#eaf6ff', display: true, padding: 6 },
       gridLines: { color: 'rgba(255,255,255,0.12)' }
     }]
   };

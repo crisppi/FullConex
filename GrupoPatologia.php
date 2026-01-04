@@ -12,8 +12,24 @@ function e($v)
 }
 
 $hoje = date('Y-m-d');
-$dataIni = filter_input(INPUT_GET, 'data_ini') ?: date('Y-m-d', strtotime('-120 days'));
-$dataFim = filter_input(INPUT_GET, 'data_fim') ?: $hoje;
+$dataIni = filter_input(INPUT_GET, 'data_ini');
+$dataFim = filter_input(INPUT_GET, 'data_fim');
+
+if (!$dataIni || !$dataFim) {
+    $stmtRange = $conn->query("
+        SELECT
+            MIN(data_intern_int) AS min_dt,
+            MAX(data_intern_int) AS max_dt
+        FROM tb_internacao
+        WHERE data_intern_int IS NOT NULL
+          AND data_intern_int <> '0000-00-00'
+    ");
+    $range = $stmtRange->fetch(PDO::FETCH_ASSOC) ?: [];
+    $minDt = $range['min_dt'] ?? null;
+    $maxDt = $range['max_dt'] ?? null;
+    $dataIni = $dataIni ?: ($minDt ?: date('Y-m-d', strtotime('-120 days')));
+    $dataFim = $dataFim ?: ($maxDt ?: $hoje);
+}
 $internado = trim((string)(filter_input(INPUT_GET, 'internado') ?? ''));
 $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: null;
 $tipoInternação = trim((string)(filter_input(INPUT_GET, 'tipo_internacao') ?? ''));
@@ -87,7 +103,7 @@ function distQuery(PDO $conn, string $labelExpr, string $sqlBase, array $params,
     return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 }
 
-$labelGrupo = "COALESCE(NULLIF(i.grupo_patologia_int,''), p.patologia_pat, 'Sem informações')";
+$labelGrupo = "COALESCE(NULLIF(i.grupo_patologia_int,''), NULLIF(p.grupo_patologia_pat,''), p.patologia_pat, 'Sem informações')";
 
 $rowsCusto = distQuery($conn, $labelGrupo, $sqlBase, $params, "SUM(COALESCE(ca.valor_final_capeante,0))", 10);
 $rowsIntern = distQuery($conn, $labelGrupo, $sqlBase, $params, "COUNT(DISTINCT i.id_internacao)", 10);
@@ -116,7 +132,9 @@ function labelsAndValues(array $rows): array
     <div class="bi-header">
         <h1 class="bi-title">Dashboard Grupo Patologia</h1>
         <div class="bi-header-actions">
-            <div class="text-end text-muted"></div>
+            <div class="text-end text-muted small">
+                <?= isset($fonte_conexao) ? 'Fonte: ' . e($fonte_conexao) : '' ?>
+            </div>
             <a class="bi-nav-icon" href="<?= $BASE_URL ?>bi/navegacao" title="Navegacao">
                 <i class="bi bi-grid-3x3-gap"></i>
             </a>
@@ -219,11 +237,33 @@ const valuesMp = <?= json_encode($valuesMp) ?>;
 const labelsDiárias = <?= json_encode($labelsDiárias) ?>;
 const valuesDiárias = <?= json_encode($valuesDiárias) ?>;
 
-function barChart(ctx, labels, data, color, yTickCallback) {
-    const scales = window.biChartScales ? window.biChartScales() : undefined;
-    if (scales && yTickCallback && scales.yAxes && scales.yAxes[0] && scales.yAxes[0].ticks) {
+function buildScales(yTickCallback) {
+    const scales = window.biChartScales ? window.biChartScales() : { xAxes: [{ ticks: {} }], yAxes: [{ ticks: {} }] };
+    if (!scales.xAxes || !scales.xAxes[0]) {
+        scales.xAxes = [{ ticks: {} }];
+    }
+    if (!scales.yAxes || !scales.yAxes[0]) {
+        scales.yAxes = [{ ticks: {} }];
+    }
+    scales.xAxes[0].ticks = Object.assign({
+        display: true,
+        padding: 6,
+        fontColor: '#eaf6ff'
+    }, scales.xAxes[0].ticks || {});
+    scales.yAxes[0].ticks = Object.assign({
+        display: true,
+        beginAtZero: true,
+        padding: 8,
+        fontColor: '#eaf6ff'
+    }, scales.yAxes[0].ticks || {});
+    if (yTickCallback) {
         scales.yAxes[0].ticks.callback = yTickCallback;
     }
+    return scales;
+}
+
+function barChart(ctx, labels, data, color, yTickCallback) {
+    const scales = buildScales(yTickCallback);
     return new Chart(ctx, {
         type: 'bar',
         data: { labels, datasets: [{ data, backgroundColor: color }] },
@@ -231,6 +271,7 @@ function barChart(ctx, labels, data, color, yTickCallback) {
             responsive: true,
             maintainAspectRatio: false,
             legend: { display: false },
+            layout: { padding: { left: 18, right: 8, top: 6, bottom: 6 } },
             scales
         }
     });

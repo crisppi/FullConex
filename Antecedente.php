@@ -88,7 +88,7 @@ function distQuery(PDO $conn, string $labelExpr, string $sqlBase, array $params,
     return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 }
 
-$labelAntecedente = "COALESCE(NULLIF(p.patologia_pat,''), 'Sem informações')";
+$labelAntecedente = "COALESCE(NULLIF(an.antecedente_ant,''), 'Sem informações')";
 
 $rowsCusto = distQuery($conn, $labelAntecedente, $sqlBase, $params, "SUM(COALESCE(ca.valor_final_capeante,0))", 10);
 $rowsIntern = distQuery($conn, $labelAntecedente, $sqlBase, $params, "COUNT(DISTINCT i.id_internacao)", 10);
@@ -111,7 +111,9 @@ function labelsAndValues(array $rows): array
 <link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260110">
 <script src="diversos/chartjs/Chart.min.js"></script>
 <script src="<?= $BASE_URL ?>js/bi.js?v=20260110"></script>
-<script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));</script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));
+</script>
 
 <div class="bi-wrapper bi-theme">
     <div class="bi-header">
@@ -211,36 +213,44 @@ function labelsAndValues(array $rows): array
 </div>
 
 <script>
-const labelsCusto = <?= json_encode($labelsCusto) ?>;
-const valuesCusto = <?= json_encode($valuesCusto) ?>;
-const labelsIntern = <?= json_encode($labelsIntern) ?>;
-const valuesIntern = <?= json_encode($valuesIntern) ?>;
-const labelsMp = <?= json_encode($labelsMp) ?>;
-const valuesMp = <?= json_encode($valuesMp) ?>;
-const labelsDiárias = <?= json_encode($labelsDiárias) ?>;
-const valuesDiárias = <?= json_encode($valuesDiárias) ?>;
+    const labelsCusto = <?= json_encode($labelsCusto) ?>;
+    const valuesCusto = <?= json_encode($valuesCusto) ?>;
+    const labelsIntern = <?= json_encode($labelsIntern) ?>;
+    const valuesIntern = <?= json_encode($valuesIntern) ?>;
+    const labelsMp = <?= json_encode($labelsMp) ?>;
+    const valuesMp = <?= json_encode($valuesMp) ?>;
+    const labelsDiárias = <?= json_encode($labelsDiárias) ?>;
+    const valuesDiárias = <?= json_encode($valuesDiárias) ?>;
 
-function barChart(ctx, labels, data, color, yTickCallback) {
-    const scales = window.biChartScales ? window.biChartScales() : undefined;
-    if (scales && yTickCallback && scales.yAxes && scales.yAxes[0] && scales.yAxes[0].ticks) {
-        scales.yAxes[0].ticks.callback = yTickCallback;
-    }
-    return new Chart(ctx, {
-        type: 'bar',
-        data: { labels, datasets: [{ data, backgroundColor: color }] },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            legend: { display: false },
-            scales
+    function barChart(ctx, labels, data, color, yTickCallback) {
+        const scales = window.biChartScales ? window.biChartScales() : undefined;
+        if (scales && yTickCallback && scales.yAxes && scales.yAxes[0] && scales.yAxes[0].ticks) {
+            scales.yAxes[0].ticks.callback = yTickCallback;
         }
-    });
-}
+        return new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    data,
+                    backgroundColor: color
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                legend: {
+                    display: false
+                },
+                scales
+            }
+        });
+    }
 
-barChart(document.getElementById('chartCusto'), labelsCusto, valuesCusto, 'rgba(141, 208, 255, 0.7)', window.biMoneyTick);
-barChart(document.getElementById('chartIntern'), labelsIntern, valuesIntern, 'rgba(121, 199, 255, 0.7)');
-barChart(document.getElementById('chartMp'), labelsMp, valuesMp, 'rgba(111, 223, 194, 0.7)');
-barChart(document.getElementById('chartDiárias'), labelsDiárias, valuesDiárias, 'rgba(255, 198, 108, 0.7)');
+    barChart(document.getElementById('chartCusto'), labelsCusto, valuesCusto, 'rgba(141, 208, 255, 0.7)', window.biMoneyTick);
+    barChart(document.getElementById('chartIntern'), labelsIntern, valuesIntern, 'rgba(121, 199, 255, 0.7)');
+    barChart(document.getElementById('chartMp'), labelsMp, valuesMp, 'rgba(111, 223, 194, 0.7)');
+    barChart(document.getElementById('chartDiárias'), labelsDiárias, valuesDiárias, 'rgba(255, 198, 108, 0.7)');
 </script>
 
 <?php require_once("templates/footer.php"); ?>
