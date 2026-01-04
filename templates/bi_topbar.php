@@ -21,6 +21,8 @@ $biSections = [
         ['label' => 'Clínico Realizado', 'href' => 'bi/clinico-realizado', 'file' => 'ClinicoRealizadoBI.php'],
         ['label' => 'Estratégia Terapêutica', 'href' => 'bi/estrategia-terapeutica', 'file' => 'EstrategiaTerapeuticaBI.php'],
         ['label' => 'Médico Titular', 'href' => 'bi/medico-titular', 'file' => 'MedicoTitularBI.php'],
+    ],
+    'Auditoria' => [
         ['label' => 'Auditor', 'href' => 'bi/auditor', 'file' => 'AuditorBI.php'],
         ['label' => 'Auditor Visitas', 'href' => 'bi/auditor-visitas', 'file' => 'AuditorVisitasBI.php'],
         ['label' => 'Auditoria Produtividade', 'href' => 'bi/auditoria-produtividade', 'file' => 'AuditoriaProdutividadeBI.php'],
@@ -274,6 +276,12 @@ if (!in_array($currentPage, $flatPages, true) && !$matchedByHref) {
     color: #0b2a26;
 }
 
+.bi-section-tabs[data-section="auditoria"] .bi-section-tab.is-active {
+    background: linear-gradient(135deg, #63d5c0, #2fa38c);
+    border-color: rgba(60, 160, 140, 0.9);
+    color: #0f2a25;
+}
+
 .bi-section-tabs[data-section="risco"] .bi-section-tab.is-active {
     background: linear-gradient(135deg, #ffd36e, #d69a3a);
     border-color: rgba(215, 160, 70, 0.9);
@@ -377,6 +385,11 @@ if (!in_array($currentPage, $flatPages, true) && !$matchedByHref) {
     border: 1px solid rgba(90, 200, 185, 0.35);
 }
 
+.bi-chipbar[data-section="auditoria"] {
+    background: linear-gradient(135deg, rgba(95, 205, 190, 0.25), rgba(60, 160, 145, 0.25));
+    border: 1px solid rgba(95, 205, 190, 0.35);
+}
+
 .bi-chipbar[data-section="risco"] {
     background: linear-gradient(135deg, rgba(230, 190, 90, 0.25), rgba(180, 140, 45, 0.25));
     border: 1px solid rgba(230, 190, 90, 0.35);
@@ -400,6 +413,7 @@ if (!in_array($currentPage, $flatPages, true) && !$matchedByHref) {
 .bi-chipbar[data-section="gastos"] .bi-chip,
 .bi-chipbar[data-section="anomalias"] .bi-chip,
 .bi-chipbar[data-section="conformidade"] .bi-chip,
+.bi-chipbar[data-section="auditoria"] .bi-chip,
 .bi-chipbar[data-section="risco"] .bi-chip,
 .bi-chipbar[data-section="negociacao"] .bi-chip,
 .bi-chipbar[data-section="qualidade"] .bi-chip {
@@ -454,6 +468,12 @@ if (!in_array($currentPage, $flatPages, true) && !$matchedByHref) {
     color: #0b2a26;
 }
 
+.bi-chipbar[data-section="auditoria"] .bi-chip.is-active {
+    background: linear-gradient(135deg, #63d5c0, #2fa38c);
+    border-color: rgba(60, 160, 140, 0.9);
+    color: #0f2a25;
+}
+
 .bi-chipbar[data-section="risco"] .bi-chip.is-active {
     background: linear-gradient(135deg, #ffd36e, #d69a3a);
     border-color: rgba(215, 160, 70, 0.9);
@@ -505,6 +525,7 @@ $sectionDisplay = [
     'Rede Hospitalar' => 'Comparativa Rede',
     'Controle de Gastos' => 'Controle de Gastos',
     'Anomalias & Fraude' => 'Anomalias & Fraude',
+    'Auditoria' => 'Auditoria',
     'Conformidade & Auditoria' => 'Conformidade & Auditoria',
     'Segmentação de Risco' => 'Segmentação de Risco',
     'Negociação & Rede' => 'Negociação & Rede',
@@ -516,6 +537,7 @@ $sectionSlugMap = [
     'Operacional' => 'operacional',
     'Rede Hospitalar' => 'rede',
     'Financeiro' => 'financeiro',
+    'Auditoria' => 'auditoria',
     'Controle de Gastos' => 'gastos',
     'Anomalias & Fraude' => 'anomalias',
     'Conformidade & Auditoria' => 'conformidade',

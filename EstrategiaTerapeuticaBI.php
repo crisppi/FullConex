@@ -21,6 +21,31 @@ function fmt_money($value): string
     return 'R$ ' . number_format((float)$value, 2, ',', '.');
 }
 
+function fmt_value($value, string $kind, int $decimals = 2): string
+{
+    if ($kind === 'money') {
+        return fmt_money($value);
+    }
+    return fmt_num($value, $decimals);
+}
+
+function compare_metric(string $label, float $sel, float $global, string $better, string $kind, int $decimals = 2): array
+{
+    $delta = $sel - $global;
+    $pct = $global != 0.0 ? ($delta / $global) * 100 : null;
+    $isBetter = $better === 'higher' ? ($sel >= $global) : ($sel <= $global);
+    return [
+        'label' => $label,
+        'sel' => $sel,
+        'global' => $global,
+        'delta' => $delta,
+        'pct' => $pct,
+        'isBetter' => $isBetter,
+        'kind' => $kind,
+        'decimals' => $decimals,
+    ];
+}
+
 $anoInput = filter_input(INPUT_GET, 'ano', FILTER_VALIDATE_INT);
 $mesInput = filter_input(INPUT_GET, 'mes', FILTER_VALIDATE_INT);
 $ano = ($anoInput !== null && $anoInput !== false) ? (int)$anoInput : null;
@@ -343,6 +368,29 @@ $globalFinanceiroUti = financeiro_stats($conn, array_merge($filtersGlobal, ['uti
 $globalCustoMedioDiaria = $globalInternacao['total_diarias'] > 0 ? ($globalFinanceiro['valor_apresentado'] / $globalInternacao['total_diarias']) : 0.0;
 $globalCustoMedioDiariaUti = $globalUti['total_diarias'] > 0 ? ($globalFinanceiroUti['valor_apresentado'] / $globalUti['total_diarias']) : 0.0;
 $globalCustoMedioConta = $globalFinanceiro['total_contas'] > 0 ? ($globalFinanceiro['valor_apresentado'] / $globalFinanceiro['total_contas']) : 0.0;
+
+$hasSelection = false;
+foreach ([
+    'hospital_id', 'tipo_internacao', 'modo_internacao', 'patologia_id', 'grupo_patologia',
+    'internado', 'uti', 'antecedente_id', 'sexo', 'faixa_etaria', 'ano', 'mes'
+] as $key) {
+    if (filter_has_var(INPUT_GET, $key)) {
+        $value = trim((string)($_GET[$key] ?? ''));
+        if ($value !== '') {
+            $hasSelection = true;
+            break;
+        }
+    }
+}
+
+$comparisons = [
+    compare_metric('Custo médio diária', $selCustoMedioDiaria, $globalCustoMedioDiaria, 'lower', 'money'),
+    compare_metric('MP', $selInternacao['mp'], $globalInternacao['mp'], 'lower', 'number'),
+    compare_metric('Custo médio diária UTI', $selCustoMedioDiariaUti, $globalCustoMedioDiariaUti, 'lower', 'money'),
+    compare_metric('Internação UTI (MP)', $selUti['mp'], $globalUti['mp'], 'lower', 'number'),
+    compare_metric('Custo médio por conta', $selCustoMedioConta, $globalCustoMedioConta, 'lower', 'money'),
+    compare_metric('Valor apresentado', $selFinanceiro['valor_apresentado'], $globalFinanceiro['valor_apresentado'], 'lower', 'money'),
+];
 ?>
 
 <link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260110">
@@ -366,6 +414,50 @@ $globalCustoMedioConta = $globalFinanceiro['total_contas'] > 0 ? ($globalFinance
 }
 .bi-nav-icon svg circle {
     fill: currentColor;
+}
+.bi-compare-panel {
+    margin-top: 16px;
+}
+.bi-compare-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 12px;
+}
+.bi-compare-card {
+    background: rgba(10, 32, 52, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 14px;
+    padding: 12px 14px;
+}
+.bi-compare-card.is-better {
+    border-color: rgba(90, 224, 138, 0.85);
+    box-shadow: 0 0 0 1px rgba(90, 224, 138, 0.25);
+}
+.bi-compare-card.is-worse {
+    border-color: rgba(255, 120, 120, 0.85);
+    box-shadow: 0 0 0 1px rgba(255, 120, 120, 0.25);
+}
+.bi-compare-title {
+    font-weight: 600;
+    color: #eaf6ff;
+    margin-bottom: 8px;
+}
+.bi-compare-values {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: rgba(234, 246, 255, 0.85);
+}
+.bi-compare-delta {
+    margin-top: 8px;
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+.bi-compare-delta.is-better {
+    color: #5ae08a;
+}
+.bi-compare-delta.is-worse {
+    color: #ff7a7a;
 }
 </style>
 
@@ -542,6 +634,31 @@ $globalCustoMedioConta = $globalFinanceiro['total_contas'] > 0 ? ($globalFinance
             </div>
         </div>
     </div>
+
+    <?php if ($hasSelection): ?>
+        <div class="bi-panel bi-compare-panel">
+            <h3 style="margin-bottom:12px;">Comparativo Selecionado vs Global</h3>
+            <div class="bi-compare-grid">
+                <?php foreach ($comparisons as $comp): ?>
+                    <?php
+                    $deltaLabel = ($comp['delta'] >= 0 ? '+' : '') . fmt_value($comp['delta'], $comp['kind'], $comp['decimals']);
+                    $pctLabel = $comp['pct'] !== null ? ' (' . ($comp['pct'] >= 0 ? '+' : '') . fmt_num($comp['pct'], 1) . '%)' : '';
+                    $statusClass = $comp['isBetter'] ? 'is-better' : 'is-worse';
+                    ?>
+                    <div class="bi-compare-card <?= $statusClass ?>">
+                        <div class="bi-compare-title"><?= e($comp['label']) ?></div>
+                        <div class="bi-compare-values">
+                            <span>Selecionado: <?= e(fmt_value($comp['sel'], $comp['kind'], $comp['decimals'])) ?></span>
+                            <span>Global: <?= e(fmt_value($comp['global'], $comp['kind'], $comp['decimals'])) ?></span>
+                        </div>
+                        <div class="bi-compare-delta <?= $statusClass ?>">
+                            <?= e($deltaLabel . $pctLabel) ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    <?php endif; ?>
 </div>
 
 <?php require_once("templates/footer.php"); ?>

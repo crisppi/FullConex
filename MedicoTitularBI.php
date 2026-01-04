@@ -104,7 +104,7 @@ $sqlMedicos = "
     WHERE {$where} AND i.titular_int IS NOT NULL AND i.titular_int <> ''
     GROUP BY i.titular_int
     ORDER BY valor_apresentado DESC
-    LIMIT 8
+    LIMIT 10
 ";
 $stmtMed = $conn->prepare($sqlMedicos);
 foreach ($params as $key => $value) {
@@ -113,9 +113,34 @@ foreach ($params as $key => $value) {
 $stmtMed->execute();
 $rowsMedicos = $stmtMed->fetchAll(PDO::FETCH_ASSOC);
 
-$medicoLabels = array_map(fn($r) => $r['medico'] ?: 'Médico', $rowsMedicos);
-$medicoValores = array_map(fn($r) => (float)($r['valor_apresentado'] ?? 0), $rowsMedicos);
-$medicoMp = array_map(fn($r) => (float)($r['mp'] ?? 0), $rowsMedicos);
+
+
+// Filtra médicos válidos (sem branco ou nulo) e reindexa
+$medicosFiltrados = [];
+foreach ($rowsMedicos as $r) {
+    $nome = isset($r['medico']) ? trim($r['medico']) : '';
+    if ($nome !== '') {
+        $medicosFiltrados[] = $r;
+    }
+}
+// Ordena por valor apresentado desc (grafico valor) e por MP desc (grafico MP)
+$medicosValor = $medicosFiltrados;
+usort($medicosValor, function ($a, $b) {
+    return ($b['valor_apresentado'] ?? 0) <=> ($a['valor_apresentado'] ?? 0);
+});
+$medicosMp = $medicosFiltrados;
+usort($medicosMp, function ($a, $b) {
+    return ($b['mp'] ?? 0) <=> ($a['mp'] ?? 0);
+});
+
+// Limita a 10 médicos em cada gráfico
+$medicosValor = array_slice($medicosValor, 0, 10);
+$medicosMp = array_slice($medicosMp, 0, 10);
+
+$medicoLabelsValor = array_map(fn($r) => trim($r['medico']), $medicosValor);
+$medicoValores = array_map(fn($r) => (float)($r['valor_apresentado'] ?? 0), $medicosValor);
+$medicoLabelsMp = array_map(fn($r) => trim($r['medico']), $medicosMp);
+$medicoMp = array_map(fn($r) => (float)($r['mp'] ?? 0), $medicosMp);
 
 $sqlTable = "
     SELECT
@@ -150,7 +175,9 @@ $tableRows = $stmtTable->fetchAll(PDO::FETCH_ASSOC);
 <link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260110">
 <script src="diversos/chartjs/Chart.min.js"></script>
 <script src="<?= $BASE_URL ?>js/bi.js?v=20260110"></script>
-<script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));</script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));
+</script>
 
 <div class="bi-wrapper bi-theme">
     <div class="bi-header">
@@ -277,65 +304,150 @@ $tableRows = $stmtTable->fetchAll(PDO::FETCH_ASSOC);
 </div>
 
 <script>
-const medicoLabels = <?= json_encode($medicoLabels, JSON_UNESCAPED_UNICODE) ?>;
-const medicoValores = <?= json_encode($medicoValores, JSON_NUMERIC_CHECK) ?>;
-const medicoMp = <?= json_encode($medicoMp, JSON_NUMERIC_CHECK) ?>;
+    const medicoLabelsValor = <?= json_encode($medicoLabelsValor, JSON_UNESCAPED_UNICODE) ?>;
+    const medicoLabelsMp = <?= json_encode($medicoLabelsMp, JSON_UNESCAPED_UNICODE) ?>;
+    const medicoValores = <?= json_encode($medicoValores, JSON_NUMERIC_CHECK) ?>;
+    const medicoMp = <?= json_encode($medicoMp, JSON_NUMERIC_CHECK) ?>;
 
-function barOptionsMoney() {
-  return {
-    legend: { display: false },
-    plugins: { legend: { display: false } },
-    scales: {
-      x: { ticks: { color: '#e8f1ff' }, grid: { display: false } },
-      y: {
-        ticks: {
-          color: '#e8f1ff',
-          callback: (value) => window.biMoneyTick ? window.biMoneyTick(value) : value
-        },
-        grid: { color: 'rgba(255,255,255,0.1)' },
-        title: { display: true, text: 'Valor (R$)', color: '#e8f1ff' }
-      },
-      xAxes: [{ ticks: { fontColor: '#e8f1ff' }, gridLines: { display: false } }],
-      yAxes: [{
-        ticks: {
-          fontColor: '#e8f1ff',
-          callback: (value) => window.biMoneyTick ? window.biMoneyTick(value) : value
-        },
-        gridLines: { color: 'rgba(255,255,255,0.1)' },
-        scaleLabel: { display: true, labelString: 'Valor (R$)', fontColor: '#e8f1ff' }
-      }]
+    const tickColor = '#c7d4e2';
+
+    function barOptionsMoney() {
+        return {
+            legend: {
+                display: false
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        color: tickColor
+                    },
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    ticks: {
+                        color: tickColor,
+                        callback: (value) => window.biMoneyTick ? window.biMoneyTick(value) : value
+                    },
+                    grid: {
+                        color: 'rgba(255,255,255,0.1)'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Valor (R$)',
+                        color: tickColor
+                    }
+                },
+                xAxes: [{
+                    ticks: {
+                        fontColor: tickColor
+                    },
+                    gridLines: {
+                        display: false
+                    }
+                }],
+                yAxes: [{
+                    ticks: {
+                        fontColor: tickColor,
+                        callback: (value) => window.biMoneyTick ? window.biMoneyTick(value) : value
+                    },
+                    gridLines: {
+                        color: 'rgba(255,255,255,0.1)'
+                    },
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Valor (R$)',
+                        fontColor: tickColor
+                    }
+                }]
+            }
+        };
     }
-  };
-}
 
-new Chart(document.getElementById('chartValorMedico'), {
-  type: 'bar',
-  data: { labels: medicoLabels, datasets: [{ data: medicoValores, backgroundColor: 'rgba(126,150,255,0.82)', borderRadius: 10 }] },
-  options: barOptionsMoney()
-});
+    new Chart(document.getElementById('chartValorMedico'), {
+        type: 'bar',
+        data: {
+            labels: medicoLabelsValor,
+            datasets: [{
+                data: medicoValores,
+                backgroundColor: 'rgba(126,150,255,0.82)',
+                borderRadius: 10
+            }]
+        },
+        options: barOptionsMoney()
+    });
 
-new Chart(document.getElementById('chartMpMedico'), {
-  type: 'bar',
-  data: { labels: medicoLabels, datasets: [{ data: medicoMp, backgroundColor: 'rgba(126,150,255,0.82)', borderRadius: 10 }] },
-  options: {
-    legend: { display: false },
-    plugins: { legend: { display: false } },
-    scales: {
-      x: { ticks: { color: '#e8f1ff' }, grid: { display: false } },
-      y: {
-        ticks: { color: '#e8f1ff' },
-        grid: { color: 'rgba(255,255,255,0.1)' },
-        title: { display: true, text: 'MP (dias)', color: '#e8f1ff' }
-      },
-      xAxes: [{ ticks: { fontColor: '#e8f1ff' }, gridLines: { display: false } }],
-      yAxes: [{
-        ticks: { fontColor: '#e8f1ff' },
-        gridLines: { color: 'rgba(255,255,255,0.1)' },
-        scaleLabel: { display: true, labelString: 'MP (dias)', fontColor: '#e8f1ff' }
-      }]
-    }
-  }
-});
+    new Chart(document.getElementById('chartMpMedico'), {
+        type: 'bar',
+        data: {
+            labels: medicoLabelsMp,
+            datasets: [{
+                data: medicoMp,
+                backgroundColor: 'rgba(126,150,255,0.82)',
+                borderRadius: 10
+            }]
+        },
+        options: {
+            legend: {
+                display: false
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        color: tickColor
+                    },
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    ticks: {
+                        color: tickColor
+                    },
+                    grid: {
+                        color: 'rgba(255,255,255,0.1)'
+                    },
+                    title: {
+                        display: true,
+                        text: 'MP (dias)',
+                        color: tickColor
+                    }
+                },
+                xAxes: [{
+                    ticks: {
+                        fontColor: tickColor
+                    },
+                    gridLines: {
+                        display: false
+                    }
+                }],
+                yAxes: [{
+                    ticks: {
+                        fontColor: tickColor
+                    },
+                    gridLines: {
+                        color: 'rgba(255,255,255,0.1)'
+                    },
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'MP (dias)',
+                        fontColor: tickColor
+                    }
+                }]
+            }
+        }
+    });
 </script>
 
 <?php require_once("templates/footer.php"); ?>
