@@ -559,6 +559,21 @@ button.bi-filter-pill.active {
   justify-items: center;
 }
 
+.bi-kpis.kpi-tight {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  justify-items: stretch;
+  gap: 10px;
+  margin: 8px 0 14px;
+}
+
+.bi-kpis.kpi-tight .bi-kpi {
+  max-width: none;
+}
+
+.bi-kpis.kpi-slim {
+  margin: 4px 0 10px;
+}
+
 .bi-kpis.kpi-grid-4 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   justify-items: stretch;

@@ -150,7 +150,9 @@ $comorbValues = array_map(fn($r) => (int)$r['total'], $comorbRows);
 <link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260110">
 <script src="diversos/chartjs/Chart.min.js"></script>
 <script src="<?= $BASE_URL ?>js/bi.js?v=20260110"></script>
-<script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));</script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));
+</script>
 
 <div class="bi-wrapper bi-theme">
     <div class="bi-header">
@@ -209,82 +211,82 @@ $comorbValues = array_map(fn($r) => (int)$r['total'], $comorbRows);
 </div>
 
 <script>
-const permLabels = <?= json_encode($permLabels) ?>;
-const permVals = <?= json_encode($permVals) ?>;
-const readmHospLabels = <?= json_encode($readmHospLabels) ?>;
-const readmHospVals = <?= json_encode($readmHospRates) ?>;
-const readmSegLabels = <?= json_encode($readmSegLabels) ?>;
-const readmSegVals = <?= json_encode($readmSegRates) ?>;
-const comorbLabels = <?= json_encode($comorbLabels) ?>;
-const comorbVals = <?= json_encode($comorbValues) ?>;
+    const permLabels = <?= json_encode($permLabels) ?>;
+    const permVals = <?= json_encode($permVals) ?>;
+    const readmHospLabels = <?= json_encode($readmHospLabels) ?>;
+    const readmHospVals = <?= json_encode($readmHospRates) ?>;
+    const readmSegLabels = <?= json_encode($readmSegLabels) ?>;
+    const readmSegVals = <?= json_encode($readmSegRates) ?>;
+    const comorbLabels = <?= json_encode($comorbLabels) ?>;
+    const comorbVals = <?= json_encode($comorbValues) ?>;
 
-function barChart(ctx, labels, data, color) {
-    return new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels,
-            datasets: [{
-                label: 'Dias',
-                data,
-                backgroundColor: color
-            }]
-        },
-        options: {
-            legend: window.biLegendWhite ? window.biLegendWhite : undefined,
-            scales: window.biChartScales ? window.biChartScales() : undefined
-        }
-    });
-}
+    function barChart(ctx, labels, data, color) {
+        return new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Dias',
+                    data,
+                    backgroundColor: color
+                }]
+            },
+            options: {
+                legend: window.biLegendWhite ? window.biLegendWhite : undefined,
+                scales: window.biChartScales ? window.biChartScales() : undefined
+            }
+        });
+    }
 
-function barPercent(ctx, labels, data, color) {
-    return new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels,
-            datasets: [{
-                label: '% Readmissão',
-                data,
-                backgroundColor: color
-            }]
-        },
-        options: {
-            legend: window.biLegendWhite ? window.biLegendWhite : undefined,
-            scales: window.biChartScales ? window.biChartScales() : undefined
-        }
-    });
-}
+    function barPercent(ctx, labels, data, color) {
+        return new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    label: '% Readmissão',
+                    data,
+                    backgroundColor: color
+                }]
+            },
+            options: {
+                legend: window.biLegendWhite ? window.biLegendWhite : undefined,
+                scales: window.biChartScales ? window.biChartScales() : undefined
+            }
+        });
+    }
 
-function pieChart(ctx, labels, data) {
-    return new Chart(ctx, {
-        type: 'pie',
-        data: {
-            labels,
-            datasets: [{
-                data,
-                backgroundColor: [
-                    'rgba(141, 208, 255, 0.75)',
-                    'rgba(255, 198, 108, 0.75)',
-                    'rgba(208, 113, 176, 0.75)',
-                    'rgba(111, 223, 194, 0.75)',
-                    'rgba(255, 99, 132, 0.75)',
-                    'rgba(173, 131, 255, 0.75)',
-                    'rgba(127, 196, 255, 0.75)',
-                    'rgba(255, 159, 64, 0.75)',
-                    'rgba(75, 192, 192, 0.75)',
-                    'rgba(153, 102, 255, 0.75)'
-                ]
-            }]
-        },
-        options: {
-            legend: window.biLegendWhite ? window.biLegendWhite : undefined
-        }
-    });
-}
+    function pieChart(ctx, labels, data) {
+        return new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels,
+                datasets: [{
+                    data,
+                    backgroundColor: [
+                        '#00b894',
+                        '#ffeaa7',
+                        '#6c5ce7',
+                        '#fd79a8',
+                        '#0984e3',
+                        '#fab1a0',
+                        '#2ecc71',
+                        '#e17055',
+                        '#fdcb6e',
+                        '#74b9ff'
+                    ]
+                }]
+            },
+            options: {
+                legend: window.biLegendWhite ? window.biLegendWhite : undefined
+            }
+        });
+    }
 
-barChart(document.getElementById('chartPermanencia'), permLabels, permVals, 'rgba(121, 199, 255, 0.7)');
-barPercent(document.getElementById('chartReadmHosp'), readmHospLabels, readmHospVals, 'rgba(255, 198, 108, 0.7)');
-barPercent(document.getElementById('chartReadmSeg'), readmSegLabels, readmSegVals, 'rgba(208, 113, 176, 0.7)');
-pieChart(document.getElementById('chartComorb'), comorbLabels, comorbVals);
+    barChart(document.getElementById('chartPermanencia'), permLabels, permVals, 'rgba(92, 214, 165, 0.75)');
+    barPercent(document.getElementById('chartReadmHosp'), readmHospLabels, readmHospVals, 'rgba(244, 177, 131, 0.75)');
+    barPercent(document.getElementById('chartReadmSeg'), readmSegLabels, readmSegVals, 'rgba(231, 120, 170, 0.75)');
+    pieChart(document.getElementById('chartComorb'), comorbLabels, comorbVals);
 </script>
 
 <?php require_once("templates/footer.php"); ?>

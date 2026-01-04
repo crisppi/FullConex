@@ -11,7 +11,10 @@ function e($v)
     return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 }
 
-$ano = (int)(filter_input(INPUT_GET, 'ano', FILTER_VALIDATE_INT) ?: date('Y'));
+$dateExpr = "COALESCE(NULLIF(ca.data_inicial_capeante,'0000-00-00'), NULLIF(ca.data_digit_capeante,'0000-00-00'), NULLIF(ca.data_fech_capeante,'0000-00-00'))";
+
+$anoInput = filter_input(INPUT_GET, 'ano', FILTER_VALIDATE_INT);
+$ano = ($anoInput !== null && $anoInput !== false) ? (int)$anoInput : null;
 $mes = (int)(filter_input(INPUT_GET, 'mes', FILTER_VALIDATE_INT) ?: 0);
 $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: null;
 $patologiaId = filter_input(INPUT_GET, 'patologia_id', FILTER_VALIDATE_INT) ?: null;
@@ -30,7 +33,19 @@ $grupos = $conn->query("SELECT DISTINCT grupo_patologia_int FROM tb_internacao W
 $modos = $conn->query("SELECT DISTINCT modo_internacao_int FROM tb_internacao WHERE modo_internacao_int IS NOT NULL AND modo_internacao_int <> '' ORDER BY modo_internacao_int")
     ->fetchAll(PDO::FETCH_COLUMN);
 
-$dateExpr = "COALESCE(NULLIF(ca.data_inicial_capeante,'0000-00-00'), NULLIF(ca.data_digit_capeante,'0000-00-00'), NULLIF(ca.data_fech_capeante,'0000-00-00'))";
+if ($ano === null && !filter_has_var(INPUT_GET, 'ano')) {
+    $stmtAno = $conn->query("
+        SELECT MAX(YEAR(ref_date)) AS ano
+        FROM (
+            SELECT {$dateExpr} AS ref_date
+            FROM tb_capeante ca
+            WHERE {$dateExpr} IS NOT NULL AND {$dateExpr} <> '0000-00-00'
+        ) t
+    ");
+    $anoDb = $stmtAno->fetch(PDO::FETCH_ASSOC) ?: [];
+    $ano = (int)($anoDb['ano'] ?? date('Y'));
+}
+
 $where = "ref_date IS NOT NULL AND ref_date <> '0000-00-00' AND YEAR(ref_date) = :ano";
 $params = [':ano' => $ano];
 if ($mes > 0) {
@@ -241,30 +256,28 @@ $barValues = [
         </div>
     </form>
 
-    <div class="bi-grid fixed-2">
-        <div class="bi-panel">
-            <h3>Alocação dos custos</h3>
-            <div class="bi-chart"><canvas id="chartAlloc"></canvas></div>
-        </div>
-        <div class="bi-panel">
-            <h3>Análise da glosa</h3>
-            <div class="bi-chart"><canvas id="chartGlosa"></canvas></div>
-        </div>
+    <div class="bi-panel" style="margin-top:16px;">
+        <h3>Alocação dos custos</h3>
+        <div class="bi-chart"><canvas id="chartAlloc"></canvas></div>
     </div>
 
-    <div class="bi-grid fixed-2">
-        <div class="bi-panel">
-            <h3>Análise da glosa</h3>
-            <div class="bi-chart"><canvas id="chartValores"></canvas></div>
-        </div>
-        <div class="bi-panel">
-            <div class="bi-kpis">
-                <div class="bi-kpi"><small>Valor apresentado</small><strong>R$ <?= number_format((float)($row['valor_apresentado'] ?? 0), 2, ',', '.') ?></strong></div>
-                <div class="bi-kpi"><small>Glosa med total</small><strong>R$ <?= number_format((float)($row['glosa_med'] ?? 0), 2, ',', '.') ?></strong></div>
-                <div class="bi-kpi"><small>Glosa enf total</small><strong>R$ <?= number_format((float)($row['glosa_enf'] ?? 0), 2, ',', '.') ?></strong></div>
-                <div class="bi-kpi"><small>Glosa total</small><strong>R$ <?= number_format((float)($row['glosa_total'] ?? 0), 2, ',', '.') ?></strong></div>
-                <div class="bi-kpi"><small>Valor final</small><strong>R$ <?= number_format((float)($row['valor_final'] ?? 0), 2, ',', '.') ?></strong></div>
-            </div>
+    <div class="bi-panel">
+        <h3>Análise da glosa</h3>
+        <div class="bi-chart"><canvas id="chartGlosa"></canvas></div>
+    </div>
+
+    <div class="bi-panel">
+        <h3>Valores consolidados</h3>
+        <div class="bi-chart"><canvas id="chartValores"></canvas></div>
+    </div>
+
+    <div class="bi-panel">
+        <div class="bi-kpis">
+            <div class="bi-kpi"><small>Valor apresentado</small><strong>R$ <?= number_format((float)($row['valor_apresentado'] ?? 0), 2, ',', '.') ?></strong></div>
+            <div class="bi-kpi"><small>Glosa med total</small><strong>R$ <?= number_format((float)($row['glosa_med'] ?? 0), 2, ',', '.') ?></strong></div>
+            <div class="bi-kpi"><small>Glosa enf total</small><strong>R$ <?= number_format((float)($row['glosa_enf'] ?? 0), 2, ',', '.') ?></strong></div>
+            <div class="bi-kpi"><small>Glosa total</small><strong>R$ <?= number_format((float)($row['glosa_total'] ?? 0), 2, ',', '.') ?></strong></div>
+            <div class="bi-kpi"><small>Valor final</small><strong>R$ <?= number_format((float)($row['valor_final'] ?? 0), 2, ',', '.') ?></strong></div>
         </div>
     </div>
 </div>
@@ -290,8 +303,14 @@ function doughnut(ctx, labels, data) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            legend: window.biLegendWhite || {}
-        }
+            legend: window.biLegendWhite || {},
+            plugins: {
+                labelsRenderer: {
+                    valueType: 'money'
+                }
+            }
+        },
+        plugins: [labelsRenderer()]
     });
 }
 
@@ -303,14 +322,67 @@ function bar(ctx, labels, data) {
             responsive: true,
             maintainAspectRatio: false,
             legend: { display: false },
-            scales: window.biChartScales ? window.biChartScales() : undefined
-        }
+            scales: window.biChartScales ? window.biChartScales() : undefined,
+            plugins: {
+                labelsRenderer: {
+                    valueType: 'money'
+                }
+            }
+        },
+        plugins: [labelsRenderer()]
     });
 }
 
 doughnut(document.getElementById('chartAlloc'), allocLabels, allocValues);
 doughnut(document.getElementById('chartGlosa'), glosaLabels, glosaValues);
 bar(document.getElementById('chartValores'), barLabels, barValues);
+
+function formatMoney(value) {
+    return 'R$ ' + Number(value || 0).toLocaleString('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+function formatPercent(value, total) {
+    if (!total) return '0%';
+    return ((value / total) * 100).toFixed(1).replace('.', ',') + '%';
+}
+
+function labelsRenderer() {
+    return {
+        afterDatasetsDraw: function(chart) {
+            const cfg = (chart.options.plugins && chart.options.plugins.labelsRenderer) || {};
+            const valueType = cfg.valueType || 'number';
+            const ctx = chart.chart.ctx;
+            ctx.save();
+            ctx.fillStyle = '#eaf6ff';
+            ctx.font = '11px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            chart.data.datasets.forEach((dataset, i) => {
+                const meta = chart.getDatasetMeta(i);
+                if (meta.hidden) {
+                    return;
+                }
+                const total = dataset.data.reduce((sum, v) => sum + (Number(v) || 0), 0);
+                meta.data.forEach((element, index) => {
+                    const value = Number(dataset.data[index] || 0);
+                    if (!value) return;
+
+                    const pos = element.tooltipPosition();
+                    const labelValue = valueType === 'money' ? formatMoney(value) : value.toLocaleString('pt-BR');
+                    const label = labelValue + ' (' + formatPercent(value, total) + ')';
+
+                    ctx.fillText(label, pos.x, pos.y - 10);
+                });
+            });
+            ctx.restore();
+        }
+    };
+}
+
 </script>
 
 <?php require_once("templates/footer.php"); ?>

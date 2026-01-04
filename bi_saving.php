@@ -11,7 +11,8 @@ function e($v)
     return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 }
 
-$ano = (int)(filter_input(INPUT_GET, 'ano', FILTER_VALIDATE_INT) ?: date('Y'));
+$anoInput = filter_input(INPUT_GET, 'ano', FILTER_VALIDATE_INT);
+$ano = ($anoInput !== null && $anoInput !== false) ? (int)$anoInput : null;
 $mes = (int)(filter_input(INPUT_GET, 'mes', FILTER_VALIDATE_INT) ?: 0);
 $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: null;
 $auditorId = filter_input(INPUT_GET, 'auditor_id', FILTER_VALIDATE_INT) ?: null;
@@ -20,6 +21,17 @@ $hospitais = $conn->query("SELECT id_hospital, nome_hosp FROM tb_hospital ORDER 
     ->fetchAll(PDO::FETCH_ASSOC);
 $auditores = $conn->query("SELECT id_usuario, usuario_user FROM tb_user ORDER BY usuario_user")
     ->fetchAll(PDO::FETCH_ASSOC);
+
+if ($ano === null && !filter_has_var(INPUT_GET, 'ano')) {
+    $stmtAno = $conn->query("
+        SELECT MAX(YEAR(data_inicio_neg)) AS ano
+        FROM tb_negociacao
+        WHERE data_inicio_neg IS NOT NULL
+          AND data_inicio_neg <> '0000-00-00'
+    ");
+    $anoDb = $stmtAno->fetch(PDO::FETCH_ASSOC) ?: [];
+    $ano = (int)($anoDb['ano'] ?? date('Y'));
+}
 
 $where = "YEAR(ng.data_inicio_neg) = :ano";
 $params = [':ano' => $ano];
@@ -167,30 +179,28 @@ $countTipo = array_map(fn($r) => (int)$r['total_registros'], $tipoRows);
         </div>
     </div>
 
-    <div class="bi-grid fixed-2">
-        <div class="bi-panel">
-            <h3>Valor de saving por auditor</h3>
-            <div class="bi-chart">
-                <canvas id="chartSavingAuditor"></canvas>
-            </div>
+    <div class="bi-panel" style="margin-top:16px;">
+        <h3>Valor de saving por auditor</h3>
+        <div class="bi-chart">
+            <canvas id="chartSavingAuditor"></canvas>
         </div>
-        <div class="bi-panel">
-            <h3>Qtde de saving por auditor</h3>
-            <div class="bi-chart">
-                <canvas id="chartQtdeAuditor"></canvas>
-            </div>
+    </div>
+    <div class="bi-panel">
+        <h3>Qtde de saving por auditor</h3>
+        <div class="bi-chart">
+            <canvas id="chartQtdeAuditor"></canvas>
         </div>
-        <div class="bi-panel">
-            <h3>Tipo de saving por auditor - valores</h3>
-            <div class="bi-chart">
-                <canvas id="chartTipoSavingValor"></canvas>
-            </div>
+    </div>
+    <div class="bi-panel">
+        <h3>Tipo de saving por auditor - valores</h3>
+        <div class="bi-chart">
+            <canvas id="chartTipoSavingValor"></canvas>
         </div>
-        <div class="bi-panel">
-            <h3>Tipo de saving por auditor - quantidade</h3>
-            <div class="bi-chart">
-                <canvas id="chartTipoSavingQtd"></canvas>
-            </div>
+    </div>
+    <div class="bi-panel">
+        <h3>Tipo de saving por auditor - quantidade</h3>
+        <div class="bi-chart">
+            <canvas id="chartTipoSavingQtd"></canvas>
         </div>
     </div>
 </div>

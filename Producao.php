@@ -12,8 +12,25 @@ function e($v)
 }
 
 $hoje = date('Y-m-d');
-$dataIni = filter_input(INPUT_GET, 'data_ini') ?: date('Y-m-d', strtotime('-120 days'));
-$dataFim = filter_input(INPUT_GET, 'data_fim') ?: $hoje;
+$dataIniInput = filter_input(INPUT_GET, 'data_ini');
+$dataFimInput = filter_input(INPUT_GET, 'data_fim');
+$rangeMesesInput = filter_input(INPUT_GET, 'range_meses', FILTER_VALIDATE_INT);
+$usarRange = (filter_input(INPUT_GET, 'usar_range') === '1');
+$rangeMeses = ($rangeMesesInput !== null && $rangeMesesInput !== false && $rangeMesesInput > 0) ? (int)$rangeMesesInput : 12;
+
+if (!$usarRange && ($dataIniInput || $dataFimInput)) {
+    $dataIni = $dataIniInput ?: date('Y-01-01');
+    $dataFim = $dataFimInput ?: date('Y-12-31');
+} else {
+    $currentStart = new DateTime('first day of this month');
+    $currentEnd = new DateTime('last day of this month');
+    $before = (int)floor(($rangeMeses - 1) / 2);
+    $after = ($rangeMeses - 1) - $before;
+    $startDefault = (clone $currentStart)->modify("-{$before} months");
+    $endDefault = (clone $currentEnd)->modify("+{$after} months");
+    $dataIni = $startDefault->format('Y-m-d');
+    $dataFim = $endDefault->format('Y-m-d');
+}
 $internado = trim((string)(filter_input(INPUT_GET, 'internado') ?? ''));
 $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: null;
 $tipoInternação = trim((string)(filter_input(INPUT_GET, 'tipo_internacao') ?? ''));
@@ -57,7 +74,34 @@ if ($uti === 'n') {
     $where .= " AND ut.fk_internacao_uti IS NULL";
 }
 
-$sqlBase = "
+$start = new DateTime($dataIni);
+$start->modify('first day of this month');
+$end = new DateTime($dataFim);
+$end->modify('first day of this month');
+$monthKeys = [];
+$monthLabels = [];
+$monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+$cursor = clone $start;
+while ($cursor <= $end) {
+    $ym = $cursor->format('Y-m');
+    $monthKeys[] = $ym;
+    $monthLabels[] = $monthNames[(int)$cursor->format('n') - 1] . '/' . $cursor->format('Y');
+    $cursor->modify('+1 month');
+}
+
+$series = [
+    'internacoes' => array_fill_keys($monthKeys, 0.0),
+    'diarias' => array_fill_keys($monthKeys, 0.0),
+    'mp' => array_fill_keys($monthKeys, 0.0),
+    'valor_final' => array_fill_keys($monthKeys, 0.0),
+];
+
+$sqlMonthly = "
+    SELECT
+        DATE_FORMAT(i.data_intern_int, '%Y-%m') AS ym,
+        COUNT(DISTINCT i.id_internacao) AS total_internacoes,
+        SUM(GREATEST(1, DATEDIFF(COALESCE(al.data_alta_alt, CURDATE()), i.data_intern_int) + 1)) AS total_diarias,
+        SUM(COALESCE(ca.valor_final_capeante,0)) AS valor_final
     FROM tb_internacao i
     {$utiJoin}
     LEFT JOIN (
@@ -65,46 +109,29 @@ $sqlBase = "
         FROM tb_alta
         GROUP BY fk_id_int_alt
     ) al ON al.fk_id_int_alt = i.id_internacao
-    LEFT JOIN tb_patologia p ON p.id_patologia = i.fk_patologia_int
     LEFT JOIN tb_capeante ca ON ca.fk_int_capeante = i.id_internacao
     WHERE {$where}
+    GROUP BY ym
+    ORDER BY ym
 ";
-
-function distQuery(PDO $conn, string $labelExpr, string $sqlBase, array $params, string $metric, int $limit = 12): array
-{
-    $sql = "
-        SELECT {$labelExpr} AS label, {$metric} AS total
-        {$sqlBase}
-        GROUP BY label
-        ORDER BY total DESC
-        LIMIT {$limit}
-    ";
-    $stmt = $conn->prepare($sql);
-    foreach ($params as $key => $value) {
-        $stmt->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+$stmt = $conn->prepare($sqlMonthly);
+foreach ($params as $key => $value) {
+    $stmt->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+}
+$stmt->execute();
+$rowsMonthly = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+foreach ($rowsMonthly as $row) {
+    $ym = $row['ym'] ?? '';
+    if (!isset($series['internacoes'][$ym])) {
+        continue;
     }
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    $totalIntern = (int)($row['total_internacoes'] ?? 0);
+    $totalDiarias = (int)($row['total_diarias'] ?? 0);
+    $series['internacoes'][$ym] = (float)$totalIntern;
+    $series['diarias'][$ym] = (float)$totalDiarias;
+    $series['mp'][$ym] = $totalIntern > 0 ? round($totalDiarias / $totalIntern, 1) : 0.0;
+    $series['valor_final'][$ym] = (float)($row['valor_final'] ?? 0);
 }
-
-$labelGrupo = "COALESCE(NULLIF(i.grupo_patologia_int,''), p.patologia_pat, 'Sem informacoes')";
-
-$rowsIntern = distQuery($conn, $labelGrupo, $sqlBase, $params, "COUNT(DISTINCT i.id_internacao)", 10);
-$rowsDiárias = distQuery($conn, $labelGrupo, $sqlBase, $params, "SUM(GREATEST(1, DATEDIFF(COALESCE(al.data_alta_alt, CURDATE()), i.data_intern_int) + 1))", 10);
-$rowsMp = distQuery($conn, $labelGrupo, $sqlBase, $params, "ROUND(AVG(GREATEST(1, DATEDIFF(COALESCE(al.data_alta_alt, CURDATE()), i.data_intern_int) + 1)), 1)", 10);
-$rowsCusto = distQuery($conn, $labelGrupo, $sqlBase, $params, "SUM(COALESCE(ca.valor_final_capeante,0))", 10);
-
-function labelsAndValues(array $rows): array
-{
-    $labels = array_map(fn($r) => $r['label'] ?? 'Sem informacoes', $rows);
-    $values = array_map(fn($r) => (float)($r['total'] ?? 0), $rows);
-    return [$labels, $values];
-}
-
-[$labelsIntern, $valuesIntern] = labelsAndValues($rowsIntern);
-[$labelsDiárias, $valuesDiárias] = labelsAndValues($rowsDiárias);
-[$labelsMp, $valuesMp] = labelsAndValues($rowsMp);
-[$labelsCusto, $valuesCusto] = labelsAndValues($rowsCusto);
 ?>
 
 <link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260110">
@@ -124,6 +151,7 @@ function labelsAndValues(array $rows): array
     </div>
 
     <form class="bi-panel bi-filters" method="get">
+        <input type="hidden" name="usar_range" id="usar_range" value="<?= $usarRange ? '1' : '0' ?>">
         <div class="bi-filter">
             <label>Internado</label>
             <select name="internado">
@@ -175,71 +203,142 @@ function labelsAndValues(array $rows): array
         </div>
         <div class="bi-filter">
             <label>Data Internação</label>
-            <input type="date" name="data_ini" value="<?= e($dataIni) ?>">
+            <input type="date" name="data_ini" id="data_ini" value="<?= e($dataIni) ?>">
         </div>
         <div class="bi-filter">
             <label>Data Final</label>
-            <input type="date" name="data_fim" value="<?= e($dataFim) ?>">
+            <input type="date" name="data_fim" id="data_fim" value="<?= e($dataFim) ?>">
+        </div>
+        <div class="bi-filter">
+            <label>Intervalo (meses)</label>
+            <select name="range_meses" id="range_meses">
+                <?php foreach ([3, 6, 12, 18, 24] as $opt): ?>
+                    <option value="<?= $opt ?>" <?= $rangeMeses === $opt ? 'selected' : '' ?>><?= $opt ?></option>
+                <?php endforeach; ?>
+            </select>
         </div>
         <div class="bi-actions">
             <button class="bi-btn" type="submit">Aplicar</button>
         </div>
     </form>
 
-    <div class="bi-grid fixed-2" style="margin-top:16px;">
-        <div class="bi-panel">
-            <h3>Internações</h3>
-            <div class="bi-chart"><canvas id="chartIntern"></canvas></div>
-        </div>
-        <div class="bi-panel">
-            <h3>Total de diárias</h3>
-            <div class="bi-chart"><canvas id="chartDiárias"></canvas></div>
-        </div>
+    <div class="bi-panel" style="margin-top:16px;">
+        <h3>Internações</h3>
+        <div class="bi-chart"><canvas id="chartIntern"></canvas></div>
     </div>
-
-    <div class="bi-grid fixed-2" style="margin-top:16px;">
-        <div class="bi-panel">
-            <h3>MP</h3>
-            <div class="bi-chart"><canvas id="chartMp"></canvas></div>
-        </div>
-        <div class="bi-panel">
-            <h3>Valor final</h3>
-            <div class="bi-chart"><canvas id="chartCusto"></canvas></div>
-        </div>
+    <div class="bi-panel">
+        <h3>Total de diárias</h3>
+        <div class="bi-chart"><canvas id="chartDiárias"></canvas></div>
+    </div>
+    <div class="bi-panel">
+        <h3>MP</h3>
+        <div class="bi-chart"><canvas id="chartMp"></canvas></div>
+    </div>
+    <div class="bi-panel">
+        <h3>Valor final</h3>
+        <div class="bi-chart"><canvas id="chartCusto"></canvas></div>
     </div>
 </div>
 
 <script>
-const labelsIntern = <?= json_encode($labelsIntern) ?>;
-const valuesIntern = <?= json_encode($valuesIntern) ?>;
-const labelsDiárias = <?= json_encode($labelsDiárias) ?>;
-const valuesDiárias = <?= json_encode($valuesDiárias) ?>;
-const labelsMp = <?= json_encode($labelsMp) ?>;
-const valuesMp = <?= json_encode($valuesMp) ?>;
-const labelsCusto = <?= json_encode($labelsCusto) ?>;
-const valuesCusto = <?= json_encode($valuesCusto) ?>;
+document.addEventListener('DOMContentLoaded', () => {
+    const rangeSelect = document.getElementById('range_meses');
+    const usarRange = document.getElementById('usar_range');
+    const dataIni = document.getElementById('data_ini');
+    const dataFim = document.getElementById('data_fim');
 
-function barChart(ctx, labels, data, color, yTickCallback) {
-    const scales = window.biChartScales ? window.biChartScales() : undefined;
-    if (scales && yTickCallback && scales.yAxes && scales.yAxes[0] && scales.yAxes[0].ticks) {
-        scales.yAxes[0].ticks.callback = yTickCallback;
+    if (rangeSelect && usarRange) {
+        rangeSelect.addEventListener('change', () => {
+            usarRange.value = '1';
+            if (rangeSelect.form) {
+                rangeSelect.form.submit();
+            }
+        });
+    }
+    if (dataIni && dataFim && usarRange) {
+        [dataIni, dataFim].forEach((el) => {
+            el.addEventListener('change', () => {
+                usarRange.value = '0';
+            });
+        });
+    }
+});
+
+const labels = <?= json_encode($monthLabels) ?>;
+const series = <?= json_encode([
+    'internacoes' => array_values($series['internacoes']),
+    'diarias' => array_values($series['diarias']),
+    'mp' => array_values($series['mp']),
+    'valor_final' => array_values($series['valor_final']),
+]) ?>;
+
+function lineChart(ctx, key, yLabel, color, yTickCallback) {
+    const scales = window.biChartScales ? window.biChartScales() : {};
+    if (!scales.xAxes) {
+        scales.xAxes = [{ ticks: { fontColor: '#e8f1ff' }, gridLines: { display: false } }];
+    }
+    if (!scales.yAxes) {
+        scales.yAxes = [{
+            ticks: { fontColor: '#e8f1ff' },
+            gridLines: { color: 'rgba(255,255,255,0.1)' }
+        }];
+    }
+    if (scales.yAxes[0]) {
+        scales.yAxes[0].ticks = scales.yAxes[0].ticks || {};
+        scales.yAxes[0].ticks.fontColor = '#e8f1ff';
+        if (yTickCallback) {
+            scales.yAxes[0].ticks.callback = yTickCallback;
+        }
+        if (yLabel) {
+            scales.yAxes[0].scaleLabel = {
+                display: true,
+                labelString: yLabel,
+                fontColor: '#e8f1ff'
+            };
+        }
+    }
+    scales.x = scales.x || { ticks: { color: '#e8f1ff' }, grid: { display: false } };
+    scales.y = scales.y || { ticks: { color: '#e8f1ff' }, grid: { color: 'rgba(255,255,255,0.1)' } };
+    if (scales.y.ticks) {
+        scales.y.ticks.color = '#e8f1ff';
+        if (yTickCallback) {
+            scales.y.ticks.callback = yTickCallback;
+        }
+    }
+    if (yLabel) {
+        scales.y.title = { display: true, text: yLabel, color: '#e8f1ff' };
     }
     return new Chart(ctx, {
-        type: 'bar',
-        data: { labels, datasets: [{ data, backgroundColor: color }] },
+        type: 'line',
+        data: {
+            labels,
+            datasets: [{
+                label: yLabel,
+                data: series[key],
+                borderColor: color,
+                backgroundColor: color.replace('1)', '0.18)'),
+                fill: true,
+                borderWidth: 3,
+                tension: 0.45,
+                cubicInterpolationMode: 'monotone',
+                pointRadius: 3,
+                pointHoverRadius: 4
+            }]
+        },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             legend: { display: false },
+            plugins: { legend: { display: false } },
             scales
         }
     });
 }
 
-barChart(document.getElementById('chartIntern'), labelsIntern, valuesIntern, 'rgba(121, 199, 255, 0.7)');
-barChart(document.getElementById('chartDiárias'), labelsDiárias, valuesDiárias, 'rgba(255, 198, 108, 0.7)');
-barChart(document.getElementById('chartMp'), labelsMp, valuesMp, 'rgba(111, 223, 194, 0.7)');
-barChart(document.getElementById('chartCusto'), labelsCusto, valuesCusto, 'rgba(141, 208, 255, 0.7)', window.biMoneyTick);
+lineChart(document.getElementById('chartIntern'), 'internacoes', 'Internações', 'rgba(121, 199, 255, 1)');
+lineChart(document.getElementById('chartDiárias'), 'diarias', 'Diárias', 'rgba(255, 198, 108, 1)');
+lineChart(document.getElementById('chartMp'), 'mp', 'MP', 'rgba(111, 223, 194, 1)');
+lineChart(document.getElementById('chartCusto'), 'valor_final', 'Valor final (R$)', 'rgba(141, 208, 255, 1)', window.biMoneyTick);
 </script>
 
 <?php require_once("templates/footer.php"); ?>

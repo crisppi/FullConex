@@ -153,7 +153,7 @@ $values = array_map(fn($r) => round((float)($r['valor_final'] ?? 0), 2), $topRow
         <div class="bi-actions"></div>
     </form>
 
-    <div class="bi-kpis kpi-compact">
+    <div class="bi-kpis kpi-compact kpi-tight kpi-slim">
         <div class="bi-kpi kpi-indigo kpi-compact">
             <small>Custo final</small>
             <strong>R$ <?= number_format($totalFinal, 2, ',', '.') ?></strong>

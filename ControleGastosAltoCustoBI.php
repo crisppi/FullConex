@@ -148,7 +148,7 @@ $topList = array_slice($rows, 0, 15);
         <div class="bi-actions"></div>
     </form>
 
-    <div class="bi-kpis kpi-compact">
+    <div class="bi-kpis kpi-compact kpi-tight kpi-slim">
         <div class="bi-kpi kpi-indigo kpi-compact">
             <small>Total pacientes</small>
             <strong><?= number_format($totalPacientes, 0, ',', '.') ?></strong>

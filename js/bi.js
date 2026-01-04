@@ -23,7 +23,7 @@ window.biChartScales = function () {
       gridLines: { color: 'rgba(255,255,255,0.12)' }
     }],
     yAxes: [{
-      ticks: { fontColor: '#eaf6ff', display: true, padding: 6 },
+      ticks: { fontColor: '#eaf6ff', display: true, padding: 6, beginAtZero: true },
       gridLines: { color: 'rgba(255,255,255,0.12)' }
     }]
   };

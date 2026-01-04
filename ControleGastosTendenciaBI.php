@@ -155,7 +155,7 @@ $totalApresentado = array_sum($series['valor_apresentado']);
         <div class="bi-actions"></div>
     </form>
 
-    <div class="bi-kpis kpi-compact">
+    <div class="bi-kpis kpi-compact kpi-tight kpi-slim">
         <div class="bi-kpi kpi-indigo kpi-compact">
             <small>Apresentado</small>
             <strong>R$ <?= number_format($totalApresentado, 2, ',', '.') ?></strong>

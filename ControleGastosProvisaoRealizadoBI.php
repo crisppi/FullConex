@@ -132,7 +132,7 @@ $desvio = $totalApresentado > 0 ? (($totalApresentado - $totalFinal) / $totalApr
         <div class="bi-actions"></div>
     </form>
 
-    <div class="bi-kpis kpi-compact">
+    <div class="bi-kpis kpi-compact kpi-tight kpi-slim">
         <div class="bi-kpi kpi-indigo kpi-compact">
             <small>Provisão (apresentado)</small>
             <strong>R$ <?= number_format($totalApresentado, 2, ',', '.') ?></strong>

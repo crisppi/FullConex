@@ -187,7 +187,7 @@ $media = $totalCasos > 0 ? $totalFinal / $totalCasos : 0;
         <div class="bi-actions"></div>
     </form>
 
-    <div class="bi-kpis kpi-compact">
+    <div class="bi-kpis kpi-compact kpi-tight kpi-slim">
         <div class="bi-kpi kpi-indigo kpi-compact">
             <small>Custo final</small>
             <strong>R$ <?= number_format($totalFinal, 2, ',', '.') ?></strong>
