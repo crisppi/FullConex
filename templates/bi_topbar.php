@@ -306,13 +306,7 @@ if (!in_array($currentPage, $flatPages, true) && !$matchedByHref) {
 
 .bi-chipbar::after {
     content: "";
-    position: absolute;
-    left: 12px;
-    right: 12px;
-    bottom: 6px;
-    height: 4px;
-    background: rgba(8, 22, 38, 0.25);
-    border-radius: 999px;
+    display: none;
 }
 
 .bi-chip {
