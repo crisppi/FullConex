@@ -886,6 +886,39 @@ table.bi-table::after,
   margin-bottom: 10px;
 }
 
+.kpi-obitos {
+  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.kpi-obitos .bi-kpi {
+  border-radius: 14px;
+  padding: 12px 16px;
+  color: #f5f8ff;
+  border: none;
+}
+
+.kpi-obitos .bi-kpi small {
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.1em;
+}
+
+.kpi-obito {
+  background: linear-gradient(135deg, #5b6dff, #3537b6);
+}
+
+.kpi-obitos {
+  background: linear-gradient(135deg, #d06b86, #923451);
+}
+
+.kpi-altas {
+  background: linear-gradient(135deg, #d3893a, #8f4f16);
+}
+
+.kpi-top {
+  background: linear-gradient(135deg, #2a8e86, #14615b);
+}
+
 @media (max-width: 900px) {
   .bi-obitos-actions {
     flex-direction: column;

@@ -15,6 +15,15 @@ $defaultFoto = $BASE_URL . 'img/user-default.png';
 $sessionNivel = isset($_SESSION['nivel']) ? (int) $_SESSION['nivel'] : 0;
 $sessionUsuario = $_SESSION['usuario_user'] ?? '';
 $sessionIdUsuario = $_SESSION['id_usuario'] ?? null;
+$normAccess = function ($txt) {
+    $txt = mb_strtolower(trim((string)$txt), 'UTF-8');
+    $c = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $txt);
+    $txt = $c !== false ? $c : $txt;
+    return preg_replace('/[^a-z]/', '', $txt);
+};
+$isDiretoria = in_array($normAccess($_SESSION['cargo'] ?? ''), ['diretoria', 'diretor', 'administrador', 'admin', 'board'], true)
+    || in_array($normAccess($_SESSION['nivel'] ?? ''), ['diretoria', 'diretor', 'administrador', 'admin', 'board'], true)
+    || ($sessionNivel === -1);
 
 $chatUnreadCount = 0;
 $chatAssistantLink = $BASE_URL . 'show_chat.php';
@@ -252,12 +261,18 @@ if (!empty($sessionIdUsuario)) {
                                 <li><a class="dropdown-item" href="<?= $BASE_URL ?>manual.html"><i class="bi bi-person"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
                                         Manual</a></li>
-                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>solicitacao_customizacao_pdf.php"
-                                        target="_blank">
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>SolicitacaoCustomizacao.php">
                                         <i class="bi bi-file-earmark-text"
                                             style="font-size: 1rem;margin-right:5px; color: #5e2363;"></i>
-                                        Solicitação de Customização (PDF)
+                                        Solicitação de Customização
                                     </a></li>
+                                <?php if ($isDiretoria) { ?>
+                                <li><a class="dropdown-item" href="<?= $BASE_URL ?>SolicitacaoCustomizacaoList.php">
+                                        <i class="bi bi-clipboard-check"
+                                            style="font-size: 1rem;margin-right:5px; color: #0d6efd;"></i>
+                                        Solicitações (Lista)
+                                    </a></li>
+                                <?php } ?>
                                 <?php if ($sessionNivel > 3) { ?>
                                 <li class="nav-item">
                                     <a class="dropdown-item" href="<?= $BASE_URL ?>admin_permissao.php">

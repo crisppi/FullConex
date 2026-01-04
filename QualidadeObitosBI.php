@@ -103,8 +103,11 @@ $sqlBase = "
 
 $sqlTotals = "
     SELECT
-        COUNT(*) AS altas_total,
-        SUM(CASE WHEN LOWER(COALESCE(a.tipo_alta_alt, '')) LIKE '%obito%' THEN 1 ELSE 0 END) AS obitos_total
+        COUNT(DISTINCT a.fk_id_int_alt) AS altas_total,
+        COUNT(DISTINCT CASE
+            WHEN LOWER(COALESCE(a.tipo_alta_alt, '')) LIKE '%obito%' THEN a.fk_id_int_alt
+            ELSE NULL
+        END) AS obitos_total
     {$sqlBase}
 ";
 $stmt = $conn->prepare($sqlTotals);
@@ -120,8 +123,11 @@ $taxaObito = $altasTotal > 0 ? ($obitosTotal / $altasTotal) * 100 : 0;
 $sqlHosp = "
     SELECT
         h.nome_hosp,
-        COUNT(*) AS altas,
-        SUM(CASE WHEN LOWER(COALESCE(a.tipo_alta_alt, '')) LIKE '%obito%' THEN 1 ELSE 0 END) AS obitos
+        COUNT(DISTINCT a.fk_id_int_alt) AS altas,
+        COUNT(DISTINCT CASE
+            WHEN LOWER(COALESCE(a.tipo_alta_alt, '')) LIKE '%obito%' THEN a.fk_id_int_alt
+            ELSE NULL
+        END) AS obitos
     {$sqlBase}
     GROUP BY h.nome_hosp
     ORDER BY obitos DESC
@@ -238,20 +244,20 @@ $topHosp = array_slice($hospRows, 0, 10);
 
     <div class="bi-panel bi-obitos-kpis">
         <div class="bi-panel-header">Indicadores-chave</div>
-        <div class="bi-kpis kpi-compact">
-            <div class="bi-kpi kpi-indigo kpi-compact">
+        <div class="bi-kpis kpi-compact kpi-obitos">
+            <div class="bi-kpi kpi-obito kpi-compact">
                 <small>Taxa de óbito</small>
                 <strong><?= number_format($taxaObito, 1, ',', '.') ?>%</strong>
             </div>
-            <div class="bi-kpi kpi-rose kpi-compact">
+            <div class="bi-kpi kpi-obitos kpi-compact">
                 <small>Óbitos</small>
                 <strong><?= number_format($obitosTotal, 0, ',', '.') ?></strong>
             </div>
-            <div class="bi-kpi kpi-amber kpi-compact">
+            <div class="bi-kpi kpi-altas kpi-compact">
                 <small>Altas analisadas</small>
                 <strong><?= number_format($altasTotal, 0, ',', '.') ?></strong>
             </div>
-            <div class="bi-kpi kpi-teal kpi-compact">
+            <div class="bi-kpi kpi-top kpi-compact">
                 <small>Hospitais no top 10</small>
                 <strong><?= number_format(count($topHosp), 0, ',', '.') ?></strong>
             </div>
