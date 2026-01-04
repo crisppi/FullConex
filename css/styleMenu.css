@@ -146,7 +146,18 @@ li {
 }
 
 .navbar .dropdown-menu {
+    background-color: #f2f4f7;
+    border-color: #d6dbe2;
     transition: opacity 180ms ease, transform 180ms ease, visibility 180ms ease;
+}
+
+.navbar .dropdown-menu .dropdown-item {
+    color: #1f2430;
+}
+
+.navbar .dropdown-menu .dropdown-item:hover,
+.navbar .dropdown-menu .dropdown-item:focus {
+    background-color: #e5e9f0;
 }
 
 .navbar .dropdown-menu.bi-dropdown.bi-mega {
@@ -157,8 +168,9 @@ li {
     gap: 12px 28px !important;
     min-width: 0 !important;
     max-height: 70vh !important;
-    overflow: visible !important;
+    overflow: auto !important;
     z-index: 1055 !important;
+    border-radius: 12px;
 }
 
 .navbar .dropdown-menu.bi-dropdown.bi-mega.show,

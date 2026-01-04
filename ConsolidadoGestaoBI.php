@@ -21,6 +21,20 @@ function fmt_money($value): string
     return 'R$ ' . number_format((float)$value, 2, ',', '.');
 }
 
+function table_columns(PDO $conn, string $table): array
+{
+    static $cache = [];
+    if (isset($cache[$table])) {
+        return $cache[$table];
+    }
+    $stmt = $conn->prepare("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = :t");
+    $stmt->bindValue(':t', $table);
+    $stmt->execute();
+    $cols = $stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
+    $cache[$table] = array_fill_keys($cols, true);
+    return $cache[$table];
+}
+
 $anoInput = filter_input(INPUT_GET, 'ano', FILTER_VALIDATE_INT);
 $mesInput = filter_input(INPUT_GET, 'mes', FILTER_VALIDATE_INT);
 $ano = ($anoInput !== null && $anoInput !== false) ? (int)$anoInput : null;
@@ -295,6 +309,246 @@ function financeiro_stats(PDO $conn, array $filters): array
     ];
 }
 
+function custos_breakdown(PDO $conn, array $filters): array
+{
+    $dateExpr = "COALESCE(NULLIF(ca.data_inicial_capeante,'0000-00-00'), NULLIF(ca.data_digit_capeante,'0000-00-00'), NULLIF(ca.data_fech_capeante,'0000-00-00'))";
+    $params = [];
+    $where = build_where_financeiro($filters, $params, true);
+
+    $diarCols = table_columns($conn, 'tb_cap_valores_diar');
+    $apCols = table_columns($conn, 'tb_cap_valores_ap');
+    $utiCols = table_columns($conn, 'tb_cap_valores_uti');
+    $ccCols = table_columns($conn, 'tb_cap_valores_cc');
+
+    $sumCols = function (array $cols, array $candidates): string {
+        $parts = [];
+        foreach ($candidates as $col) {
+            if (isset($cols[$col])) {
+                $parts[] = "COALESCE({$col},0)";
+            }
+        }
+        if (!$parts) {
+            return "0";
+        }
+        return implode(' + ', $parts);
+    };
+
+    $sumDiariasCobrado = $sumCols($diarCols, [
+        'ac_quarto_cobrado', 'ac_quarto_cob',
+        'ac_dayclinic_cobrado', 'ac_dayclinic_cob',
+        'ac_uti_cobrado', 'ac_uti_cob',
+        'ac_utisemi_cobrado', 'ac_utisemi_cob',
+        'ac_enfermaria_cobrado', 'ac_enfermaria_cob',
+        'ac_bercario_cobrado', 'ac_bercario_cob',
+        'ac_acompanhante_cobrado', 'ac_acompanhante_cob',
+        'ac_isolamento_cobrado', 'ac_isolamento_cob',
+        'valor_cobrado',
+    ]);
+    $sumDiariasGlosa = $sumCols($diarCols, [
+        'ac_quarto_glosado', 'ac_quarto_glo',
+        'ac_dayclinic_glosado', 'ac_dayclinic_glo',
+        'ac_uti_glosado', 'ac_uti_glo',
+        'ac_utisemi_glosado', 'ac_utisemi_glo',
+        'ac_enfermaria_glosado', 'ac_enfermaria_glo',
+        'ac_bercario_glosado', 'ac_bercario_glo',
+        'ac_acompanhante_glosado', 'ac_acompanhante_glo',
+        'ac_isolamento_glosado', 'ac_isolamento_glo',
+        'valor_glosado',
+    ]);
+
+    $sumHonorCobradoAp = $sumCols($apCols, ['ap_honorarios_cobrado', 'ap_honorarios_cob']);
+    $sumHonorGlosaAp = $sumCols($apCols, ['ap_honorarios_glosado', 'ap_honorarios_glo']);
+    $sumHonorCobradoUti = $sumCols($utiCols, ['uti_honorarios_cobrado', 'uti_honorarios_cob']);
+    $sumHonorGlosaUti = $sumCols($utiCols, ['uti_honorarios_glosado', 'uti_honorarios_glo']);
+    $sumHonorCobradoCc = $sumCols($ccCols, ['cc_honorarios_cobrado', 'cc_honorarios_cob']);
+    $sumHonorGlosaCc = $sumCols($ccCols, ['cc_honorarios_glosado', 'cc_honorarios_glo']);
+
+    $sumMatCobradoAp = $sumCols($apCols, [
+        'ap_mat_consumo_cobrado', 'ap_mat_consumo_cob',
+        'ap_medicametos_cobrado', 'ap_medicametos_cob',
+        'ap_mat_espec_cobrado', 'ap_mat_espec_cob',
+    ]);
+    $sumMatGlosaAp = $sumCols($apCols, [
+        'ap_mat_consumo_glosado', 'ap_mat_consumo_glo',
+        'ap_medicametos_glosado', 'ap_medicametos_glo',
+        'ap_mat_espec_glosado', 'ap_mat_espec_glo',
+    ]);
+    $sumMatCobradoUti = $sumCols($utiCols, [
+        'uti_mat_consumo_cobrado', 'uti_mat_consumo_cob',
+        'uti_medicametos_cobrado', 'uti_medicametos_cob',
+        'uti_mat_espec_cobrado', 'uti_mat_espec_cob',
+    ]);
+    $sumMatGlosaUti = $sumCols($utiCols, [
+        'uti_mat_consumo_glosado', 'uti_mat_consumo_glo',
+        'uti_medicametos_glosado', 'uti_medicametos_glo',
+        'uti_mat_espec_glosado', 'uti_mat_espec_glo',
+    ]);
+    $sumMatCobradoCc = $sumCols($ccCols, [
+        'cc_mat_consumo_cobrado', 'cc_mat_consumo_cob',
+        'cc_medicametos_cobrado', 'cc_medicametos_cob',
+        'cc_mat_espec_cobrado', 'cc_mat_espec_cob',
+    ]);
+    $sumMatGlosaCc = $sumCols($ccCols, [
+        'cc_mat_consumo_glosado', 'cc_mat_consumo_glo',
+        'cc_medicametos_glosado', 'cc_medicametos_glo',
+        'cc_mat_espec_glosado', 'cc_mat_espec_glo',
+    ]);
+
+    $sumSadtCobradoAp = $sumCols($apCols, [
+        'ap_exames_cobrado', 'ap_exames_cob',
+        'ap_terapias_cobrado', 'ap_terapias_cob',
+        'ap_hemoderivados_cobrado', 'ap_hemoderivados_cob',
+    ]);
+    $sumSadtGlosaAp = $sumCols($apCols, [
+        'ap_exames_glosado', 'ap_exames_glo',
+        'ap_terapias_glosado', 'ap_terapias_glo',
+        'ap_hemoderivados_glosado', 'ap_hemoderivados_glo',
+    ]);
+    $sumSadtCobradoUti = $sumCols($utiCols, [
+        'uti_exames_cobrado', 'uti_exames_cob',
+        'uti_terapias_cobrado', 'uti_terapias_cob',
+        'uti_hemoderivados_cobrado', 'uti_hemoderivados_cob',
+    ]);
+    $sumSadtGlosaUti = $sumCols($utiCols, [
+        'uti_exames_glosado', 'uti_exames_glo',
+        'uti_terapias_glosado', 'uti_terapias_glo',
+        'uti_hemoderivados_glosado', 'uti_hemoderivados_glo',
+    ]);
+    $sumSadtCobradoCc = $sumCols($ccCols, [
+        'cc_exames_cobrado', 'cc_exames_cob',
+        'cc_terapias_cobrado', 'cc_terapias_cob',
+        'cc_hemoderivados_cobrado', 'cc_hemoderivados_cob',
+    ]);
+    $sumSadtGlosaCc = $sumCols($ccCols, [
+        'cc_exames_glosado', 'cc_exames_glo',
+        'cc_terapias_glosado', 'cc_terapias_glo',
+        'cc_hemoderivados_glosado', 'cc_hemoderivados_glo',
+    ]);
+
+    $sumOxigCobradoAp = $sumCols($apCols, ['ap_gases_cobrado', 'ap_gases_cob']);
+    $sumOxigGlosaAp = $sumCols($apCols, ['ap_gases_glosado', 'ap_gases_glo']);
+    $sumOxigCobradoUti = $sumCols($utiCols, ['uti_gases_cobrado', 'uti_gases_cob']);
+    $sumOxigGlosaUti = $sumCols($utiCols, ['uti_gases_glosado', 'uti_gases_glo']);
+    $sumOxigCobradoCc = $sumCols($ccCols, ['cc_gases_cobrado', 'cc_gases_cob']);
+    $sumOxigGlosaCc = $sumCols($ccCols, ['cc_gases_glosado', 'cc_gases_glo']);
+
+    $sumTaxasCobradoAp = $sumCols($apCols, ['ap_taxas_cobrado', 'ap_taxas_cob']);
+    $sumTaxasGlosaAp = $sumCols($apCols, ['ap_taxas_glosado', 'ap_taxas_glo']);
+    $sumTaxasCobradoUti = $sumCols($utiCols, ['uti_taxas_cobrado', 'uti_taxas_cob']);
+    $sumTaxasGlosaUti = $sumCols($utiCols, ['uti_taxas_glosado', 'uti_taxas_glo']);
+    $sumTaxasCobradoCc = $sumCols($ccCols, ['cc_taxas_cobrado', 'cc_taxas_cob']);
+    $sumTaxasGlosaCc = $sumCols($ccCols, ['cc_taxas_glosado', 'cc_taxas_glo']);
+
+    $sql = "
+        SELECT
+            SUM(COALESCE(d.diarias_cobrado,0)) AS valor_diarias,
+            SUM(COALESCE(a.honorarios_cobrado,0) + COALESCE(u.honorarios_cobrado,0) + COALESCE(c.honorarios_cobrado,0)) AS valor_honorarios,
+            SUM(COALESCE(a.matmed_cobrado,0) + COALESCE(u.matmed_cobrado,0) + COALESCE(c.matmed_cobrado,0)) AS valor_matmed,
+            SUM(COALESCE(a.sadt_cobrado,0) + COALESCE(u.sadt_cobrado,0) + COALESCE(c.sadt_cobrado,0)) AS valor_sadt,
+            SUM(COALESCE(a.oxig_cobrado,0) + COALESCE(u.oxig_cobrado,0) + COALESCE(c.oxig_cobrado,0)) AS valor_oxig,
+            SUM(COALESCE(a.taxas_cobrado,0) + COALESCE(u.taxas_cobrado,0) + COALESCE(c.taxas_cobrado,0)) AS valor_taxa,
+            SUM(COALESCE(d.diarias_glosado,0)) AS glosa_diaria,
+            SUM(COALESCE(a.honorarios_glosado,0) + COALESCE(u.honorarios_glosado,0) + COALESCE(c.honorarios_glosado,0)) AS glosa_honorarios,
+            SUM(COALESCE(a.matmed_glosado,0) + COALESCE(u.matmed_glosado,0) + COALESCE(c.matmed_glosado,0)) AS glosa_matmed,
+            SUM(COALESCE(a.sadt_glosado,0) + COALESCE(u.sadt_glosado,0) + COALESCE(c.sadt_glosado,0)) AS glosa_sadt,
+            SUM(COALESCE(a.oxig_glosado,0) + COALESCE(u.oxig_glosado,0) + COALESCE(c.oxig_glosado,0)) AS glosa_oxig,
+            SUM(COALESCE(a.taxas_glosado,0) + COALESCE(u.taxas_glosado,0) + COALESCE(c.taxas_glosado,0)) AS glosa_taxas
+        FROM (
+            SELECT
+                ca.id_capeante,
+                ca.fk_int_capeante,
+                {$dateExpr} AS ref_date,
+                ac.fk_hospital_int,
+                ac.tipo_admissao_int,
+                ac.modo_internacao_int,
+                ac.fk_patologia_int,
+                ac.grupo_patologia_int,
+                ac.fk_patologia2,
+                ac.internado_int,
+                pa.sexo_pac,
+                pa.idade_pac
+            FROM tb_capeante ca
+            INNER JOIN tb_internacao ac ON ac.id_internacao = ca.fk_int_capeante
+            LEFT JOIN tb_paciente pa ON pa.id_paciente = ac.fk_paciente_int
+        ) t
+        LEFT JOIN (
+            SELECT fk_capeante,
+                SUM({$sumDiariasCobrado}) AS diarias_cobrado,
+                SUM({$sumDiariasGlosa}) AS diarias_glosado
+            FROM tb_cap_valores_diar
+            GROUP BY fk_capeante
+        ) d ON d.fk_capeante = t.id_capeante
+        LEFT JOIN (
+            SELECT fk_capeante,
+                SUM({$sumHonorCobradoAp}) AS honorarios_cobrado,
+                SUM({$sumHonorGlosaAp}) AS honorarios_glosado,
+                SUM({$sumMatCobradoAp}) AS matmed_cobrado,
+                SUM({$sumMatGlosaAp}) AS matmed_glosado,
+                SUM({$sumSadtCobradoAp}) AS sadt_cobrado,
+                SUM({$sumSadtGlosaAp}) AS sadt_glosado,
+                SUM({$sumOxigCobradoAp}) AS oxig_cobrado,
+                SUM({$sumOxigGlosaAp}) AS oxig_glosado,
+                SUM({$sumTaxasCobradoAp}) AS taxas_cobrado,
+                SUM({$sumTaxasGlosaAp}) AS taxas_glosado
+            FROM tb_cap_valores_ap
+            GROUP BY fk_capeante
+        ) a ON a.fk_capeante = t.id_capeante
+        LEFT JOIN (
+            SELECT fk_capeante,
+                SUM({$sumHonorCobradoUti}) AS honorarios_cobrado,
+                SUM({$sumHonorGlosaUti}) AS honorarios_glosado,
+                SUM({$sumMatCobradoUti}) AS matmed_cobrado,
+                SUM({$sumMatGlosaUti}) AS matmed_glosado,
+                SUM({$sumSadtCobradoUti}) AS sadt_cobrado,
+                SUM({$sumSadtGlosaUti}) AS sadt_glosado,
+                SUM({$sumOxigCobradoUti}) AS oxig_cobrado,
+                SUM({$sumOxigGlosaUti}) AS oxig_glosado,
+                SUM({$sumTaxasCobradoUti}) AS taxas_cobrado,
+                SUM({$sumTaxasGlosaUti}) AS taxas_glosado
+            FROM tb_cap_valores_uti
+            GROUP BY fk_capeante
+        ) u ON u.fk_capeante = t.id_capeante
+        LEFT JOIN (
+            SELECT fk_capeante,
+                SUM({$sumHonorCobradoCc}) AS honorarios_cobrado,
+                SUM({$sumHonorGlosaCc}) AS honorarios_glosado,
+                SUM({$sumMatCobradoCc}) AS matmed_cobrado,
+                SUM({$sumMatGlosaCc}) AS matmed_glosado,
+                SUM({$sumSadtCobradoCc}) AS sadt_cobrado,
+                SUM({$sumSadtGlosaCc}) AS sadt_glosado,
+                SUM({$sumOxigCobradoCc}) AS oxig_cobrado,
+                SUM({$sumOxigGlosaCc}) AS oxig_glosado,
+                SUM({$sumTaxasCobradoCc}) AS taxas_cobrado,
+                SUM({$sumTaxasGlosaCc}) AS taxas_glosado
+            FROM tb_cap_valores_cc
+            GROUP BY fk_capeante
+        ) c ON c.fk_capeante = t.id_capeante
+        LEFT JOIN (SELECT DISTINCT fk_internacao_uti FROM tb_uti) ut ON ut.fk_internacao_uti = t.fk_int_capeante
+        WHERE {$where}
+    ";
+    $stmt = $conn->prepare($sql);
+    foreach ($params as $key => $value) {
+        $stmt->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+    $stmt->execute();
+    $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+    return [
+        'valor_diarias' => (float)($row['valor_diarias'] ?? 0),
+        'valor_honorarios' => (float)($row['valor_honorarios'] ?? 0),
+        'valor_matmed' => (float)($row['valor_matmed'] ?? 0),
+        'valor_sadt' => (float)($row['valor_sadt'] ?? 0),
+        'valor_oxig' => (float)($row['valor_oxig'] ?? 0),
+        'valor_taxa' => (float)($row['valor_taxa'] ?? 0),
+        'glosa_diaria' => (float)($row['glosa_diaria'] ?? 0),
+        'glosa_honorarios' => (float)($row['glosa_honorarios'] ?? 0),
+        'glosa_matmed' => (float)($row['glosa_matmed'] ?? 0),
+        'glosa_sadt' => (float)($row['glosa_sadt'] ?? 0),
+        'glosa_oxig' => (float)($row['glosa_oxig'] ?? 0),
+        'glosa_taxas' => (float)($row['glosa_taxas'] ?? 0),
+    ];
+}
+
 $filtersSelected = [
     'ano' => $ano,
     'mes' => $mes,
@@ -312,10 +566,40 @@ $filtersSelected = [
 
 $selInternação = internacao_stats($conn, $filtersSelected);
 $selFinanceiro = financeiro_stats($conn, $filtersSelected);
+$selCustos = custos_breakdown($conn, $filtersSelected);
 $glosaMedPct = $selFinanceiro['valor_apresentado'] > 0 ? ($selFinanceiro['glosa_med'] / $selFinanceiro['valor_apresentado'] * 100) : 0.0;
 $glosaEnfPct = $selFinanceiro['valor_apresentado'] > 0 ? ($selFinanceiro['glosa_enf'] / $selFinanceiro['valor_apresentado'] * 100) : 0.0;
 $glosaTotalPct = $selFinanceiro['valor_apresentado'] > 0 ? ($selFinanceiro['glosa_total'] / $selFinanceiro['valor_apresentado'] * 100) : 0.0;
 $custoMedioDiaria = $selInternação['total_diarias'] > 0 ? ($selFinanceiro['valor_apresentado'] / $selInternação['total_diarias']) : 0.0;
+
+$alocSeries = [
+    ['label' => 'Diárias', 'value' => $selCustos['valor_diarias'], 'color' => '#4c5bd3'],
+    ['label' => 'Honorários', 'value' => $selCustos['valor_honorarios'], 'color' => '#d17aa4'],
+    ['label' => 'Mat/Med', 'value' => $selCustos['valor_matmed'], 'color' => '#7395b6'],
+    ['label' => 'SADT', 'value' => $selCustos['valor_sadt'], 'color' => '#7c3a56'],
+    ['label' => 'Oxigenioterapia', 'value' => $selCustos['valor_oxig'], 'color' => '#1b7f86'],
+];
+$compSeries = [
+    ['label' => 'Diárias', 'value' => $selCustos['valor_diarias'], 'color' => '#4c5bd3'],
+    ['label' => 'Honorários', 'value' => $selCustos['valor_honorarios'], 'color' => '#d17aa4'],
+    ['label' => 'Mat/Med', 'value' => $selCustos['valor_matmed'], 'color' => '#7395b6'],
+    ['label' => 'SADT', 'value' => $selCustos['valor_sadt'], 'color' => '#7c3a56'],
+    ['label' => 'Oxigenioterapia', 'value' => $selCustos['valor_oxig'], 'color' => '#1b7f86'],
+    ['label' => 'Taxas', 'value' => $selCustos['valor_taxa'], 'color' => '#5f6c7b'],
+];
+$compTotal = array_sum(array_map(fn($s) => (float)$s['value'], $compSeries));
+$compPercents = array_map(function ($s) use ($compTotal) {
+    $pct = $compTotal > 0 ? ($s['value'] / $compTotal) * 100 : 0;
+    return round($pct, 2);
+}, $compSeries);
+$glosaSeries = [
+    ['label' => 'Glosa Diárias', 'value' => $selCustos['glosa_diaria'], 'color' => '#4c5bd3'],
+    ['label' => 'Glosa Honorários', 'value' => $selCustos['glosa_honorarios'], 'color' => '#d17aa4'],
+    ['label' => 'Glosa Mat/Med', 'value' => $selCustos['glosa_matmed'], 'color' => '#7c3a56'],
+    ['label' => 'Glosa Oxigenioterapia', 'value' => $selCustos['glosa_oxig'], 'color' => '#7395b6'],
+    ['label' => 'Glosa SADT', 'value' => $selCustos['glosa_sadt'], 'color' => '#1b7f86'],
+    ['label' => 'Glosa Taxas', 'value' => $selCustos['glosa_taxas'], 'color' => '#5f6c7b'],
+];
 ?>
 
 <link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260110">
@@ -521,21 +805,20 @@ $custoMedioDiaria = $selInternação['total_diarias'] > 0 ? ($selFinanceiro['val
 </div>
 
 <script>
-const alocLabels = ['Custos'];
-const alocData = [294489, 154240, 90775, 50231, 48853];
-const alocColors = ['#4c5bd3', '#d17aa4', '#7395b6', '#7c3a56', '#1b7f86'];
+const alocSeries = <?= json_encode($alocSeries, JSON_UNESCAPED_UNICODE) ?>;
+const compSeries = <?= json_encode($compSeries, JSON_UNESCAPED_UNICODE) ?>;
+const compPercents = <?= json_encode($compPercents, JSON_UNESCAPED_UNICODE) ?>;
+const glosaSeries = <?= json_encode($glosaSeries, JSON_UNESCAPED_UNICODE) ?>;
 
 new Chart(document.getElementById('chartAlocacao'), {
   type: 'bar',
   data: {
-    labels: alocLabels,
-    datasets: [
-      { label: 'Diárias', data: [294489], backgroundColor: alocColors[0] },
-      { label: 'Honorarios', data: [154240], backgroundColor: alocColors[1] },
-      { label: 'Mat/Med', data: [90775], backgroundColor: alocColors[2] },
-      { label: 'SADT', data: [50231], backgroundColor: alocColors[3] },
-      { label: 'Oxigenioterapia', data: [48853], backgroundColor: alocColors[4] }
-    ]
+    labels: ['Custos'],
+    datasets: alocSeries.map(item => ({
+      label: item.label,
+      data: [item.value],
+      backgroundColor: item.color
+    }))
   },
   options: {
     plugins: { legend: { labels: { color: '#e8f1ff' } } },
@@ -556,10 +839,10 @@ new Chart(document.getElementById('chartAlocacao'), {
 new Chart(document.getElementById('chartComposicao'), {
   type: 'doughnut',
   data: {
-    labels: ['Diárias', 'Honorarios', 'Mat/Med', 'SADT', 'Oxigenioterapia', 'Taxas'],
+    labels: compSeries.map(item => item.label),
     datasets: [{
-      data: [46.12, 24.15, 14.21, 7.87, 7.65, 4.0],
-      backgroundColor: ['#4c5bd3', '#d17aa4', '#7395b6', '#7c3a56', '#1b7f86', '#5f6c7b']
+      data: compPercents,
+      backgroundColor: compSeries.map(item => item.color)
     }]
   },
   options: {
@@ -570,10 +853,10 @@ new Chart(document.getElementById('chartComposicao'), {
 new Chart(document.getElementById('chartGlosa'), {
   type: 'doughnut',
   data: {
-    labels: ['Glosa Diárias', 'Glosa Honorarios', 'Glosa Mat/Med', 'Glosa Oxigenioterapia', 'Glosa SADT', 'Glosa Taxas'],
+    labels: glosaSeries.map(item => item.label),
     datasets: [{
-      data: [6.81, 44.63, 25.28, 10.61, 6.34, 6.34],
-      backgroundColor: ['#4c5bd3', '#d17aa4', '#7c3a56', '#7395b6', '#1b7f86', '#5f6c7b']
+      data: glosaSeries.map(item => item.value),
+      backgroundColor: glosaSeries.map(item => item.color)
     }]
   },
   options: {

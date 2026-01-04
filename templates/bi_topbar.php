@@ -194,6 +194,9 @@ if (!in_array($currentPage, $flatPages, true) && !$matchedByHref) {
     flex-wrap: wrap;
     gap: 8px;
     padding: 6px 18px 4px;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: auto;
 }
 
 .bi-section-tab {
@@ -297,6 +300,8 @@ if (!in_array($currentPage, $flatPages, true) && !$matchedByHref) {
     border-radius: 14px;
     position: relative;
     overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .bi-chipbar::after {

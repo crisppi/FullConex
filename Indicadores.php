@@ -212,16 +212,31 @@ $idxObitos = $totalInternações > 0 ? ($obitos / $totalInternações) * 100 : 0
         <div class="bi-kpis" style="margin-top:12px;">
             <div class="bi-kpi kpi-berry"><small>Internações</small><strong><?= $totalInternações ?></strong></div>
             <div class="bi-kpi kpi-berry"><small>Internados</small><strong><?= $internados ?></strong></div>
-            <div class="bi-kpi kpi-teal"><small>Evento adverso</small><strong><?= $eventoAdverso ?></strong></div>
-            <div class="bi-kpi kpi-teal"><small>Home care</small><strong><?= $homeCare ?></strong></div>
-            <div class="bi-kpi kpi-indigo"><small>OPME</small><strong><?= $opme ?></strong></div>
-            <div class="bi-kpi kpi-indigo"><small>Alto custo</small><strong><?= $altoCusto ?></strong></div>
-            <div class="bi-kpi kpi-steel"><small>Obitos</small><strong><?= $obitos ?></strong></div>
-            <div class="bi-kpi kpi-rose"><small>Indice evento adverso</small><strong><?= fmtPct($idxEventoAdverso) ?></strong></div>
-            <div class="bi-kpi kpi-rose"><small>Indice home care</small><strong><?= fmtPct($idxHomeCare) ?></strong></div>
-            <div class="bi-kpi kpi-amber"><small>Indice opme</small><strong><?= fmtPct($idxOpme) ?></strong></div>
-            <div class="bi-kpi kpi-amber"><small>Indice alto custo</small><strong><?= fmtPct($idxAltoCusto) ?></strong></div>
-            <div class="bi-kpi kpi-steel"><small>Indice obitos</small><strong><?= fmtPct($idxObitos) ?></strong></div>
+            <div class="bi-kpi kpi-teal with-badge">
+                <small>Evento adverso</small>
+                <strong><?= $eventoAdverso ?></strong>
+                <span class="bi-kpi-badge"><?= fmtPct($idxEventoAdverso) ?></span>
+            </div>
+            <div class="bi-kpi kpi-teal with-badge">
+                <small>Home care</small>
+                <strong><?= $homeCare ?></strong>
+                <span class="bi-kpi-badge"><?= fmtPct($idxHomeCare) ?></span>
+            </div>
+            <div class="bi-kpi kpi-indigo with-badge">
+                <small>OPME</small>
+                <strong><?= $opme ?></strong>
+                <span class="bi-kpi-badge"><?= fmtPct($idxOpme) ?></span>
+            </div>
+            <div class="bi-kpi kpi-indigo with-badge">
+                <small>Alto custo</small>
+                <strong><?= $altoCusto ?></strong>
+                <span class="bi-kpi-badge"><?= fmtPct($idxAltoCusto) ?></span>
+            </div>
+            <div class="bi-kpi kpi-steel with-badge">
+                <small>Óbitos</small>
+                <strong><?= $obitos ?></strong>
+                <span class="bi-kpi-badge"><?= fmtPct($idxObitos) ?></span>
+            </div>
         </div>
     </div>
 </div>

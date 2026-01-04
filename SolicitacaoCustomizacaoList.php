@@ -19,7 +19,46 @@ if (!$isDiretoria) {
 }
 
 $dao = new SolicitacaoCustomizacaoDAO($conn, $BASE_URL);
+
+$busca = trim((string)filter_input(INPUT_GET, 'q'));
+$statusFiltro = trim((string)filter_input(INPUT_GET, 'status'));
+$prioridadeFiltro = trim((string)filter_input(INPUT_GET, 'prioridade'));
+$dataInicio = trim((string)filter_input(INPUT_GET, 'data_inicio'));
+$dataFim = trim((string)filter_input(INPUT_GET, 'data_fim'));
+
 $rows = $dao->findAll();
+if ($busca !== '') {
+    $q = mb_strtolower($busca, 'UTF-8');
+    $rows = array_filter($rows, function ($row) use ($q) {
+        $hay = mb_strtolower(trim(($row['nome'] ?? '') . ' ' . ($row['empresa'] ?? '') . ' ' . ($row['email'] ?? '')), 'UTF-8');
+        return strpos($hay, $q) !== false;
+    });
+}
+if ($statusFiltro !== '') {
+    $rows = array_filter($rows, function ($row) use ($statusFiltro) {
+        return ($row['status'] ?? '') === $statusFiltro;
+    });
+}
+if ($prioridadeFiltro !== '') {
+    $rows = array_filter($rows, function ($row) use ($prioridadeFiltro) {
+        return ($row['prioridade'] ?? '') === $prioridadeFiltro;
+    });
+}
+if ($dataInicio !== '' || $dataFim !== '') {
+    $rows = array_filter($rows, function ($row) use ($dataInicio, $dataFim) {
+        $data = $row['data_solicitacao'] ?? '';
+        if ($data === '') {
+            return false;
+        }
+        if ($dataInicio !== '' && $data < $dataInicio) {
+            return false;
+        }
+        if ($dataFim !== '' && $data > $dataFim) {
+            return false;
+        }
+        return true;
+    });
+}
 ?>
 
 <style>
@@ -37,6 +76,11 @@ $rows = $dao->findAll();
 .list-customizacao-card table {
     width: 100%;
 }
+.list-customizacao-card .table thead th {
+    background: #5e2363;
+    color: #fff;
+    border-color: #5e2363;
+}
 .list-customizacao-header {
     padding: 8px 0 16px;
 }
@@ -53,6 +97,37 @@ $rows = $dao->findAll();
         </div>
         <a class="btn btn-outline-primary" href="<?= $BASE_URL ?>SolicitacaoCustomizacao.php">Nova solicitação</a>
     </div>
+
+    <form class="row g-2 align-items-center mb-3" method="GET" action="<?= $BASE_URL ?>SolicitacaoCustomizacaoList.php">
+        <div class="col-md-4">
+            <input type="text" class="form-control" name="q" placeholder="Buscar por nome/empresa/email" value="<?= htmlspecialchars($busca) ?>">
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" name="status">
+                <option value="">Status (todos)</option>
+                <?php foreach (['Aberto','Em análise','Resolvido','Cancelado'] as $opt) { ?>
+                    <option value="<?= htmlspecialchars($opt) ?>" <?= $statusFiltro === $opt ? 'selected' : '' ?>><?= htmlspecialchars($opt) ?></option>
+                <?php } ?>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select class="form-select" name="prioridade">
+                <option value="">Prioridade</option>
+                <?php foreach (['Urgente','Alta','Média','Baixa'] as $opt) { ?>
+                    <option value="<?= htmlspecialchars($opt) ?>" <?= $prioridadeFiltro === $opt ? 'selected' : '' ?>><?= htmlspecialchars($opt) ?></option>
+                <?php } ?>
+            </select>
+        </div>
+        <div class="col-md-1">
+            <input type="date" class="form-control" name="data_inicio" value="<?= htmlspecialchars($dataInicio) ?>">
+        </div>
+        <div class="col-md-1">
+            <input type="date" class="form-control" name="data_fim" value="<?= htmlspecialchars($dataFim) ?>">
+        </div>
+        <div class="col-md-1">
+            <button type="submit" class="btn btn-outline-secondary w-100">Filtrar</button>
+        </div>
+    </form>
 
     <div class="card list-customizacao-card">
         <div class="card-body">
@@ -124,9 +199,13 @@ $rows = $dao->findAll();
                                             data-data-aprovacao-conex="<?= htmlspecialchars($row['data_aprovacao_conex'] ?? '', ENT_QUOTES) ?>"
                                             data-responsavel-aprovacao-conex="<?= htmlspecialchars($row['responsavel_aprovacao_conex'] ?? '', ENT_QUOTES) ?>"
                                         >
+                                            <i class="bi bi-eye"></i>
                                             Ver
                                         </button>
-                                        <a class="btn btn-sm btn-primary" href="<?= $BASE_URL ?>SolicitacaoCustomizacaoEdit.php?id=<?= (int)$row['id_solicitacao'] ?>">Editar</a>
+                                        <a class="btn btn-sm btn-primary" href="<?= $BASE_URL ?>SolicitacaoCustomizacaoEdit.php?id=<?= (int)$row['id_solicitacao'] ?>">
+                                            <i class="bi bi-pencil-square"></i>
+                                            Editar
+                                        </a>
                                     </td>
                                 </tr>
                             <?php } ?>

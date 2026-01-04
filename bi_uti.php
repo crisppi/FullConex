@@ -12,8 +12,25 @@ function e($v)
 }
 
 $hoje = date('Y-m-d');
-$dataIni = filter_input(INPUT_GET, 'data_ini') ?: date('Y-m-d', strtotime('-120 days'));
-$dataFim = filter_input(INPUT_GET, 'data_fim') ?: $hoje;
+$dataIni = filter_input(INPUT_GET, 'data_ini');
+$dataFim = filter_input(INPUT_GET, 'data_fim');
+
+if (!$dataIni || !$dataFim) {
+    $stmtRange = $conn->query("
+        SELECT
+            MIN(i.data_intern_int) AS min_dt,
+            MAX(i.data_intern_int) AS max_dt
+        FROM tb_internacao i
+        INNER JOIN tb_uti u ON u.fk_internacao_uti = i.id_internacao
+        WHERE i.data_intern_int IS NOT NULL
+          AND i.data_intern_int <> '0000-00-00'
+    ");
+    $range = $stmtRange->fetch(PDO::FETCH_ASSOC) ?: [];
+    $minDt = $range['min_dt'] ?? null;
+    $maxDt = $range['max_dt'] ?? null;
+    $dataIni = $dataIni ?: ($minDt ?: date('Y-m-d', strtotime('-120 days')));
+    $dataFim = $dataFim ?: ($maxDt ?: $hoje);
+}
 $internado = trim((string)(filter_input(INPUT_GET, 'internado') ?? ''));
 $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: null;
 $tipoInternação = trim((string)(filter_input(INPUT_GET, 'tipo_internacao') ?? ''));
