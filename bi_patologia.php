@@ -12,8 +12,24 @@ function e($v)
 }
 
 $hoje = date('Y-m-d');
-$dataIni = filter_input(INPUT_GET, 'data_ini') ?: date('Y-m-d', strtotime('-120 days'));
-$dataFim = filter_input(INPUT_GET, 'data_fim') ?: $hoje;
+$dataIni = filter_input(INPUT_GET, 'data_ini');
+$dataFim = filter_input(INPUT_GET, 'data_fim');
+
+if (!$dataIni || !$dataFim) {
+    $stmtRange = $conn->query("
+        SELECT
+            MIN(data_intern_int) AS min_dt,
+            MAX(data_intern_int) AS max_dt
+        FROM tb_internacao
+        WHERE data_intern_int IS NOT NULL
+          AND data_intern_int <> '0000-00-00'
+    ");
+    $range = $stmtRange->fetch(PDO::FETCH_ASSOC) ?: [];
+    $minDt = $range['min_dt'] ?? null;
+    $maxDt = $range['max_dt'] ?? null;
+    $dataIni = $dataIni ?: ($minDt ?: date('Y-m-d', strtotime('-120 days')));
+    $dataFim = $dataFim ?: ($maxDt ?: $hoje);
+}
 $internado = trim((string)(filter_input(INPUT_GET, 'internado') ?? ''));
 $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: null;
 $tipoInternação = trim((string)(filter_input(INPUT_GET, 'tipo_internacao') ?? ''));
@@ -66,6 +82,7 @@ $sqlBase = "
         GROUP BY fk_id_int_alt
     ) al ON al.fk_id_int_alt = i.id_internacao
     LEFT JOIN tb_patologia p ON p.id_patologia = i.fk_patologia_int
+    LEFT JOIN tb_cid c ON c.id_cid = COALESCE(NULLIF(i.fk_cid_int, 0), NULLIF(p.fk_cid_10_pat, 0))
     LEFT JOIN tb_capeante ca ON ca.fk_int_capeante = i.id_internacao
     WHERE {$where}
 ";
@@ -87,7 +104,7 @@ function distQuery(PDO $conn, string $labelExpr, string $sqlBase, array $params,
     return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 }
 
-$labelPat = "COALESCE(NULLIF(i.grupo_patologia_int,''), p.patologia_pat, 'Sem informações')";
+$labelPat = "COALESCE(NULLIF(CONCAT(c.cat, ' - ', c.descricao), ' - '), NULLIF(c.cat,''), p.patologia_pat, 'Sem informações')";
 $labelAcom = "COALESCE(NULLIF(i.acomodacao_int,''), 'Sem informações')";
 
 $rowsAcom = distQuery($conn, $labelAcom, $sqlBase, $params, "COUNT(DISTINCT i.id_internacao)", 8);
@@ -129,7 +146,7 @@ function labelsAndValues(array $rows, bool $formatMoney = false): array
 ?>
 
 <link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260110">
-<script src="diversos/CoolAdmin-master/vendor/chartjs/Chart.bundle.min.js"></script>
+<script src="diversos/chartjs/Chart.min.js"></script>
 <script src="<?= $BASE_URL ?>js/bi.js?v=20260110"></script>
 <script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));</script>
 
@@ -137,7 +154,9 @@ function labelsAndValues(array $rows, bool $formatMoney = false): array
     <div class="bi-header">
         <h1 class="bi-title">Dashboard Patologia</h1>
         <div class="bi-header-actions">
-            <div class="text-end text-muted"></div>
+            <div class="text-end text-muted small">
+                <?= isset($fonte_conexao) ? 'Fonte: ' . e($fonte_conexao) : '' ?>
+            </div>
             <a class="bi-nav-icon" href="<?= $BASE_URL ?>bi/navegacao" title="Navegação">
                 <i class="bi bi-grid-3x3-gap"></i>
             </a>

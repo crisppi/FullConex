@@ -3,3 +3,5 @@
 *.key
 *.pem
 vendor/
+!vendor/chartjs/
+!vendor/chartjs/**

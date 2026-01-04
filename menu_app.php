@@ -979,7 +979,7 @@ canvas {
 <script src="diversos/CoolAdmin-master/vendor/counter-up/jquery.counterup.min.js"></script>
 <script src="diversos/CoolAdmin-master/vendor/circle-progress/circle-progress.min.js"></script>
 <script src="diversos/CoolAdmin-master/vendor/perfect-scrollbar/perfect-scrollbar.js"></script>
-<script src="diversos/CoolAdmin-master/vendor/chartjs/Chart.bundle.min.js"></script>
+<script src="diversos/chartjs/Chart.min.js"></script>
 <script src="diversos/CoolAdmin-master/vendor/select2/select2.min.js"></script>
 <!-- Main JS-->
 <script src="diversos/CoolAdmin-master/js/main.js"></script>

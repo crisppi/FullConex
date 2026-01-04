@@ -1240,7 +1240,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 <script src="./diversos/CoolAdmin-master/vendor/circle-progress/circle-progress.min.js"></script>
 <script src="./diversos/CoolAdmin-master/vendor/perfect-scrollbar/perfect-scrollbar.js"></script>
-<script src="./diversos/CoolAdmin-master/vendor/chartjs/Chart.bundle.min.js"></script>
+<script src="diversos/chartjs/Chart.min.js"></script>
 <script src="./diversos/CoolAdmin-master/vendor/select2/select2.min.js"></script>
 <script src="./scripts/cadastro/general.js"></script>
 <script src="js/stepper.js"></script>
