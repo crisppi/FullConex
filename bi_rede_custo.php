@@ -1,5 +1,5 @@
 <?php
-$pageTitle = 'Custo por caso por hospital';
+$pageTitle = 'Valor por caso por hospital';
 $pageSubtitle = 'Apresentado x final autorizado';
 $clearUrl = 'bi/rede-custo';
 $redeCurrent = 'custo';
@@ -31,11 +31,11 @@ $chartVals = array_map(fn($r) => round((float)($r['custo_final'] ?? 0), 0), $cha
         <h3>Indicadores-chave</h3>
         <div class="bi-kpis kpi-compact">
             <div class="bi-kpi">
-                <small>Custo medio apresentado</small>
+                <small>Valor medio apresentado</small>
                 <strong><?= number_format($network['custo_apresentado'], 2, ',', '.') ?></strong>
             </div>
             <div class="bi-kpi">
-                <small>Custo medio final</small>
+                <small>Valor medio final</small>
                 <strong><?= number_format($network['custo_final'], 2, ',', '.') ?></strong>
             </div>
             <div class="bi-kpi">
@@ -46,7 +46,7 @@ $chartVals = array_map(fn($r) => round((float)($r['custo_final'] ?? 0), 0), $cha
     </div>
 
     <div class="bi-panel">
-        <h3>Custo final por hospital</h3>
+        <h3>Valor final por hospital</h3>
         <div class="bi-chart">
             <canvas id="chartCustoFinal"></canvas>
         </div>
@@ -58,8 +58,8 @@ $chartVals = array_map(fn($r) => round((float)($r['custo_final'] ?? 0), 0), $cha
             <thead>
                 <tr>
                     <th>Hospital</th>
-                    <th>Custo apresentado</th>
-                    <th>Custo final</th>
+                    <th>Valor apresentado</th>
+                    <th>Valor final</th>
                     <th>Glosa</th>
                     <th>Casos</th>
                 </tr>

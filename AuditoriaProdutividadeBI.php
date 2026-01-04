@@ -36,7 +36,17 @@ if ($hospitalId) {
     $params[':hospital_id'] = (int)$hospitalId;
 }
 
-$auditorExpr = "COALESCE(u.usuario_user, NULLIF(v.visita_auditor_prof_med,''), NULLIF(v.visita_auditor_prof_enf,''), 'Sem informacoes')";
+$auditorExpr = "
+    CASE
+        WHEN NULLIF(v.visita_auditor_prof_med,'') IS NOT NULL
+            THEN CONCAT(COALESCE(u_med.usuario_user, v.visita_auditor_prof_med), ' (Medico)')
+        WHEN NULLIF(v.visita_auditor_prof_enf,'') IS NOT NULL
+            THEN CONCAT(COALESCE(u_enf.usuario_user, v.visita_auditor_prof_enf), ' (Enfermagem)')
+        WHEN u.usuario_user IS NOT NULL
+            THEN CONCAT(u.usuario_user, ' (Auditor)')
+        ELSE 'Sem informacoes'
+    END
+";
 
 $sqlProd = "
     SELECT {$auditorExpr} AS auditor,
@@ -45,6 +55,8 @@ $sqlProd = "
            ROUND(COUNT(*) / NULLIF(COUNT(DISTINCT DATE(v.data_visita_vis)), 0), 2) AS visitas_dia
     FROM tb_visita v
     LEFT JOIN tb_user u ON u.id_usuario = v.fk_usuario_vis
+    LEFT JOIN tb_user u_med ON u_med.id_usuario = CAST(NULLIF(v.visita_auditor_prof_med,'') AS UNSIGNED)
+    LEFT JOIN tb_user u_enf ON u_enf.id_usuario = CAST(NULLIF(v.visita_auditor_prof_enf,'') AS UNSIGNED)
     LEFT JOIN tb_internacao i ON i.id_internacao = v.fk_internacao_vis
     WHERE v.data_visita_vis BETWEEN :start AND :end
       {$whereHosp}

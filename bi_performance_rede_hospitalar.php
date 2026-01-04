@@ -12,8 +12,24 @@ function e($v)
 }
 
 $hoje = date('Y-m-d');
-$dataIni = filter_input(INPUT_GET, 'data_ini') ?: date('Y-m-d', strtotime('-180 days'));
-$dataFim = filter_input(INPUT_GET, 'data_fim') ?: $hoje;
+$dataIni = filter_input(INPUT_GET, 'data_ini');
+$dataFim = filter_input(INPUT_GET, 'data_fim');
+
+if (!$dataIni || !$dataFim) {
+    $stmtRange = $conn->query("
+        SELECT
+            MIN(data_intern_int) AS min_dt,
+            MAX(data_intern_int) AS max_dt
+        FROM tb_internacao
+        WHERE data_intern_int IS NOT NULL
+          AND data_intern_int <> '0000-00-00'
+    ");
+    $range = $stmtRange->fetch(PDO::FETCH_ASSOC) ?: [];
+    $minDt = $range['min_dt'] ?? null;
+    $maxDt = $range['max_dt'] ?? null;
+    $dataIni = $dataIni ?: ($minDt ?: date('Y-m-d', strtotime('-180 days')));
+    $dataFim = $dataFim ?: ($maxDt ?: $hoje);
+}
 $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: null;
 $seguradoraId = filter_input(INPUT_GET, 'seguradora_id', FILTER_VALIDATE_INT) ?: null;
 $regiao = trim((string)(filter_input(INPUT_GET, 'regiao') ?? ''));
@@ -445,6 +461,19 @@ $chartVals = array_map(fn($r) => round((float)($r['permanencia_media'] ?? 0), 1)
 <script>
 const chartLabels = <?= json_encode($chartLabels) ?>;
 const chartVals = <?= json_encode($chartVals) ?>;
+function barChart(ctx, labels, data, color) {
+    const scales = window.biChartScales ? window.biChartScales() : undefined;
+    return new Chart(ctx, {
+        type: 'bar',
+        data: { labels, datasets: [{ data, backgroundColor: color }] },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            legend: { display: false },
+            scales
+        }
+    });
+}
 if (chartLabels.length) {
     barChart(document.getElementById('chartPermanenciaRede'), chartLabels, chartVals, 'rgba(64, 181, 255, 0.7)');
 }

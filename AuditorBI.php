@@ -16,7 +16,14 @@ $mesInput = filter_input(INPUT_GET, 'mes', FILTER_VALIDATE_INT);
 $ano = ($anoInput !== null && $anoInput !== false) ? (int)$anoInput : null;
 $mes = ($mesInput !== null && $mesInput !== false) ? (int)$mesInput : null;
 if ($ano === null && !filter_has_var(INPUT_GET, 'ano')) {
-    $ano = (int)date('Y');
+    $stmtAno = $conn->query("
+        SELECT MAX(YEAR(data_visita_vis)) AS ano
+        FROM tb_visita
+        WHERE data_visita_vis IS NOT NULL
+          AND data_visita_vis <> '0000-00-00'
+    ");
+    $anoDb = $stmtAno->fetch(PDO::FETCH_ASSOC) ?: [];
+    $ano = (int)($anoDb['ano'] ?? date('Y'));
 }
 
 $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: null;
@@ -24,12 +31,25 @@ $auditorNome = trim((string)(filter_input(INPUT_GET, 'auditor') ?? ''));
 
 $hospitais = $conn->query("SELECT id_hospital, nome_hosp FROM tb_hospital ORDER BY nome_hosp")
     ->fetchAll(PDO::FETCH_ASSOC);
+$auditorExpr = "
+    CASE
+        WHEN NULLIF(v.visita_auditor_prof_med,'') IS NOT NULL
+            THEN CONCAT(COALESCE(u_med.usuario_user, v.visita_auditor_prof_med), ' (Medico)')
+        WHEN NULLIF(v.visita_auditor_prof_enf,'') IS NOT NULL
+            THEN CONCAT(COALESCE(u_enf.usuario_user, v.visita_auditor_prof_enf), ' (Enfermagem)')
+        WHEN u.usuario_user IS NOT NULL
+            THEN CONCAT(u.usuario_user, ' (Auditor)')
+        ELSE 'Sem informacoes'
+    END
+";
+
 $auditorListSql = "
-    SELECT DISTINCT COALESCE(u.usuario_user, u2.usuario_user) AS auditor_nome
+    SELECT DISTINCT {$auditorExpr} AS auditor_nome
     FROM tb_visita v
     LEFT JOIN tb_user u ON u.id_usuario = v.fk_usuario_vis
-    LEFT JOIN tb_user u2 ON u2.id_usuario = CAST(NULLIF(v.visita_auditor_prof_med,'') AS UNSIGNED)
-    WHERE COALESCE(u.usuario_user, u2.usuario_user) IS NOT NULL
+    LEFT JOIN tb_user u_med ON u_med.id_usuario = CAST(NULLIF(v.visita_auditor_prof_med,'') AS UNSIGNED)
+    LEFT JOIN tb_user u_enf ON u_enf.id_usuario = CAST(NULLIF(v.visita_auditor_prof_enf,'') AS UNSIGNED)
+    WHERE {$auditorExpr} <> 'Sem informacoes'
     ORDER BY auditor_nome
 ";
 $auditores = $conn->query($auditorListSql)->fetchAll(PDO::FETCH_COLUMN);
@@ -49,11 +69,9 @@ if (!empty($hospitalId)) {
     $params[':hospital_id'] = (int)$hospitalId;
 }
 if (!empty($auditorNome)) {
-    $where .= " AND COALESCE(u.usuario_user, u2.usuario_user) = :auditor_nome";
+    $where .= " AND {$auditorExpr} = :auditor_nome";
     $params[':auditor_nome'] = $auditorNome;
 }
-
-$auditorExpr = "COALESCE(u.usuario_user, u2.usuario_user, 'Sem informacoes')";
 
 $sqlBaseIntern = "
     SELECT DISTINCT i.id_internacao,
@@ -61,7 +79,8 @@ $sqlBaseIntern = "
         GREATEST(1, DATEDIFF(COALESCE(al.data_alta_alt, CURDATE()), i.data_intern_int) + 1) AS diarias
     FROM tb_visita v
     LEFT JOIN tb_user u ON u.id_usuario = v.fk_usuario_vis
-    LEFT JOIN tb_user u2 ON u2.id_usuario = CAST(NULLIF(v.visita_auditor_prof_med,'') AS UNSIGNED)
+    LEFT JOIN tb_user u_med ON u_med.id_usuario = CAST(NULLIF(v.visita_auditor_prof_med,'') AS UNSIGNED)
+    LEFT JOIN tb_user u_enf ON u_enf.id_usuario = CAST(NULLIF(v.visita_auditor_prof_enf,'') AS UNSIGNED)
     LEFT JOIN tb_internacao i ON i.id_internacao = v.fk_internacao_vis
     LEFT JOIN (
         SELECT fk_id_int_alt, MAX(data_alta_alt) AS data_alta_alt
@@ -127,7 +146,8 @@ $sqlVisitas = "
     SELECT {$auditorExpr} AS auditor_nome, COUNT(*) AS total
     FROM tb_visita v
     LEFT JOIN tb_user u ON u.id_usuario = v.fk_usuario_vis
-    LEFT JOIN tb_user u2 ON u2.id_usuario = CAST(NULLIF(v.visita_auditor_prof_med,'') AS UNSIGNED)
+    LEFT JOIN tb_user u_med ON u_med.id_usuario = CAST(NULLIF(v.visita_auditor_prof_med,'') AS UNSIGNED)
+    LEFT JOIN tb_user u_enf ON u_enf.id_usuario = CAST(NULLIF(v.visita_auditor_prof_enf,'') AS UNSIGNED)
     LEFT JOIN tb_internacao i ON i.id_internacao = v.fk_internacao_vis
     WHERE {$where}
     GROUP BY auditor_nome

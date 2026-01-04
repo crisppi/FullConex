@@ -16,34 +16,40 @@ $mesInput = filter_input(INPUT_GET, 'mes', FILTER_VALIDATE_INT);
 $ano = ($anoInput !== null && $anoInput !== false) ? (int)$anoInput : null;
 $mes = ($mesInput !== null && $mesInput !== false) ? (int)$mesInput : null;
 if ($ano === null && !filter_has_var(INPUT_GET, 'ano')) {
-    $ano = (int)date('Y');
+    $stmtAno = $conn->query("
+        SELECT MAX(YEAR(data_visita_vis)) AS ano
+        FROM tb_visita
+        WHERE data_visita_vis IS NOT NULL
+          AND data_visita_vis <> '0000-00-00'
+    ");
+    $anoDb = $stmtAno->fetch(PDO::FETCH_ASSOC) ?: [];
+    $ano = (int)($anoDb['ano'] ?? date('Y'));
 }
 
 $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: null;
 $auditorNome = trim((string)(filter_input(INPUT_GET, 'auditor') ?? ''));
 $profissional = trim((string)(filter_input(INPUT_GET, 'profissional') ?? ''));
 
-$hasUsuarioTable = false;
-try {
-    $hasUsuarioTable = (bool)$conn->query("SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'tb_usuario' LIMIT 1")
-        ->fetchColumn();
-} catch (Throwable $e) {
-    $hasUsuarioTable = false;
-}
-$usuarioJoin = $hasUsuarioTable ? "LEFT JOIN tb_usuario u ON u.id_usuario = v.fk_usuario_vis" : "";
-$auditorFilterExpr = $hasUsuarioTable
-    ? "COALESCE(u.usuario_user, NULLIF(v.visita_auditor_prof_med,''), NULLIF(v.visita_auditor_prof_enf,''))"
-    : "COALESCE(NULLIF(v.visita_auditor_prof_med,''), NULLIF(v.visita_auditor_prof_enf,''))";
-$auditorExpr = $hasUsuarioTable
-    ? "COALESCE(u.usuario_user, NULLIF(v.visita_auditor_prof_med,''), NULLIF(v.visita_auditor_prof_enf,''), 'Sem informacoes')"
-    : "COALESCE(NULLIF(v.visita_auditor_prof_med,''), NULLIF(v.visita_auditor_prof_enf,''), 'Sem informacoes')";
+$auditorExpr = "
+    CASE
+        WHEN NULLIF(v.visita_auditor_prof_med,'') IS NOT NULL
+            THEN CONCAT(COALESCE(u_med.usuario_user, v.visita_auditor_prof_med), ' (Medico)')
+        WHEN NULLIF(v.visita_auditor_prof_enf,'') IS NOT NULL
+            THEN CONCAT(COALESCE(u_enf.usuario_user, v.visita_auditor_prof_enf), ' (Enfermagem)')
+        WHEN u.usuario_user IS NOT NULL
+            THEN CONCAT(u.usuario_user, ' (Auditor)')
+        ELSE 'Sem informacoes'
+    END
+";
 
 $hospitais = $conn->query("SELECT id_hospital, nome_hosp FROM tb_hospital ORDER BY nome_hosp")
     ->fetchAll(PDO::FETCH_ASSOC);
-$auditores = $conn->query("SELECT DISTINCT {$auditorFilterExpr} AS auditor_nome
+$auditores = $conn->query("SELECT DISTINCT {$auditorExpr} AS auditor_nome
     FROM tb_visita v
-    {$usuarioJoin}
-    WHERE {$auditorFilterExpr} IS NOT NULL
+    LEFT JOIN tb_user u ON u.id_usuario = v.fk_usuario_vis
+    LEFT JOIN tb_user u_med ON u_med.id_usuario = CAST(NULLIF(v.visita_auditor_prof_med,'') AS UNSIGNED)
+    LEFT JOIN tb_user u_enf ON u_enf.id_usuario = CAST(NULLIF(v.visita_auditor_prof_enf,'') AS UNSIGNED)
+    WHERE {$auditorExpr} <> 'Sem informacoes'
     ORDER BY auditor_nome")
     ->fetchAll(PDO::FETCH_COLUMN);
 
@@ -62,7 +68,7 @@ if (!empty($hospitalId)) {
     $params[':hospital_id'] = (int)$hospitalId;
 }
 if (!empty($auditorNome)) {
-    $where .= " AND {$auditorFilterExpr} = :auditor_nome";
+    $where .= " AND {$auditorExpr} = :auditor_nome";
     $params[':auditor_nome'] = $auditorNome;
 }
 if ($profissional === 'medico') {
@@ -80,7 +86,9 @@ $sql = "
         h.nome_hosp,
         COUNT(*) AS total
     FROM tb_visita v
-    {$usuarioJoin}
+    LEFT JOIN tb_user u ON u.id_usuario = v.fk_usuario_vis
+    LEFT JOIN tb_user u_med ON u_med.id_usuario = CAST(NULLIF(v.visita_auditor_prof_med,'') AS UNSIGNED)
+    LEFT JOIN tb_user u_enf ON u_enf.id_usuario = CAST(NULLIF(v.visita_auditor_prof_enf,'') AS UNSIGNED)
     LEFT JOIN tb_internacao i ON i.id_internacao = v.fk_internacao_vis
     LEFT JOIN tb_paciente pa ON pa.id_paciente = i.fk_paciente_int
     LEFT JOIN tb_seguradora s ON s.id_seguradora = pa.fk_seguradora_pac
@@ -130,6 +138,43 @@ foreach ($rows as $row) {
 <link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260110">
 <script src="<?= $BASE_URL ?>js/bi.js?v=20260110"></script>
 <script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));</script>
+<style>
+    .seg-row td {
+        font-weight: 700;
+    }
+    .auditor-row {
+        display: none;
+    }
+    .auditor-row.is-visible {
+        display: table-row;
+    }
+    .auditor-row td {
+        background: rgba(255, 255, 255, 0.08);
+        color: #eaf6ff;
+    }
+    .auditor-toggle {
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        background: rgba(255, 255, 255, 0.35);
+        color: #0d2b43;
+        border-radius: 999px;
+        padding: 4px 10px;
+        margin-right: 8px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 700;
+    }
+    .auditor-toggle:hover {
+        background: rgba(255, 255, 255, 0.55);
+    }
+    .auditor-toggle .toggle-label {
+        font-size: 0.75rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+</style>
 
 <div class="bi-wrapper bi-theme">
     <div class="bi-header">
@@ -211,8 +256,15 @@ foreach ($rows as $row) {
                         </tr>
                     <?php else: ?>
                         <?php foreach ($matrix as $seg => $segData): ?>
+                            <?php $segKey = 'seg_' . substr(md5($seg), 0, 10); ?>
                             <tr>
-                                <td><strong><?= e($seg) ?></strong></td>
+                                <td class="seg-row">
+                                    <button class="auditor-toggle" type="button" data-target="<?= e($segKey) ?>" title="Ver profissionais">
+                                        <i class="fa fa-users"></i>
+                                        <span class="toggle-label">Profissionais</span>
+                                    </button>
+                                    <?= e($seg) ?>
+                                </td>
                                 <?php foreach ($hospitais as $h): ?>
                                     <?php $val = $segData['colTotals'][$h['id_hospital']] ?? 0; ?>
                                     <td><?= (int)$val ?></td>
@@ -220,7 +272,7 @@ foreach ($rows as $row) {
                                 <td><?= (int)($segData['sum'] ?? 0) ?></td>
                             </tr>
                             <?php foreach ($segData['rows'] as $aud => $data): ?>
-                                <tr>
+                                <tr class="auditor-row" data-parent="<?= e($segKey) ?>">
                                     <td>&nbsp;&nbsp;<?= e($aud) ?></td>
                                     <?php foreach ($hospitais as $h): ?>
                                         <?php $val = $data[$h['id_hospital']] ?? 0; ?>
@@ -243,5 +295,16 @@ foreach ($rows as $row) {
         </div>
     </div>
 </div>
+
+<script>
+document.querySelectorAll('.auditor-toggle').forEach((btn) => {
+    btn.addEventListener('click', () => {
+        const key = btn.getAttribute('data-target');
+        const rows = document.querySelectorAll(`.auditor-row[data-parent="${key}"]`);
+        rows.forEach((row) => row.classList.toggle('is-visible'));
+        btn.classList.toggle('is-open');
+    });
+});
+</script>
 
 <?php require_once("templates/footer.php"); ?>
