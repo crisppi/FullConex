@@ -123,21 +123,21 @@ if (!empty($sessionIdUsuario)) {
         }
 
         .navbar .navbar-brand .logo-conex {
-            height: 28px !important;
-            max-width: 120px;
+            height: 24px !important;
+            max-width: 105px;
         }
 
         @media (max-width: 1199.98px) {
             .navbar .navbar-brand .logo-conex {
-                height: 26px !important;
-                max-width: 110px;
+                height: 22px !important;
+                max-width: 96px;
             }
         }
 
         @media (max-width: 575.98px) {
             .navbar .navbar-brand .logo-conex {
-                height: 24px !important;
-                max-width: 96px;
+                height: 20px !important;
+                max-width: 88px;
             }
         }
 
@@ -239,6 +239,10 @@ if (!empty($sessionIdUsuario)) {
                         max-height: 100px;
                         min-height: 50px;" alt="FullCare">
                 </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarScroll"
+                    aria-controls="navbarScroll" aria-expanded="false" aria-label="Alternar navegação">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
                 <div class="collapse navbar-collapse" id="navbarScroll">
                     <ul class="nav-tabs navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll align-items-center"
                         style="--bs-scroll-height: 80px;">
@@ -596,7 +600,7 @@ if (!empty($sessionIdUsuario)) {
                                     </ul>
                                 </li>
                             <?php }; ?>
-                            <?php if (false && $sessionNivel > 0) { ?>
+                            <?php if ($sessionNivel > 0) { ?>
                                 <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
                                         data-bs-toggle="dropdown" aria-expanded="false">

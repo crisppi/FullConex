@@ -157,7 +157,7 @@ $infRows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     </div>
 
     <div class="bi-panel">
-        <h3>Infecção hospitalar (proxy)</h3>
+        <h3>Infecção hospitalar</h3>
         <div class="table-responsive">
             <table class="bi-table">
                 <thead>
