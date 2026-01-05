@@ -234,10 +234,13 @@ $topHosp = array_slice($hospRows, 0, 10);
                         <option value="n" <?= $uti === 'n' ? 'selected' : '' ?>>Não</option>
                     </select>
                 </div>
-            </div>
-            <div class="bi-obitos-actions">
-                <button class="bi-btn bi-btn-primary" type="submit">Aplicar filtros</button>
-                <button class="bi-btn bi-btn-secondary" type="button" onclick="window.location.href=window.location.pathname;">Limpar</button>
+                <div class="bi-filter bi-obitos-action">
+                    <label>&nbsp;</label>
+                    <div class="bi-obitos-action-buttons">
+                        <button class="bi-btn bi-btn-primary" type="submit">Aplicar</button>
+                        <button class="bi-btn bi-btn-secondary" type="button" onclick="window.location.href=window.location.pathname;">Limpar</button>
+                    </div>
+                </div>
             </div>
         </form>
     </div>

@@ -88,7 +88,9 @@ $values = array_map(fn($r) => round((float)($r['share'] ?? 0), 2), $topRows);
 <link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260111">
 <script src="diversos/chartjs/Chart.min.js"></script>
 <script src="<?= $BASE_URL ?>js/bi.js?v=20260111"></script>
-<script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));</script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));
+</script>
 
 <div class="bi-wrapper bi-theme">
     <div class="bi-header">
@@ -129,7 +131,9 @@ $values = array_map(fn($r) => round((float)($r['share'] ?? 0), 2), $topRows);
                 <?php endforeach; ?>
             </select>
         </div>
-        <div class="bi-actions"></div>
+        <div class="bi-actions">
+            <button class="bi-btn" type="submit">Aplicar</button>
+        </div>
     </form>
 
     <div class="bi-panel">
@@ -173,28 +177,32 @@ $values = array_map(fn($r) => round((float)($r['share'] ?? 0), 2), $topRows);
 </div>
 
 <script>
-const concLabels = <?= json_encode($labels) ?>;
-const concValues = <?= json_encode($values) ?>;
-new Chart(document.getElementById('chartConcentracao'), {
-  type: 'horizontalBar',
-  data: {
-    labels: concLabels,
-    datasets: [{
-      label: '% do total',
-      data: concValues,
-      backgroundColor: 'rgba(126,150,255,0.8)',
-      borderRadius: 10,
-      maxBarThickness: 48
-    }]
-  },
-  options: {
-    legend: { display: false },
-    scales: biChartScales(),
-    tooltips: {
-      callbacks: { label: (item) => item.xLabel + '%' }
-    }
-  }
-});
+    const concLabels = <?= json_encode($labels) ?>;
+    const concValues = <?= json_encode($values) ?>;
+    new Chart(document.getElementById('chartConcentracao'), {
+        type: 'horizontalBar',
+        data: {
+            labels: concLabels,
+            datasets: [{
+                label: '% do total',
+                data: concValues,
+                backgroundColor: 'rgba(126,150,255,0.8)',
+                borderRadius: 10,
+                maxBarThickness: 48
+            }]
+        },
+        options: {
+            legend: {
+                display: false
+            },
+            scales: biChartScales(),
+            tooltips: {
+                callbacks: {
+                    label: (item) => item.xLabel + '%'
+                }
+            }
+        }
+    });
 </script>
 
 <?php require_once("templates/footer.php"); ?>

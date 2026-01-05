@@ -5,7 +5,6 @@ if (!isset($BASE_URL)) {
 
 $biSections = [
     'Resumo' => [
-        ['label' => 'Navegação', 'href' => 'bi/navegacao', 'file' => 'bi_navegacao.php'],
         ['label' => 'Consolidado', 'href' => 'bi/consolidado', 'file' => 'ConsolidadoGestaoBI.php'],
         ['label' => 'Consolidado Cards', 'href' => 'bi/consolidado-cards', 'file' => 'ConsolidadoGestaoCardsBI.php'],
         ['label' => 'Indicadores BI', 'href' => 'bi/indicadores', 'file' => 'Indicadores.php'],
@@ -219,6 +218,25 @@ if (!in_array($currentPage, $flatPages, true) && !$matchedByHref) {
 .bi-section-tab:hover {
     border-color: #3b6b95;
     color: #2d4f6c;
+}
+
+.bi-section-tab.bi-section-tab-nav {
+    background: linear-gradient(135deg, #5a79ff, #3c56d6);
+    border-color: rgba(77, 104, 228, 0.9);
+    color: #ffffff;
+    box-shadow: 0 6px 14px rgba(73, 99, 221, 0.25);
+}
+
+.bi-section-tab.bi-section-tab-nav:hover {
+    border-color: rgba(52, 82, 196, 0.95);
+    color: #ffffff;
+}
+
+.bi-section-tab.bi-section-tab-nav.is-active {
+    background: linear-gradient(135deg, #4b5fd6, #2c3fb6);
+    border-color: rgba(51, 69, 176, 0.95);
+    color: #ffffff;
+    box-shadow: 0 6px 14px rgba(45, 63, 170, 0.3);
 }
 
 .bi-section-tab.is-active {
@@ -577,6 +595,14 @@ $activeItems = $biSections[$activeSection] ?? [];
         </select>
     </div>
     <div class="bi-section-tabs" data-section="<?= htmlspecialchars($activeSectionSlug, ENT_QUOTES, 'UTF-8') ?>">
+        <?php
+        $navUrl = $BASE_URL . 'bi/navegacao';
+        $navActive = $currentPage === 'bi_navegacao.php' || trim((string) $currentPath, '/') === 'bi/navegacao';
+        ?>
+        <a class="bi-section-tab bi-section-tab-nav <?= $navActive ? 'is-active' : '' ?>"
+            href="<?= htmlspecialchars($navUrl, ENT_QUOTES, 'UTF-8') ?>">
+            Navegação
+        </a>
         <?php foreach ($biSections as $section => $items): ?>
         <?php
         $sectionName = $sectionDisplay[$section] ?? $section;

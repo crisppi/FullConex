@@ -148,7 +148,10 @@ $longRows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
                 <?php endforeach; ?>
             </select>
         </div>
-        <div class="bi-actions"></div>
+        <div class="bi-actions">
+            <button class="bi-btn" type="submit">Aplicar</button>
+            <button class="bi-btn bi-btn-secondary bi-btn-reset" type="button" onclick="window.location.href=window.location.pathname;">Limpar</button>
+        </div>
     </form>
 
     <div class="bi-panel">

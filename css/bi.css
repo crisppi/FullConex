@@ -725,6 +725,10 @@ button.bi-filter-pill.active {
   min-height: 340px;
 }
 
+.bi-chart.compact {
+  min-height: 240px;
+}
+
 .bi-table {
   width: 100%;
   color: var(--bi-text);
@@ -861,6 +865,7 @@ table.bi-table::after,
   font-size: 1.3rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  color: #ffffff;
 }
 
 .bi-obitos-header p {
@@ -870,16 +875,31 @@ table.bi-table::after,
 
 .bi-obitos-filters {
   margin-top: 12px;
-  background: rgba(9, 20, 40, 0.18);
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  padding: 14px;
+  background: transparent;
+  border-radius: 0;
+  border: none;
+  padding: 0;
 }
 
 .bi-obitos-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px;
+}
+
+.bi-obitos-grid .bi-obitos-action {
+  align-self: end;
+}
+
+.bi-obitos-grid .bi-obitos-action-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-start;
+}
+
+.bi-obitos-grid .bi-obitos-action .bi-btn {
+  width: auto;
+  min-width: 120px;
 }
 
 .bi-obitos-actions {
@@ -904,6 +924,7 @@ table.bi-table::after,
 .kpi-obitos {
   gap: 18px;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  justify-items: stretch;
 }
 
 .kpi-obitos .bi-kpi {
@@ -911,6 +932,10 @@ table.bi-table::after,
   padding: 12px 16px;
   color: #f5f8ff;
   border: none;
+}
+
+.kpi-obitos .bi-kpi.kpi-compact {
+  max-width: none;
 }
 
 .kpi-obitos .bi-kpi small {
@@ -922,8 +947,13 @@ table.bi-table::after,
   background: linear-gradient(135deg, #5b6dff, #3537b6);
 }
 
-.kpi-obitos {
+.bi-kpis.kpi-obitos {
+  background: transparent;
+}
+
+.bi-kpi.kpi-obitos {
   background: linear-gradient(135deg, #d06b86, #923451);
+  border: none;
 }
 
 .kpi-altas {
@@ -960,4 +990,73 @@ table.bi-table::after,
   transform: translateY(-2px);
   box-shadow: 0 10px 18px rgba(3, 32, 54, 0.28);
   color: #ffffff;
+}
+
+.bi-nav-group {
+  margin-top: 16px;
+}
+
+.bi-nav-group-title {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(231, 242, 255, 0.85);
+  margin: 6px 4px 10px;
+  font-weight: 700;
+}
+
+.bi-nav-group .bi-nav-card {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bi-nav-group[data-theme="resumo"] .bi-nav-card {
+  background: linear-gradient(135deg, #2c8ed6, #1b5ea6);
+}
+
+.bi-nav-group[data-theme="clinico"] .bi-nav-card {
+  background: linear-gradient(135deg, #18a2b7, #0c6f8b);
+}
+
+.bi-nav-group[data-theme="auditoria"] .bi-nav-card {
+  background: linear-gradient(135deg, #6b78ff, #4047c8);
+}
+
+.bi-nav-group[data-theme="operacional"] .bi-nav-card {
+  background: linear-gradient(135deg, #1aa3a3, #0c6b6b);
+}
+
+.bi-nav-group[data-theme="rede"] .bi-nav-card {
+  background: linear-gradient(135deg, #4b8bd9, #2a5ea8);
+}
+
+.bi-nav-group[data-theme="financeiro"] .bi-nav-card {
+  background: linear-gradient(135deg, #2f8f7f, #1a5f58);
+}
+
+.bi-nav-group[data-theme="gastos"] .bi-nav-card {
+  background: linear-gradient(135deg, #d08a3a, #8f4f16);
+}
+
+.bi-nav-group[data-theme="anomalias"] .bi-nav-card {
+  background: linear-gradient(135deg, #c45b6b, #8a3041);
+}
+
+.bi-nav-group[data-theme="conformidade"] .bi-nav-card {
+  background: linear-gradient(135deg, #8a6bd9, #5a3fb5);
+}
+
+.bi-nav-group[data-theme="risco"] .bi-nav-card {
+  background: linear-gradient(135deg, #e07a3f, #b24c1b);
+}
+
+.bi-nav-group[data-theme="negociacao"] .bi-nav-card {
+  background: linear-gradient(135deg, #3b78c7, #274a8f);
+}
+
+.bi-nav-group[data-theme="qualidade"] .bi-nav-card {
+  background: linear-gradient(135deg, #2ea083, #1a6a58);
+}
+
+.bi-nav-group[data-theme="inteligencia"] .bi-nav-card {
+  background: linear-gradient(135deg, #5b6de3, #3340a8);
 }

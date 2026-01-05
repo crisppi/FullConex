@@ -129,7 +129,9 @@ $readmRows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
 <link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260111">
 <script src="<?= $BASE_URL ?>js/bi.js?v=20260111"></script>
-<script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));</script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));
+</script>
 
 <div class="bi-wrapper bi-theme">
     <div class="bi-header">
@@ -170,7 +172,9 @@ $readmRows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
                 <?php endforeach; ?>
             </select>
         </div>
-        <div class="bi-actions"></div>
+        <div class="bi-actions">
+            <button class="bi-btn" type="submit">Aplicar</button>
+        </div>
     </form>
 
     <div class="bi-panel">
@@ -188,7 +192,9 @@ $readmRows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
                 </thead>
                 <tbody>
                     <?php if (!$outliers): ?>
-                        <tr><td colspan="5">Sem informações</td></tr>
+                        <tr>
+                            <td colspan="5">Sem informações</td>
+                        </tr>
                     <?php else: ?>
                         <?php foreach ($outliers as $row): ?>
                             <tr>
@@ -217,7 +223,9 @@ $readmRows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
                 </thead>
                 <tbody>
                     <?php if (!$readmRows): ?>
-                        <tr><td colspan="2">Sem informações</td></tr>
+                        <tr>
+                            <td colspan="2">Sem informações</td>
+                        </tr>
                     <?php else: ?>
                         <?php foreach ($readmRows as $row): ?>
                             <tr>

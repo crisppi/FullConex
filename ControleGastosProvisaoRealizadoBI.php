@@ -77,7 +77,7 @@ foreach ($rows as $row) {
     $series['valor_apresentado'][$m] = (float)($row['valor_apresentado'] ?? 0);
     $series['valor_final'][$m] = (float)($row['valor_final'] ?? 0);
 }
-$labels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+$labels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 $totalApresentado = array_sum($series['valor_apresentado']);
 $totalFinal = array_sum($series['valor_final']);
 $desvio = $totalApresentado > 0 ? (($totalApresentado - $totalFinal) / $totalApresentado) * 100 : 0;
@@ -86,7 +86,9 @@ $desvio = $totalApresentado > 0 ? (($totalApresentado - $totalFinal) / $totalApr
 <link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260111">
 <script src="diversos/chartjs/Chart.min.js"></script>
 <script src="<?= $BASE_URL ?>js/bi.js?v=20260111"></script>
-<script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));</script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));
+</script>
 
 <div class="bi-wrapper bi-theme">
     <div class="bi-header">
@@ -129,7 +131,9 @@ $desvio = $totalApresentado > 0 ? (($totalApresentado - $totalFinal) / $totalApr
                 <?php endforeach; ?>
             </select>
         </div>
-        <div class="bi-actions"></div>
+        <div class="bi-actions">
+            <button class="bi-btn" type="submit">Aplicar</button>
+        </div>
     </form>
 
     <div class="bi-kpis kpi-compact kpi-tight kpi-slim">
@@ -154,38 +158,39 @@ $desvio = $totalApresentado > 0 ? (($totalApresentado - $totalFinal) / $totalApr
 </div>
 
 <script>
-const provLabels = <?= json_encode($labels) ?>;
-const provApresentado = <?= json_encode(array_values($series['valor_apresentado'])) ?>;
-const provFinal = <?= json_encode(array_values($series['valor_final'])) ?>;
-new Chart(document.getElementById('chartProvisao'), {
-  type: 'line',
-  data: {
-    labels: provLabels,
-    datasets: [
-      {
-        label: 'Provisão',
-        data: provApresentado,
-        borderColor: 'rgba(255, 209, 102, 0.9)',
-        backgroundColor: 'rgba(255, 209, 102, 0.2)',
-        fill: true
-      },
-      {
-        label: 'Realizado',
-        data: provFinal,
-        borderColor: 'rgba(126,150,255,0.95)',
-        backgroundColor: 'rgba(126,150,255,0.25)',
-        fill: true
-      }
-    ]
-  },
-  options: {
-    scales: biChartScales(),
-    legend: biLegendWhite,
-    tooltips: {
-      callbacks: { label: (item) => biMoneyTick(item.yLabel) }
-    }
-  }
-});
+    const provLabels = <?= json_encode($labels) ?>;
+    const provApresentado = <?= json_encode(array_values($series['valor_apresentado'])) ?>;
+    const provFinal = <?= json_encode(array_values($series['valor_final'])) ?>;
+    new Chart(document.getElementById('chartProvisao'), {
+        type: 'line',
+        data: {
+            labels: provLabels,
+            datasets: [{
+                    label: 'Provisão',
+                    data: provApresentado,
+                    borderColor: 'rgba(255, 209, 102, 0.9)',
+                    backgroundColor: 'rgba(255, 209, 102, 0.2)',
+                    fill: true
+                },
+                {
+                    label: 'Realizado',
+                    data: provFinal,
+                    borderColor: 'rgba(126,150,255,0.95)',
+                    backgroundColor: 'rgba(126,150,255,0.25)',
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            scales: biChartScales(),
+            legend: biLegendWhite,
+            tooltips: {
+                callbacks: {
+                    label: (item) => biMoneyTick(item.yLabel)
+                }
+            }
+        }
+    });
 </script>
 
 <?php require_once("templates/footer.php"); ?>

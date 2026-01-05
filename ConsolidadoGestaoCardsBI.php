@@ -61,6 +61,9 @@ $antecedentes = $conn->query("SELECT id_antecedente, antecedente_ant FROM tb_ant
     ->fetchAll(PDO::FETCH_ASSOC);
 $anos = $conn->query("SELECT DISTINCT YEAR(data_intern_int) AS ano FROM tb_internacao WHERE data_intern_int IS NOT NULL AND data_intern_int <> '0000-00-00' ORDER BY ano DESC")
     ->fetchAll(PDO::FETCH_COLUMN);
+if (!filter_has_var(INPUT_GET, 'ano') && $anos) {
+    $ano = (int)$anos[0];
+}
 
 $faixasEtarias = [
     '0-19' => '0-19',

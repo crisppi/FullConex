@@ -88,7 +88,9 @@ $mpUtiVals = array_map(fn($r) => ($r['internacoes_uti'] ?? 0) > 0 ? round($r['to
 <link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260111">
 <script src="diversos/chartjs/Chart.min.js"></script>
 <script src="<?= $BASE_URL ?>js/bi.js?v=20260111"></script>
-<script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));</script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));
+</script>
 
 <div class="bi-wrapper bi-theme">
     <div class="bi-header">
@@ -105,7 +107,9 @@ $mpUtiVals = array_map(fn($r) => ($r['internacoes_uti'] ?? 0) > 0 ? round($r['to
             <label>Data Internação (fim)</label>
             <input type="date" name="data_fim" value="<?= e($endDate) ?>">
         </div>
-        <div class="bi-actions"></div>
+        <div class="bi-actions">
+            <button class="bi-btn" type="submit">Aplicar</button>
+        </div>
     </form>
 
     <div class="bi-grid fixed-2">
@@ -152,7 +156,9 @@ $mpUtiVals = array_map(fn($r) => ($r['internacoes_uti'] ?? 0) > 0 ? round($r['to
                 </thead>
                 <tbody>
                     <?php if (!$rows): ?>
-                        <tr><td colspan="7">Sem informações</td></tr>
+                        <tr>
+                            <td colspan="7">Sem informações</td>
+                        </tr>
                     <?php else: ?>
                         <?php foreach ($rows as $row): ?>
                             <?php
@@ -179,39 +185,45 @@ $mpUtiVals = array_map(fn($r) => ($r['internacoes_uti'] ?? 0) > 0 ? round($r['to
 </div>
 
 <script>
-const rankLabels = <?= json_encode($labels) ?>;
-const sinistroVals = <?= json_encode($sinistroVals) ?>;
-const diariasVals = <?= json_encode($diariasVals) ?>;
-const internacoesVals = <?= json_encode($internacoesVals) ?>;
-const mpVals = <?= json_encode($mpVals) ?>;
-const utiVals = <?= json_encode($utiVals) ?>;
-const mpUtiVals = <?= json_encode($mpUtiVals) ?>;
+    const rankLabels = <?= json_encode($labels) ?>;
+    const sinistroVals = <?= json_encode($sinistroVals) ?>;
+    const diariasVals = <?= json_encode($diariasVals) ?>;
+    const internacoesVals = <?= json_encode($internacoesVals) ?>;
+    const mpVals = <?= json_encode($mpVals) ?>;
+    const utiVals = <?= json_encode($utiVals) ?>;
+    const mpUtiVals = <?= json_encode($mpUtiVals) ?>;
 
-function buildBar(id, data, color, money) {
-  new Chart(document.getElementById(id), {
-    type: 'bar',
-    data: {
-      labels: rankLabels,
-      datasets: [{ data: data, backgroundColor: color, borderRadius: 8 }]
-    },
-    options: {
-      legend: { display: false },
-      scales: biChartScales(),
-      tooltips: {
-        callbacks: {
-          label: (item) => money ? biMoneyTick(item.yLabel) : item.yLabel
-        }
-      }
+    function buildBar(id, data, color, money) {
+        new Chart(document.getElementById(id), {
+            type: 'bar',
+            data: {
+                labels: rankLabels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: color,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                legend: {
+                    display: false
+                },
+                scales: biChartScales(),
+                tooltips: {
+                    callbacks: {
+                        label: (item) => money ? biMoneyTick(item.yLabel) : item.yLabel
+                    }
+                }
+            }
+        });
     }
-  });
-}
 
-buildBar('chartSinistro', sinistroVals, 'rgba(126,150,255,0.8)', true);
-buildBar('chartDiarias', diariasVals, 'rgba(99, 197, 185, 0.8)', false);
-buildBar('chartInternacoes', internacoesVals, 'rgba(255, 187, 107, 0.8)', false);
-buildBar('chartMp', mpVals, 'rgba(174, 126, 255, 0.8)', false);
-buildBar('chartUti', utiVals, 'rgba(255, 140, 140, 0.8)', false);
-buildBar('chartMpUti', mpUtiVals, 'rgba(140, 209, 120, 0.8)', false);
+    buildBar('chartSinistro', sinistroVals, 'rgba(126,150,255,0.8)', true);
+    buildBar('chartDiarias', diariasVals, 'rgba(99, 197, 185, 0.8)', false);
+    buildBar('chartInternacoes', internacoesVals, 'rgba(255, 187, 107, 0.8)', false);
+    buildBar('chartMp', mpVals, 'rgba(174, 126, 255, 0.8)', false);
+    buildBar('chartUti', utiVals, 'rgba(255, 140, 140, 0.8)', false);
+    buildBar('chartMpUti', mpUtiVals, 'rgba(140, 209, 120, 0.8)', false);
 </script>
 
 <?php require_once("templates/footer.php"); ?>

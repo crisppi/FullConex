@@ -58,7 +58,9 @@ $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
 <link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260111">
 <script src="<?= $BASE_URL ?>js/bi.js?v=20260111"></script>
-<script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));</script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));
+</script>
 
 <div class="bi-wrapper bi-theme">
     <div class="bi-header">
@@ -86,7 +88,9 @@ $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
                 <?php endfor; ?>
             </select>
         </div>
-        <div class="bi-actions"></div>
+        <div class="bi-actions">
+            <button class="bi-btn" type="submit">Aplicar</button>
+        </div>
     </form>
 
     <div class="bi-panel">
@@ -103,7 +107,9 @@ $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
                 </thead>
                 <tbody>
                     <?php if (!$rows): ?>
-                        <tr><td colspan="4">Sem informações</td></tr>
+                        <tr>
+                            <td colspan="4">Sem informações</td>
+                        </tr>
                     <?php else: ?>
                         <?php foreach ($rows as $row): ?>
                             <tr>

@@ -98,7 +98,9 @@ $values = array_map(fn($r) => round((float)($r['valor_final'] ?? 0), 2), $topRow
 <link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260111">
 <script src="diversos/chartjs/Chart.min.js"></script>
 <script src="<?= $BASE_URL ?>js/bi.js?v=20260111"></script>
-<script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));</script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));
+</script>
 
 <div class="bi-wrapper bi-theme">
     <div class="bi-header">
@@ -150,7 +152,9 @@ $values = array_map(fn($r) => round((float)($r['valor_final'] ?? 0), 2), $topRow
                 <?php endforeach; ?>
             </select>
         </div>
-        <div class="bi-actions"></div>
+        <div class="bi-actions">
+            <button class="bi-btn" type="submit">Aplicar</button>
+        </div>
     </form>
 
     <div class="bi-kpis kpi-compact kpi-tight kpi-slim">
@@ -220,28 +224,32 @@ $values = array_map(fn($r) => round((float)($r['valor_final'] ?? 0), 2), $topRow
 </div>
 
 <script>
-const patLabels = <?= json_encode($labels) ?>;
-const patValues = <?= json_encode($values) ?>;
-new Chart(document.getElementById('chartPatologias'), {
-  type: 'horizontalBar',
-  data: {
-    labels: patLabels,
-    datasets: [{
-      label: 'Custo final',
-      data: patValues,
-      backgroundColor: 'rgba(126,150,255,0.8)',
-      borderRadius: 10,
-      maxBarThickness: 48
-    }]
-  },
-  options: {
-    legend: { display: false },
-    scales: biChartScales(),
-    tooltips: {
-      callbacks: { label: (item) => biMoneyTick(item.xLabel) }
-    }
-  }
-});
+    const patLabels = <?= json_encode($labels) ?>;
+    const patValues = <?= json_encode($values) ?>;
+    new Chart(document.getElementById('chartPatologias'), {
+        type: 'horizontalBar',
+        data: {
+            labels: patLabels,
+            datasets: [{
+                label: 'Custo final',
+                data: patValues,
+                backgroundColor: 'rgba(126,150,255,0.8)',
+                borderRadius: 10,
+                maxBarThickness: 48
+            }]
+        },
+        options: {
+            legend: {
+                display: false
+            },
+            scales: biChartScales(),
+            tooltips: {
+                callbacks: {
+                    label: (item) => biMoneyTick(item.xLabel)
+                }
+            }
+        }
+    });
 </script>
 
 <?php require_once("templates/footer.php"); ?>

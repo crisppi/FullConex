@@ -89,7 +89,7 @@ foreach ($rows as $row) {
     $series['valor_glosa'][$m] = (float)($row['valor_glosa'] ?? 0);
     $series['valor_final'][$m] = (float)($row['valor_final'] ?? 0);
 }
-$labels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+$labels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 $totalFinal = array_sum($series['valor_final']);
 $totalGlosa = array_sum($series['valor_glosa']);
 $totalApresentado = array_sum($series['valor_apresentado']);
@@ -98,7 +98,9 @@ $totalApresentado = array_sum($series['valor_apresentado']);
 <link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260111">
 <script src="diversos/chartjs/Chart.min.js"></script>
 <script src="<?= $BASE_URL ?>js/bi.js?v=20260111"></script>
-<script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));</script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));
+</script>
 
 <div class="bi-wrapper bi-theme">
     <div class="bi-header">
@@ -152,7 +154,9 @@ $totalApresentado = array_sum($series['valor_apresentado']);
                 <?php endforeach; ?>
             </select>
         </div>
-        <div class="bi-actions"></div>
+        <div class="bi-actions">
+            <button class="bi-btn" type="submit">Aplicar</button>
+        </div>
     </form>
 
     <div class="bi-kpis kpi-compact kpi-tight kpi-slim">
@@ -177,46 +181,47 @@ $totalApresentado = array_sum($series['valor_apresentado']);
 </div>
 
 <script>
-const trendLabels = <?= json_encode($labels) ?>;
-const serieApresentado = <?= json_encode(array_values($series['valor_apresentado'])) ?>;
-const serieGlosa = <?= json_encode(array_values($series['valor_glosa'])) ?>;
-const serieFinal = <?= json_encode(array_values($series['valor_final'])) ?>;
-new Chart(document.getElementById('chartTendencia'), {
-  type: 'line',
-  data: {
-    labels: trendLabels,
-    datasets: [
-      {
-        label: 'Apresentado',
-        data: serieApresentado,
-        borderColor: 'rgba(255, 209, 102, 0.9)',
-        backgroundColor: 'rgba(255, 209, 102, 0.2)',
-        fill: true
-      },
-      {
-        label: 'Glosa',
-        data: serieGlosa,
-        borderColor: 'rgba(255, 140, 140, 0.9)',
-        backgroundColor: 'rgba(255, 140, 140, 0.2)',
-        fill: true
-      },
-      {
-        label: 'Final',
-        data: serieFinal,
-        borderColor: 'rgba(126,150,255,0.95)',
-        backgroundColor: 'rgba(126,150,255,0.25)',
-        fill: true
-      }
-    ]
-  },
-  options: {
-    scales: biChartScales(),
-    legend: biLegendWhite,
-    tooltips: {
-      callbacks: { label: (item) => biMoneyTick(item.yLabel) }
-    }
-  }
-});
+    const trendLabels = <?= json_encode($labels) ?>;
+    const serieApresentado = <?= json_encode(array_values($series['valor_apresentado'])) ?>;
+    const serieGlosa = <?= json_encode(array_values($series['valor_glosa'])) ?>;
+    const serieFinal = <?= json_encode(array_values($series['valor_final'])) ?>;
+    new Chart(document.getElementById('chartTendencia'), {
+        type: 'line',
+        data: {
+            labels: trendLabels,
+            datasets: [{
+                    label: 'Apresentado',
+                    data: serieApresentado,
+                    borderColor: 'rgba(255, 209, 102, 0.9)',
+                    backgroundColor: 'rgba(255, 209, 102, 0.2)',
+                    fill: true
+                },
+                {
+                    label: 'Glosa',
+                    data: serieGlosa,
+                    borderColor: 'rgba(255, 140, 140, 0.9)',
+                    backgroundColor: 'rgba(255, 140, 140, 0.2)',
+                    fill: true
+                },
+                {
+                    label: 'Final',
+                    data: serieFinal,
+                    borderColor: 'rgba(126,150,255,0.95)',
+                    backgroundColor: 'rgba(126,150,255,0.25)',
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            scales: biChartScales(),
+            legend: biLegendWhite,
+            tooltips: {
+                callbacks: {
+                    label: (item) => biMoneyTick(item.yLabel)
+                }
+            }
+        }
+    });
 </script>
 
 <?php require_once("templates/footer.php"); ?>
