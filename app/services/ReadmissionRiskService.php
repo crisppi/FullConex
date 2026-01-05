@@ -4,8 +4,9 @@ class ReadmissionRiskService
 {
     private const DEFAULT_ALERT_THRESHOLD = 0.55;
     private const DEFAULT_LONG_STAY_THRESHOLD = 20;
-
-    private PDO $conn;
+    /** @var PDO */
+    private $conn;
+    private static array $columnCache = [];
 
     public function __construct(PDO $conn)
     {
@@ -80,6 +81,7 @@ class ReadmissionRiskService
 
     private function fetchInternacaoContext(int $internacaoId): ?array
     {
+        $hasDescricao = $this->hasColumn('tb_patologia', 'descricao');
         $sql = "
             SELECT 
                 ac.id_internacao,
@@ -93,7 +95,7 @@ class ReadmissionRiskService
                 TIMESTAMPDIFF(YEAR, pa.data_nasc_pac, CURDATE()) AS idade,
                 se.longa_permanencia_seg,
                 pat.patologia_pat,
-                pat.descricao AS descricao_pat,
+                " . ($hasDescricao ? "pat.descricao" : "NULL") . " AS descricao_pat,
                 GREATEST(
                     DATEDIFF(
                         COALESCE(al.data_alta_alt, CURRENT_DATE),
@@ -167,10 +169,11 @@ class ReadmissionRiskService
 
     private function eventStats(int $internacaoId): array
     {
+        $hasProlongou = $this->hasColumn('tb_gestao', 'evento_prolongou_internacao_ges');
         $sql = "
             SELECT 
                 SUM(CASE WHEN LOWER(evento_adverso_ges) = 's' THEN 1 ELSE 0 END) AS eventos,
-                SUM(CASE WHEN LOWER(evento_prolongou_internacao_ges) = 's' THEN 1 ELSE 0 END) AS prolongou
+                " . ($hasProlongou ? "SUM(CASE WHEN LOWER(evento_prolongou_internacao_ges) = 's' THEN 1 ELSE 0 END)" : "0") . " AS prolongou
             FROM tb_gestao
             WHERE fk_internacao_ges = :internacao
         ";
@@ -182,6 +185,27 @@ class ReadmissionRiskService
             'count'     => (int) ($row['eventos'] ?? 0),
             'prolongou' => (int) ($row['prolongou'] ?? 0)
         ];
+    }
+
+    private function hasColumn(string $table, string $column): bool
+    {
+        $key = $table . '.' . $column;
+        if (isset(self::$columnCache[$key])) {
+            return self::$columnCache[$key];
+        }
+        $stmt = $this->conn->prepare("
+            SELECT COUNT(*) 
+              FROM INFORMATION_SCHEMA.COLUMNS 
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = :table
+               AND COLUMN_NAME = :column
+        ");
+        $stmt->bindValue(':table', $table);
+        $stmt->bindValue(':column', $column);
+        $stmt->execute();
+        $exists = (int)$stmt->fetchColumn() > 0;
+        self::$columnCache[$key] = $exists;
+        return $exists;
     }
 
     private function ageBucket(int $age): string

@@ -133,6 +133,17 @@ $navGroups = [
         ],
     ],
     [
+        'title' => 'Risco & Prevenção',
+        'key' => 'prevencao',
+        'items' => [
+            ['label' => 'Matriz de Risco', 'href' => 'bi/risco-prevencao-matriz'],
+            ['label' => 'Preditores', 'href' => 'bi/risco-prevencao-preditores'],
+            ['label' => 'Eventos Adversos', 'href' => 'bi/risco-prevencao-eventos'],
+            ['label' => 'Desospitalização Precoce', 'href' => 'bi/risco-prevencao-desospitalizacao'],
+            ['label' => 'Score por Internação', 'href' => 'bi/risco-prevencao-score'],
+        ],
+    ],
+    [
         'title' => 'Negociação & Rede',
         'key' => 'negociacao',
         'items' => [

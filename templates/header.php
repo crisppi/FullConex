@@ -581,6 +581,10 @@ if (!empty($sessionIdUsuario)) {
                                                     class="bi bi-person-exclamation"
                                                     style="font-size: 1rem;margin-right:5px; color:#ffd36e;"></i>
                                                 Segmentação de Risco</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/risco-prevencao-matriz"><i
+                                                    class="bi bi-shield-exclamation"
+                                                    style="font-size: 1rem;margin-right:5px; color:#ff7b7b;"></i>
+                                                Risco &amp; Prevenção</a></li>
                                         <li><a class="dropdown-item" href="<?= $BASE_URL ?>bi/rede-volume-custo"><i
                                                     class="bi bi-bar-chart-line"
                                                     style="font-size: 1rem;margin-right:5px; color:#72d2ff;"></i>

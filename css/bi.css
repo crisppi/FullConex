@@ -1049,6 +1049,10 @@ table.bi-table::after,
   background: linear-gradient(135deg, #e07a3f, #b24c1b);
 }
 
+.bi-nav-group[data-theme="prevencao"] .bi-nav-card {
+  background: linear-gradient(135deg, #ff6b6b, #c43d3d);
+}
+
 .bi-nav-group[data-theme="negociacao"] .bi-nav-card {
   background: linear-gradient(135deg, #3b78c7, #274a8f);
 }

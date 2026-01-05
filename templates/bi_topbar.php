@@ -88,6 +88,13 @@ $biSections = [
         ['label' => 'Risco Readmissão', 'href' => 'bi/risco-readmissao', 'file' => 'RiscoReadmissaoBI.php'],
         ['label' => 'Casos Caros Previsíveis', 'href' => 'bi/risco-casos-caros', 'file' => 'RiscoCasosCarosBI.php'],
     ],
+    'Risco & Prevenção' => [
+        ['label' => 'Matriz de Risco', 'href' => 'bi/risco-prevencao-matriz', 'file' => 'RiscoPrevencaoMatrizBI.php'],
+        ['label' => 'Preditores', 'href' => 'bi/risco-prevencao-preditores', 'file' => 'RiscoPrevencaoPreditoresBI.php'],
+        ['label' => 'Eventos Adversos', 'href' => 'bi/risco-prevencao-eventos', 'file' => 'RiscoPrevencaoEventosBI.php'],
+        ['label' => 'Desospitalização Precoce', 'href' => 'bi/risco-prevencao-desospitalizacao', 'file' => 'RiscoPrevencaoDesospitalizacaoBI.php'],
+        ['label' => 'Score por Internação', 'href' => 'bi/risco-prevencao-score', 'file' => 'RiscoPrevencaoScoreBI.php'],
+    ],
     'Negociação & Rede' => [
         ['label' => 'Volume vs Custo', 'href' => 'bi/rede-volume-custo', 'file' => 'RedeVolumeCustoBI.php'],
         ['label' => 'Mix de Casos', 'href' => 'bi/rede-mix-casos', 'file' => 'RedeMixCasosBI.php'],
@@ -304,6 +311,12 @@ if (!in_array($currentPage, $flatPages, true) && !$matchedByHref) {
     background: linear-gradient(135deg, #ffd36e, #d69a3a);
     border-color: rgba(215, 160, 70, 0.9);
     color: #2c1b05;
+}
+
+.bi-section-tabs[data-section="prevencao"] .bi-section-tab.is-active {
+    background: linear-gradient(135deg, #ff6b6b, #c43d3d);
+    border-color: rgba(190, 70, 70, 0.9);
+    color: #2a0c0c;
 }
 
 .bi-section-tabs[data-section="negociacao"] .bi-section-tab.is-active {
@@ -546,6 +559,7 @@ $sectionDisplay = [
     'Auditoria' => 'Auditoria',
     'Conformidade & Auditoria' => 'Conformidade & Auditoria',
     'Segmentação de Risco' => 'Segmentação de Risco',
+    'Risco & Prevenção' => 'Risco & Prevenção',
     'Negociação & Rede' => 'Negociação & Rede',
     'Qualidade & Desfecho' => 'Qualidade & Desfecho',
 ];
@@ -560,6 +574,7 @@ $sectionSlugMap = [
     'Anomalias & Fraude' => 'anomalias',
     'Conformidade & Auditoria' => 'conformidade',
     'Segmentação de Risco' => 'risco',
+    'Risco & Prevenção' => 'prevencao',
     'Negociação & Rede' => 'negociacao',
     'Qualidade & Desfecho' => 'qualidade',
 ];
