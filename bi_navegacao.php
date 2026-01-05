@@ -157,7 +157,7 @@ $navGroups = [
         'key' => 'qualidade',
         'items' => [
             ['label' => 'Eventos Adversos', 'href' => 'bi/qualidade-eventos'],
-            ['label' => 'Óbitos', 'href' => 'bi/qualidade-obitos'],
+            ['label' => 'Óbitos', 'href' => 'QualidadeObitosBI.php'],
         ],
     ],
     [

@@ -102,7 +102,7 @@ $biSections = [
     ],
     'Qualidade & Desfecho' => [
         ['label' => 'Eventos Adversos', 'href' => 'bi/qualidade-eventos', 'file' => 'QualidadeEventosBI.php'],
-        ['label' => 'Óbitos', 'href' => 'bi/qualidade-obitos', 'file' => 'QualidadeObitosBI.php'],
+        ['label' => 'Óbitos', 'href' => 'QualidadeObitosBI.php', 'file' => 'QualidadeObitosBI.php'],
     ],
 ];
 
