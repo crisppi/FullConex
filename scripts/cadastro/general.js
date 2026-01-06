@@ -297,7 +297,6 @@ function openModalPat(page) {
         type: 'GET',
         dataType: 'html',
         success: function (data) {
-            // Crie um elemento temporário para armazenar a resposta HTML
             var tempElement = document.createElement('div');
             tempElement.innerHTML = data;
 
@@ -315,7 +314,6 @@ function openModalPat(page) {
         }
     });
 }
-
 
 // ajax para navegacao 
 function openModalAnt(page) {
@@ -366,5 +364,3 @@ function loadContent(url) {
         }
     });
 }
-
-

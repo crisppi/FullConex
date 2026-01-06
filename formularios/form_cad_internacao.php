@@ -2337,6 +2337,15 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                     }, 3500);
                     return;
                 }
+                if (resposta === 'hospital_required') {
+                    $('#alert').removeClass("alert-success").addClass("alert-danger");
+                    $('#alert').fadeIn().html("<b>Erro:</b> Selecione o Hospital antes de salvar.");
+                    $("#hospital_selected").css("border", "2px solid red");
+                    setTimeout(function() {
+                        $('#alert').fadeOut('Slow');
+                    }, 3000);
+                    return;
+                }
 
                 if (resposta === '0') {
                     $('#alert').removeClass("alert-success").addClass("alert-danger");

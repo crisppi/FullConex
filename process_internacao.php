@@ -45,11 +45,11 @@ require_once("models/alta.php");
 require_once("dao/altaDao.php");
 
 if (!function_exists('normalizeDateTimeInput')) {
-    function normalizeDateTimeInput($value)
-    {
-        if ($value === null) return null;
-        $value = trim((string)$value);
-        if ($value === '') return null;
+function normalizeDateTimeInput($value)
+{
+    if ($value === null) return null;
+    $value = trim((string)$value);
+    if ($value === '') return null;
         $formats = [
             ['fmt' => 'Y-m-d\\TH:i:s', 'has_time' => true],
             ['fmt' => 'Y-m-d\\TH:i',   'has_time' => true],
@@ -71,6 +71,17 @@ if (!function_exists('normalizeDateTimeInput')) {
         }
         $ts = strtotime($value);
         return $ts ? date('Y-m-d H:i:s', $ts) : null;
+    }
+}
+
+if (!function_exists('limitInputLength')) {
+    function limitInputLength($value, int $length)
+    {
+        if ($value === null) {
+            return null;
+        }
+        $value = (string)$value;
+        return substr($value, 0, $length);
     }
 }
 
@@ -103,6 +114,10 @@ if ($type === "create") {
 
     // Receber os dados dos inputs
     $fk_hospital_int = filter_input(INPUT_POST, "fk_hospital_int");
+    if (!$fk_hospital_int) {
+        echo "hospital_required";
+        exit;
+    }
     $fk_paciente_int = filter_input(INPUT_POST, "fk_paciente_int");
     $fk_patologia_int = filter_input(INPUT_POST, "fk_patologia_int") ?: 1;
     $fk_cid_int = filter_input(INPUT_POST, "fk_cid_int") ?: 1;
@@ -136,13 +151,13 @@ if ($type === "create") {
     $acomodacao_int = filter_input(INPUT_POST, "acomodacao_int");
 
     $acoes_int = filter_input(INPUT_POST, "acoes_int");
-    $acoes_int = substr($acoes_int, 0, 5000);
+    $acoes_int = limitInputLength($acoes_int, 5000);
 
     $rel_int = filter_input(INPUT_POST, "rel_int") ?: null;
-    $rel_int = substr($rel_int, 0, 5000);
+    $rel_int = limitInputLength($rel_int, 5000);
 
     $programacao_int = filter_input(INPUT_POST, "programacao_int");
-    $programacao_int = substr($programacao_int, 0, 5000);
+    $programacao_int = limitInputLength($programacao_int, 5000);
     $timer_int_raw = filter_input(INPUT_POST, "timer_int", FILTER_VALIDATE_INT);
     $timer_int = ($timer_int_raw !== false && $timer_int_raw !== null) ? max(0, $timer_int_raw) : null;
 
@@ -190,9 +205,9 @@ if ($type === "create") {
     $oxigenio_hiperbarica_det = filter_input(INPUT_POST, "oxigenio_hiperbarica_det");
     $hemoderivados_det = filter_input(INPUT_POST, "hemoderivados_det");
     $dialise_det = filter_input(INPUT_POST, "dialise_det");
-    $exames_det = substr($exames_det, 0, 5000);
+    $exames_det = limitInputLength($exames_det, 5000);
     $oportunidades_det = filter_input(INPUT_POST, "oportunidades_det");
-    $oportunidades_det = substr($oportunidades_det, 0, 5000);
+    $oportunidades_det = limitInputLength($oportunidades_det, 5000);
     $tqt_det = filter_input(INPUT_POST, "tqt_det");
     $svd_det = filter_input(INPUT_POST, "svd_det");
     $gtt_det = filter_input(INPUT_POST, "gtt_det");
@@ -213,7 +228,7 @@ if ($type === "create") {
     $rel_alto_custo_ges = filter_input(INPUT_POST, "rel_alto_custo_ges");
     $rel_alto_custo_ges = str_replace(['*', '#', 'drop', 'select', 'delete'], '', $rel_alto_custo_ges);
     $rel_alto_custo_ges = str_replace(['*', '#'], '', $rel_alto_custo_ges);
-    $rel_alto_custo_ges = substr($rel_alto_custo_ges, 0, 5000);
+    $rel_alto_custo_ges = limitInputLength($rel_alto_custo_ges, 5000);
     $opme_ges = filter_input(INPUT_POST, "opme_ges");
     $rel_opme_ges = filter_input(INPUT_POST, "rel_opme_ges");
     $home_care_ges = filter_input(INPUT_POST, "home_care_ges");
@@ -632,6 +647,10 @@ if ($type === "create") {
 if ($type == "update") {
     // Receber os dados dos inputs
     $fk_hospital_int = filter_input(INPUT_POST, "fk_hospital_int");
+    if (!$fk_hospital_int) {
+        echo "hospital_required";
+        exit;
+    }
     $fk_paciente_int = filter_input(INPUT_POST, "fk_paciente_int");
     $fk_patologia_int = filter_input(INPUT_POST, "fk_patologia_int") ?: 1;
     $fk_cid_int = filter_input(INPUT_POST, "fk_cid_int") ?: 1;
@@ -646,13 +665,13 @@ if ($type == "update") {
     $crm_int = filter_input(INPUT_POST, "crm_int");
     $acomodacao_int = filter_input(INPUT_POST, "acomodacao_int");
     $acoes_int = filter_input(INPUT_POST, "acoes_int");
-    $acoes_int = substr($acoes_int, 0, 5000);
+    $acoes_int = limitInputLength($acoes_int, 5000);
 
     $rel_int = filter_input(INPUT_POST, "rel_int");
-    $rel_int = substr($rel_int, 0, 5000);
+    $rel_int = limitInputLength($rel_int, 5000);
 
     $programacao_int = filter_input(INPUT_POST, "programacao_int");
-    $programacao_int = substr($programacao_int, 0, 5000);
+    $programacao_int = limitInputLength($programacao_int, 5000);
 
     $senha_int = filter_input(INPUT_POST, "senha_int");
     $usuario_create_int = filter_input(INPUT_POST, "usuario_create_int");

@@ -279,12 +279,28 @@ $indicadoresPaciente['eventos_adversos'] = (int)$stmtEventos->fetchColumn();
   // Mantém valores padrão silenciosamente
 }
 
-if (empty($riskOverview['available'])) {
+if (!isset($riskOverview) || empty($riskOverview['available'])) {
   $fallback = fallbackRiskFromIndicadores($p, $indicadoresPaciente);
   if ($fallback) {
     $riskOverview = $fallback;
+  } else {
+    $riskOverview = ['risk_level' => 'baixo', 'probability' => 0, 'threshold' => 0.55, 'available' => false];
   }
 }
+
+$riskLevel = strtolower((string)($riskOverview['risk_level'] ?? 'baixo'));
+$riskColor = [
+  'alto' => ['bg' => '#ffe0e3', 'border' => '#c9184a', 'text' => '#5a071d'],
+  'moderado' => ['bg' => '#fff5d6', 'border' => '#f0a500', 'text' => '#6a4900'],
+  'baixo' => ['bg' => '#e6fff4', 'border' => '#0f8f5d', 'text' => '#065238']
+];
+$complexMap = [
+  'alto' => ['label' => 'Alta complexidade', 'prioridade' => 'Visita prioritária (<24h)'],
+  'moderado' => ['label' => 'Complexidade intermediária', 'prioridade' => 'Reforçar visita / contato'],
+  'baixo' => ['label' => 'Baixa complexidade', 'prioridade' => 'Rotina usual']
+];
+
+$effectiveLevel = isset($riskColor[$riskLevel]) ? $riskLevel : 'baixo';
 ?>
 <!-- Você já tem Bootstrap do header.php. Aqui só estrutura da página -->
 
@@ -332,9 +348,9 @@ if (empty($riskOverview['available'])) {
           </div>
           <?php if (!empty($riskOverview['available'])): ?>
             <?php
-              $badgePalette = $riskColor[$riskLevel ?: 'baixo'];
-              $badgeInfo = $complexMap[$riskLevel ?: 'baixo'];
-            ?>
+        $badgePalette = $riskColor[$effectiveLevel];
+        $badgeInfo = $complexMap[$effectiveLevel];
+      ?>
             <div class="mt-2">
               <span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:.8rem;font-weight:600;background:<?= $badgePalette['bg'] ?>;color:<?= $badgePalette['text'] ?>;border:1px solid <?= $badgePalette['border'] ?>;">
                 <i class="fa-solid fa-bolt"></i>
@@ -358,24 +374,13 @@ if (empty($riskOverview['available'])) {
 </div>
 
 <?php
-$riskLevel = strtolower((string)($riskOverview['risk_level'] ?? ''));
-$riskColor = [
-  'alto' => ['bg' => '#ffe0e3', 'border' => '#c9184a', 'text' => '#5a071d'],
-  'moderado' => ['bg' => '#fff5d6', 'border' => '#f0a500', 'text' => '#6a4900'],
-  'baixo' => ['bg' => '#e6fff4', 'border' => '#0f8f5d', 'text' => '#065238']
-];
-$palette = $riskColor[$riskLevel ?: 'baixo'];
+$palette = $riskColor[$effectiveLevel];
 $probPct = number_format((float)($riskOverview['probability'] ?? 0) * 100, 1, ',', '.');
 $thresholdPct = number_format((float)($riskOverview['threshold'] ?? 0.55) * 100, 0);
 $ultimaInternFmt = $indicadoresPaciente['ultima_internacao']
   ? formatDateBr($indicadoresPaciente['ultima_internacao'])
   : '—';
-$complexMap = [
-  'alto' => ['label' => 'Alta complexidade', 'prioridade' => 'Visita prioritária (<24h)'],
-  'moderado' => ['label' => 'Complexidade intermediária', 'prioridade' => 'Reforçar visita / contato'],
-  'baixo' => ['label' => 'Baixa complexidade', 'prioridade' => 'Rotina usual']
-];
-$complexInfo = $complexMap[$riskLevel ?: 'baixo'];
+$complexInfo = $complexMap[$effectiveLevel];
 ?>
 
 <div class="row g-3 mb-3">
@@ -493,11 +498,9 @@ $complexInfo = $complexMap[$riskLevel ?: 'baixo'];
                 <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
                 <input id="buscaInternacoes" type="text" class="form-control" placeholder="Filtrar...">
               </div>
-              <button class="btn btn-sm btn-primary"
-                data-bs-toggle="modal" data-bs-target="#hubModal"
-                onclick="openModal('<?= $BASE_URL ?>cad_internacao.php?id_paciente=<?= (int)$p['id_paciente'] ?>')">
+              <a class="btn btn-sm btn-primary" href="<?= $BASE_URL ?>cad_internacao.php?id_paciente=<?= (int)$p['id_paciente'] ?>">
                 <i class="fa-solid fa-plus me-1"></i> Nova Internação
-              </button>
+              </a>
             </div>
           </div>
 
