@@ -1176,7 +1176,7 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
 
                         <!-- Relatório / Evolução -->
                         <input class="btn-check" type="checkbox" name="colsIntern[]" value="relatorio"
-                            id="campo_relatorio" autocomplete="off">
+                            id="campo_relatorio" autocomplete="off" checked>
                         <label class="btn btn-sm rounded-pill export-pill" for="campo_relatorio">
                             Relatório / Evolução
                         </label>
@@ -1211,21 +1211,21 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
 
                         <!-- Nome do profissional -->
                         <input class="btn-check" type="checkbox" name="colsIntern[]" value="profissional"
-                            id="campo_profissional" autocomplete="off">
+                            id="campo_profissional" autocomplete="off" checked>
                         <label class="btn btn-sm rounded-pill export-pill" for="campo_profissional">
                             Nome do profissional
                         </label>
 
                         <!-- Cargo do profissional -->
                         <input class="btn-check" type="checkbox" name="colsIntern[]" value="profissional_cargo"
-                            id="campo_profissional_cargo" autocomplete="off">
+                            id="campo_profissional_cargo" autocomplete="off" checked>
                         <label class="btn btn-sm rounded-pill export-pill" for="campo_profissional_cargo">
                             Cargo do profissional
                         </label>
 
                         <!-- Registro do profissional -->
                         <input class="btn-check" type="checkbox" name="colsIntern[]" value="profissional_registro"
-                            id="campo_profissional_registro" autocomplete="off">
+                            id="campo_profissional_registro" autocomplete="off" checked>
                         <label class="btn btn-sm rounded-pill export-pill" for="campo_profissional_registro">
                             Registro profissional
                         </label>

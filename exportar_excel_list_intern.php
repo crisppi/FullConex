@@ -529,6 +529,30 @@ if ($lastDataRow >= $headerRow) {
     $sheet->getStyle($allCells)->applyFromArray($borderStyle);
 }
 
+// --------- Ajustes de layout para colunas grandes ----------
+$specialColumns = [
+    'relatorio'              => 55, // aproximadamente 400px
+    'ultima_visita_medico'   => 55,
+];
+
+foreach ($specialColumns as $key => $width) {
+    $col = $colLetters[$key] ?? null;
+    if (!$col) {
+        continue;
+    }
+
+    $dim = $sheet->getColumnDimension($col);
+    $dim->setAutoSize(false);
+    $dim->setWidth($width);
+
+    if ($lastDataRow >= $headerRow) {
+        $range = $col . $headerRow . ':' . $col . $lastDataRow;
+        $sheet->getStyle($range)
+            ->getAlignment()
+            ->setWrapText(true);
+    }
+}
+
 // -----------------------------------------------------
 // 8) Download
 // -----------------------------------------------------
