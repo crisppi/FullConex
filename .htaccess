@@ -1,5 +1,10 @@
 RewriteEngine On
 
+# Force HTTPS except on localhost/local IP (development)
+RewriteCond %{HTTPS} off
+RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)$ [NC]
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
 # BI friendly URLs
 RewriteRule ^bi/?$ bi_navegacao.php [L,QSA]
 RewriteRule ^bi/navegacao/?$ bi_navegacao.php [L,QSA]
