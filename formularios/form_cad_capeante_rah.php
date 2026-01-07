@@ -1354,6 +1354,24 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
             </div>
         </div>
     </div>
+
+    <!-- Modal de período conflitante -->
+    <div class="modal fade" id="modalPeriodoConflito" tabindex="-1" aria-labelledby="modalPeriodoConflitoLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalPeriodoConflitoLabel">Período inválido</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0">Período em conflito com capeantes anteriores.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </form>
 
 <style>
@@ -1386,7 +1404,10 @@ $listaParciaisData = base64_encode(json_encode($parciaisLista ?? [], JSON_UNESCA
 ?>
 <div id="prevParcialData"
     data-prev-parcial="<?= htmlspecialchars($prevParcialData, ENT_QUOTES, 'UTF-8') ?>"
-    data-parciais="<?= htmlspecialchars($listaParciaisData, ENT_QUOTES, 'UTF-8') ?>">
+    data-parciais="<?= htmlspecialchars($listaParciaisData, ENT_QUOTES, 'UTF-8') ?>"
+    data-capeante-id="<?= (int)$id_capeante ?>">
+</div>
+</div>
 </div>
 
 <!-- Vendors -->
@@ -1433,6 +1454,47 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error('Falha ao decodificar lista de parciais', err);
         }
     }
+
+    var currentCapeanteId = null;
+    if (prevDataHolder && prevDataHolder.dataset.capeanteId) {
+        var parsedCapeanteId = Number(prevDataHolder.dataset.capeanteId);
+        if (!Number.isNaN(parsedCapeanteId) && parsedCapeanteId > 0) {
+            currentCapeanteId = parsedCapeanteId;
+        }
+    }
+    var modalPeriodoConflito = document.getElementById('modalPeriodoConflito');
+    var modalPeriodoConflitoInstance = modalPeriodoConflito && window.bootstrap
+        ? bootstrap.Modal.getOrCreateInstance(modalPeriodoConflito)
+        : null;
+    var periodoConflitoAtivo = false;
+    var periodosAnteriores = [];
+
+    function parseValidDateYMD(value) {
+        if (!value || value === '0000-00-00') return null;
+        var normalized = value.replace(/-/g, '/');
+        var parsed = new Date(normalized);
+        return isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    function rebuildPeriodos() {
+        periodosAnteriores = [];
+        if (!Array.isArray(listaParciais) || !listaParciais.length) return;
+        periodosAnteriores = listaParciais.map(function (item) {
+            var inicio = parseValidDateYMD(item.data_inicial_capeante);
+            if (!inicio) return null;
+            var fim = parseValidDateYMD(item.data_final_capeante) || inicio;
+            if (!fim) return null;
+            return {
+                id: item.id_capeante ? Number(item.id_capeante) : null,
+                start: inicio,
+                end: fim
+            };
+        }).filter(function (item) {
+            return item !== null;
+        });
+    }
+
+    rebuildPeriodos();
 
     function formatCurrencyBR(value) {
         var num = Number(value);
@@ -1556,6 +1618,54 @@ document.addEventListener('DOMContentLoaded', function () {
     var inputIni = document.querySelector('input[name="data_inicial_capeante"]');
     var inputFim = document.querySelector('input[name="data_final_capeante"]');
     var alertPeriodo = document.getElementById('alertPeriodo');
+
+    function resetPeriodosCampos() {
+        if (inputIni) inputIni.value = '';
+        if (inputFim) inputFim.value = '';
+        if (alertPeriodo) alertPeriodo.classList.add('d-none');
+    }
+
+    function abrirModalPeriodoConflito() {
+        if (modalPeriodoConflitoInstance) {
+            periodoConflitoAtivo = true;
+            modalPeriodoConflitoInstance.show();
+        } else {
+            alert('Período em conflito com capeantes anteriores.');
+            resetPeriodosCampos();
+        }
+    }
+
+    function hasPeriodoConflito(iniValue, fimValue) {
+        if (!iniValue || !fimValue || !Array.isArray(periodosAnteriores) || !periodosAnteriores.length) return false;
+        var inicio = parseValidDateYMD(iniValue);
+        var fim = parseValidDateYMD(fimValue) || inicio;
+        if (!inicio || !fim || fim < inicio) return false;
+        for (var i = 0; i < periodosAnteriores.length; i++) {
+            var periodo = periodosAnteriores[i];
+            if (currentCapeanteId && periodo.id && Number(periodo.id) === currentCapeanteId) continue;
+            if (inicio <= periodo.end && periodo.start <= fim) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function verificarPeriodoConflito(iniValue, fimValue) {
+        if (periodoConflitoAtivo) return;
+        if (!parcialSelect || parcialSelect.value !== 's') return;
+        if (hasPeriodoConflito(iniValue, fimValue)) {
+            abrirModalPeriodoConflito();
+        }
+    }
+
+    if (modalPeriodoConflito) {
+        modalPeriodoConflito.addEventListener('hidden.bs.modal', function () {
+            if (!periodoConflitoAtivo) return;
+            periodoConflitoAtivo = false;
+            resetPeriodosCampos();
+        });
+    }
+
     function validarPeriodo() {
         if (!inputIni || !inputFim || !alertPeriodo) return;
         var ini = inputIni.value;
@@ -1568,6 +1678,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }, 5000);
         } else {
             alertPeriodo.classList.add('d-none');
+            verificarPeriodoConflito(ini, fim);
         }
     }
     if (inputIni) inputIni.addEventListener('change', validarPeriodo);
