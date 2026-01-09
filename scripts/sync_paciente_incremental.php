@@ -4,27 +4,21 @@ echo "<div style='background-color:#fff3cd; color:#856404; padding:10px; text-al
         🔄 <strong>Sincronização incremental iniciada</strong> às " . date('d/m/Y H:i:s') . "
       </div>";
 
-// Conexões
-$host1 = "2.59.150.2";
-$user1 = "u650318666_diretoria10";
-$pass1 = "Fullcare12@";
-$dbname1 = "u650318666_mydb_accert_ho";
+require_once __DIR__ . '/../db.php';
 
-$host2 = "mydb-accert-new.mysql.uhserver.com";
-$user2 = "diretoria5";
-$pass2 = "Fullcare12@";
-$dbname2 = "mydb_accert_new";
-
+$pdoOrigem = $conn;
+$pdoDestino = null;
+$hostDestino = "mydb-accert-new.mysql.uhserver.com";
+$userDestino = "diretoria5";
+$passDestino = "Fullcare12@";
+$dbnameDestino = "mydb_accert_new";
 $charset = "utf8";
 
 try {
-    $pdoOrigem = new PDO("mysql:host=$host1;dbname=$dbname1;charset=$charset", $user1, $pass1);
-    $pdoOrigem->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-    $pdoDestino = new PDO("mysql:host=$host2;dbname=$dbname2;charset=$charset", $user2, $pass2);
+    $pdoDestino = new PDO("mysql:host={$hostDestino};dbname={$dbnameDestino};charset={$charset}", $userDestino, $passDestino);
     $pdoDestino->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (Exception $e) {
-    exit("<div style='color:red;text-align:center;'>❌ Erro de conexão: " . $e->getMessage() . "</div>");
+    exit("<div style='color:red;text-align:center;'>❌ Erro de conexão (destino): " . $e->getMessage() . "</div>");
 }
 
 // Definir data limite: hoje às 16h00

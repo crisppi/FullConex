@@ -149,6 +149,31 @@ function group_from_db(?PDO $conn, int $fkCapeante, string $table, array $map): 
   return $lines;
 }
 
+function ensure_db_connection(): PDO
+{
+  global $conn;
+  if (!isset($conn) || !($conn instanceof PDO)) {
+    foreach ([__DIR__ . '/globals.php', __DIR__ . '/db.php', __DIR__ . '/config.php'] as $cfg) {
+      if (is_file($cfg)) {
+        require_once $cfg;
+      }
+    }
+  }
+  if (!isset($conn) || !($conn instanceof PDO)) {
+    $dbHost = getenv('DB_HOST') ?: 'localhost';
+    $dbName = getenv('DB_NAME') ?: 'fullconex';
+    $dbUser = getenv('DB_USER') ?: 'root';
+    $dbPass = getenv('DB_PASS') ?: 'mysql';
+    $dsn = "mysql:host={$dbHost};dbname={$dbName};charset=utf8mb4";
+    $conn = new PDO($dsn, $dbUser, $dbPass, [
+      PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+      PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    ]);
+  }
+  $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+  return $conn;
+}
+
 function group_from_row($row, array $map): array
 {
   if (!$row) return [];
@@ -198,13 +223,7 @@ if ($HEALTH) {
     $resp['tcpdf_err'] = $e->getMessage();
   }
   try {
-    if (!isset($conn) || !($conn instanceof PDO)) foreach ([__DIR__ . '/globals.php', __DIR__ . '/db.php', __DIR__ . '/config.php'] as $cfg) if (is_file($cfg)) require_once $cfg;
-    if (!isset($conn) || !($conn instanceof PDO)) {
-      $dsn = "mysql:host=" . (getenv('DB_HOST') ?: 'localhost') . ";dbname=" . (getenv('DB_NAME') ?: 'fullconex') . ";charset=utf8mb4";
-      $user = getenv('DB_USER') ?: 'root';
-      $pass = getenv('DB_PASS') ?: 'mysql';
-      $conn = new PDO($dsn, $user, $pass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
-    }
+    ensure_db_connection();
     $conn->query('SELECT 1');
     $resp['db'] = true;
   } catch (Throwable $e) {
@@ -231,8 +250,7 @@ if ($SELFTEST) {
 }
 
 /* ---------- DB (cabeçalho) ---------- */
-if (!isset($conn) || !($conn instanceof PDO)) foreach ([__DIR__ . '/globals.php', __DIR__ . '/db.php', __DIR__ . '/config.php'] as $cfg) if (is_file($cfg)) require_once $cfg;
-
+ensure_db_connection();
 require_once __DIR__ . '/dao/CapValoresAPDao.php';
 require_once __DIR__ . '/dao/CapValoresUTIDao.php';
 require_once __DIR__ . '/dao/CapValoresCCDao.php';
@@ -244,13 +262,7 @@ $capValoresUtiDao  = new CapValoresUTIDAO($conn);
 $capValoresCcDao   = new CapValoresCCDAO($conn);
 $capValoresOutDao  = new CapValoresOutDAO($conn);
 $capValoresDiarDao = new CapValoresDiarDAO($conn);
-if (!isset($conn) || !($conn instanceof PDO)) {
-  $dsn = "mysql:host=" . (getenv('DB_HOST') ?: 'localhost') . ";dbname=" . (getenv('DB_NAME') ?: 'fullconex') . ";charset=utf8mb4";
-  $user = getenv('DB_USER') ?: 'root';
-  $pass = getenv('DB_PASS') ?: 'mysql';
-  $conn = new PDO($dsn, $user, $pass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
-}
-$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+ensure_db_connection();
 
 /* ---------- VALIDACAO ---------- */
 if ($idCapeante <= 0) {
