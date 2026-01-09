@@ -70,36 +70,25 @@ if ($idCapeante <= 0) {
 // ===================== CONEXÃO PDO =====================
 // Tenta usar um config.php que NÃO imprime nada e já expõe $conn (PDO)
 if (!isset($conn) || !($conn instanceof PDO)) {
-    $configTried = false;
-    $configPaths = [
-        __DIR__ . '/config.php',            // raiz do FullConex
-        dirname(__DIR__) . '/config.php',   // caso esteja em subpasta
-    ];
-    foreach ($configPaths as $cfg) {
-        if (is_file($cfg)) {
-            $configTried = true;
-            require_once $cfg; // deve definir $conn OU pelo menos DB creds
-            if (isset($conn) && $conn instanceof PDO) {
-                break;
-            }
-        }
+    $dbFile = __DIR__ . '/db.php';
+    if (!is_file($dbFile)) {
+        $dbFile = dirname(__DIR__) . '/db.php';
     }
-
-    if (!isset($conn) || !($conn instanceof PDO)) {
-        // Usa variáveis de ambiente se existir (recomendado)
-        $DB_HOST = getenv('DB_HOST') ?: 'localhost';
-        $DB_NAME = getenv('DB_NAME') ?: 'fullconex'; // <<< ajuste aqui para o NOME CORRETO
-        $DB_USER = getenv('DB_USER') ?: 'root';
-        $DB_PASS = getenv('DB_PASS') ?: 'mysql';     // AMPPS padrão
-
-        // Se quiser garantir que não está usando o nome errado:
-        // dica: troque 'fullconex' pelo seu banco local real (ex.: 'FullConex', 'fullconexdb', etc.)
-        $dsn = "mysql:host={$DB_HOST};dbname={$DB_NAME};charset=utf8mb4";
-        $conn = new PDO($dsn, $DB_USER, $DB_PASS, [
-            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        ]);
+    if (is_file($dbFile)) {
+        require_once $dbFile;
     }
+}
+if (!isset($conn) || !($conn instanceof PDO)) {
+    // fallback para ambientes locais (AMPPS, etc.)
+    $DB_HOST = getenv('DB_HOST') ?: 'localhost';
+    $DB_NAME = getenv('DB_NAME') ?: 'fullconex';
+    $DB_USER = getenv('DB_USER') ?: 'root';
+    $DB_PASS = getenv('DB_PASS') ?: 'mysql';
+    $dsn = "mysql:host={$DB_HOST};dbname={$DB_NAME};charset=utf8mb4";
+    $conn = new PDO($dsn, $DB_USER, $DB_PASS, [
+        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    ]);
 }
 
 

@@ -75,6 +75,23 @@ function perfFetchAll(PDO $conn, string $sql, array $params = []): array
     }
 }
 
+function perfColumnExists(PDO $conn, string $table, string $column): bool
+{
+    $count = perfFetchValue(
+        $conn,
+        "SELECT COUNT(*) FROM information_schema.COLUMNS
+         WHERE TABLE_SCHEMA = DATABASE()
+           AND TABLE_NAME = :table
+           AND COLUMN_NAME = :column",
+        [
+            ':table' => $table,
+            ':column' => $column,
+        ],
+        0
+    );
+    return $count > 0;
+}
+
 $defaultEnd = new DateTime('today');
 $defaultStart = (clone $defaultEnd)->modify('-119 days'); // 120 dias padrão
 
@@ -618,6 +635,23 @@ $rankingVisitas = perfFetchAll(
     GROUP BY user_key, auditor_nome
     ORDER BY total_visitas DESC
     LIMIT 8",
+    $rangeParams
+);
+
+$logUserColumn = perfColumnExists($conn, 'tb_log_historico', 'usuario_id') ? 'usuario_id' : 'email_user';
+$logUserCondition = $logUserColumn === 'usuario_id' ? "$logUserColumn IS NOT NULL" : "TRIM($logUserColumn) <> ''";
+$logUserLabel = $logUserColumn === 'usuario_id' ? 'ID do usuário' : 'E-mail do usuário';
+$logHourlyUsers = perfFetchAll(
+    $conn,
+    "SELECT 
+        DATE_FORMAT(data_hora, '%Y-%m-%d %H:00:00') AS hora,
+        COUNT(DISTINCT $logUserColumn) AS usuarios
+     FROM tb_log_historico
+    WHERE data_hora BETWEEN :dt_ini AND :dt_fim
+      AND {$logUserCondition}
+    GROUP BY hora
+    ORDER BY hora DESC
+    LIMIT 24",
     $rangeParams
 );
 
@@ -1440,6 +1474,35 @@ function perfTimerClock($seconds)
                     <?php endif; ?>
                 </tbody>
             </table>
+        </div>
+    </div>
+    <div class="perf-sections" style="margin-top:28px;">
+        <div class="perf-panel">
+            <h2><i class="bi bi-people-fill"></i> Usuários por hora</h2>
+            <?php if (!$logHourlyUsers): ?>
+                <p style="color:#7a6a8a;margin-bottom:0;">Sem registros de <?= htmlspecialchars($logUserLabel) ?> para mostrar no período selecionado.</p>
+            <?php else: ?>
+                <table class="perf-table">
+                    <thead>
+                        <tr>
+                            <th>Hora</th>
+                            <th>Usuários distintos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($logHourlyUsers as $row):
+                            $hora = DateTime::createFromFormat('Y-m-d H:i:s', $row['hora']);
+                            $horaLabel = $hora ? $hora->format('d/m H:i') : $row['hora'];
+                        ?>
+                            <tr>
+                                <td><?= htmlspecialchars($horaLabel) ?></td>
+                                <td><?= perfFmt($row['usuarios']) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
+            <p style="font-size:.8rem;color:#7a6a8a;margin-top:10px;">Últimas 24 horas (ou limite do período) registradas em <code>tb_log_historico</code>.</p>
         </div>
     </div>
 </div>
