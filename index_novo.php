@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<?php $currentAppVersion = app_latest_version($conn); ?>
 <html lang="en">
 
 <head>
@@ -310,9 +311,9 @@
         .side-panel {
             width: 100%;
             border-radius: 0;
-        }
+    }
 
-        .login-form {
+    .login-form {
             padding: 32px 24px;
         }
 
@@ -328,7 +329,7 @@
     }
 
     @media (max-width: 600px) {
-        .side-panel {
+    .side-panel {
             display: none;
         }
 
@@ -343,6 +344,24 @@
 
         .form-content {
             width: 100%;
+        }
+    }
+
+    .login-footer {
+        position: fixed;
+        bottom: 12px;
+        right: 24px;
+        color: rgba(255, 255, 255, .85);
+        font-size: 0.78rem;
+        letter-spacing: 0.04em;
+        pointer-events: none;
+    }
+
+    @media (max-width: 900px) {
+        .login-footer {
+            left: 50%;
+            right: auto;
+            transform: translateX(-50%);
         }
     }
     </style>
@@ -387,6 +406,10 @@
                     Mais visão, menos suposição: indicadores que conectam cuidado e eficiência.</p>
             </div>
         </div>
+    </div>
+
+    <div class="login-footer">
+        Versão <?= htmlspecialchars($currentAppVersion) ?>
     </div>
 
     <script>

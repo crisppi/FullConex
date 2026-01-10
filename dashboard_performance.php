@@ -1476,35 +1476,6 @@ function perfTimerClock($seconds)
             </table>
         </div>
     </div>
-    <div class="perf-sections" style="margin-top:28px;">
-        <div class="perf-panel">
-            <h2><i class="bi bi-people-fill"></i> Usuários por hora</h2>
-            <?php if (!$logHourlyUsers): ?>
-                <p style="color:#7a6a8a;margin-bottom:0;">Sem registros de <?= htmlspecialchars($logUserLabel) ?> para mostrar no período selecionado.</p>
-            <?php else: ?>
-                <table class="perf-table">
-                    <thead>
-                        <tr>
-                            <th>Hora</th>
-                            <th>Usuários distintos</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($logHourlyUsers as $row):
-                            $hora = DateTime::createFromFormat('Y-m-d H:i:s', $row['hora']);
-                            $horaLabel = $hora ? $hora->format('d/m H:i') : $row['hora'];
-                        ?>
-                            <tr>
-                                <td><?= htmlspecialchars($horaLabel) ?></td>
-                                <td><?= perfFmt($row['usuarios']) ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            <?php endif; ?>
-            <p style="font-size:.8rem;color:#7a6a8a;margin-top:10px;">Últimas 24 horas (ou limite do período) registradas em <code>tb_log_historico</code>.</p>
-        </div>
-    </div>
 </div>
 
 <?php require_once("templates/footer.php"); ?>

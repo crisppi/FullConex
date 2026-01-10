@@ -257,11 +257,11 @@ if (!empty($sessionIdUsuario)) {
                                         class="bi bi-stack edit-icon"></i>
                                     Menu
                                 </a>
-                                <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
-                                    <li><a class="dropdown-item" href="<?= $BASE_URL ?>dashboard"><i
-                                                class="bi bi-speedometer2"
-                                                style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
-                                            Dashboard</a></li>
+                                    <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>dashboard"><i
+                                                    class="bi bi-speedometer2"
+                                                    style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
+                                                Dashboard</a></li>
                                     <li><a class="dropdown-item" href="<?= $BASE_URL ?>manual.html"><i class="bi bi-person"
                                                 style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
                                             Manual</a></li>
@@ -270,14 +270,18 @@ if (!empty($sessionIdUsuario)) {
                                                 style="font-size: 1rem;margin-right:5px; color: #5e2363;"></i>
                                             Solicitação de Customização
                                         </a></li>
-                                    <?php if ($isDiretoria) { ?>
-                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>SolicitacaoCustomizacaoList.php">
-                                                <i class="bi bi-clipboard-check"
-                                                    style="font-size: 1rem;margin-right:5px; color: #0d6efd;"></i>
-                                                Solicitações (Lista)
-                                            </a></li>
-                                    <?php } ?>
-                                    <?php if ($sessionNivel > 3) { ?>
+                                        <?php if ($isDiretoria) { ?>
+                                            <li><a class="dropdown-item" href="<?= $BASE_URL ?>SolicitacaoCustomizacaoList.php">
+                                                    <i class="bi bi-clipboard-check"
+                                                        style="font-size: 1rem;margin-right:5px; color: #0d6efd;"></i>
+                                                    Solicitações (Lista)
+                                                </a></li>
+                                        <?php } ?>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>inteligencia/performance-equipes"><i
+                                                    class="bi bi-trophy"
+                                                    style="font-size: 1rem;margin-right:5px; color:#7c3aed;"></i>
+                                                Performance equipes</a></li>
+                                        <?php if ($sessionNivel > 3) { ?>
                                         <li class="nav-item">
                                             <a class="dropdown-item" href="<?= $BASE_URL ?>admin_permissao.php">
                                                 <i class="bi bi-shield-lock"
@@ -613,10 +617,6 @@ if (!empty($sessionIdUsuario)) {
                                                     class="bi bi-grid-3x3-gap"
                                                     style="font-size: 1rem;margin-right:5px; color:#5e2363;"></i>
                                                 Dashboard 360°</a></li>
-                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>inteligencia/performance-equipes"><i
-                                                    class="bi bi-trophy"
-                                                    style="font-size: 1rem;margin-right:5px; color:#7c3aed;"></i>
-                                                Performance equipes</a></li>
                                         <li><a class="dropdown-item" href="<?= $BASE_URL ?>inteligencia/previsao-faturamento"><i
                                                     class="bi bi-graph-up-arrow"
                                                     style="font-size: 1rem;margin-right:5px; color:#1d9ad8;"></i>

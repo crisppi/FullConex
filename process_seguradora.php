@@ -121,7 +121,7 @@ if ($type === "create") {
             $seguradora->cep_seg = $cep_seg;
 
             $seguradoraDao->create($seguradora);
-            header("Location: ' . $BASE_URL . 'seguradoras");
+            header("Location: " . $BASE_URL . "seguradoras");
         }
     }
 } else if ($type === "update") {

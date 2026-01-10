@@ -120,6 +120,8 @@ require_once __DIR__ . '/app/schemaEnsurer.php';
 ensure_visita_timer_column($conn);
 ensure_internacao_timer_column($conn);
 ensure_internacao_forecast_columns($conn);
+ensure_schema_version_table($conn);
+require_once __DIR__ . '/app/version.php';
 
 // ------------------ 7) Helpers globais (opcional) ----------
 

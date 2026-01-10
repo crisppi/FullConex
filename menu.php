@@ -73,6 +73,10 @@ require_once("templates/header.php");
                     performance</a>
             </li>
             <li>
+                <a href="inteligencia/performance-equipes"><i class="bi bi-trophy"
+                        style="font-size: 1rem;margin-right:5px; color: rgb(124, 58, 237);"></i> Performance equipes</a>
+            </li>
+            <li>
                 <a href="faturamento_previsao.php"><i class="bi bi-graph-up"
                         style="font-size: 1rem;margin-right:5px; color: rgb(65, 148, 212);"></i> Previsão de
                     faturamento</a>

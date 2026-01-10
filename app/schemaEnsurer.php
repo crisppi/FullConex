@@ -92,3 +92,39 @@ if (!function_exists('ensure_internacao_forecast_columns')) {
         }
     }
 }
+
+if (!function_exists('ensure_schema_version_table')) {
+    function ensure_schema_version_table(PDO $conn): void
+    {
+        static $checked = false;
+        if ($checked) return;
+        $checked = true;
+        try {
+            $stmt = $conn->prepare("
+                SELECT COUNT(*)
+                  FROM information_schema.TABLES
+                 WHERE TABLE_SCHEMA = DATABASE()
+                   AND TABLE_NAME = 'schema_version'
+            ");
+            $stmt->execute();
+            $exists = (int)$stmt->fetchColumn() > 0;
+            if ($exists) {
+                return;
+            }
+            $conn->exec("
+                CREATE TABLE schema_version (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    version VARCHAR(64) NOT NULL,
+                    description TEXT NULL,
+                    applied_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    applied_by VARCHAR(150) NULL,
+                    file_name VARCHAR(150) NULL,
+                    checksum CHAR(64) NULL,
+                    UNIQUE KEY uq_schema_version (version)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            ");
+        } catch (Throwable $e) {
+            error_log('[SCHEMA][schema_version] ' . $e->getMessage());
+        }
+    }
+}
