@@ -104,19 +104,23 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 5vw 0;
+            padding: 16px 5vw;
             margin-top: 18px;
-            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            border-top: none;
             font-size: 0.82rem;
-            color: #6e6e6e;
+            color: #fff;
             flex-wrap: wrap;
             gap: 8px;
             box-sizing: border-box;
+            background: #5e2363;
+        }
+
+        #myFooter .footer-bottom span {
+            color: #fff;
         }
 
         #myFooter .footer-version {
             font-weight: 600;
-            color: #5e2363;
             letter-spacing: 0.05em;
         }
 

@@ -25,6 +25,8 @@ $biSections = [
         ['label' => 'Auditor', 'href' => 'bi/auditor', 'file' => 'AuditorBI.php'],
         ['label' => 'Auditor Visitas', 'href' => 'bi/auditor-visitas', 'file' => 'AuditorVisitasBI.php'],
         ['label' => 'Auditoria Produtividade', 'href' => 'bi/auditoria-produtividade', 'file' => 'AuditoriaProdutividadeBI.php'],
+        ['label' => 'Saving por Auditor', 'href' => 'bi/saving-por-auditor', 'file' => 'bi_saving_por_auditor.php'],
+        ['label' => 'Saving', 'href' => 'bi/saving', 'file' => 'bi_saving.php'],
     ],
     'Operacional' => [
         ['label' => 'Seguradora', 'href' => 'bi/seguradora', 'file' => 'SeguradoraBI.php'],
@@ -55,7 +57,6 @@ $biSections = [
         ['label' => 'Financeiro Realizado', 'href' => 'bi/financeiro-realizado', 'file' => 'FinanceiroRealizadoBI.php'],
         ['label' => 'Produção', 'href' => 'bi/producao', 'file' => 'Producao.php'],
         ['label' => 'Produção YTD', 'href' => 'bi/producao-ytd', 'file' => 'bi_producao_ytd.php'],
-        ['label' => 'Saving', 'href' => 'bi/saving', 'file' => 'bi_saving.php'],
         ['label' => 'Pacientes', 'href' => 'bi/pacientes', 'file' => 'bi_pacientes.php'],
         ['label' => 'Hospitais', 'href' => 'bi/hospitais', 'file' => 'bi_hospitais.php'],
         ['label' => 'Inteligência Artificial', 'href' => 'bi/inteligencia', 'file' => 'bi_inteligencia.php'],

@@ -40,6 +40,8 @@ $navGroups = [
             ['label' => 'Auditor', 'href' => 'bi/auditor'],
             ['label' => 'Auditor Visitas', 'href' => 'bi/auditor-visitas'],
             ['label' => 'Auditoria Produtividade', 'href' => 'bi/auditoria-produtividade'],
+            ['label' => 'Saving por Auditor', 'href' => 'bi/saving-por-auditor'],
+            ['label' => 'Saving', 'href' => 'bi/saving'],
         ],
     ],
     [
@@ -82,7 +84,6 @@ $navGroups = [
             ['label' => 'Sinistro YTD', 'href' => 'bi/sinistro-ytd'],
             ['label' => 'Producao BI', 'href' => 'bi/producao'],
             ['label' => 'Producao YTD', 'href' => 'bi/producao-ytd'],
-            ['label' => 'Saving', 'href' => 'bi/saving'],
             ['label' => 'Pacientes', 'href' => 'bi/pacientes'],
             ['label' => 'Hospitais', 'href' => 'bi/hospitais'],
             ['label' => 'Sinistro', 'href' => 'bi/sinistro-bi'],

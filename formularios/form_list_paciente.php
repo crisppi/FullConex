@@ -10,13 +10,36 @@
     include_once("templates/header.php");
     include_once("array_dados.php");
 
+    if (!function_exists('paciente_escape')) {
+        function paciente_escape($valor)
+        {
+            return htmlentities((string)$valor, ENT_QUOTES, 'UTF-8');
+        }
+    }
+
+    $autocompletePacientes = [];
+    if (isset($conn) && $conn instanceof PDO) {
+        try {
+            $stmt = $conn->query("
+                SELECT nome_pac, matricula_pac, recem_nascido_pac, IFNULL(numero_rn_pac, '') AS numero_rn_pac
+                FROM tb_paciente
+                WHERE deletado_pac <> 's'
+                ORDER BY nome_pac ASC
+                LIMIT 200
+            ");
+            $autocompletePacientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Throwable $e) {
+            $autocompletePacientes = [];
+        }
+    }
+
     //Instanciando a classe 
     $paciente = new PacienteDAO($conn, $BASE_URL);
     $QtdTotalpac = new PacienteDAO($conn, $BASE_URL);
 
     // METODO DE BUSCA DE PAGINACAO
-    $busca = filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS);
-    $buscaMatricula = filter_input(INPUT_GET, 'pesquisa_matricula', FILTER_SANITIZE_SPECIAL_CHARS);
+    $busca = trim((string) filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS));
+    $buscaSeguradora = filter_input(INPUT_GET, 'pesquisa_seguradora', FILTER_SANITIZE_SPECIAL_CHARS);
 
     $pesquisa_nome = filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS);
     $buscaAtivo = filter_input(INPUT_GET, 'ativo_pac', FILTER_SANITIZE_SPECIAL_CHARS);
@@ -24,15 +47,24 @@
     $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : '';
     $buscaAtivo = in_array($buscaAtivo, ['s', 'n']) ?: "";
     $pacienteInicio = ' 1 ';
-    $condicoes = [
-        strlen($busca) ? 'nome_pac LIKE "%' . $busca . '%"' : null,
-        strlen($buscaMatricula)
-            ? 'CONCAT(
+    $buscaMatriculaForcada = $busca;
+    if ($busca !== '' && preg_match('/^(.*?)\\s*-\\s*([0-9]+(?:\\s*RN\\s*\\d+)?)$/i', $busca, $matches)) {
+        $busca = trim($matches[1]);
+        $buscaMatriculaForcada = trim(str_replace(' ', '', strtoupper($matches[2])));
+    }
+
+    $nameFilter = $busca !== '' ? 'nome_pac LIKE "%' . $busca . '%"' : '';
+    $matriculaFilter = $buscaMatriculaForcada !== '' ? 'CONCAT(
               matricula_pac,
               CASE WHEN recem_nascido_pac = "s" THEN "RN" ELSE "" END,
               IFNULL(numero_rn_pac, "")
-          ) LIKE "%' . $buscaMatricula . '%"'
-            : null,
+          ) LIKE "%' . $buscaMatriculaForcada . '%"' : '';
+
+    $nameMatClause = implode(' OR ', array_filter([$nameFilter, $matriculaFilter]));
+
+    $condicoes = [
+        $nameMatClause ? '(' . $nameMatClause . ')' : null,
+        strlen($buscaSeguradora) ? 'se.seguradora_seg LIKE "%' . $buscaSeguradora . '%"' : null,
         strlen($buscaAtivo) ? 'ativo_pac = "' . $buscaAtivo . '"' : null,
         strlen($pacienteInicio) ? 'id_paciente > ' . $pacienteInicio . ' ' : null
     ];
@@ -44,7 +76,7 @@
     $order = $ordenar ?: 'id_paciente DESC';
 
     // REMOVE POSICOES VAZIAS DO FILTRO
-    $where = implode(' AND ', $condicoes);
+        $where = implode(' AND ', $condicoes);
     $qtdpacItens1 = $QtdTotalpac->selectAllpaciente($where, $order, $obLimite ?? null);
     $qtdIntItens = count($qtdpacItens1); // total de registros
     // PAGINACAO
@@ -58,7 +90,7 @@
 
     $pacientePaginationBaseParams = [
         'pesquisa_nome'     => $pesquisa_nome,
-        'pesquisa_matricula'=> $buscaMatricula,
+        'pesquisa_seguradora'=> $buscaSeguradora,
         'ativo_pac'         => $buscaAtivo,
         'limite'            => $limite,
         'ordenar'           => $ordenar,
@@ -76,7 +108,7 @@
             global $BASE_URL;
             $baseUrl = rtrim($BASE_URL, '/') . '/pacientes';
 
-            return $query ? $baseUrl . '?' . $query : $baseUrl;
+        return $query ? $baseUrl . '?' . $query : $baseUrl;
         }
     }
 
@@ -120,10 +152,26 @@
             <div id="navbarToggleExternalContent" class="table-filters">
                 <form id="form_pesquisa" method="GET">
                     <div class="row">
-                        <div class="form-group col-sm-2" style="padding:2px !important;padding-left:16px !important;">
+                        <div class="form-group col-sm-3" style="padding:2px !important;padding-left:16px !important;">
                             <input class="form-control form-control-sm" style="margin-top:7px" type="text"
-                                value="<?= $busca ?>" name="pesquisa_nome" id="pesquisa_nome"
-                                placeholder="Pesquisa por paciente">
+                                value="<?= paciente_escape($busca) ?>" name="pesquisa_nome" id="pesquisa_nome"
+                                placeholder="Pesquisa por nome ou matrícula" list="pacienteSuggestions">
+                            <datalist id="pacienteSuggestions">
+                                <?php foreach ($autocompletePacientes as $entry):
+                                    $matriculaLabel = trim($entry['matricula_pac'] ?? '');
+                                    if ($entry['recem_nascido_pac'] === 's' && $entry['numero_rn_pac'] !== '') {
+                                        $matriculaLabel .= ' RN' . $entry['numero_rn_pac'];
+                                    }
+                                    $label = trim($entry['nome_pac'] . ($matriculaLabel ? ' - ' . $matriculaLabel : ''));
+                                ?>
+                                    <option value="<?= paciente_escape($label) ?>">
+                                <?php endforeach; ?>
+                            </datalist>
+                        </div>
+                        <div class="form-group col-sm-2" style="padding:2px !important;">
+                            <input class="form-control form-control-sm" style="margin-top:7px" type="text"
+                                value="<?= $buscaSeguradora ?>" name="pesquisa_seguradora" id="pesquisa_seguradora"
+                                placeholder="Pesquisa por seguradora">
                         </div>
                         <div class="col-sm-1" style="padding:2px !important">
                             <select class="form-control mb-3 form-control-sm" style="margin-top:7px;" id="limite"
@@ -149,11 +197,6 @@
                                 <option value="nome_pac" <?= $ordenar == 'nome_pac' ? 'selected' : null ?>>Nome Paciente
                                 </option>
                             </select>
-                        </div>
-                        <div class="form-group col-sm-1" style="padding:2px !important;">
-                            <input class="form-control form-control-sm" style="margin-top:7px" type="text"
-                                value="<?= $buscaMatricula ?>" name="pesquisa_matricula" id="pesquisa_matricula"
-                                placeholder="Matrícula">
                         </div>
 
                         <div class="form-group col-sm-1" style="padding:2px !important" style="margin:0px 0px 20px 0px">
