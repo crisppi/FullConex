@@ -174,8 +174,9 @@ $navGroups = [
 ?>
 
 <link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260110">
+<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi-navegacao.css?v=20260110">
 <script src="<?= $BASE_URL ?>js/bi.js?v=20260110"></script>
-<script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));</script>
+<script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme', 'bi-navegacao'));</script>
 
 <div class="bi-wrapper bi-theme">
     <div class="bi-header">
@@ -189,7 +190,6 @@ $navGroups = [
     </div>
 
     <div class="bi-panel">
-        <div class="bi-nav-title">Painel de Navegação</div>
         <?php foreach ($navGroups as $group): ?>
             <div class="bi-nav-group" data-theme="<?= e($group['key']) ?>">
                 <div class="bi-nav-group-title"><?= e($group['title']) ?></div>
