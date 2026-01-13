@@ -62,6 +62,10 @@ $biSections = [
         ['label' => 'Inteligência Artificial', 'href' => 'bi/inteligencia', 'file' => 'bi_inteligencia.php'],
         ['label' => 'Sinistro BI', 'href' => 'bi/sinistro-bi', 'file' => 'bi_sinistro.php'],
     ],
+    'Faturamento' => [
+        ['label' => 'Visitas', 'href' => 'bi/faturamento-visitas', 'file' => 'faturamento_visitas.php'],
+        ['label' => 'Consolidado', 'href' => 'bi/faturamento-consolidado', 'file' => 'bi_faturamento_consolidado.php'],
+    ],
     'Controle de Gastos' => [
         ['label' => 'Sinistralidade por Patologia', 'href' => 'bi/gastos-patologia', 'file' => 'ControleGastosPatologiaBI.php'],
         ['label' => 'Sinistralidade por Hospital', 'href' => 'bi/gastos-hospital', 'file' => 'ControleGastosHospitalBI.php'],
@@ -200,7 +204,7 @@ if (!in_array($currentPage, $flatPages, true) && !$matchedByHref) {
 
 .bi-section-tabs {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 8px;
     padding: 6px 18px 4px;
     width: 100%;
@@ -208,9 +212,19 @@ if (!in_array($currentPage, $flatPages, true) && !$matchedByHref) {
     overflow-x: auto;
 }
 
+.bi-nav-pill-row {
+    width: 100%;
+    padding: 6px 18px 4px;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: flex-start;
+    overflow-x: auto;
+}
+
 .bi-section-tab {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     padding: 6px 12px;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.7);
@@ -563,6 +577,7 @@ $sectionDisplay = [
     'Risco & Prevenção' => 'Risco & Prevenção',
     'Negociação & Rede' => 'Negociação & Rede',
     'Qualidade & Desfecho' => 'Qualidade & Desfecho',
+    'Faturamento' => 'Faturamento',
 ];
 $sectionSlugMap = [
     'Resumo' => 'resumo',
@@ -578,6 +593,7 @@ $sectionSlugMap = [
     'Risco & Prevenção' => 'prevencao',
     'Negociação & Rede' => 'negociacao',
     'Qualidade & Desfecho' => 'qualidade',
+    'Faturamento' => 'faturamento',
 ];
 $activeSection = $currentSection ?: array_key_first($biSections);
 $activeSectionSlug = $sectionSlugMap[$activeSection] ?? 'resumo';
@@ -610,15 +626,25 @@ $activeItems = $biSections[$activeSection] ?? [];
             <?php endforeach; ?>
         </select>
     </div>
-    <div class="bi-section-tabs" data-section="<?= htmlspecialchars($activeSectionSlug, ENT_QUOTES, 'UTF-8') ?>">
-        <?php
-        $navUrl = $BASE_URL . 'bi/navegacao';
-        $navActive = $currentPage === 'bi_navegacao.php' || trim((string) $currentPath, '/') === 'bi/navegacao';
-        ?>
+    <?php
+    $navUrl = $BASE_URL . 'bi/navegacao';
+    $navActive = $currentPage === 'bi_navegacao.php' || trim((string) $currentPath, '/') === 'bi/navegacao';
+    ?>
+    <div class="bi-nav-pill-row">
         <a class="bi-section-tab bi-section-tab-nav <?= $navActive ? 'is-active' : '' ?>"
             href="<?= htmlspecialchars($navUrl, ENT_QUOTES, 'UTF-8') ?>">
             Navegação
         </a>
+        <?php
+        $indicadoresUrl = $BASE_URL . 'bi/indicadores';
+        $indicadoresActive = trim((string) $currentPath, '/') === 'bi/indicadores' || $currentPage === 'Indicadores.php';
+        ?>
+        <a class="bi-section-tab <?= $indicadoresActive ? 'is-active' : '' ?>"
+            href="<?= htmlspecialchars($indicadoresUrl, ENT_QUOTES, 'UTF-8') ?>">
+            Indicadores BI
+        </a>
+    </div>
+    <div class="bi-section-tabs" data-section="<?= htmlspecialchars($activeSectionSlug, ENT_QUOTES, 'UTF-8') ?>">
         <?php foreach ($biSections as $section => $items): ?>
         <?php
         $sectionName = $sectionDisplay[$section] ?? $section;

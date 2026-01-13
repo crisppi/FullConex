@@ -91,6 +91,14 @@ $navGroups = [
         ],
     ],
     [
+        'title' => 'Faturamento',
+        'key' => 'faturamento',
+        'items' => [
+            ['label' => 'Visitas', 'href' => 'bi/faturamento-visitas'],
+            ['label' => 'Consolidado', 'href' => 'bi/faturamento-consolidado'],
+        ],
+    ],
+    [
         'title' => 'Controle de Gastos',
         'key' => 'gastos',
         'items' => [
