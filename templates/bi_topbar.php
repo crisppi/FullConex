@@ -212,13 +212,12 @@ if (!in_array($currentPage, $flatPages, true) && !$matchedByHref) {
     overflow-x: auto;
 }
 
-.bi-nav-pill-row {
-    width: 100%;
-    padding: 6px 18px 4px;
-    box-sizing: border-box;
+.bi-nav-inline {
+    margin-left: auto;
+    margin-right: 16px;
+    align-self: center;
     display: flex;
-    justify-content: flex-start;
-    overflow-x: auto;
+    gap: 8px;
 }
 
 .bi-section-tab {
@@ -597,7 +596,9 @@ $sectionSlugMap = [
 ];
 $activeSection = $currentSection ?: array_key_first($biSections);
 $activeSectionSlug = $sectionSlugMap[$activeSection] ?? 'resumo';
-$activeItems = $biSections[$activeSection] ?? [];
+ $activeItems = $biSections[$activeSection] ?? [];
+$navUrl = $BASE_URL . 'bi/navegacao';
+$navActive = $currentPage === 'bi_navegacao.php' || trim((string) $currentPath, '/') === 'bi/navegacao';
 ?>
 
 <div class="bi-topbar">
@@ -609,6 +610,12 @@ $activeItems = $biSections[$activeSection] ?? [];
                 <span>/</span>
                 <?= htmlspecialchars($currentLabel ?: 'Painel', ENT_QUOTES, 'UTF-8') ?>
             </div>
+        </div>
+        <div class="bi-nav-inline">
+            <a class="bi-section-tab bi-section-tab-nav <?= $navActive ? 'is-active' : '' ?>"
+                href="<?= htmlspecialchars($navUrl, ENT_QUOTES, 'UTF-8') ?>">
+                Navegação
+            </a>
         </div>
         <select class="bi-topbar-select" onchange="if (this.value) window.location.href=this.value;">
             <option value="">Ir para relatório...</option>
@@ -625,24 +632,6 @@ $activeItems = $biSections[$activeSection] ?? [];
             </optgroup>
             <?php endforeach; ?>
         </select>
-    </div>
-    <?php
-    $navUrl = $BASE_URL . 'bi/navegacao';
-    $navActive = $currentPage === 'bi_navegacao.php' || trim((string) $currentPath, '/') === 'bi/navegacao';
-    ?>
-    <div class="bi-nav-pill-row">
-        <a class="bi-section-tab bi-section-tab-nav <?= $navActive ? 'is-active' : '' ?>"
-            href="<?= htmlspecialchars($navUrl, ENT_QUOTES, 'UTF-8') ?>">
-            Navegação
-        </a>
-        <?php
-        $indicadoresUrl = $BASE_URL . 'bi/indicadores';
-        $indicadoresActive = trim((string) $currentPath, '/') === 'bi/indicadores' || $currentPage === 'Indicadores.php';
-        ?>
-        <a class="bi-section-tab <?= $indicadoresActive ? 'is-active' : '' ?>"
-            href="<?= htmlspecialchars($indicadoresUrl, ENT_QUOTES, 'UTF-8') ?>">
-            Indicadores BI
-        </a>
     </div>
     <div class="bi-section-tabs" data-section="<?= htmlspecialchars($activeSectionSlug, ENT_QUOTES, 'UTF-8') ?>">
         <?php foreach ($biSections as $section => $items): ?>
