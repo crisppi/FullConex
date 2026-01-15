@@ -451,6 +451,14 @@ $idcapeante          = filter_input(INPUT_GET, 'idcapeante') ?: NULL;
                 </form>
             </div>
 
+            <style>
+                .cap-rah-dropdown .dropdown-item,
+                .cap-rah-dropdown .dropdown-item span {
+                    text-transform: none !important;
+                    font-weight: 400 !important;
+                }
+            </style>
+
             <div>
                 <div id="table-content">
                     <?php if ($isFinalContext || $isSenhasContext): ?>
@@ -495,6 +503,7 @@ $idcapeante          = filter_input(INPUT_GET, 'idcapeante') ?: NULL;
                                     $capeanteEncerrado = strtolower((string)($intern['encerrado_cap'] ?? 'n')) === 's';
                                     $pdfPreviewUrl = $BASE_URL . 'export_capeante_rah_pdf.php?id_capeante=' . $intern['id_capeante'] . '&download=0';
                                     $pdfDownloadUrl = $BASE_URL . 'export_capeante_rah_pdf.php?id_capeante=' . $intern['id_capeante'] . '&download=1';
+                                    $rahEditUrl = $BASE_URL . 'cad_capeante_rah.php?id_capeante=' . $intern['id_capeante'];
                                 ?>
                                 <td class="action">
                                     <div class="d-flex flex-column gap-1 align-items-center">
@@ -509,33 +518,44 @@ $idcapeante          = filter_input(INPUT_GET, 'idcapeante') ?: NULL;
                                                 <i class="bi bi-stack me-1"></i>
                                                 Contas
                                             </button>
-                                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="contasDropdown<?= $intern['id_capeante'] ?>_<?= $intern['id_internacao'] ?>">
+                                            <ul class="dropdown-menu dropdown-menu-end cap-rah-dropdown" aria-labelledby="contasDropdown<?= $intern['id_capeante'] ?>_<?= $intern['id_internacao'] ?>">
+                                                <li>
+                                                    <a class="dropdown-item fw-normal" href="<?= htmlspecialchars($rahEditUrl, ENT_QUOTES, 'UTF-8') ?>"
+                                                        onclick="edit('<?= htmlspecialchars($rahEditUrl, ENT_QUOTES, 'UTF-8') ?>'); return false;">
+                                                        <i class="bi bi-pencil-square me-1" style="color:#5e2363;"></i>
+                                                        <span style="color:#5e2363; font-weight:400; text-transform:none;">Editar RAH</span>
+                                                    </a>
+                                                </li>
                                                 <?php if ($capeanteEncerrado): ?>
                                                 <li>
-                                                    <a class="dropdown-item" target="_blank" rel="noopener"
-                                                        href="<?= htmlspecialchars($pdfPreviewUrl, ENT_QUOTES, 'UTF-8') ?>">
-                                                        <i class="bi bi-eye me-1"></i>
-                                                        Ver RAH
+                                                    <a class="dropdown-item fw-normal" target="_blank" rel="noopener"
+                                                        href="<?= htmlspecialchars($pdfPreviewUrl, ENT_QUOTES, 'UTF-8') ?>"
+                                                        style="color:#0d6efd !important; font-weight:400 !important; text-transform:none;">
+                                                        <i class="bi bi-eye me-1" style="color:#0d6efd;"></i>
+                                                        <span style="color:#0d6efd !important; font-weight:400 !important; text-transform:none;">Ver RAH</span>
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item" target="_blank" rel="noopener"
-                                                        href="<?= htmlspecialchars($pdfDownloadUrl, ENT_QUOTES, 'UTF-8') ?>">
-                                                        <i class="bi bi-printer-fill me-1"></i>
-                                                        Imprimir PDF
+                                                    <a class="dropdown-item fw-normal" target="_blank" rel="noopener"
+                                                        href="<?= htmlspecialchars($pdfDownloadUrl, ENT_QUOTES, 'UTF-8') ?>"
+                                                        style="color:#198754 !important; font-weight:400 !important; text-transform:none;">
+                                                        <i class="bi bi-printer-fill me-1" style="color:#198754;"></i>
+                                                        <span style="color:#198754 !important; font-weight:400 !important; text-transform:none;">Imprimir PDF</span>
                                                     </a>
                                                 </li>
                                                 <?php else: ?>
                                                 <li>
-                                                    <span class="dropdown-item disabled text-muted">
-                                                        <i class="bi bi-eye me-1"></i>
-                                                        Ver RAH
+                                                    <span class="dropdown-item disabled text-muted fw-normal"
+                                                        style="color:#6c757d !important; font-weight:400 !important; text-transform:none;">
+                                                        <i class="bi bi-eye me-1" style="color:#6c757d;"></i>
+                                                        <span style="color:#6c757d !important; font-weight:400 !important; text-transform:none;">Ver RAH</span>
                                                     </span>
                                                 </li>
                                                 <li>
-                                                    <span class="dropdown-item disabled text-muted">
-                                                        <i class="bi bi-printer-fill me-1"></i>
-                                                        Imprimir PDF
+                                                    <span class="dropdown-item disabled text-muted fw-normal"
+                                                        style="color:#6c757d !important; font-weight:400 !important; text-transform:none;">
+                                                        <i class="bi bi-printer-fill me-1" style="color:#6c757d;"></i>
+                                                        <span style="color:#6c757d !important; font-weight:400 !important; text-transform:none;">Imprimir PDF</span>
                                                     </span>
                                                 </li>
                                                 <?php endif; ?>
@@ -605,6 +625,7 @@ $idcapeante          = filter_input(INPUT_GET, 'idcapeante') ?: NULL;
                                     $pdfPreviewUrl = $BASE_URL . 'export_capeante_rah_pdf.php?id_capeante=' . $intern['id_capeante'] . '&download=0';
                                     $pdfDownloadUrl = $BASE_URL . 'export_capeante_rah_pdf.php?id_capeante=' . $intern['id_capeante'] . '&download=1';
                                     $dropdownId = 'contasDropdownRah' . $intern['id_capeante'] . '_' . $intern['id_internacao'];
+                                    $rahEditUrl = $BASE_URL . 'cad_capeante_rah.php?id_capeante=' . $intern['id_capeante'];
                                 ?>
                                 <td class="action text-center">
                                     <div class="d-flex flex-column align-items-center gap-2">
@@ -654,33 +675,44 @@ $idcapeante          = filter_input(INPUT_GET, 'idcapeante') ?: NULL;
                                                 <i class="bi bi-stack me-1"></i>
                                                 Contas
                                             </button>
-                                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="<?= htmlspecialchars($dropdownId, ENT_QUOTES, 'UTF-8') ?>">
+                                            <ul class="dropdown-menu dropdown-menu-end cap-rah-dropdown" aria-labelledby="<?= htmlspecialchars($dropdownId, ENT_QUOTES, 'UTF-8') ?>">
+                                                <li>
+                                                    <a class="dropdown-item fw-normal" href="<?= htmlspecialchars($rahEditUrl, ENT_QUOTES, 'UTF-8') ?>"
+                                                        onclick="edit('<?= htmlspecialchars($rahEditUrl, ENT_QUOTES, 'UTF-8') ?>'); return false;">
+                                                        <i class="bi bi-pencil-square me-1" style="color:#5e2363;"></i>
+                                                        <span style="color:#5e2363; font-weight:400; text-transform:none;">Editar RAH</span>
+                                                    </a>
+                                                </li>
                                                 <?php if ($capeanteEncerrado): ?>
                                                 <li>
-                                                    <a class="dropdown-item" target="_blank" rel="noopener"
-                                                        href="<?= htmlspecialchars($pdfPreviewUrl, ENT_QUOTES, 'UTF-8') ?>">
-                                                        <i class="bi bi-eye me-1"></i>
-                                                        Ver RAH
+                                                    <a class="dropdown-item fw-normal" target="_blank" rel="noopener"
+                                                        href="<?= htmlspecialchars($pdfPreviewUrl, ENT_QUOTES, 'UTF-8') ?>"
+                                                        style="color:#0d6efd !important; font-weight:400 !important;">
+                                                        <i class="bi bi-eye me-1" style="color:#0d6efd;"></i>
+                                                        <span style="color:#0d6efd !important; font-weight:400 !important;">Ver RAH</span>
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item" target="_blank" rel="noopener"
-                                                        href="<?= htmlspecialchars($pdfDownloadUrl, ENT_QUOTES, 'UTF-8') ?>">
-                                                        <i class="bi bi-printer-fill me-1"></i>
-                                                        Imprimir PDF
+                                                    <a class="dropdown-item fw-normal" target="_blank" rel="noopener"
+                                                        href="<?= htmlspecialchars($pdfDownloadUrl, ENT_QUOTES, 'UTF-8') ?>"
+                                                        style="color:#198754 !important; font-weight:400 !important;">
+                                                        <i class="bi bi-printer-fill me-1" style="color:#198754;"></i>
+                                                        <span style="color:#198754 !important; font-weight:400 !important;">Imprimir PDF</span>
                                                     </a>
                                                 </li>
                                                 <?php else: ?>
                                                 <li>
-                                                    <span class="dropdown-item disabled text-muted">
-                                                        <i class="bi bi-eye me-1"></i>
-                                                        Ver RAH
+                                                    <span class="dropdown-item disabled text-muted fw-normal"
+                                                        style="color:#6c757d !important; font-weight:400 !important;">
+                                                        <i class="bi bi-eye me-1" style="color:#6c757d;"></i>
+                                                        <span style="color:#6c757d !important; font-weight:400 !important;">Ver RAH</span>
                                                     </span>
                                                 </li>
                                                 <li>
-                                                    <span class="dropdown-item disabled text-muted">
-                                                        <i class="bi bi-printer-fill me-1"></i>
-                                                        Imprimir PDF
+                                                    <span class="dropdown-item disabled text-muted fw-normal"
+                                                        style="color:#6c757d !important; font-weight:400 !important;">
+                                                        <i class="bi bi-printer-fill me-1" style="color:#6c757d;"></i>
+                                                        <span style="color:#6c757d !important; font-weight:400 !important;">Imprimir PDF</span>
                                                     </span>
                                                 </li>
                                                 <?php endif; ?>
