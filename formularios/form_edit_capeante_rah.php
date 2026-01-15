@@ -2,6 +2,13 @@
 // Formulário de edição do RAH: reutiliza o form de cadastro original
 // e injeta os valores atuais logo após o include.
 $__rahEditPayload = $rahEditData ?? [];
+$rahFormFieldOverrides = [];
+$rahFormSections = ['capeante', 'ap', 'uti', 'cc', 'diar', 'outros'];
+foreach ($rahFormSections as $section) {
+    if (!empty($__rahEditPayload[$section]) && is_array($__rahEditPayload[$section])) {
+        $rahFormFieldOverrides = array_merge($rahFormFieldOverrides, $__rahEditPayload[$section]);
+    }
+}
 include __DIR__ . '/form_cad_capeante_rah.php';
 
 $rahJson = json_encode(
@@ -26,6 +33,8 @@ $rahJsonB64 = base64_encode($rahJson ?: '{}');
     const populate = () => {
       const form = document.getElementById('form-capeante-rah');
       if (!form) return;
+
+      console.log('[RAH][populate] payload', data);
 
       const formatMoney = (val) => {
         if (val === null || typeof val === 'undefined' || val === '') return '';
@@ -78,6 +87,48 @@ $rahJsonB64 = base64_encode($rahJson ?: '{}');
         el.dispatchEvent(new Event('change', { bubbles: true }));
       };
 
+      const hasDataValue = (value) => {
+        if (value === null || typeof value === 'undefined') return false;
+        if (typeof value === 'string') return value.trim() !== '';
+        if (typeof value === 'number') return !isNaN(value);
+        return true;
+      };
+
+      const expandableSections = {
+        diar: '#grp-diarias',
+        ap: '#grp-apto',
+        uti: '#grp-uti',
+        cc: '#grp-cc',
+        outros: '#grp-outros'
+      };
+
+      const expandSection = (selector) => {
+        const collapseEl = form.querySelector(selector);
+        if (!collapseEl) return;
+        if (!collapseEl.classList.contains('show')) {
+          collapseEl.classList.add('show');
+          collapseEl.style.height = '';
+        }
+        const block = collapseEl.closest('.block');
+        const toggle = block ? block.querySelector('.block-toggle') : null;
+        if (toggle) {
+          toggle.classList.remove('collapsed');
+          toggle.setAttribute('aria-expanded', 'true');
+        }
+        collapseEl.dispatchEvent(new Event('shown.bs.collapse', { bubbles: true }));
+      };
+
+      const tryAutoExpand = () => {
+        Object.entries(expandableSections).forEach(([key, selector]) => {
+          const groupData = data[key];
+          if (!groupData || typeof groupData !== 'object') return;
+          const hasAny = Object.values(groupData).some((value) => hasDataValue(value));
+          if (hasAny) {
+            expandSection(selector);
+          }
+        });
+      };
+
       const ensureHidden = (name) => {
         let input = form.querySelector('[name=\"' + name + '\"]');
         if (!input) {
@@ -101,6 +152,7 @@ $rahJsonB64 = base64_encode($rahJson ?: '{}');
           setValue(key, value);
         });
       });
+      tryAutoExpand();
     };
 
     if (document.readyState === 'loading') {

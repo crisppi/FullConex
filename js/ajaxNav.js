@@ -1,28 +1,59 @@
 // js/ajaxNav.js
 
 function runEmbeddedScripts(element) {
-    if (!element) return;
+    if (!element) return Promise.resolve();
 
-    var scripts = element.querySelectorAll('script');
-    scripts.forEach(function (script) {
-        if (script.src) {
-            var newScript = document.createElement('script');
-            newScript.src = script.src;
-            newScript.async = false;
-            newScript.onload = newScript.onerror = function () {
-                newScript.parentNode && newScript.parentNode.removeChild(newScript);
-            };
-            document.head.appendChild(newScript);
+    var scripts = Array.from(element.querySelectorAll('script'));
+    if (!scripts.length) return Promise.resolve();
+
+    function execInline(script) {
+        var code = script.textContent || script.innerHTML || '';
+        if (!code.trim()) return;
+        if (window.jQuery && typeof $.globalEval === 'function') {
+            $.globalEval(code);
         } else {
-            var code = script.textContent || script.innerHTML || '';
-            if (code.trim()) {
-                $.globalEval(code);
-            }
+            new Function(code)();
         }
-    });
+    }
+
+    return scripts.reduce(function (chain, script) {
+        return chain.then(function () {
+            return new Promise(function (resolve) {
+                var cleanup = function () {
+                    if (script.parentNode) {
+                        script.parentNode.removeChild(script);
+                    }
+                };
+                if (script.src) {
+                    var newScript = document.createElement('script');
+                    newScript.src = script.src;
+                    newScript.async = false;
+                    newScript.onload = function () {
+                        cleanup();
+                        if (newScript.parentNode) newScript.parentNode.removeChild(newScript);
+                        resolve();
+                    };
+                    newScript.onerror = function () {
+                        cleanup();
+                        if (newScript.parentNode) newScript.parentNode.removeChild(newScript);
+                        resolve();
+                    };
+                    document.head.appendChild(newScript);
+                } else {
+                    execInline(script);
+                    cleanup();
+                    resolve();
+                }
+            });
+        });
+    }, Promise.resolve());
 }
 
 function edit(url) {
+    if (typeof url === 'string' && /capeante_rah\.php/.test(url)) {
+        window.location.href = url;
+        return;
+    }
     $.ajax({
         url: url,
         type: "GET",
@@ -32,23 +63,20 @@ function edit(url) {
             tempElement.innerHTML = response;
 
             var innerMain = tempElement.querySelector('#main-container');
+            var target = innerMain || tempElement;
 
             if (innerMain) {
                 $('#main-container').html(innerMain.innerHTML);
-                runEmbeddedScripts(innerMain);
             } else {
                 $('#main-container').html(response);
-                runEmbeddedScripts(tempElement);
             }
 
-            // --- CORREÇÃO DO ERRO ---
-            // Verifica se o plugin existe antes de tentar usar
-            if ($.fn.selectpicker) {
-                // Tenta inicializar nos novos selects
-                $('.selectpicker').selectpicker();
-                // Tenta atualizar caso já existam
-                $('.selectpicker').selectpicker('refresh');
-            }
+            runEmbeddedScripts(target).then(function () {
+                if ($.fn.selectpicker) {
+                    $('.selectpicker').selectpicker();
+                    $('.selectpicker').selectpicker('refresh');
+                }
+            });
         },
         error: function () {
             $('#responseMessage').html('Ocorreu um erro ao carregar a página.');
@@ -66,19 +94,19 @@ function loadContent(url) {
             tempElement.innerHTML = data;
 
             var tableContent = tempElement.querySelector('#table-content');
+            var target = tableContent || tempElement;
 
             if (tableContent) {
                 $('#table-content').html(tableContent.innerHTML);
-                runEmbeddedScripts(tableContent);
             } else {
                 $('#table-content').html(data);
-                runEmbeddedScripts(tempElement);
             }
 
-            // --- CORREÇÃO DO ERRO ---
-            if ($.fn.selectpicker) {
-                $('.selectpicker').selectpicker('refresh');
-            }
+            runEmbeddedScripts(target).then(function () {
+                if ($.fn.selectpicker) {
+                    $('.selectpicker').selectpicker('refresh');
+                }
+            });
         },
         error: function () {
             console.log('Error loading content');

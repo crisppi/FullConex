@@ -355,14 +355,31 @@ form#form-capeante-rah {
 @media (min-width:1200px){ .form-line-grid .fg-parcial-num { grid-column: auto / span 2; } }
 
 /* ===== Titulo/caret dos blocos colapsáveis ===== */
-.block > h5 { position: relative; padding-left: 28px; }
-.block > h5:not([data-static="1"]) { cursor: pointer; }
-.block > h5:not([data-static="1"])::before {
-  content: "▸";
-  position: absolute; left: 8px; top: 50%; transform: translateY(-50%);
-  font-weight: 900; opacity: .7;
+.block > h5 { position: relative; padding: 0; margin-bottom: 0; }
+.block-toggle {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 6px 10px;
+  display: block;
+  cursor: pointer;
+  position: relative;
 }
-.block > h5[aria-expanded="true"]:not([data-static="1"])::before { content: "▾"; }
+.block-toggle::before {
+  content: "▸";
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-weight: 900;
+  opacity: .7;
+}
+.block-toggle:not(.collapsed)::before {
+  content: "▾";
+}
 
 /* usado por JS para girar ícones opcionais */
 .rotate-180 { transform: rotate(180deg); transition: transform .2s; }

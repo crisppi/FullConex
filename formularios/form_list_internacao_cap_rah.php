@@ -503,12 +503,12 @@ $idcapeante          = filter_input(INPUT_GET, 'idcapeante') ?: NULL;
                                     $capeanteEncerrado = strtolower((string)($intern['encerrado_cap'] ?? 'n')) === 's';
                                     $pdfPreviewUrl = $BASE_URL . 'export_capeante_rah_pdf.php?id_capeante=' . $intern['id_capeante'] . '&download=0';
                                     $pdfDownloadUrl = $BASE_URL . 'export_capeante_rah_pdf.php?id_capeante=' . $intern['id_capeante'] . '&download=1';
-                                    $rahEditUrl = $BASE_URL . 'cad_capeante_rah.php?id_capeante=' . $intern['id_capeante'];
+                                    $rahEditUrl = $BASE_URL . 'edit_capeante_rah.php?id_capeante=' . $intern['id_capeante'];
                                 ?>
                                 <td class="action">
                                     <div class="d-flex flex-column gap-1 align-items-center">
                                         <a class="btn btn-outline-primary btn-sm" href="#"
-                                            onclick="edit('<?= $BASE_URL ?>cad_capeante_rah.php?id_capeante=<?= $intern['id_capeante'] ?>')">
+                                            onclick="edit('<?= $BASE_URL ?>edit_capeante_rah.php?id_capeante=<?= $intern['id_capeante'] ?>')">
                                             Editar RAH
                                         </a>
                                         <div class="dropdown">
@@ -625,14 +625,14 @@ $idcapeante          = filter_input(INPUT_GET, 'idcapeante') ?: NULL;
                                     $pdfPreviewUrl = $BASE_URL . 'export_capeante_rah_pdf.php?id_capeante=' . $intern['id_capeante'] . '&download=0';
                                     $pdfDownloadUrl = $BASE_URL . 'export_capeante_rah_pdf.php?id_capeante=' . $intern['id_capeante'] . '&download=1';
                                     $dropdownId = 'contasDropdownRah' . $intern['id_capeante'] . '_' . $intern['id_internacao'];
-                                    $rahEditUrl = $BASE_URL . 'cad_capeante_rah.php?id_capeante=' . $intern['id_capeante'];
+                                    $rahEditUrl = $BASE_URL . 'edit_capeante_rah.php?id_capeante=' . $intern['id_capeante'];
                                 ?>
                                 <td class="action text-center">
                                     <div class="d-flex flex-column align-items-center gap-2">
                                         <?php if ($isSenhasContext): ?>
                                             <a class="btn btn-outline-primary btn-sm"
                                                 href="#"
-                                                onclick="edit('<?= $BASE_URL ?>cad_capeante_rah.php?id_capeante=<?= $intern['id_capeante'] ?>')">
+                                                onclick="edit('<?= $BASE_URL ?>edit_capeante_rah.php?id_capeante=<?= $intern['id_capeante'] ?>')">
                                                 Editar RAH
                                             </a>
                                         <?php else: ?>

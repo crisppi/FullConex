@@ -10,38 +10,6 @@
     });
   }
 
-  // Colapsáveis
-  function setupCollapsibles() {
-    function isNaoColapsavel(t) {
-      t = (t || "").trim().toLowerCase();
-      return t === "identificação" || t === "periodo e totais" || t === "período e totais";
-    }
-    $('.block').each(function () {
-      const $block = $(this);
-      const $title = $block.children('h5').first();
-      const $body  = $title.nextAll();
-      if (!$title.length || !$body.length) return;
-
-      if (isNaoColapsavel($title.text())) {
-        $title.attr({'data-static':'1','aria-expanded':'true'});
-        $body.show();
-        return;
-      }
-      $title.attr('aria-expanded','false'); $body.hide();
-      $title.off('click.rahCollapse').on('click.rahCollapse', function () {
-        const expanded = $title.attr('aria-expanded') === 'true';
-        $title.attr('aria-expanded', expanded ? 'false' : 'true');
-        $body.stop(true,true).slideToggle(160);
-      });
-    });
-
-    document.addEventListener('shown.bs.collapse', function (ev) {
-      const $blk = $(ev.target).closest('.block');
-      applyMask($blk.get(0));
-      $blk.find('.rah-cobrado,.rah-glosado').first().trigger('input');
-    });
-  }
-
   // Espelho “Período e Totais”
   (function setupPeriodMirror() {
     function syncPeriodTotals(tCob, tLib) {
@@ -98,7 +66,15 @@
 
     $(function () {
       $(document).on('input change keyup', '.rah-cobrado, .rah-glosado, #desconto_valor_cap', mirrorNow);
-      document.addEventListener('shown.bs.collapse', function () { applyMask(document); mirrorNow(); });
+      document.addEventListener('shown.bs.collapse', function (ev) {
+        applyMask(document);
+        mirrorNow();
+        const $blk = $(ev.target).closest('.block');
+        if ($blk.length) {
+          applyMask($blk.get(0));
+          $blk.find('.rah-cobrado,.rah-glosado').first().trigger('input');
+        }
+      });
       mirrorNow();
       setTimeout(mirrorNow, 80);
     });
@@ -165,7 +141,6 @@
   // Boot
   $(function () {
     applyMask(document);
-    setupCollapsibles();
     setupCadastroCentral();
     hydrateSelects();
   });

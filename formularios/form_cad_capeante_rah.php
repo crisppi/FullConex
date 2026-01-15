@@ -217,6 +217,10 @@ if ($internacaoParaEvento > 0) {
     }
 }
 
+if (!empty($rahFormFieldOverrides) && is_array($rahFormFieldOverrides)) {
+    $row = array_merge($row, $rahFormFieldOverrides);
+}
+
 $nextAutoDate = '';
 if ($type === 'create' && !empty($prevParcialRow['data_final_capeante']) && $prevParcialRow['data_final_capeante'] !== '0000-00-00') {
     $ts = strtotime($prevParcialRow['data_final_capeante'] . ' +1 day');
@@ -616,7 +620,10 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
     <div class="block" data-group="diarias">
         <!-- TÍTULO / TOGGLER -->
         <h5>
-            Diárias
+            <button class="block-toggle collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#grp-diarias" aria-expanded="false" aria-controls="grp-diarias">
+                Diárias
+            </button>
         </h5>
 
         <!-- CONTEÚDO COLAPSÁVEL (tuss-grid + totais) -->
@@ -760,9 +767,15 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
 
     <!-- SETOR: APTO / ENFERMARIA -->
     <div class="block apto" data-group="apto">
-        <h5>Apto / Enfermaria</h5>
+        <h5>
+            <button class="block-toggle collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#grp-apto" aria-expanded="false" aria-controls="grp-apto">
+                Apto / Enfermaria
+            </button>
+        </h5>
 
-        <div class="tuss-grid">
+        <div id="grp-apto" class="collapse">
+            <div class="tuss-grid">
             <div class="tg-head tg-col-desc">Descrição</div>
             <div class="tg-head tg-col-qtd">Qtd.</div>
             <div class="tg-head tg-col-cob">Cobrado</div>
@@ -897,14 +910,21 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
                     value="R$ 0,00">
             </div>
         </div>
+        </div>
     </div>
 
 
     <!-- SETOR: UTI -->
     <div class="block uti" data-group="uti">
-        <h5>UTI</h5>
+        <h5>
+            <button class="block-toggle collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#grp-uti" aria-expanded="false" aria-controls="grp-uti">
+                UTI
+            </button>
+        </h5>
 
-        <div class="tuss-grid">
+        <div id="grp-uti" class="collapse">
+            <div class="tuss-grid">
             <div class="tg-head tg-col-desc">Descrição</div>
             <div class="tg-head tg-col-qtd">Qtd.</div>
             <div class="tg-head tg-col-cob">Cobrado</div>
@@ -1039,13 +1059,20 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
                     value="R$ 0,00">
             </div>
         </div>
+        </div>
     </div>
 
     <!-- SETOR: CENTRO CIRÚRGICO -->
     <div class="block cc" data-group="cc">
-        <h5>Centro Cirúrgico</h5>
+        <h5>
+            <button class="block-toggle collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#grp-cc" aria-expanded="false" aria-controls="grp-cc">
+                Centro Cirúrgico
+            </button>
+        </h5>
 
-        <div class="tuss-grid">
+        <div id="grp-cc" class="collapse">
+            <div class="tuss-grid">
             <div class="tg-head tg-col-desc">Descrição</div>
             <div class="tg-head tg-col-qtd">Qtd.</div>
             <div class="tg-head tg-col-cob">Cobrado</div>
@@ -1180,12 +1207,19 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
                     value="R$ 0,00">
             </div>
         </div>
+        </div>
     </div>
     <!-- SETOR: OUTROS -->
     <div class="block" data-group="outros">
-        <h5>Outros</h5>
+        <h5>
+            <button class="block-toggle collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#grp-outros" aria-expanded="false" aria-controls="grp-outros">
+                Outros
+            </button>
+        </h5>
 
-        <div class="tuss-grid">
+        <div id="grp-outros" class="collapse">
+            <div class="tuss-grid">
             <div class="tg-head tg-col-desc">Descrição</div>
             <div class="tg-head tg-col-qtd">Qtd.</div>
             <div class="tg-head tg-col-cob">Cobrado</div>
@@ -1237,6 +1271,7 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
                 <input type="text" name="outros_total_liberado" class="form-control dinheiro grp-total-liberado"
                     readonly value="R$ 0,00">
             </div>
+        </div>
         </div>
     </div>
 
