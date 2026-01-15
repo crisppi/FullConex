@@ -487,37 +487,86 @@ if ($havePages) {
                                     <?php } ?>
                                 </td>
 
-                                <td class="action">
-                                    <?php if (($intern['encerrado_cap'] ?? 'n') !== "s"): ?>
-                                        <?php if (($intern['em_auditoria_cap'] ?? 'n') === "s"): ?>
-                                            <a class="legenda-em-auditoria"
-                                                href="<?= $BASE_URL ?>cad_capeante_rah.php?id_capeante=<?= $intern['id_capeante'] ?>">
-                                                <i class="bi bi-file-text" style="color:#db5a0f;font-size:1.1em;margin:0 5px"></i>
-                                                <span style="color:#db5a0f;">Analisar</span>
-                                            </a>
-                                        <?php else: ?>
-                                            <a class="legenda-iniciar"
-                                                href="<?= $BASE_URL ?>cad_capeante_rah.php?id_capeante=<?= $intern['id_capeante'] ?>">
-                                                <i class="bi bi-file-text"
-                                                    style="color:rgb(25,78,255);font-size:1.1em;font-weight:bold;margin:0 5px"></i>
-                                                <span>Iniciar</span>
-                                            </a>
-                                        <?php endif; ?>
-                                    <?php else: ?>
-                                        <a class="legenda-encerrado" href="#"
-                                            onclick="return openCapeantePdf(<?= (int)$intern['id_capeante']; ?>);">
-                                            <i class="bi"
-                                                style="color:black;text-decoration:none;font-size:1.1em;font-weight:bold;margin:0 5px">
-                                                Encerrado</i>
-                                        </a>
-                                    <?php endif; ?>
+                                <?php
+                                    $capeanteEncerrado = strtolower((string)($intern['encerrado_cap'] ?? 'n')) === 's';
+                                    $pdfPreviewUrl = $BASE_URL . 'export_capeante_rah_pdf.php?id_capeante=' . $intern['id_capeante'] . '&download=0';
+                                    $pdfDownloadUrl = $BASE_URL . 'export_capeante_rah_pdf.php?id_capeante=' . $intern['id_capeante'] . '&download=1';
+                                ?>
+                                <td class="action text-center">
+                                    <div class="d-flex flex-column align-items-center gap-2">
+                                        <div class="d-flex flex-wrap align-items-center gap-3 justify-content-center">
+                                            <?php if (($intern['encerrado_cap'] ?? 'n') !== "s"): ?>
+                                                <?php if (($intern['em_auditoria_cap'] ?? 'n') === "s"): ?>
+                                                    <a class="legenda-em-auditoria"
+                                                        href="<?= $BASE_URL ?>cad_capeante_rah.php?id_capeante=<?= $intern['id_capeante'] ?>">
+                                                        <i class="bi bi-file-text" style="color:#db5a0f;font-size:1.1em;margin:0 5px"></i>
+                                                        <span style="color:#db5a0f;">Analisar</span>
+                                                    </a>
+                                                <?php else: ?>
+                                                    <a class="legenda-iniciar"
+                                                        href="<?= $BASE_URL ?>cad_capeante_rah.php?id_capeante=<?= $intern['id_capeante'] ?>">
+                                                        <i class="bi bi-file-text"
+                                                            style="color:rgb(25,78,255);font-size:1.1em;font-weight:bold;margin:0 5px"></i>
+                                                        <span>Iniciar</span>
+                                                    </a>
+                                                <?php endif; ?>
+                                            <?php else: ?>
+                                                <span class="legenda-encerrado" style="cursor:default;">
+                                                    <i class="bi"
+                                                        style="color:black;text-decoration:none;font-size:1.1em;font-weight:bold;margin:0 5px">
+                                                        Encerrado</i>
+                                                </span>
+                                            <?php endif; ?>
 
-                                    <a class="legenda-parcial"
-                                        href="<?= $BASE_URL ?>cad_capeante_rah.php?id_internacao=<?= $intern["id_internacao"] ?>&type=create">
-                                        <i class="legenda-parcial bi bi-file-text"
-                                            style="color:green;text-decoration:none;font-size:10px;font-weight:bold;margin:0 5px">
-                                            Parcial</i>
-                                    </a>
+                                            <a class="legenda-parcial"
+                                                href="<?= $BASE_URL ?>cad_capeante_rah.php?id_internacao=<?= $intern["id_internacao"] ?>&type=create">
+                                                <i class="legenda-parcial bi bi-file-text"
+                                                    style="color:green;text-decoration:none;font-size:10px;font-weight:bold;margin:0 5px">
+                                                    Criar Parcial</i>
+                                            </a>
+                                        </div>
+
+                                        <div class="dropdown">
+                                            <?php $dropdownId = 'contasDropdown' . $intern['id_capeante'] . '_' . $intern['id_internacao']; ?>
+                                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button"
+                                                id="<?= htmlspecialchars($dropdownId, ENT_QUOTES, 'UTF-8') ?>"
+                                                data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="bi bi-stack me-1"></i>
+                                                Contas
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="<?= htmlspecialchars($dropdownId, ENT_QUOTES, 'UTF-8') ?>">
+                                                <?php if ($capeanteEncerrado): ?>
+                                                <li>
+                                                    <a class="dropdown-item" target="_blank" rel="noopener"
+                                                        href="<?= htmlspecialchars($pdfPreviewUrl, ENT_QUOTES, 'UTF-8') ?>">
+                                                        <i class="bi bi-eye me-1"></i>
+                                                        Ver RAH
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" target="_blank" rel="noopener"
+                                                        href="<?= htmlspecialchars($pdfDownloadUrl, ENT_QUOTES, 'UTF-8') ?>">
+                                                        <i class="bi bi-printer-fill me-1"></i>
+                                                        Imprimir PDF
+                                                    </a>
+                                                </li>
+                                                <?php else: ?>
+                                                <li>
+                                                    <span class="dropdown-item disabled text-muted">
+                                                        <i class="bi bi-eye me-1"></i>
+                                                        Ver RAH
+                                                    </span>
+                                                </li>
+                                                <li>
+                                                    <span class="dropdown-item disabled text-muted">
+                                                        <i class="bi bi-printer-fill me-1"></i>
+                                                        Imprimir PDF
+                                                    </span>
+                                                </li>
+                                                <?php endif; ?>
+                                            </ul>
+                                        </div>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
