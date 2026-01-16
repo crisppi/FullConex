@@ -331,7 +331,7 @@ if (!empty($sessionIdUsuario)) {
                                     <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
                                         <li><a class="dropdown-item" href="<?= $BASE_URL ?>pacientes"><i class="bi bi-person"
                                                     style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
-                                                Pacientes</a></li>
+                                                Lista Pacientes</a></li>
                                         <li><a class="dropdown-item" href="<?= $BASE_URL ?>hospitais"><span
                                                     class="bi bi-hospital"
                                                     style="font-size: 1rem;margin-right:5px; color: rgb(67, 125, 525);"></span>

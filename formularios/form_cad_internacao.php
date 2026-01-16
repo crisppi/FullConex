@@ -817,7 +817,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
             </div>
 
             <div class="form-group col-sm-1">
-                <label for="data_visita_int"><span style="color:red;">*</span> Data Visita</label>
+                <label for="data_visita_int">Data Visita</label>
                 <input type="date" value='<?= $dataAtual; ?>' class="form-control form-control-sm" id="data_visita_int"
                     name="data_visita_int">
                 <p id="error-message" style="color:red;display:none;font-size:.6em;"></p>
