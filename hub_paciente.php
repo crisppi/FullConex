@@ -198,6 +198,16 @@ if ($nome_str) {
 }
 
 $riskOverview = ['available' => false];
+$cargoSessaoPaciente = trim((string)($_SESSION['cargo'] ?? ''));
+$cargoNorm = (string)@iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $cargoSessaoPaciente);
+$cargoNorm = mb_strtolower($cargoNorm !== false ? $cargoNorm : $cargoSessaoPaciente, 'UTF-8');
+$cargoNorm = preg_replace('/[^a-z]/', '', $cargoNorm);
+$allowedCargos = [
+  'medauditor', 'medico', 'medicoauditor', 'medicoauditoria', 'doctor',
+  'enfauditor', 'enfermeiroauditor', 'enfermeiro', 'enfermeirora',
+  'diretor', 'diretoria', 'administrador', 'admin', 'board'
+];
+$showClinicalGroups = $cargoNorm !== '' && in_array($cargoNorm, $allowedCargos, true);
 $riskInternacaoId = null;
 try {
   $stmtLast = $conn->prepare("
@@ -383,6 +393,7 @@ $ultimaInternFmt = $indicadoresPaciente['ultima_internacao']
 $complexInfo = $complexMap[$effectiveLevel];
 ?>
 
+<?php if ($showClinicalGroups): ?>
 <div class="row g-3 mb-3">
   <div class="col-12 col-lg-5">
     <div class="card shadow-sm h-100" style="border-radius:16px;border:2px solid <?= $palette['border'] ?>;background:<?= $palette['bg'] ?>;color:<?= $palette['text'] ?>;">
@@ -460,6 +471,7 @@ $complexInfo = $complexMap[$effectiveLevel];
     </div>
   </div>
 </div>
+<?php endif; ?>
 
   <!-- Abas -->
   <div class="card shadow-sm" style="border-radius:14px;">

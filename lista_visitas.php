@@ -1,6 +1,9 @@
 <?php
 ob_start();
 
+if (!defined('SKIP_HEADER')) {
+    define('SKIP_HEADER', true);
+}
 include_once __DIR__ . "/check_logado.php";
 include_once __DIR__ . "/globals.php";
 include_once __DIR__ . "/db.php";
@@ -55,6 +58,7 @@ $pageTitle = $isFaturamentoView ? 'Faturamento - Visitas' : 'Lista de Visitas';
 
 /* ==== Entrada ==== */
 $nomePaciente = trim($_GET['nome'] ?? '');
+$matriculaPaciente = trim($_GET['matricula'] ?? '');
 $hospitalIdsRaw = $_GET['hospital_id'] ?? [];
 if ($hospitalIdsRaw === '' || $hospitalIdsRaw === null) {
     $hospitalIdsRaw = [];
@@ -219,6 +223,10 @@ $paramsBase = $params;
 if ($nomePaciente !== '') {
     $whereConditions .= " AND pa.nome_pac LIKE :nome ";
     $paramsBase[':nome'] = "%$nomePaciente%";
+}
+if ($matriculaPaciente !== '') {
+    $whereConditions .= " AND pa.matricula_pac LIKE :matricula ";
+    $paramsBase[':matricula'] = "%$matriculaPaciente%";
 }
 if (!empty($hospitalIds)) {
     $placeholders = [];
@@ -436,6 +444,7 @@ if ($isExport) {
 }
 
 /* ==== Render ==== */
+$hideBIMenu = $isFaturamentoView;
 include_once __DIR__ . "/templates/header.php";
 
 $brandColor = $isFaturamentoView ? '#0a4fa3' : '#0b3d91';
@@ -675,6 +684,13 @@ $fieldIcons = [
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
                     <input type="text" name="nome" class="form-control form-control-sm" placeholder="Nome do paciente"
                         value="<?= h($nomePaciente) ?>">
+                </div>
+            </div>
+            <div class="col-12 col-xl-3 filters-item">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text"><i class="bi bi-123"></i></span>
+                    <input type="text" name="matricula" class="form-control form-control-sm" placeholder="Matrícula do paciente"
+                        value="<?= h($matriculaPaciente) ?>">
                 </div>
             </div>
             <div class="col-12 col-xl-3 filters-item">

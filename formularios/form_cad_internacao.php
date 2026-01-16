@@ -449,6 +449,32 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
         var timerStart = null;
         var intervalId = null;
 
+        function normalizeMatricula(value) {
+            return (value || '').toLowerCase().replace(/[^0-9a-z]/g, '');
+        }
+
+        function selectPacienteByMatricula(value) {
+            if (!pacienteSelect) return;
+            var search = normalizeMatricula(value);
+            if (!search) return;
+            var options = Array.from(pacienteSelect.options || []);
+            var match = options.find(function(opt) {
+                return normalizeMatricula(opt.getAttribute('data-matricula') || '') === search;
+            });
+            if (!match && search.length >= 3) {
+                match = options.find(function(opt) {
+                    return normalizeMatricula(opt.getAttribute('data-matricula') || '').includes(search);
+                });
+            }
+            if (match && match.value) {
+                pacienteSelect.value = match.value;
+                if (window.jQuery && window.jQuery.fn && window.jQuery(pacienteSelect).hasClass('selectpicker')) {
+                    window.jQuery(pacienteSelect).selectpicker('refresh');
+                }
+                handlePacienteChange();
+            }
+        }
+
         window.sortPacienteOptionsDesc = function() {
             var select = document.getElementById('fk_paciente_int');
             if (!select || select.options.length <= 1) return;
@@ -504,12 +530,6 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
             } else {
                 scheduleValueWatch();
             }
-            if (matriculaField) {
-                pacienteSelect.addEventListener('focus', function() {
-                    matriculaField.value = '';
-                });
-            }
-
             pacienteSelect.addEventListener('change', handlePacienteChange);
 
             if (window.jQuery && window.jQuery.fn && typeof window.jQuery.fn.on === 'function') {
@@ -517,15 +537,23 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                     window.jQuery('#fk_paciente_int').on('changed.bs.select', function() {
                         handlePacienteChange();
                     });
-                    if (matriculaField) {
-                        window.jQuery('#fk_paciente_int').on('show.bs.select', function() {
-                            matriculaField.value = '';
-                        });
-                    }
                 });
             }
         } else {
             startTimer();
+        }
+
+        if (matriculaField) {
+            var triggerMatriculaSearch = function() {
+                selectPacienteByMatricula(matriculaField.value);
+            };
+            matriculaField.addEventListener('keydown', function(evt) {
+                if (evt.key === 'Enter') {
+                    evt.preventDefault();
+                    triggerMatriculaSearch();
+                }
+            });
+            matriculaField.addEventListener('blur', triggerMatriculaSearch);
         }
 
         ['pacienteSelecionado', 'paciente-selecionado'].forEach(function(evtName) {
@@ -694,7 +722,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                         ?>
                         <option value="<?= (int) $paciente["id_paciente"] ?>"
                             data-matricula="<?= htmlspecialchars($matriculaPac) ?>"
-                            data-tokens="<?= htmlspecialchars(trim((string) $paciente["nome_pac"] . ' ' . $matriculaPac)) ?>">
+                            data-tokens="<?= htmlspecialchars(trim((string) $paciente["nome_pac"])) ?>">
                             <?= htmlspecialchars($pacienteLabel) ?>
                         </option>
                     <?php endforeach; ?>
@@ -740,8 +768,8 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
 
             <div class="form-group col-sm-2">
                 <label class="control-label" for="matricula_paciente_display">Matrícula</label>
-                <input type="text" class="form-control form-control-sm" id="matricula_paciente_display" readonly
-                    placeholder="Matrícula do paciente">
+                <input type="text" class="form-control form-control-sm" id="matricula_paciente_display"
+                    placeholder="Digite para pesquisar por matrícula">
             </div>
 
             <div class="form-group col-sm-1">
@@ -1606,16 +1634,13 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
             if ($pacientePicker.length) {
                 var picker = $pacientePicker.data('selectpicker');
                 var $searchInput = picker && picker.$searchbox ? picker.$searchbox.find('input') : null;
-                if ($searchInput && $searchInput.length) {
-                    $searchInput.attr('placeholder', 'Pesquise por Nome ou matrícula.');
-                }
             }
             $('.selectpicker').on('loaded.bs.select', function() {
                 var $picker = $(this).data('selectpicker');
                 var $searchInput = $picker && $picker.$searchbox ? $picker.$searchbox.find('input') : null;
                 if (!$searchInput || !$searchInput.length) return;
                 if ($(this).attr('id') === 'fk_paciente_int') {
-                    $searchInput.attr('placeholder', 'Pesquise por Nome ou matrícula.');
+                    $searchInput.attr('placeholder', 'Pesquise pelo nome do paciente.');
                 } else {
                     $searchInput.attr('placeholder', 'Digite para pesquisar...');
                 }
