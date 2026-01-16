@@ -66,7 +66,7 @@ $negociacaoLast = new negociacaoDAO($conn, $BASE_URL);
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
 
         <!-- FORMULARIO INTERNACAO -->
-        <?php include_once('formularios/form_censo/novo'); ?>
+        <?php include_once('formularios/form_cad_censo.php'); ?>
 
         <!-- FORMULARIO DE GESTÃO -->
         <?php include_once('formularios/form_cad_internacao_gestao.php'); ?>
