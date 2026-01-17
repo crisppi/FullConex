@@ -75,6 +75,23 @@ foreach ($hospitalIdsRaw as $hid) {
     }
 }
 $hospitalIds = array_values(array_unique($hospitalIds));
+$seguradoraIdsRaw = $_GET['seguradora_id'] ?? [];
+if ($seguradoraIdsRaw === '' || $seguradoraIdsRaw === null) {
+    $seguradoraIdsRaw = [];
+} elseif (!is_array($seguradoraIdsRaw)) {
+    $seguradoraIdsRaw = [$seguradoraIdsRaw];
+}
+$seguradoraIds = [];
+foreach ($seguradoraIdsRaw as $sidRaw) {
+    foreach (explode(',', (string)$sidRaw) as $part) {
+        $sid = (int)preg_replace('/\D+/', '', $part);
+        if ($sid > 0) {
+            $seguradoraIds[] = $sid;
+        }
+    }
+}
+$seguradoraIds = array_values(array_unique($seguradoraIds));
+$seguradoraIdsRawNormalized = array_map(fn($v) => trim((string)$v), $seguradoraIdsRaw);
 $dtIni        = trim($_GET['dt_ini'] ?? ''); // YYYY-MM-DD
 $dtFim        = trim($_GET['dt_fim'] ?? ''); // YYYY-MM-DD
 $faturadoVis  = strtolower(trim($_GET['faturado'] ?? 'n'));
@@ -253,6 +270,15 @@ if (!empty($hospitalIds)) {
     }
     $whereConditions .= " AND i.fk_hospital_int IN (" . implode(', ', $placeholders) . ") ";
 }
+if (!empty($seguradoraIds)) {
+    $placeholders = [];
+    foreach ($seguradoraIds as $idx => $sid) {
+        $ph = ":seg{$idx}";
+        $placeholders[] = $ph;
+        $paramsBase[$ph] = $sid;
+    }
+    $whereConditions .= " AND pa.fk_seguradora_pac IN (" . implode(', ', $placeholders) . ") ";
+}
 
 // Se período definido, garante que só traga internações com visita escolhida
 if ($dtIni !== '' || $dtFim !== '') {
@@ -337,6 +363,44 @@ $hospitais = [];
 try {
     $hStmt = $conn->query("SELECT id_hospital, nome_hosp FROM $T_HOS ORDER BY nome_hosp");
     if ($hStmt) $hospitais = $hStmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (Throwable $e) {
+}
+ $seguradoras = [];
+try {
+    $sStmt = $conn->query("SELECT id_seguradora, seguradora_seg FROM $T_SEG WHERE COALESCE(deletado_seg,'n') <> 's' ORDER BY seguradora_seg");
+    if ($sStmt) {
+        $rawSeguradoras = $sStmt->fetchAll(PDO::FETCH_ASSOC);
+        $bucket = [];
+        foreach ($rawSeguradoras as $row) {
+            $label = trim((string)($row['seguradora_seg'] ?? ''));
+            if ($label === '') {
+                continue;
+            }
+            $key = function_exists('mb_strtolower') ? mb_strtolower($label, 'UTF-8') : strtolower($label);
+            $key = trim($key);
+            if ($key === '') {
+                continue;
+            }
+            if (!isset($bucket[$key])) {
+                $bucket[$key] = [
+                    'label' => $label,
+                    'ids' => [],
+                ];
+            }
+            $bucket[$key]['ids'][] = (int)($row['id_seguradora'] ?? 0);
+        }
+        $seguradoras = array_values(array_filter(array_map(function ($entry) {
+            $ids = array_values(array_filter(array_unique($entry['ids'])));
+            if (!$ids) {
+                return null;
+            }
+            return [
+                'label' => $entry['label'],
+                'ids' => $ids,
+                'value' => implode(',', $ids),
+            ];
+        }, $bucket)));
+    }
 } catch (Throwable $e) {
 }
 
@@ -727,6 +791,19 @@ $fieldIcons = [
                     </select>
                 </div>
             </div>
+            <div class="col-12 col-xl-3 filters-item">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text"><i class="bi bi-heart-pulse"></i></span>
+                    <select name="seguradora_id[]" id="filtro-seguradora" class="form-select form-select-sm" multiple>
+                        <?php foreach ($seguradoras as $s): ?>
+                            <?php $segSelected = in_array($s['value'], $seguradoraIdsRawNormalized, true); ?>
+                            <option value="<?= h($s['value']) ?>" <?= $segSelected ? 'selected' : '' ?>>
+                                <?= h($s['label']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
             <div class="col-12 col-xl-2 filters-item">
                 <div class="row g-2">
                     <div class="col-6">
@@ -901,6 +978,12 @@ $fieldIcons = [
         if (window.jQuery && typeof jQuery.fn.select2 === 'function') {
             jQuery('#filtro-hospital').select2({
                 placeholder: 'Hospitais',
+                allowClear: true,
+                width: '100%',
+                closeOnSelect: false
+            });
+            jQuery('#filtro-seguradora').select2({
+                placeholder: 'Seguradoras',
                 allowClear: true,
                 width: '100%',
                 closeOnSelect: false
