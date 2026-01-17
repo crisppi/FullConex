@@ -976,18 +976,19 @@ $fieldIcons = [
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         if (window.jQuery && typeof jQuery.fn.select2 === 'function') {
-            jQuery('#filtro-hospital').select2({
-                placeholder: 'Hospitais',
-                allowClear: true,
-                width: '100%',
-                closeOnSelect: false
-            });
-            jQuery('#filtro-seguradora').select2({
-                placeholder: 'Seguradoras',
-                allowClear: true,
-                width: '100%',
-                closeOnSelect: false
-            });
+            const initSelect2 = (selector, placeholder) => {
+                const $el = jQuery(selector);
+                if (!$el.length) return;
+                $el.select2({
+                    placeholder,
+                    allowClear: true,
+                    width: '100%',
+                    closeOnSelect: false,
+                    dropdownParent: $el.parent()
+                });
+            };
+            initSelect2('#filtro-hospital', 'Hospitais');
+            initSelect2('#filtro-seguradora', 'Seguradoras');
         }
         const formEl = document.getElementById('form-visitas');
         const updateColumnVisibility = (checkbox) => {
