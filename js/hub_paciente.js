@@ -431,9 +431,11 @@
     const resumo = document.querySelector('#tab-contas .card:nth-of-type(1) .card-body');
     const resumoValores = document.getElementById('contasResumoValores');
     if (resumoValores) {
+      const glosaSomada = Math.max(0, (summary?.soma_glosa_total || 0) - (summary?.soma_desconto || 0));
       resumoValores.innerHTML = `
         <div><strong>Valor apresentado:</strong> R$ ${Number(summary?.soma_apresentado || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        <div><strong>Glosa total:</strong> R$ ${Number(summary?.soma_glosa_total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+        <div><strong>Glosa total:</strong> R$ ${Number(glosaSomada).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+        <div><strong>Desconto total:</strong> R$ ${Number(summary?.soma_desconto || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
         <div><strong>Valor final:</strong> R$ ${Number(summary?.soma_final || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>`;
     }
     const resumoIndicadores = document.getElementById('contasResumoIndicadores');
@@ -458,7 +460,7 @@
               <tr>
                 <th>Internação</th><th>Conta</th><th>Hospital</th><th>Período</th>
                 <th>Fechamento</th><th>Lançamento</th>
-                <th class="text-end">Apresentado</th><th class="text-end">Glosa</th><th class="text-end">Final</th>
+                <th class="text-end">Apresentado</th><th class="text-end">Glosa</th><th class="text-end">Desconto</th><th class="text-end">Final</th>
                 <th>Status</th><th>Parcial / Nº</th><th>Ações</th>
               </tr>
             </thead>
@@ -657,7 +659,8 @@
           <td>${esc(r.data_fechamento || '—')}</td>
           <td>${esc(r.data_lancamento || '—')}</td>
           <td class="text-end">R$ ${Number(r.valor_apresentado || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-          <td class="text-end">R$ ${Number(r.glosa_total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+          <td class="text-end">R$ ${Number(Math.max(0, (r.glosa_total || 0) - (r.desconto || 0))).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+          <td class="text-end">R$ ${Number(r.desconto || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
           <td class="text-end">R$ ${Number(r.valor_final || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
           <td>${esc(r.status || '—')}</td>
           <td>${parcialBadge}${parcialNumText && parcialNumText !== '—' ? ` <span class="text-muted small ms-1">(${parcialNumText})</span>` : ''}</td>

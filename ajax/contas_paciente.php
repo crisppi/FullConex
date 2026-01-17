@@ -53,6 +53,7 @@ try {
             COALESCE(SUM(ca.valor_apresentado_capeante),0) AS soma_apresentado,
             COALESCE(SUM(ca.valor_final_capeante),0)       AS soma_final,
             COALESCE(SUM(ca.valor_glosa_total),0)          AS soma_glosa_total,
+            COALESCE(SUM(ca.desconto_valor_cap),0)         AS soma_desconto,
             COALESCE(SUM(ca.glosa_diaria),0)               AS soma_glosa_diaria,
             COALESCE(SUM(ca.glosa_honorarios),0)           AS soma_glosa_honorarios,
             COALESCE(SUM(ca.glosa_matmed),0)               AS soma_glosa_matmed,
@@ -201,6 +202,7 @@ try {
             'valor_apresentado'  => (float)($r['valor_apresentado_capeante'] ?? 0),
             'valor_final'        => (float)($r['valor_final_capeante'] ?? 0),
             'glosa_total'        => (float)($r['valor_glosa_total'] ?? 0),
+            'desconto'           => (float)($r['desconto_valor_cap'] ?? 0),
             'parcial'            => $isParcial ? ('Parcial #' . ($parcialNum ?: 1)) : '—',
             'is_parcial'         => $isParcial,
             'parcial_numero'     => $isParcial ? ($parcialNum ?: null) : null,
@@ -211,7 +213,7 @@ try {
         ];
     }, $rows);
 
-    echo json_encode([
+        echo json_encode([
         'success' => true,
         'total'   => $total,
         'page'    => $page,
@@ -220,6 +222,7 @@ try {
             'soma_apresentado'    => (float)($summary['soma_apresentado'] ?? 0),
             'soma_final'          => (float)($summary['soma_final'] ?? 0),
             'soma_glosa_total'    => (float)($summary['soma_glosa_total'] ?? 0),
+            'soma_desconto'       => (float)($summary['soma_desconto'] ?? 0),
             'em_auditoria'        => (int)($summary['em_auditoria'] ?? 0),
             'abertos'             => (int)($summary['abertos'] ?? 0),
             'encerrados'          => (int)($summary['encerrados'] ?? 0),
