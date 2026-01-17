@@ -460,8 +460,8 @@
               <tr>
                 <th>Internação</th><th>Conta</th><th>Hospital</th><th>Período</th>
                 <th>Fechamento</th><th>Lançamento</th>
-                <th class="text-end">Apresentado</th><th class="text-end">Glosa</th><th class="text-end">Desconto</th><th class="text-end">Final</th>
-                <th>Status</th><th>Parcial / Nº</th><th>Ações</th>
+                <th class="text-end">Apresentado</th><th class="text-end">Glosa</th><th class="text-end">Desconto</th><th class="text-end">Liberado</th>
+                <th>Parcial / Nº</th><th>Ações</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -662,7 +662,6 @@
           <td class="text-end">R$ ${Number(r.glosa_total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
           <td class="text-end">R$ ${Number(r.desconto || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
           <td class="text-end">R$ ${Number(r.valor_final || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-          <td>${esc(r.status || '—')}</td>
           <td>${parcialBadge}${parcialNumText && parcialNumText !== '—' ? ` <span class="text-muted small ms-1">(${parcialNumText})</span>` : ''}</td>
           <td class="d-flex gap-1 flex-wrap">
             <a class="btn btn-sm btn-outline-primary" href="${rahEditUrl}" title="Editar RAH da conta">Editar RAH</a>

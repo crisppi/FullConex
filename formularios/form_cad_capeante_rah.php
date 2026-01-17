@@ -467,7 +467,7 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
                         placeholder="R$ 0,00" readonly>
                 </div>
                 <div class="col-lg-2 col-md-4">
-                    <label class="form-label">Valor Final</label>
+                    <label class="form-label">Valor Liberado</label>
                     <input type="text" class="form-control dinheiro" id="inp_val_fin" name="valor_final_capeante"
                         value="<?= is_numeric($fv('valor_final_capeante')) ? number_format((float)$fv('valor_final_capeante'), 2, ',', '.') : '' ?>"
                         placeholder="R$ 0,00">
