@@ -48,16 +48,6 @@ require_once("templates/header.php");
             </li>
             <hr>
 
-            <li>
-                <a href="internacoes/lista" <?php if ($_SESSION['nivel'] < 2) { ?> style="pointer-events: none"
-                    ?<?php } ?>><i class="bi bi-calendar2-date"
-                        style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i> Lista Internação</a>
-            </li>
-            <li>
-                <a href="list_internacao_uti.php" <?php if ($_SESSION['nivel'] < 2) { ?> style="pointer-events: none"
-                    ?<?php } ?>><i class="bi bi-clipboard-heart"
-                        style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i> Internação UTI</a>
-            </li>
             <hr>
 
             <li>
@@ -94,11 +84,6 @@ require_once("templates/header.php");
                         style="font-size: 1rem; margin-right:5px; color: rgb(16, 15, 155);"></span> Alta Hospitalar</a>
             </li>
             <hr>
-            <li>
-                <a href="list_gestao.php" <?php if ($_SESSION['nivel'] < 2) { ?> style="pointer-events: none"
-                    ?<?php } ?>><i class=" bi bi-clipboard-heart"
-                        style="font-size: 1rem;margin-right:5px; color: rgb(142, 15, 15);"></i> Gestão</a>
-            </li>
             <hr>
             <li>
                 <a href="list_internacao_patologia.php" <?php if ($_SESSION['nivel'] < 2) { ?>
@@ -181,7 +166,7 @@ require_once("templates/header.php");
             <li>
                 <a href="cad_paciente.php" <?php if ($_SESSION['nivel'] < 2) { ?> style="pointer-events: none"
                     ?<?php } ?>><span class="bi bi-person"
-                        style="font-size: 1rem;margin-right:5px; color: rgb(155, 155, 76);"></span> Pacientes</a>
+                        style="font-size: 1rem;margin-right:5px; color: rgb(155, 155, 76);"></span> Lista Pacientes</a>
             </li>
             <li>
                 <a href="cad_hospital.php" <?php if ($_SESSION['nivel'] < 4) { ?> style="pointer-events: none"

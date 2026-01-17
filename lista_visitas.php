@@ -49,6 +49,8 @@ $T_ALT = 'tb_alta';
 $T_PAT = 'tb_patologia';
 $T_CID = 'tb_cid';
 $T_USR = 'tb_user';
+$T_CAP = 'tb_capeante';
+$T_SEG = 'tb_seguradora';
 
 $currentPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: '/lista_visitas.php';
 
@@ -104,6 +106,7 @@ $fieldsMap = [
     'hospital'        => ['label' => 'Hospital',         'sql' => "ho.nome_hosp AS hospital"],
     'cnpj_hospital'   => ['label' => 'CNPJ do hospital', 'sql' => "ho.cnpj_hosp AS cnpj_hospital"],
     'nome_paciente'   => ['label' => 'Nome do paciente', 'sql' => "pa.nome_pac AS nome_paciente"],
+    'seguradora'      => ['label' => 'Seguradora', 'sql' => "COALESCE(NULLIF(TRIM(se.seguradora_seg),''),'Sem seguradora') AS seguradora"],
     'matricula'       => ['label' => 'Matrícula do paciente', 'sql' => "pa.matricula_pac AS matricula"],
     'data_internacao' => ['label' => 'Data internação',  'sql' => "i.data_intern_int AS data_internacao"],
     'data_visita'     => ['label' => 'Data visita',      'sql' => "v.data_visita_fmt AS data_visita"],
@@ -111,6 +114,7 @@ $fieldsMap = [
         'label' => 'Data lançamento',
         'sql'   => "v1.data_lancamento_vis AS data_lancamento"
     ],
+    'valor_liberado'  => ['label' => 'Valor Liberado',  'sql' => "ca.valor_final_capeante AS valor_liberado"],
     'periodo_faturamento' => [
         'label' => 'Período faturamento (30 dias)',
         'sql'   => "CASE WHEN v.last_data_lancamento_iso IS NULL THEN NULL ELSE CONCAT(IFNULL(v.periodo_ini_fmt,''), ' a ', v.last_data_lancamento_fmt) END AS periodo_faturamento"
@@ -196,6 +200,18 @@ LEFT JOIN (
 ) v ON v.fk_internacao = i.id_internacao
 ";
 
+$capPick = "
+LEFT JOIN (
+  SELECT fk_int_capeante, MAX(id_capeante) AS id_capeante_pick
+  FROM $T_CAP
+  GROUP BY fk_int_capeante
+) cap ON cap.fk_int_capeante = i.id_internacao
+";
+
+$capJoin = "LEFT JOIN $T_CAP ca ON ca.id_capeante = cap.id_capeante_pick";
+
+$segJoin = "LEFT JOIN $T_SEG se ON se.id_seguradora = pa.fk_seguradora_pac";
+
 /* ==== JOINs ==== */
 $v1Join = "LEFT JOIN $T_VIS v1 ON v1.id_visita = CAST(v.id_visita_pick AS UNSIGNED)";
 $uJoin  = "LEFT JOIN $T_USR u  ON u.id_usuario  = v1.fk_usuario_vis";
@@ -253,6 +269,9 @@ FROM $T_INT i
 JOIN $T_PAC pa ON pa.id_paciente = i.fk_paciente_int
 LEFT JOIN $T_HOS ho ON ho.id_hospital = i.fk_hospital_int
 $vPick
+$capPick
+$capJoin
+$segJoin
 $v1Join
 $uJoin
 $uJoin2
@@ -274,7 +293,9 @@ $sortableColumns = [
     'hospital'        => "ho.nome_hosp",
     'nome_paciente'   => "pa.nome_pac",
     'data_internacao' => "COALESCE(STR_TO_DATE(i.data_intern_int,'%Y-%m-%d %H:%i:%s'), STR_TO_DATE(i.data_intern_int,'%Y-%m-%d'), STR_TO_DATE(i.data_intern_int,'%d/%m/%Y'), i.data_intern_int)",
-    'data_lancamento' => "v1.data_lancamento_vis"
+    'data_lancamento' => "v1.data_lancamento_vis",
+    'seguradora'      => "COALESCE(NULLIF(TRIM(se.seguradora_seg),''),'Sem seguradora')",
+    'valor_liberado'  => "IFNULL(ca.valor_final_capeante, 0)"
 ];
 $sqlOrder = "ORDER BY " . $defaultOrderExpr;
 if (isset($sortableColumns[$sortField])) {
