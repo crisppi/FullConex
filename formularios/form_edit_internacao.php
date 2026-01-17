@@ -304,12 +304,8 @@ if (!empty($intern['data_lancamento_int']) && $intern['data_lancamento_int'] !==
                     <div class="form-group col-sm-2 mb-2">
                         <label class="control-label" for="data_lancamento_int">Data lançamento</label>
                         <input type="datetime-local" class="form-control form-control-sm" id="data_lancamento_int"
-<<<<<<< Updated upstream
-                            name="data_lancamento_int" value="<?= $dataLancamentoAtual ?>" readonly>
-=======
                             name="data_lancamento_int" value="<?= $dataLancamentoAtual ?>" readonly tabindex="-1"
                             onfocus="this.blur();" onkeydown="return false;" style="cursor:not-allowed;">
->>>>>>> Stashed changes
                     </div>
                 </div>
 
