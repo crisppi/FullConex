@@ -444,8 +444,8 @@
       resumoIndicadores.innerHTML = `
         <div><strong>Total de contas:</strong> ${summary?.total_contas ?? 0}</div>
         <div><strong>Total de internações:</strong> ${summary?.total_internacoes ?? 0}</div>
-        <div><strong>Custo médio / conta:</strong> R$ ${Number(summary?.custo_medio_conta || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        <div><strong>Custo médio / internação:</strong> R$ ${Number(summary?.custo_medio_internacao || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>`;
+        <div><strong>Custo médio / conta:</strong> R$ ${Number(summary?.custo_medio_conta || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+        <div><strong>Custo médio / internação:</strong> R$ ${Number(summary?.custo_medio_internacao || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>`;
     }
   }
 
@@ -598,7 +598,7 @@
 
     groupEntries.forEach(({ key, contas, hasOpen, hasOverlap, hasEncerrado, uncoveredRanges }) => {
       const openSegments = [];
-      contas.forEach((r) => {
+      contas.forEach((r, idx) => {
         if (r.__periodoAberto) openSegments.push(r.periodo || 'Período sem data final');
       });
       (uncoveredRanges || []).forEach((range) => {
@@ -625,7 +625,7 @@
         </td>`;
       tbody.appendChild(trHead);
 
-      contas.forEach((r) => {
+      contas.forEach((r, idx) => {
         const tr = document.createElement('tr');
         const rowClasses = [];
         if (r.__periodoAberto) rowClasses.push('conta-periodo-aberto');
@@ -652,6 +652,11 @@
         const periodoLabel = `${esc(r.periodo || '—')}${r.__periodoAberto ? ' <span class="badge badge-soft badge-open-period">Em aberto</span>' : ''}`;
         const overlapIndicator = r.__hasOverlap ? '<div class="text-danger small mt-1">Intervalo conflitante</div>' : '';
 
+        const showParcialButton = idx === 0;
+        const partialButtonHtml = showParcialButton
+          ? `<button class="btn btn-sm btn-warning" type="button" data-action="parcial-conta" data-url="${esc(baseRahUrl)}" title="Lançar parcial do capeante">Parcial</button>`
+          : '';
+
         tr.innerHTML = `
           <td>${esc(r.id_internacao ?? '—')}</td>
           <td>#${esc(r.id_capeante)}</td>
@@ -664,12 +669,12 @@
           <td class="text-end">R$ ${Number(r.desconto || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
           <td class="text-end">R$ ${Number(r.valor_final || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
           <td>${parcialBadge}${parcialNumText && parcialNumText !== '—' ? ` <span class="text-muted small ms-1">(${parcialNumText})</span>` : ''}</td>
-        <td class="d-flex gap-1 flex-wrap">
-          <a class="btn btn-sm btn-outline-primary" href="${rahEditUrl}" title="Editar RAH da conta">Editar RAH</a>
-          <a class="btn btn-sm btn-outline-success" href="${rahDownloadUrl}" target="_blank" rel="noopener" title="Baixar PDF do RAH">PDF - RAH</a>
-          <button class="btn btn-sm btn-rah-view" type="button" data-action="preview-rah" data-url="${rahPreviewUrl}" title="Visualizar RAH em tela">Ver RAH</button>
-          <button class="btn btn-sm btn-warning" type="button" data-action="parcial-conta" data-url="${esc(baseRahUrl)}" title="Lançar parcial do capeante">Parcial</button>
-        </td>`;
+          <td class="d-flex gap-1 flex-wrap">
+            <a class="btn btn-sm btn-outline-primary" href="${rahEditUrl}" title="Editar RAH da conta">Editar RAH</a>
+            <a class="btn btn-sm btn-outline-success" href="${rahDownloadUrl}" target="_blank" rel="noopener" title="Baixar PDF do RAH">PDF - RAH</a>
+            <button class="btn btn-sm btn-rah-view" type="button" data-action="preview-rah" data-url="${rahPreviewUrl}" title="Visualizar RAH em tela">Ver RAH</button>
+          ${partialButtonHtml}
+          </td>`;
         tbody.appendChild(tr);
       });
     });
