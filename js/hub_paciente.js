@@ -204,6 +204,7 @@
       const isAlta = String(status).toLowerCase() === 'alta' ||
         String(row.internado_int).toLowerCase() === 'n';
 
+      const partialUrl = `${window.BASE_URL || ''}cad_capeante_rah.php?type=create&nova_parcial=1&id_internacao=${encodeURIComponent(iid)}`;
       const tr = document.createElement('tr');
       tr.classList.add('row-int');
       tr.dataset.idInt = iid;
@@ -633,7 +634,7 @@
         const valorId = r.id_valor ? String(r.id_valor) : '';
         const capeanteId = r.id_capeante ? String(r.id_capeante) : '';
         const intId = r.id_internacao ? String(r.id_internacao) : '';
-        const baseRahUrl = `cad_capeante_rah.php?id_capeante=${encodeURIComponent(capeanteId)}${intId ? `&id_internacao=${encodeURIComponent(intId)}` : ''}`;
+        const baseRahUrl = `cad_capeante_rah.php?type=create&nova_parcial=1&id_capeante=${encodeURIComponent(capeanteId)}${intId ? `&id_internacao=${encodeURIComponent(intId)}` : ''}`;
         const rahEditUrl = valorId
           ? `edit_capeante_rah.php?id_valor=${encodeURIComponent(valorId)}`
           : `edit_capeante_rah.php?id_capeante=${encodeURIComponent(capeanteId)}${intId ? `&id_internacao=${encodeURIComponent(intId)}` : ''}`;
@@ -663,11 +664,12 @@
           <td class="text-end">R$ ${Number(r.desconto || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
           <td class="text-end">R$ ${Number(r.valor_final || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
           <td>${parcialBadge}${parcialNumText && parcialNumText !== '—' ? ` <span class="text-muted small ms-1">(${parcialNumText})</span>` : ''}</td>
-          <td class="d-flex gap-1 flex-wrap">
-            <a class="btn btn-sm btn-outline-primary" href="${rahEditUrl}" title="Editar RAH da conta">Editar RAH</a>
-            <a class="btn btn-sm btn-outline-success" href="${rahDownloadUrl}" target="_blank" rel="noopener" title="Baixar PDF do RAH">PDF - RAH</a>
-            <button class="btn btn-sm btn-rah-view" type="button" data-action="preview-rah" data-url="${rahPreviewUrl}" title="Visualizar RAH em tela">Ver RAH</button>
-          </td>`;
+        <td class="d-flex gap-1 flex-wrap">
+          <a class="btn btn-sm btn-outline-primary" href="${rahEditUrl}" title="Editar RAH da conta">Editar RAH</a>
+          <a class="btn btn-sm btn-outline-success" href="${rahDownloadUrl}" target="_blank" rel="noopener" title="Baixar PDF do RAH">PDF - RAH</a>
+          <button class="btn btn-sm btn-rah-view" type="button" data-action="preview-rah" data-url="${rahPreviewUrl}" title="Visualizar RAH em tela">Ver RAH</button>
+          <button class="btn btn-sm btn-warning" type="button" data-action="parcial-conta" data-url="${esc(baseRahUrl)}" title="Lançar parcial do capeante">Parcial</button>
+        </td>`;
         tbody.appendChild(tr);
       });
     });
@@ -711,11 +713,19 @@
     modal.show();
   }
   document.addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-action="preview-rah"]');
-    if (!btn) return;
-    e.preventDefault();
-    const url = btn.getAttribute('data-url');
-    openRahPreview(url);
+    const previewBtn = e.target.closest('[data-action="preview-rah"]');
+    if (previewBtn) {
+      e.preventDefault();
+      const url = previewBtn.getAttribute('data-url');
+      openRahPreview(url);
+      return;
+    }
+    const partialBtn = e.target.closest('[data-action="parcial-conta"]');
+    if (partialBtn) {
+      e.preventDefault();
+      const url = partialBtn.getAttribute('data-url');
+      if (url) window.location.href = url;
+    }
   });
   async function loadContas() {
     const pacId = getPacienteId(); if (!pacId) return; ensureContasTable();
