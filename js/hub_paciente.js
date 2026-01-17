@@ -431,7 +431,7 @@
     const resumo = document.querySelector('#tab-contas .card:nth-of-type(1) .card-body');
     const resumoValores = document.getElementById('contasResumoValores');
     if (resumoValores) {
-      const glosaSomada = Math.max(0, (summary?.soma_glosa_total || 0) - (summary?.soma_desconto || 0));
+      const glosaSomada = Math.max(0, (summary?.soma_glosa_total || 0));
       resumoValores.innerHTML = `
         <div><strong>Valor apresentado:</strong> R$ ${Number(summary?.soma_apresentado || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
         <div><strong>Glosa total:</strong> R$ ${Number(glosaSomada).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
@@ -659,7 +659,7 @@
           <td>${esc(r.data_fechamento || '—')}</td>
           <td>${esc(r.data_lancamento || '—')}</td>
           <td class="text-end">R$ ${Number(r.valor_apresentado || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-          <td class="text-end">R$ ${Number(Math.max(0, (r.glosa_total || 0) - (r.desconto || 0))).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+          <td class="text-end">R$ ${Number(r.glosa_total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
           <td class="text-end">R$ ${Number(r.desconto || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
           <td class="text-end">R$ ${Number(r.valor_final || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
           <td>${esc(r.status || '—')}</td>

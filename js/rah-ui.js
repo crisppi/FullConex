@@ -31,6 +31,7 @@
 
       $('.pill-val-apr').text(R.floatToMoney(tCob));
       $('.pill-val-fin').text(R.floatToMoney(vFinal));
+      setGlosaField(getGlosaTotal());
     }
     w.RAHSync = { syncPeriodTotals };
 
@@ -62,10 +63,31 @@
       }
       $('.pill-val-apr').text(R.floatToMoney(tot.tCob));
       $('.pill-val-fin').text(R.floatToMoney(tot.vFinal));
+      setGlosaField(getGlosaTotal());
+    }
+    function getGlosaTotal() {
+      let sum = 0;
+      $('.rah-glosado').each(function () {
+        sum += R.moneyToFloat($(this).val());
+      });
+      return sum;
+    }
+
+    function setGlosaField(valor) {
+      const $field = $('#inp_val_glosa');
+      if (!$field.length) return;
+      if ($.fn.maskMoney && $.fn.maskMoney.__stub__ !== true) {
+        $field.maskMoney('mask', Number(valor));
+      } else {
+        $field.val(R.floatToMoney(valor));
+      }
     }
 
     $(function () {
       $(document).on('input change keyup', '.rah-cobrado, .rah-glosado, #desconto_valor_cap', mirrorNow);
+      $(document).on('input change keyup', '.rah-glosado', function () {
+        setGlosaField(getGlosaTotal());
+      });
       document.addEventListener('shown.bs.collapse', function (ev) {
         applyMask(document);
         mirrorNow();

@@ -33,6 +33,7 @@
     if ($('#total_cobrado').length)  $('#total_cobrado').val(R.floatToMoney(tCob));
     if ($('#total_glosado').length)  $('#total_glosado').val(R.floatToMoney(tGlo));
     if ($('#total_liberado').length) $('#total_liberado').val(R.floatToMoney(tLib));
+    if ($('#inp_val_glosa').length)   $('#inp_val_glosa').val(R.floatToMoney(tGlo));
 
     // Bridge para espelhar no “Período e Totais”
     if (w.RAHSync && typeof w.RAHSync.syncPeriodTotals === 'function') {

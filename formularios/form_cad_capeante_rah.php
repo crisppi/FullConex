@@ -454,13 +454,19 @@ $admSelecionado = (int)($fv('fk_id_aud_adm') ?? 0);
                     <input type="date" class="form-control" name="data_final_capeante"
                         value="<?= $h($fv('data_final_capeante')) ?>">
                 </div>
-                <div class="col-lg-3 col-md-6">
+                <div class="col-lg-2 col-md-4">
                     <label class="form-label">Valor Apresentado</label>
                     <input type="text" class="form-control dinheiro" id="inp_val_apr" name="valor_apresentado_capeante"
                         value="<?= is_numeric($fv('valor_apresentado_capeante')) ? number_format((float)$fv('valor_apresentado_capeante'), 2, ',', '.') : '' ?>"
                         placeholder="R$ 0,00">
                 </div>
-                <div class="col-lg-3 col-md-6">
+                <div class="col-lg-2 col-md-4">
+                    <label class="form-label">Glosa Total</label>
+                    <input type="text" class="form-control dinheiro" id="inp_val_glosa" name="valor_glosa_total"
+                        value="<?= is_numeric($fv('valor_glosa_total')) ? number_format((float)$fv('valor_glosa_total'), 2, ',', '.') : '' ?>"
+                        placeholder="R$ 0,00" readonly>
+                </div>
+                <div class="col-lg-2 col-md-4">
                     <label class="form-label">Valor Final</label>
                     <input type="text" class="form-control dinheiro" id="inp_val_fin" name="valor_final_capeante"
                         value="<?= is_numeric($fv('valor_final_capeante')) ? number_format((float)$fv('valor_final_capeante'), 2, ',', '.') : '' ?>"
