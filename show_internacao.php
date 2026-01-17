@@ -412,39 +412,54 @@ usort($neg_filtered, function ($a, $b) {
 
         <div class="card shadow-sm">
             <div class="card-body">
-                <ul class="nav nav-pills mb-3" id="internTabs" role="tablist"
-                    style="--bs-nav-pills-link-active-bg:#5e2363; --bs-nav-pills-link-active-color:#fff; --bs-nav-link-color:#5e2363; --bs-nav-link-hover-color:#5e2363;">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link<?= $abaAtual === 'resumo' ? ' active' : '' ?>" id="resumo-tab"
-                            data-bs-toggle="pill" data-bs-target="#resumo" type="button" role="tab">
-                            <i class="fa-solid fa-bars me-2"></i>Resumo
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                    <ul class="nav nav-pills mb-0" id="internTabs" role="tablist"
+                        style="--bs-nav-pills-link-active-bg:#5e2363; --bs-nav-pills-link-active-color:#fff; --bs-nav-link-color:#5e2363; --bs-nav-link-hover-color:#5e2363;">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link<?= $abaAtual === 'resumo' ? ' active' : '' ?>" id="resumo-tab"
+                                data-bs-toggle="pill" data-bs-target="#resumo" type="button" role="tab">
+                                <i class="fa-solid fa-bars me-2"></i>Resumo
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link<?= $abaAtual === 'visitas' ? ' active' : '' ?>" id="visitas-tab"
+                                data-bs-toggle="pill" data-bs-target="#visitas" type="button" role="tab">
+                                <i class="fa-solid fa-stethoscope me-2"></i>Visitas
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link<?= $abaAtual === 'prorrog' ? ' active' : '' ?>" id="prorrog-tab"
+                                data-bs-toggle="pill" data-bs-target="#prorrog" type="button" role="tab">
+                                <i class="fa-solid fa-clock-rotate-left me-2"></i>Prorrogações
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link<?= $abaAtual === 'tuss' ? ' active' : '' ?>" id="tuss-tab"
+                                data-bs-toggle="pill" data-bs-target="#tuss" type="button" role="tab">
+                                <i class="fa-solid fa-list-check me-2"></i>TUSS
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link<?= $abaAtual === 'neg' ? ' active' : '' ?>" id="neg-tab"
+                                data-bs-toggle="pill" data-bs-target="#neg" type="button" role="tab">
+                                <i class="fa-solid fa-handshake me-2"></i>Negociações
+                            </button>
+                        </li>
+                    </ul>
+                    <div class="d-flex gap-2">
+                        <button type="button"
+                            class="btn btn-sm rounded-pill text-white shadow-sm d-inline-flex align-items-center"
+                            style="background-color: #5e2363; border-color: #5e2363;"
+                            onclick="window.location.href='<?= $BASE_URL ?>cad_visita.php?id_internacao=<?= $id_internacao ?>'">
+                            <i class="fa-solid fa-plus me-2"></i>Nova Visita
                         </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link<?= $abaAtual === 'visitas' ? ' active' : '' ?>" id="visitas-tab"
-                            data-bs-toggle="pill" data-bs-target="#visitas" type="button" role="tab">
-                            <i class="fa-solid fa-stethoscope me-2"></i>Visitas
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link<?= $abaAtual === 'prorrog' ? ' active' : '' ?>" id="prorrog-tab"
-                            data-bs-toggle="pill" data-bs-target="#prorrog" type="button" role="tab">
-                            <i class="fa-solid fa-clock-rotate-left me-2"></i>Prorrogações
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link<?= $abaAtual === 'tuss' ? ' active' : '' ?>" id="tuss-tab"
-                            data-bs-toggle="pill" data-bs-target="#tuss" type="button" role="tab">
-                            <i class="fa-solid fa-list-check me-2"></i>TUSS
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link<?= $abaAtual === 'neg' ? ' active' : '' ?>" id="neg-tab"
-                            data-bs-toggle="pill" data-bs-target="#neg" type="button" role="tab">
-                            <i class="fa-solid fa-handshake me-2"></i>Negociações
-                        </button>
-                    </li>
-                </ul>
+
+                        <a href="<?= !empty($_SERVER['HTTP_REFERER']) ? 'javascript:history.back()' : $BASE_URL . 'list_intenacao.php' ?>"
+                            class="btn btn-ghost-brand btn-sm rounded-pill shadow-sm d-inline-flex align-items-center">
+                            <i class="fa-solid fa-arrow-left me-2"></i>Voltar
+                        </a>
+                    </div>
+                </div>
 
                 <div class="tab-content" id="internTabsContent">
                     <div class="tab-pane fade<?= $abaAtual === 'resumo' ? ' show active' : '' ?>" id="resumo"
@@ -1145,30 +1160,16 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </div>
                                 <?php endif; ?>
                             </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                <div class="d-flex justify-content-between align-items-center mt-3">
-                    <div class="small text-muted">Atualizado: <?= e(date('d/m/Y H:i')) ?></div>
-
-                    <div class="d-flex gap-2">
-                        <button type="button"
-                            class="btn btn-sm rounded-pill text-white shadow-sm d-inline-flex align-items-center"
-                            style="background-color: #5e2363; border-color: #5e2363;"
-                            onclick="window.location.href='<?= $BASE_URL ?>cad_visita.php?id_internacao=<?= $id_internacao ?>'">
-                            <i class="fa-solid fa-plus me-2"></i>Nova Visita
-                        </button>
-
-                        <a href="<?= !empty($_SERVER['HTTP_REFERER']) ? 'javascript:history.back()' : $BASE_URL . 'list_intenacao.php' ?>"
-                            class="btn btn-ghost-brand btn-sm rounded-pill shadow-sm d-inline-flex align-items-center">
-                            <i class="fa-solid fa-arrow-left me-2"></i>Voltar
-                        </a>
-                    </div>
                 </div>
             </div>
+
         </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <div class="small text-muted">Atualizado: <?= e(date('d/m/Y H:i')) ?></div>
+        </div>
+    </div>
+</div>
 
     </div>
 
