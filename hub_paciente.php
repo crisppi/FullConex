@@ -30,6 +30,14 @@ if (!$id_paciente) {
   include_once("templates/footer.php");
   exit;
 }
+if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+$rahAfterSave = $_SESSION['rah_after_save'] ?? null;
+if ($rahAfterSave && ((int)($rahAfterSave['patient_id'] ?? 0) !== (int)$id_paciente)) {
+    $rahAfterSave = null;
+}
+if ($rahAfterSave) {
+    unset($_SESSION['rah_after_save']);
+}
 $internacoes = $internacaoDao->listByPaciente((int)$id_paciente); // já vem com senha_int
 
 // Dados do paciente
@@ -1026,4 +1034,51 @@ $preloadedInt = $internacaoDao->listByPaciente((int)$id_paciente);
 </script>
 <script src="<?= rtrim($BASE_URL, '/') ?>/js/pages/hub_paciente.js?v=<?= time() ?>"></script>
 
+<?php if ($rahAfterSave && !empty($rahAfterSave['accounts_url'])): ?>
+<div class="modal fade" id="rahContinueModal" tabindex="-1" aria-labelledby="rahContinueTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-sm">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rahContinueTitle">Continuar lançando?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <p>Deseja seguir lançando contas ou visitas para este paciente?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="rahModalClose" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    Permanecer no hub
+                </button>
+                <button type="button" id="rahModalAccounts" class="btn btn-primary">
+                    Ir para contas
+                </button>
+                <?php if (!empty($rahAfterSave['visits_url'])): ?>
+                    <button type="button" id="rahModalVisits" class="btn btn-outline-primary">
+                        Ir para visitas
+                    </button>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var modalEl = document.getElementById('rahContinueModal');
+        if (!modalEl) return;
+        var modal = new bootstrap.Modal(modalEl, {backdrop: 'static', keyboard: false});
+        modal.show();
+        document.getElementById('rahModalAccounts').addEventListener('click', function () {
+            window.location.href = <?= json_encode($rahAfterSave['accounts_url'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
+        });
+        document.getElementById('rahModalClose').addEventListener('click', function () {
+            modal.hide();
+        });
+        <?php if (!empty($rahAfterSave['visits_url'])): ?>
+        document.getElementById('rahModalVisits').addEventListener('click', function () {
+            window.location.href = <?= json_encode($rahAfterSave['visits_url'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
+        });
+        <?php endif; ?>
+    });
+</script>
+<?php endif; ?>
 <?php include_once("templates/footer.php"); ?>

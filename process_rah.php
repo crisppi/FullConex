@@ -489,6 +489,39 @@ if ($type === 'create') {
 /* Log final de totais */
 error_log("[RAH] Capeante ID {$id_capeante} | Cobrado={$total_cobrado} | Glosado={$total_glosado} | Liberado={$total_liberado}");
 
+/* ---------- Preparar sessão e URLs pós-salvar ---------- */
+$patientId = null;
+$patientName = null;
+$hubUrl = null;
+if ($fk_internacao) {
+    try {
+        $stmtPac = $conn->prepare("SELECT fk_paciente_int FROM tb_internacao WHERE id_internacao = :id LIMIT 1");
+        $stmtPac->bindValue(':id', (int)$fk_internacao, PDO::PARAM_INT);
+        $stmtPac->execute();
+        $patientId = (int)$stmtPac->fetchColumn();
+        if ($patientId > 0) {
+            $hubUrl = rtrim($BASE_URL, '/') . '/hub_paciente/paciente' . $patientId;
+            $stmtName = $conn->prepare("SELECT nome_pac FROM tb_paciente WHERE id_paciente = :id LIMIT 1");
+            $stmtName->bindValue(':id', $patientId, PDO::PARAM_INT);
+            $stmtName->execute();
+            $patientName = $stmtName->fetchColumn();
+        }
+    } catch (Throwable $e) {
+        $hubUrl = null;
+    }
+}
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
+if ($patientId) {
+    $_SESSION['rah_after_save'] = [
+        'patient_id' => $patientId,
+        'patient_name' => $patientName ? (string)$patientName : '',
+        'accounts_url' => $BASE_URL . 'internacoes/rah?pesquisa_pac=' . rawurlencode($patientName ?? ''),
+        'visits_url' => $fk_internacao ? $BASE_URL . 'cad_visita.php?id_internacao=' . $fk_internacao : null,
+    ];
+}
+
 /* ============================================================
  * Persistência dos grupos AP / UTI / CC / DIÁRIAS / OUTROS
  * - Somente valores (sem FKs de profissionais)
@@ -642,6 +675,9 @@ if (!empty($id_capeante)) {
     );
 }
 
-/* Redireciona de volta */
-header("Location: " . $BASE_URL . "internacoes/rah");
+if ($hubUrl) {
+    header("Location: " . $hubUrl);
+} else {
+    header("Location: " . $BASE_URL . "internacoes/rah");
+}
 exit;

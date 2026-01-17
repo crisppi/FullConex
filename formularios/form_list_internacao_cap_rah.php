@@ -25,6 +25,16 @@
 
     include_once("models/pagination.php");
 
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        session_start();
+    }
+    $rahAfterSave = $_SESSION['rah_after_save'] ?? null;
+    $rahAfterSaveRedirect = null;
+    if ($rahAfterSave) {
+        $rahAfterSaveRedirect = $rahAfterSave['redirect_list'] ?? null;
+        unset($_SESSION['rah_after_save']);
+    }
+
     if (!function_exists('formatDateBrSafe')) {
         function formatDateBrSafe(?string $date): string
         {
@@ -890,6 +900,50 @@ if (typeof window.paginateRah !== 'function') {
 }
     </script>
 
+    <?php if ($rahAfterSave && !empty($rahAfterSave['patient_id'])):
+        $hubUrl = htmlspecialchars(rtrim($BASE_URL, '/') . '/hub_paciente/paciente' . (int)$rahAfterSave['patient_id'], ENT_QUOTES);
+        $listUrl = htmlspecialchars($rahAfterSaveRedirect ?? $BASE_URL . 'internacoes/rah', ENT_QUOTES);
+    ?>
+    <div class="modal fade" id="rahAfterSaveModal" tabindex="-1" aria-labelledby="rahAfterSaveLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="rahAfterSaveLabel">Dar sequência</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Deseja continuar lançando contas para este paciente?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="rahAfterSaveNo">Ir para lista de contas</button>
+                    <button type="button" class="btn btn-primary" id="rahAfterSaveYes">Ir para o hub do paciente</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const modalEl = document.getElementById('rahAfterSaveModal');
+            if (!modalEl) return;
+            const modal = new bootstrap.Modal(modalEl);
+            let redirectToList = true;
+            modalEl.addEventListener('hidden.bs.modal', function () {
+                if (redirectToList) {
+                    window.location.href = '<?= $listUrl ?>';
+                }
+            });
+            modal.show();
+            document.getElementById('rahAfterSaveYes').addEventListener('click', function () {
+                redirectToList = false;
+                window.location.href = '<?= $hubUrl ?>';
+            });
+            document.getElementById('rahAfterSaveNo').addEventListener('click', function () {
+                redirectToList = true;
+                modal.hide();
+            });
+        });
+    </script>
+    <?php endif; ?>
     <script src="./js/input-estilo.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
