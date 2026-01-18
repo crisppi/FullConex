@@ -208,36 +208,7 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
                 </select>
             </div>
 
-            <div class="form-group col-sm-4">
-                <label class="control-label" for="fk_patologia2">Antecedentes do paciente</label>
-                <select class="form-control selectpicker show-tick" data-live-search="true" data-size="6"
-                    id="fk_patologia2" name="fk_patologia2[]" multiple title="Selecione os antecedentes">
-                    <?php
-                    $listaAntecedentes = is_array($antecedentes) ? $antecedentes : [];
-                    usort($listaAntecedentes, function ($a, $b) {
-                        $nomeA = isset($a["antecedente_ant"]) ? (string) $a["antecedente_ant"] : '';
-                        $nomeB = isset($b["antecedente_ant"]) ? (string) $b["antecedente_ant"] : '';
-                        return strcmp($nomeA, $nomeB);
-                    });
-                    $antecSelecionados = isset($antecedentesInternacaoIds) ? $antecedentesInternacaoIds : [];
-                    foreach ($listaAntecedentes as $antecedente):
-                        $idAntecedente = (int) ($antecedente["id_antecedente"] ?? 0);
-                        if ($idAntecedente <= 0) {
-                            continue;
-                        }
-                        $nomeAntecedente = $antecedente["antecedente_ant"] ?? '';
-                        $selected = in_array($idAntecedente, $antecSelecionados, true) ? 'selected' : '';
-                        ?>
-                    <option value="<?= $idAntecedente ?>" <?= $selected ?>>
-                        <?= htmlspecialchars($nomeAntecedente) ?>
-                    </option>
-                    <?php endforeach; ?>
-                </select>
-                <small class="text-muted">Use este campo para vincular antecedentes já cadastrados.</small>
-            </div>
-
-
-            <input type="hidden" value="" id="json-antec" name="json-antec">
+            <!-- Campo de antecedentes removido conforme solicitação -->
             <input type="hidden" value="" id="id_visita_edit" name="id_visita_edit">
             <input type="hidden" class="form-control" id="usuario_create" value="<?= $_SESSION['email_user'] ?>"
                 name="usuario_create">
@@ -936,38 +907,6 @@ function populateSelects(acomodacoes) {
 const acomodacoes = <?php echo $jsonAcomodacoes; ?>;
 
 populateSelects(acomodacoes)
-
-// criar o json de antecedentes
-(function() {
-    var selectAntecedente = document.getElementById('fk_patologia2');
-    var hiddenJsonField = document.getElementById('json-antec');
-    if (!selectAntecedente || !hiddenJsonField) return;
-
-    function buildAntecedentesPayload() {
-        var selectedOptions = Array.from(selectAntecedente.selectedOptions || []);
-        var pacienteField = document.getElementById('fk_paciente_int');
-        var internacaoField = document.getElementById('fk_internacao_vis');
-        var fkPaciente = pacienteField ? parseInt(pacienteField.value || '0', 10) : null;
-        var fkInternacao = internacaoField ? parseInt(internacaoField.value || '0', 10) : null;
-
-        var payload = selectedOptions
-            .map(function(option) {
-                var idAntecedente = parseInt(option.value, 10);
-                if (!idAntecedente) return null;
-                return {
-                    fk_id_paciente: fkPaciente,
-                    fk_internacao_ant_int: fkInternacao,
-                    intern_antec_ant_int: idAntecedente
-                };
-            })
-            .filter(function(item) { return item !== null; });
-
-        hiddenJsonField.value = payload.length ? JSON.stringify(payload) : '';
-    }
-
-    selectAntecedente.addEventListener('change', buildAntecedentesPayload);
-    buildAntecedentesPayload();
-})();
 
 // Função para calcular as diárias e validar as datas
 function calculateDiarias(container) {
