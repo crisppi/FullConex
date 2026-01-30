@@ -128,6 +128,11 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
 <link href="<?= $BASE_URL ?>css/style.css" rel="stylesheet">
 
 <style>
+    body {
+        background: linear-gradient(180deg, #f6f3ff 0%, #ede6fa 100%);
+        min-height: 100vh;
+    }
+
     /* z-index do dropdown do header */
     .navbar .dropdown-menu {
         z-index: 1055;
@@ -393,6 +398,177 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
     #fk_paciente_int.selectpicker {
         display: none !important;
     }
+
+    .internacao-page {
+        width: 100%;
+        margin: 0;
+        padding: 0 0 60px;
+    }
+
+    .internacao-page__hero {
+        background: linear-gradient(135deg, #5a2f78, #a06bd4);
+        color: #fff;
+        border-radius: 32px;
+        padding: 24px 32px;
+        box-shadow: 0 25px 50px rgba(24, 0, 30, 0.35);
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 24px;
+    }
+
+    .internacao-page__hero h1 {
+        margin: 0 0 6px;
+        font-size: 2rem;
+        letter-spacing: .02em;
+        color: #fff;
+    }
+
+    .internacao-page__hero p {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.9);
+        max-width: 480px;
+    }
+
+    .internacao-page__tag {
+        background: rgba(255, 255, 255, 0.15);
+        padding: 8px 18px;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: .8rem;
+    }
+
+    .internacao-page__content {
+        margin-top: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .internacao-card {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.9));
+        border-radius: 28px;
+        padding: 18px 10px;
+        border: 1px solid #ece6f2;
+        box-shadow: 0 20px 50px rgba(94, 35, 99, 0.08);
+        margin: 0;
+        width: 100%;
+    }
+
+    .internacao-card__header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 18px;
+    }
+
+    .internacao-card__eyebrow {
+        text-transform: uppercase;
+        letter-spacing: .35em;
+        font-size: .65rem;
+        margin: 0;
+        color: #5e2363;
+    }
+
+    .internacao-card__title {
+        margin: 2px 0 0;
+        font-size: 1.4rem;
+        color: #2e114c;
+        font-weight: 600;
+    }
+
+    .internacao-card__tag {
+        background: #f8eefc;
+        color: #5e2363;
+        padding: 6px 16px;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: .8rem;
+    }
+
+    .internacao-card__body {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .internacao-card--central {
+        border-color: #c7aedc;
+        background: #fbf5ff;
+    }
+
+    .internacao-card--fields {
+        background: #fdfcfe;
+    }
+
+    .internacao-card--notes {
+        border-color: #d4c5ff;
+        background: #fbf8ff;
+    }
+
+    .detalhes-card {
+        background: #fff;
+        border-radius: 22px;
+        border: 1px solid #ebe1f5;
+        box-shadow: 0 12px 28px rgba(45, 18, 70, .08);
+        padding: 24px 26px;
+        margin: 10px 0 22px;
+    }
+
+    .detalhes-card__header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 18px;
+    }
+
+    .detalhes-card__title {
+        display: flex;
+        align-items: center;
+        margin: 0;
+        color: #3a184f;
+        font-weight: 600;
+    }
+
+    .detalhes-card__marker {
+        width: 6px;
+        height: 26px;
+        border-radius: 10px;
+        margin-right: 12px;
+        background: linear-gradient(180deg, #a45cc4, #d28ff1);
+    }
+
+    .tabelas-adicionais-card {
+        background: #fff;
+        border-radius: 22px;
+        border: 1px solid #ebe1f5;
+        box-shadow: 0 12px 28px rgba(45, 18, 70, .08);
+        padding: 22px 24px;
+        margin-top: 25px;
+    }
+
+    .tabelas-adicionais-card__header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 18px;
+    }
+
+    .tabelas-adicionais-card__title {
+        display: flex;
+        align-items: center;
+        margin: 0;
+        color: #3a184f;
+        font-weight: 600;
+    }
+
+    .tabelas-adicionais-card__marker {
+        width: 6px;
+        height: 26px;
+        border-radius: 10px;
+        margin-right: 12px;
+        background: linear-gradient(180deg, #7b3f99, #b279d0);
+    }
 </style>
 
 <script>
@@ -556,7 +732,9 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                     return;
                 }
                 if (normalized === lastMatriculaMatch) return;
-                if (selectPacienteByMatricula(value, {allowPartial: false})) {
+                if (selectPacienteByMatricula(value, {
+                        allowPartial: false
+                    })) {
                     lastMatriculaMatch = normalized;
                 }
                 return;
@@ -618,62 +796,62 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
 </script>
 
 
-<div class="row" style="margin-top:-5px;">
-    <div class="form-group row">
-        <!-- <span type="text" value="<?= ($ultimoReg + 1) ?>"> -->
-        <h4 class="text-center w-100"
-            style="margin:-7px 10px;background-color:#5e2363;color:#fff;padding:13px 0;border-radius:.25rem;">
-            Cadastrar internação
-        </h4>
-        <hr>
-
-        <div class="col-12 d-flex align-items-end flex-wrap justify-content-between" style="margin-top:-20px;">
-            <!-- <div class="form-group mb-0">
-                <label class="control-label" for="RegInt">Id-Int</label>
-                <input type="text" id="RegInt" name="RegInt" readonly class="form-control"
-                    style="height: 45px; background-color: #fff; color: #000; font-weight: 500; opacity: 1; cursor: default;"
-                    value="<?= ($ultimoReg + 1) ?>">
-            </div> -->
-            <div class="form-group mb-0 hospital-col">
-                <div class="d-flex align-items-center justify-content-between mb-1">
-                    <label class="control-label mb-0" for="hospital_selected">
-                        <span style="color:red;">*</span> Hospital
-                    </label>
-                    <button type="button" id="hospitalTipButtonInline" class="patient-insight-inline-btn"
-                        title="Clique para mostrar/ocultar os insights" aria-expanded="false">i</button>
+<div class="internacao-page">
+    <div class="internacao-page__hero">
+        <div>
+            <h1>Cadastrar internação</h1>
+        </div>
+        <span class="internacao-page__tag">Campos obrigatórios em destaque</span>
+    </div>
+    <div class="internacao-page__content">
+        <form class="visible" action="<?= $BASE_URL ?>process_internacao.php" id="myForm" method="POST"
+        enctype="multipart/form-data">
+        <div class="internacao-card internacao-card--general">
+            <div class="internacao-card__header">
+                <div>
+                    <p class="internacao-card__eyebrow">Dados essenciais</p>
+                    <h2 class="internacao-card__title">Hospital, paciente e datas</h2>
                 </div>
-                <div class="hospital-select-wrapper">
-                    <select onchange="myFunctionSelected()"
-                        class="botao_select selectpicker show-tick selectpicker-init-hide" id="hospital_selected"
-                        name="hospital_selected" required data-live-search="true"
-                        data-live-search-placeholder="Pesquise por Hospital" data-none-selected-text="Pesquise por Hospital"
-                        data-width="100%" data-style="hospital-select-btn"
-                        style="font-size:1em;background-color:#fff;color:#000;">
-                        <option value=""></option>
-                        <?php if (!empty($listaHospitais)): ?>
-                            <?php foreach ($listaHospitais as $h): ?>
-                                <option value="<?= htmlspecialchars($h['id_hospital']) ?>">
-                                    <?= htmlspecialchars($h['nome_hosp']) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <option value="">Nenhum hospital disponível</option>
-                        <?php endif; ?>
-                    </select>
-                </div>
-                <div class="hospital-tip" id="hospitalTipContainer">
-                    <div class="hospital-tip-popover" id="hospitalTipPopover">
-                        Selecione um hospital para ver negociações e internações em UTI.
-                    </div>
-                </div>
-                <div id="hospitalUtiAlert" class="hospital-uti-alert"></div>
+                <span class="internacao-card__tag">Campos obrigatórios marcados</span>
             </div>
-
-
-
-            <!-- Mostra nome selecionado -->
-            <div class="d-flex justify-content-center align-items-center" style="flex:1">
-                <div id="hospitalNomeTexto" style="
+            <div class="internacao-card__body">
+                <div class="col-12 d-flex align-items-end flex-wrap justify-content-between" style="margin-top:-20px;">
+                    <div class="form-group mb-0 hospital-col">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <label class="control-label mb-0" for="hospital_selected">
+                                <span style="color:red;">*</span> Hospital
+                            </label>
+                            <button type="button" id="hospitalTipButtonInline" class="patient-insight-inline-btn"
+                                title="Clique para mostrar/ocultar os insights" aria-expanded="false">i</button>
+                        </div>
+                        <div class="hospital-select-wrapper">
+                            <select onchange="myFunctionSelected()"
+                                class="botao_select selectpicker show-tick selectpicker-init-hide" id="hospital_selected"
+                                name="hospital_selected" required data-live-search="true"
+                                data-live-search-placeholder="Pesquise por Hospital" data-none-selected-text="Pesquise por Hospital"
+                                data-width="100%" data-style="hospital-select-btn"
+                                style="font-size:1em;background-color:#fff;color:#000;">
+                                <option value=""></option>
+                                <?php if (!empty($listaHospitais)): ?>
+                                    <?php foreach ($listaHospitais as $h): ?>
+                                        <option value="<?= htmlspecialchars($h['id_hospital']) ?>">
+                                            <?= htmlspecialchars($h['nome_hosp']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <option value="">Nenhum hospital disponível</option>
+                                <?php endif; ?>
+                            </select>
+                        </div>
+                        <div class="hospital-tip" id="hospitalTipContainer">
+                            <div class="hospital-tip-popover" id="hospitalTipPopover">
+                                Selecione um hospital para ver negociações e internações em UTI.
+                            </div>
+                        </div>
+                        <div id="hospitalUtiAlert" class="hospital-uti-alert"></div>
+                    </div>
+                    <div class="d-flex justify-content-center align-items-center" style="flex:1">
+                        <div id="hospitalNomeTexto" style="
   display: none;
   align-items: center;
   justify-content: center;
@@ -691,20 +869,170 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   white-space: nowrap;
 ">
+                        </div>
+                    </div>
                 </div>
+                <div class="form-group row internacao-head-row">
+                    <input type="hidden" value="" name="fk_hospital_int" id="fk_hospital_int">
 
+                    <div class="form-group col-sm-4 patient-col" style="margin-bottom:-5px">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <label class="control-label mb-0" for="fk_paciente_int">
+                                <span style="color:red;">*</span> Paciente
+                            </label>
+                            <button type="button" id="patientInsightToggle" class="patient-insight-inline-btn"
+                                title="Mostrar resumo do paciente" aria-expanded="false">i</button>
+                        </div>
+                        <select data-size="5" data-live-search="true" data-live-search-placeholder="Pesquisa por nome"
+                            data-style="patient-select-btn" data-width="100%"
+                            data-none-selected-text="Pesquisa por nome"
+                            class="form-control input-lg-fullcare selectpicker show-tick" id="fk_paciente_int"
+                            name="fk_paciente_int" required>
+                            <option value=""></option>
+                            <?php
+                            if (!is_array($pacientes)) {
+                                $pacientes = [];
+                            };
+                            usort($pacientes, fn($a, $b) => ((int) $b["id_paciente"]) <=> ((int) $a["id_paciente"]));
+                            foreach ($pacientes as $paciente): ?>
+                                <?php
+                                $matriculaPac = trim((string) ($paciente["matricula_pac"] ?? ""));
+                                $pacienteLabel = $paciente["nome_pac"];
+                                ?>
+                                <option value="<?= (int) $paciente["id_paciente"] ?>"
+                                    data-matricula="<?= htmlspecialchars($matriculaPac) ?>"
+                                    data-tokens="<?= htmlspecialchars(trim((string) $paciente["nome_pac"])) ?>">
+                                    <?= htmlspecialchars($pacienteLabel) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <script>
+                            (function initPacienteSelectpicker() {
+                                var tries = 0;
+
+                                function attempt() {
+                                    if (window.jQuery && jQuery.fn && typeof jQuery.fn.selectpicker === 'function') {
+                                        var $sel = jQuery('#fk_paciente_int');
+                                        if ($sel.length && !$sel.data('selectpicker')) {
+                                            $sel.selectpicker();
+                                            $sel.selectpicker('refresh');
+                                        }
+                                        return;
+                                    }
+                                    if (++tries < 60) setTimeout(attempt, 50);
+                                }
+
+                                attempt();
+                            })();
+                        </script>
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <a style="font-size:.8em;margin-left:7px;color:blue;" href="#"
+                                onclick="openModalPac('<?= $BASE_URL ?>cad_paciente.php', 'Cadastrar paciente'); return false;">
+                                <i style="color:blue;margin-bottom:7px;" class="far fa-edit edit-icon"></i> Novo Paciente
+                            </a>
+                        </div>
+                        <div class="patient-insight-card" id="patientInsightCard"
+                            data-hub-base="<?= $BASE_URL ?>hub_paciente.php?id_paciente=" style="display:none;">
+                            <div class="patient-insight-header">
+                                <span class="label">Resumo do paciente</span>
+                                <a href="#" id="patientInsightHub" class="disabled" target="_blank" rel="noopener">Abrir
+                                    HUB</a>
+                            </div>
+                            <div id="patientInsightBody">
+                                Selecione um paciente para visualizar o histórico resumido.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-sm-2">
+                        <label class="control-label" for="matricula_paciente_display">Matrícula</label>
+                        <input type="text" class="form-control input-lg-fullcare" id="matricula_paciente_display"
+                            placeholder="Digite para pesquisar por matrícula" list="matricula_list">
+                        <datalist id="matricula_list">
+                            <?php foreach ($pacientes as $paciente): ?>
+                                <?php $matriculaPac = trim((string) ($paciente["matricula_pac"] ?? "")); ?>
+                                <?php if ($matriculaPac === '') continue; ?>
+                                <option value="<?= htmlspecialchars($matriculaPac) ?>"></option>
+                            <?php endforeach; ?>
+                        </datalist>
+                    </div>
+
+                    <div class="form-group col-sm-1">
+                        <label class="control-label" for="data_intern_int_dt"><span style="color:red;">*</span> Data
+                            Internação</label>
+                        <input type="datetime-local" class="form-control input-lg-fullcare" id="data_intern_int_dt" required
+                            value="" name="data_intern_int_dt">
+                        <input type="hidden" id="data_intern_int" name="data_intern_int" value="">
+                        <input type="hidden" id="hora_intern_int" name="hora_intern_int" value="">
+                        <p id="erro-data-internacao" style="color:red;font-size:.7em;display:none;margin-top:5px;"></p>
+                    </div>
+
+                    <div class="form-group col-sm-1">
+                        <label class="control-label" for="data_lancamento_int">Data lançamento</label>
+                        <input type="datetime-local" class="form-control input-lg-fullcare" id="data_lancamento_int"
+                            name="data_lancamento_int" value="<?= $agoraLanc ?>">
+                    </div>
+
+                    <div class="form-group col-sm-1">
+                        <label for="data_visita_int">Data Visita</label>
+                        <input type="date" value='<?= $dataAtual; ?>' class="form-control input-lg-fullcare" id="data_visita_int"
+                            name="data_visita_int">
+                        <p id="error-message" style="color:red;display:none;font-size:.6em;"></p>
+                    </div>
+
+                    <div class="form-group col-sm-1">
+                        <label class="control-label" for="internado_int">Internado</label>
+                        <select class="input-lg-fullcare form-control" id="internado_int" name="internado_int">
+                            <option value="s">Sim</option>
+                            <option value="n">Não</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group col-sm-2" id="div-data-alta" style="display:none">
+                        <label class="control-label" for="data_alta_alt"> Data/Hora Alta</label>
+                        <input type="datetime-local" class="form-control input-lg-fullcare" id="data_alta_alt"
+                            name="data_alta_alt" step="60">
+                    </div>
+
+                    <div class="form-group col-sm-2" id="div-motivo-alta" style="display:none">
+                        <label class="control-label" for="tipo_alta_alt"> Motivo Alta</label>
+                        <select class="form-control" id="tipo_alta_alt" name="tipo_alta_alt">
+                            <option value="">Selecione o motivo da alta</option>
+                            <?php
+                            if (!is_array($dados_alta)) {
+                                $dados_alta = [];
+                            };
+                            sort($dados_alta, SORT_ASC);
+                            foreach ($dados_alta as $alta): ?>
+                                <option value="<?= htmlspecialchars($alta); ?>"><?= htmlspecialchars($alta); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="form-group col-12 d-none" id="retroativa-container">
+                        <div id="retroativa-alert" class="retroativa-banner d-none">
+                            <i class="fa-solid fa-rotate-left"></i>
+                            <span id="retroativa-alert-text"></span>
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="retroativa_confirmada" name="retroativa_confirmada" value="0">
+
+                    <input type="hidden" id="id_internacao" readonly class="form-control" name="id_internacao"
+                        value="<?= $ultimoReg ?>">
+                    <input type="hidden" value="s" id="primeira_vis_int" name="primeira_vis_int">
+                    <input type="hidden" value="0" id="visita_no_int" name="visita_no_int">
+
+                    <!-- Flags do responsável (atualizadas pelo JS unificado) -->
+                    <input type="hidden" id="visita_enf_int" name="visita_enf_int" value="n">
+                    <input type="hidden" id="visita_med_int" name="visita_med_int" value="n">
+                    <input type="hidden" id="visita_auditor_prof_enf" name="visita_auditor_prof_enf" value="">
+                    <input type="hidden" id="visita_auditor_prof_med" name="visita_auditor_prof_med" value="">
+                    <input type="hidden" id="cad_central_obrigatorio" name="cad_central_obrigatorio"
+                        value="<?= $cadastroCentralObrigatorio ? '1' : '0' ?>">
+                </div>
             </div>
         </div>
-
-        <hr class="w-100">
-    </div>
-
-    <form class="visible" action="<?= $BASE_URL ?>process_internacao.php" id="myForm" method="POST"
-        enctype="multipart/form-data">
-        <div style="text-align:right;">
-            <p style="font-size:.6em;color:red;margin-top:-20px;">* Campos Obrigatórios</p>
-        </div>
-
         <input type="hidden" name="type" value="create">
         <input type="hidden" name="timer_int" id="timer_int" value="">
         <p style="display:none" id="proximoId_int">0</p>
@@ -713,226 +1041,77 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
         <!-- fk_usuario_int: padrão = usuário logado; Cadastro Central pode sobrescrever -->
         <input type="hidden" value="<?= htmlspecialchars($idSessao) ?>" id="fk_usuario_int" name="fk_usuario_int">
 
-        <div class="form-group row internacao-head-row">
-            <input type="hidden" value="" name="fk_hospital_int" id="fk_hospital_int">
-
-
-            <div class="form-group col-sm-4 patient-col" style="margin-bottom:-5px">
-                <div class="d-flex align-items-center justify-content-between mb-1">
-                    <label class="control-label mb-0" for="fk_paciente_int">
-                        <span style="color:red;">*</span> Paciente
-                    </label>
-                    <button type="button" id="patientInsightToggle" class="patient-insight-inline-btn"
-                        title="Mostrar resumo do paciente" aria-expanded="false">i</button>
-                </div>
-                <select data-size="5" data-live-search="true" data-live-search-placeholder="Pesquisa por nome"
-                    data-style="patient-select-btn" data-width="100%"
-                    data-none-selected-text="Pesquisa por nome"
-                    class="form-control form-control-sm selectpicker show-tick" id="fk_paciente_int"
-                    name="fk_paciente_int" required>
-                    <option value=""></option>
-                    <?php
-                    if (!is_array($pacientes)) {
-                        $pacientes = [];
-                    };
-                    usort($pacientes, fn($a, $b) => ((int) $b["id_paciente"]) <=> ((int) $a["id_paciente"]));
-                    foreach ($pacientes as $paciente): ?>
-                        <?php
-                        $matriculaPac = trim((string) ($paciente["matricula_pac"] ?? ""));
-                        $pacienteLabel = $paciente["nome_pac"];
-                        ?>
-                        <option value="<?= (int) $paciente["id_paciente"] ?>"
-                            data-matricula="<?= htmlspecialchars($matriculaPac) ?>"
-                            data-tokens="<?= htmlspecialchars(trim((string) $paciente["nome_pac"])) ?>">
-                            <?= htmlspecialchars($pacienteLabel) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-                <script>
-                    (function initPacienteSelectpicker() {
-                        var tries = 0;
-
-                        function attempt() {
-                            if (window.jQuery && jQuery.fn && typeof jQuery.fn.selectpicker === 'function') {
-                                var $sel = jQuery('#fk_paciente_int');
-                                if ($sel.length && !$sel.data('selectpicker')) {
-                                    $sel.selectpicker();
-                                    $sel.selectpicker('refresh');
-                                }
-                                return;
-                            }
-                            if (++tries < 60) setTimeout(attempt, 50);
-                        }
-
-                        attempt();
-                    })();
-                </script>
-                <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <a style="font-size:.8em;margin-left:7px;color:blue;" href="#"
-                        onclick="openModalPac('<?= $BASE_URL ?>cad_paciente.php', 'Cadastrar paciente'); return false;">
-                        <i style="color:blue;margin-bottom:7px;" class="far fa-edit edit-icon"></i> Novo Paciente
-                    </a>
-                </div>
-                <div class="patient-insight-card" id="patientInsightCard"
-                    data-hub-base="<?= $BASE_URL ?>hub_paciente.php?id_paciente=" style="display:none;">
-                    <div class="patient-insight-header">
-                        <span class="label">Resumo do paciente</span>
-                        <a href="#" id="patientInsightHub" class="disabled" target="_blank" rel="noopener">Abrir
-                            HUB</a>
-                    </div>
-                    <div id="patientInsightBody">
-                        Selecione um paciente para visualizar o histórico resumido.
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="form-group col-sm-2">
-                <label class="control-label" for="matricula_paciente_display">Matrícula</label>
-                <input type="text" class="form-control form-control-sm" id="matricula_paciente_display"
-                    placeholder="Digite para pesquisar por matrícula" list="matricula_list">
-                <datalist id="matricula_list">
-                    <?php foreach ($pacientes as $paciente): ?>
-                        <?php $matriculaPac = trim((string) ($paciente["matricula_pac"] ?? "")); ?>
-                        <?php if ($matriculaPac === '') continue; ?>
-                        <option value="<?= htmlspecialchars($matriculaPac) ?>"></option>
-                    <?php endforeach; ?>
-                </datalist>
-            </div>
-
-            <div class="form-group col-sm-1">
-                <label class="control-label" for="data_intern_int_dt"><span style="color:red;">*</span> Data
-                    Internação</label>
-                <input type="datetime-local" class="form-control form-control-sm" id="data_intern_int_dt" required
-                    value="" name="data_intern_int_dt">
-                <input type="hidden" id="data_intern_int" name="data_intern_int" value="">
-                <input type="hidden" id="hora_intern_int" name="hora_intern_int" value="">
-                <p id="erro-data-internacao" style="color:red;font-size:.7em;display:none;margin-top:5px;"></p>
-            </div>
-
-            <div class="form-group col-sm-1">
-                <label class="control-label" for="data_lancamento_int">Data lançamento</label>
-                <input type="datetime-local" class="form-control form-control-sm" id="data_lancamento_int"
-                    name="data_lancamento_int" value="<?= $agoraLanc ?>">
-            </div>
-
-            <div class="form-group col-sm-1">
-                <label for="data_visita_int">Data Visita</label>
-                <input type="date" value='<?= $dataAtual; ?>' class="form-control form-control-sm" id="data_visita_int"
-                    name="data_visita_int">
-                <p id="error-message" style="color:red;display:none;font-size:.6em;"></p>
-            </div>
-
-            <div class="form-group col-sm-1">
-                <label class="control-label" for="internado_int">Internado</label>
-                <select class="form-control-sm form-control" id="internado_int" name="internado_int">
-                    <option value="s">Sim</option>
-                    <option value="n">Não</option>
-                </select>
-            </div>
-
-            <div class="form-group col-sm-2" id="div-data-alta" style="display:none">
-                <label class="control-label" for="data_alta_alt"> Data/Hora Alta</label>
-                <input type="datetime-local" class="form-control form-control-sm" id="data_alta_alt"
-                    name="data_alta_alt" step="60">
-            </div>
-
-            <div class="form-group col-sm-2" id="div-motivo-alta" style="display:none">
-                <label class="control-label" for="tipo_alta_alt"> Motivo Alta</label>
-                <select class="form-control" id="tipo_alta_alt" name="tipo_alta_alt">
-                    <option value="">Selecione o motivo da alta</option>
-                    <?php
-                    if (!is_array($dados_alta)) {
-                        $dados_alta = [];
-                    };
-                    sort($dados_alta, SORT_ASC);
-                    foreach ($dados_alta as $alta): ?>
-                        <option value="<?= htmlspecialchars($alta); ?>"><?= htmlspecialchars($alta); ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-
-            <div class="form-group col-12 d-none" id="retroativa-container">
-                <div id="retroativa-alert" class="retroativa-banner d-none">
-                    <i class="fa-solid fa-rotate-left"></i>
-                    <span id="retroativa-alert-text"></span>
-                </div>
-            </div>
-
-            <input type="hidden" id="retroativa_confirmada" name="retroativa_confirmada" value="0">
-
-            <input type="hidden" id="id_internacao" readonly class="form-control" name="id_internacao"
-                value="<?= $ultimoReg ?>">
-            <input type="hidden" value="s" id="primeira_vis_int" name="primeira_vis_int">
-            <input type="hidden" value="0" id="visita_no_int" name="visita_no_int">
-
-            <!-- Flags do responsável (atualizadas pelo JS unificado) -->
-            <input type="hidden" id="visita_enf_int" name="visita_enf_int" value="n">
-            <input type="hidden" id="visita_med_int" name="visita_med_int" value="n">
-            <input type="hidden" id="visita_auditor_prof_enf" name="visita_auditor_prof_enf" value="">
-            <input type="hidden" id="visita_auditor_prof_med" name="visita_auditor_prof_med" value="">
-            <input type="hidden" id="cad_central_obrigatorio" name="cad_central_obrigatorio"
-                value="<?= $cadastroCentralObrigatorio ? '1' : '0' ?>">
-        </div>
-
         <!-- ===== CADASTRO CENTRAL (só aparece se NÃO for med/enf) ===== -->
         <?php if ($mostrarCadastroCentral): ?>
-            <div id="cadastro-central-wrapper" class="form-group row"
-                style="margin-top:8px;display:block !important;border:2px dashed #8a2be2;padding:10px;border-radius:8px;">
-                <div class="form-group col-sm-12" style="margin-bottom:6px;">
-                    <span style="font-weight:700;color:#5e2363;">Cadastro Central</span>
-                    <?php if ($cadastroCentralObrigatorio): ?>
-                        <small style="margin-left:8px;color:#b02a37;font-weight:600;">(Obrigatório selecionar o tipo de profissional e o responsável.)</small>
-                    <?php else: ?>
-                        <small style="margin-left:8px;color:#666;">(opcional: escolha o tipo e o responsável)</small>
-                    <?php endif; ?>
+            <div id="cadastro-central-wrapper" class="internacao-card internacao-card--central">
+                <div class="internacao-card__header">
+                    <div>
+                        <p class="internacao-card__eyebrow">Cadastro Central</p>
+                        <h3 class="internacao-card__title">Responsável pela visita</h3>
+                    </div>
+                    <span class="internacao-card__tag">
+                        <?php if ($cadastroCentralObrigatorio): ?>
+                            Obrigatório selecionar tipo e responsável
+                        <?php else: ?>
+                            Opcional: escolha o responsável
+                        <?php endif; ?>
+                    </span>
                 </div>
+                <div class="internacao-card__body">
+                    <div class="form-group row align-items-end">
+                        <div class="form-group col-sm-3">
+                            <label class="control-label" for="resp_tipo">Responsável pela visita</label>
+                            <select id="resp_tipo" class="form-control input-lg-fullcare">
+                                <option value="">(sem seleção)</option>
+                                <option value="med">Médico auditor</option>
+                                <option value="enf">Enfermeiro auditor</option>
+                            </select>
+                        </div>
 
-                <div class="form-group row align-items-end">
-                    <div class="form-group col-sm-3">
-                        <label class="control-label" for="resp_tipo">Responsável pela visita</label>
-                        <select id="resp_tipo" class="form-control form-control-sm">
-                            <option value="">(sem seleção)</option>
-                            <option value="med">Médico auditor</option>
-                            <option value="enf">Enfermeiro auditor</option>
-                        </select>
-                    </div>
+                        <div class="form-group col-sm-4 d-none" id="box_resp_med">
+                            <label class="control-label" for="resp_med_id">Selecionar médico</label>
+                            <select id="resp_med_id" class="form-control input-lg-fullcare selectpicker" data-live-search="true"
+                                data-size="5" title="Selecione">
+                                <option value="">Selecione</option>
+                                <?php foreach ($medicosAud as $m): ?>
+                                    <option value="<?= (int) $m['id_usuario'] ?>"
+                                        data-email="<?= htmlspecialchars($m['email_user'] ?? '') ?>">
+                                        <?= htmlspecialchars($m['usuario_user'] ?? ('#' . $m['id_usuario'])) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
 
-                    <div class="form-group col-sm-4 d-none" id="box_resp_med">
-                        <label class="control-label" for="resp_med_id">Selecionar médico</label>
-                        <select id="resp_med_id" class="form-control form-control-sm selectpicker" data-live-search="true"
-                            data-size="5" title="Selecione">
-                            <option value="">Selecione</option>
-                            <?php foreach ($medicosAud as $m): ?>
-                                <option value="<?= (int) $m['id_usuario'] ?>"
-                                    data-email="<?= htmlspecialchars($m['email_user'] ?? '') ?>">
-                                    <?= htmlspecialchars($m['usuario_user'] ?? ('#' . $m['id_usuario'])) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-
-                    <div class="form-group col-sm-5 d-none" id="box_resp_enf">
-                        <label class="control-label" for="resp_enf_id">Selecionar enfermeiro</label>
-                        <select id="resp_enf_id" class="form-control form-control-sm selectpicker" data-live-search="true"
-                            data-size="5" title="Selecione">
-                            <option value="">Selecione</option>
-                            <?php foreach ($enfsAud as $e): ?>
-                                <option value="<?= (int) $e['id_usuario'] ?>"
-                                    data-email="<?= htmlspecialchars($e['email_user'] ?? '') ?>">
-                                    <?= htmlspecialchars($e['usuario_user'] ?? ('#' . $e['id_usuario'])) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                        <div class="form-group col-sm-5 d-none" id="box_resp_enf">
+                            <label class="control-label" for="resp_enf_id">Selecionar enfermeiro</label>
+                            <select id="resp_enf_id" class="form-control input-lg-fullcare selectpicker" data-live-search="true"
+                                data-size="5" title="Selecione">
+                                <option value="">Selecione</option>
+                                <?php foreach ($enfsAud as $e): ?>
+                                    <option value="<?= (int) $e['id_usuario'] ?>"
+                                        data-email="<?= htmlspecialchars($e['email_user'] ?? '') ?>">
+                                        <?= htmlspecialchars($e['usuario_user'] ?? ('#' . $e['id_usuario'])) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>
         <?php endif; ?>
 
-        <div class="row">
+        <div class="internacao-card internacao-card--fields">
+            <div class="internacao-card__header">
+                <div>
+                    <p class="internacao-card__eyebrow">Dados assistenciais</p>
+                    <h3 class="internacao-card__title">Características clínicas</h3>
+                </div>
+            </div>
+            <div class="internacao-card__body">
+                <div class="row">
             <div class="form-group col-sm-2">
                 <label class="control-label" for="acomodacao_int">Acomodação</label>
-                <select class="form-control-sm form-control" id="acomodacao_int" name="acomodacao_int">
+                <select class="input-lg-fullcare form-control" id="acomodacao_int" name="acomodacao_int">
                     <option value="">Selecione</option>
                     <?php
                     $dados_acomodacao = is_array($dados_acomodacao ?? null) ? $dados_acomodacao : [];
@@ -944,7 +1123,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
             </div>
             <div class="form-group col-sm-2">
                 <label class="control-label" for="especialidade_int">Especialidade</label>
-                <input list="especialidade-options" class="form-control-sm form-control" id="especialidade_int"
+                <input list="especialidade-options" class="input-lg-fullcare form-control" id="especialidade_int"
                     name="especialidade_int" placeholder="Selecione ou digite">
                 <datalist id="especialidade-options">
                     <?php
@@ -959,16 +1138,16 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
             </div>
             <div class="form-group col-sm-3">
                 <label for="titular_int">Médico</label>
-                <input type="text" maxlength="100" class="form-control form-control-sm" id="titular_int"
+                <input type="text" maxlength="100" class="form-control input-lg-fullcare" id="titular_int"
                     name="titular_int">
             </div>
             <div class="form-group col-sm-1">
                 <label for="crm_int">CRM</label>
-                <input type="text" maxlength="10" class="form-control form-control-sm" id="crm_int" name="crm_int">
+                <input type="text" maxlength="10" class="form-control input-lg-fullcare" id="crm_int" name="crm_int">
             </div>
             <div class="form-group col-sm-2">
                 <label class="control-label" for="modo_internacao_int">Modo Admissão</label>
-                <select class="form-control-sm form-control" id="modo_internacao_int" name="modo_internacao_int">
+                <select class="input-lg-fullcare form-control" id="modo_internacao_int" name="modo_internacao_int">
                     <option value="">Selecione</option>
                     <?php
                     if (!is_array($modo_internacao)) {
@@ -983,7 +1162,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
             </div>
             <div class="form-group col-sm-2">
                 <label class="control-label" for="tipo_admissao_int">Tipo Internação</label>
-                <select class="form-control-sm form-control" id="tipo_admissao_int" name="tipo_admissao_int">
+                <select class="input-lg-fullcare form-control" id="tipo_admissao_int" name="tipo_admissao_int">
                     <option value="">Selecione</option>
                     <option value="Eletiva">Eletiva</option>
                     <option value="Urgência">Urgência</option>
@@ -995,7 +1174,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
             <div style="display:none;" id="div_int_pertinente_int" class="form-group col-sm-2">
                 <label class="control-label" for="int_pertinente_int"><span style="color:red;">*</span> Internação
                     pertinente?</label>
-                <select class="form-control-sm form-control" id="int_pertinente_int" name="int_pertinente_int">
+                <select class="input-lg-fullcare form-control" id="int_pertinente_int" name="int_pertinente_int">
                     <option value="">Selecione</option>
                     <option value="s">Sim</option>
                     <option value="n">Não</option>
@@ -1011,7 +1190,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
         <div class="form-group row">
             <!-- <div class="form-group col-sm-3">
                 <label class="control-label" for="fk_patologia_int">Patologia</label>
-                <select class="form-control-sm form-control selectpicker show-tick" data-size="5"
+                <select class="input-lg-fullcare form-control selectpicker show-tick" data-size="5"
                     data-live-search="true" id="fk_patologia_int" name="fk_patologia_int">
                     <option value="">Selecione</option>
                     <?php
@@ -1041,7 +1220,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
 
             <div class="form-group col-sm-2">
                 <label class="control-label" for="grupo_patologia_int">Grupo Patologia</label>
-                <select class="form-control-sm form-control" id="grupo_patologia_int" name="grupo_patologia_int">
+                <select class="input-lg-fullcare form-control" id="grupo_patologia_int" name="grupo_patologia_int">
                     <option value="">Selecione</option>
                     <?php foreach ($dados_grupo_pat as $grupo): ?>
                         <option value="<?= htmlspecialchars($grupo) ?>"><?= htmlspecialchars($grupo) ?></option>
@@ -1051,7 +1230,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
 
             <div class="form-group col-sm-1">
                 <label class="control-label" for="origem_int">Origem</label>
-                <select class="form-control-sm form-control" id="origem_int" name="origem_int">
+                <select class="input-lg-fullcare form-control" id="origem_int" name="origem_int">
                     <option value="">Selecione</option>
                     <?php foreach ($origem as $origens): ?>
                         <option value="<?= htmlspecialchars($origens) ?>"><?= htmlspecialchars($origens) ?></option>
@@ -1061,17 +1240,17 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
 
             <div class="form-group col-sm-2">
                 <label for="senha_int">Senha</label>
-                <input type="text" maxlength="20" class="form-control form-control-sm" id="senha_int" name="senha_int">
+                <input type="text" maxlength="20" class="form-control input-lg-fullcare" id="senha_int" name="senha_int">
             </div>
             <div class="form-group col-sm-2">
                 <label for="num_atendimento_int">Num. Atendimento</label>
-                <input type="text" maxlength="20" class="form-control form-control-sm" id="num_atendimento_int"
+                <input type="text" maxlength="20" class="form-control input-lg-fullcare" id="num_atendimento_int"
                     name="num_atendimento_int">
             </div>
 
             <!-- <div class="form-group col-sm-2">
                 <label class="control-label" for="fk_patologia2">Antecedente</label>
-                <select class="form-control-sm form-control selectpicker show-tick" data-size="5"
+                <select class="input-lg-fullcare form-control selectpicker show-tick" data-size="5"
                     data-live-search="true" id="fk_patologia2" name="fk_patologia2[]" multiple title="Selecione">
                     <?php
                     if (!is_array($antecedentes)) {
@@ -1088,86 +1267,63 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
             <!-- <input type="hidden" value="" id="json-antec" name="json-antec"> -->
         </div>
 
-        <div class="form-group" style="margin-left:0px; margin-top:-15px">
-            <div>
-                <label for="rel_int">Relatório de Auditoria</label>
-                <textarea data-saude-autocomplete="true" maxlength="5000" style="resize:none" rows="2"
-                    onclick="aumentarText('rel_int')" class="form-control" id="rel_int" name="rel_int"></textarea>
-            </div>
-
-            <!-- Chat Widget -->
-            <!-- <div id="chat-widget" style="position: fixed; bottom: 20px; right: 20px; width: 300px; z-index: 9999;">
-                <div id="chat-header" style="background-color: #007bff; color: white; padding: 10px; cursor: pointer;">
-                    Chat - Assistente Virtual
                 </div>
-                <div id="chat-body"
-                    style="display: none; border: 1px solid #ccc; background: white; max-height: 400px; overflow-y: auto;">
-                    <div id="chat-messages" style="padding: 10px; font-size: 0.9em;"></div>
-                    <div style="padding: 10px;">
-                        <input type="text" id="chat-input" placeholder="Digite sua mensagem..."
-                            style="width: 100%; padding: 5px; border: 1px solid #ccc;">
-                        <button id="chat-send"
-                            style="margin-top: 5px; width: 100%; background-color: #007bff; color: white; border: none; padding:5px;">Enviar</button>
+            </div>
+        </div>
+
+        <div class="internacao-card internacao-card--notes">
+            <div class="internacao-card__header">
+                <div>
+                    <p class="internacao-card__eyebrow">Auditoria</p>
+                    <h3 class="internacao-card__title">Relatórios e observações</h3>
+                </div>
+            </div>
+            <div class="internacao-card__body">
+                <div>
+                    <label for="rel_int">Relatório de Auditoria</label>
+                    <textarea data-saude-autocomplete="true" maxlength="5000" style="resize:none" rows="2"
+                        onclick="aumentarText('rel_int')" class="form-control" id="rel_int" name="rel_int"></textarea>
+                </div>
+
+                <!-- Chat Widget -->
+                <!-- <div id="chat-widget" style="position: fixed; bottom: 20px; right: 20px; width: 300px; z-index: 9999;">
+                    <div id="chat-header" style="background-color: #007bff; color: white; padding: 10px; cursor: pointer;">
+                        Chat - Assistente Virtual
                     </div>
+                    <div id="chat-body"
+                        style="display: none; border: 1px solid #ccc; background: white; max-height: 400px; overflow-y: auto;">
+                        <div id="chat-messages" style="padding: 10px; font-size: 0.9em;"></div>
+                        <div style="padding: 10px;">
+                            <input type="text" id="chat-input" placeholder="Digite sua mensagem..."
+                                style="width: 100%; padding: 5px; border: 1px solid #ccc;">
+                            <button id="chat-send"
+                                style="margin-top: 5px; width: 100%; background-color: #007bff; color: white; border: none; padding:5px;">Enviar</button>
+                        </div>
+                    </div>
+                </div> -->
+
+                <div>
+                    <label for="acoes_int">Ações da Auditoria</label>
+                    <textarea data-saude-autocomplete="true" rows="2" style="resize:none"
+                        onclick="aumentarText('acoes_int')" class="form-control" maxlength="5000" id="acoes_int"
+                        name="acoes_int"></textarea>
                 </div>
-            </div> -->
 
-            <div style="margin-top: 10px;">
-                <label for="acoes_int">Ações da Auditoria</label>
-                <textarea data-saude-autocomplete="true" rows="2" style="resize:none"
-                    onclick="aumentarText('acoes_int')" class="form-control" maxlength="5000" id="acoes_int"
-                    name="acoes_int"></textarea>
-            </div>
-
-            <div style="margin-top: 10px;">
-                <label for="programacao_int">Programação Terapêutica</label>
-                <textarea data-saude-autocomplete="true" style="resize:none" maxlength="5000" rows="2"
-                    onclick="aumentarText('programacao_int')" class="form-control" id="programacao_int"
-                    name="programacao_int"></textarea>
-            </div>
-
-            <div><br></div>
-
-            <style>
-                .detalhes-card {
-                    background: #fff;
-                    border-radius: 22px;
-                    border: 1px solid #ebe1f5;
-                    box-shadow: 0 12px 28px rgba(45, 18, 70, .08);
-                    padding: 24px 26px;
-                    margin: 10px 0 22px;
-                }
-
-                .detalhes-card__header {
-                    display: flex;
-                    align-items: center;
-                    margin-bottom: 18px;
-                }
-
-                .detalhes-card__title {
-                    display: flex;
-                    align-items: center;
-                    margin: 0;
-                    color: #3a184f;
-                    font-weight: 600;
-                }
-
-                .detalhes-card__marker {
-                    width: 6px;
-                    height: 26px;
-                    border-radius: 10px;
-                    margin-right: 12px;
-                    background: linear-gradient(180deg, #a45cc4, #d28ff1);
-                }
-            </style>
-
-            <div class="detalhes-card">
-                <div class="detalhes-card__header">
-                    <h4 class="detalhes-card__title">
-                        <span class="detalhes-card__marker"></span>
-                        Detalhes do relatório
-                    </h4>
+                <div>
+                    <label for="programacao_int">Programação Terapêutica</label>
+                    <textarea data-saude-autocomplete="true" style="resize:none" maxlength="5000" rows="2"
+                        onclick="aumentarText('programacao_int')" class="form-control" id="programacao_int"
+                        name="programacao_int"></textarea>
                 </div>
+            </div>
+        </div>
+
+        <div class="detalhes-card">
+            <div class="detalhes-card__header">
+                <h4 class="detalhes-card__title">
+                    <span class="detalhes-card__marker"></span>
+                    Detalhes do relatório
+                </h4>
 
                 <input type="hidden" class="form-control" id="select_detalhes" name="select_detalhes">
 
@@ -1175,7 +1331,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                     <div class="form-group col-sm-2" style="margin-left:10px;">
                         <label class="control-label" style="font-weight: bold;" for="relatorio-detalhado">Relatório
                             detalhado</label>
-                        <select class="form-control-sm form-control" id="relatorio-detalhado" name="relatorio-detalhado"
+                        <select class="input-lg-fullcare form-control" id="relatorio-detalhado" name="relatorio-detalhado"
                             style="color:white; font-weight:normal; border:1px solid #5e2363; background-color:#5e2363;">
                             <option value="">Selecione</option>
                             <option value="s">Sim</option>
@@ -1197,7 +1353,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
 
                         <div class="form-group col-sm-2">
                             <label class="control-label" for="curativo_det">Curativo</label>
-                            <select class="form-control-sm form-control" id="curativo_det" name="curativo_det">
+                            <select class="input-lg-fullcare form-control" id="curativo_det" name="curativo_det">
                                 <option value="">Selecione</option>
                                 <option value="s">Sim</option>
                                 <option value="n">Não</option>
@@ -1205,7 +1361,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                         </div>
                         <div class="form-group col-sm-2">
                             <label class="control-label" for="dieta_det">Tipo dieta</label>
-                            <select class="form-control-sm form-control" id="dieta_det" name="dieta_det">
+                            <select class="input-lg-fullcare form-control" id="dieta_det" name="dieta_det">
                                 <option value="">Selecione</option>
                                 <option value="Oral">Oral</option>
                                 <option value="Enteral">Enteral</option>
@@ -1215,7 +1371,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                         </div>
                         <div class="form-group col-sm-2">
                             <label class="control-label" for="nivel_consc_det">Nível de Consciência</label>
-                            <select class="form-control-sm form-control" id="nivel_consc_det" name="nivel_consc_det">
+                            <select class="input-lg-fullcare form-control" id="nivel_consc_det" name="nivel_consc_det">
                                 <option value="">Selecione</option>
                                 <option value="Consciente">Consciente</option>
                                 <option value="Comatoso">Comatoso</option>
@@ -1224,7 +1380,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                         </div>
                         <div class="form-group col-sm-2">
                             <label class="control-label" for="oxig_det">Oxigênio</label>
-                            <select class="form-control-sm form-control" id="oxig_det" name="oxig_det">
+                            <select class="input-lg-fullcare form-control" id="oxig_det" name="oxig_det">
                                 <option value="">Selecione</option>
                                 <option value="Cateter">Cateter</option>
                                 <option value="Mascara">Máscara</option>
@@ -1234,7 +1390,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                         </div>
                         <div id="div-oxig" class="form-group col-sm-1">
                             <label class="control-label" for="oxig_uso_det">Lts O2</label>
-                            <input class="form-control-sm form-control" type="text" name="oxig_uso_det">
+                            <input class="input-lg-fullcare form-control" type="text" name="oxig_uso_det">
                         </div>
 
                         <div class="form-group col-sm-3">
@@ -1272,7 +1428,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                     <div class="form-group row" style="margin-top: -20px;">
                         <div class="form-group col-sm-2">
                             <label class="control-label" for="hemoderivados_det">Hemoderivados</label>
-                            <select class="form-control-sm form-control" id="hemoderivados_det"
+                            <select class="input-lg-fullcare form-control" id="hemoderivados_det"
                                 name="hemoderivados_det">
                                 <option value="">Selecione</option>
                                 <option value="s">Sim</option>
@@ -1281,7 +1437,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                         </div>
                         <div class="form-group col-sm-2">
                             <label class="control-label" for="dialise_det">Diálise</label>
-                            <select class="form-control-sm form-control" id="dialise_det" name="dialise_det">
+                            <select class="input-lg-fullcare form-control" id="dialise_det" name="dialise_det">
                                 <option value="">Selecione</option>
                                 <option value="s">Sim</option>
                                 <option value="n">Não</option>
@@ -1290,7 +1446,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                         <div class="form-group col-sm-2">
                             <label class="control-label" for="oxigenio_hiperbarica_det">Oxigenioterapia
                                 Hiperbárica</label>
-                            <select class="form-control-sm form-control" id="oxigenio_hiperbarica_det"
+                            <select class="input-lg-fullcare form-control" id="oxigenio_hiperbarica_det"
                                 name="oxigenio_hiperbarica_det">
                                 <option value="">Selecione</option>
                                 <option value="s">Sim</option>
@@ -1299,7 +1455,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                         </div>
                         <div class="form-group col-sm-1">
                             <label class="control-label" for="qt_det">QT</label>
-                            <select class="form-control-sm form-control" id="qt_det" name="qt_det">
+                            <select class="input-lg-fullcare form-control" id="qt_det" name="qt_det">
                                 <option value=""></option>
                                 <option value="s">Sim</option>
                                 <option value="n">Não</option>
@@ -1307,7 +1463,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                         </div>
                         <div class="form-group col-sm-1">
                             <label class="control-label" for="rt_det">RT</label>
-                            <select class="form-control-sm form-control" id="rt_det" name="rt_det">
+                            <select class="input-lg-fullcare form-control" id="rt_det" name="rt_det">
                                 <option value=""></option>
                                 <option value="s">Sim</option>
                                 <option value="n">Não</option>
@@ -1315,7 +1471,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                         </div>
                         <div class="form-group col-sm-1">
                             <label class="control-label" for="acamado_det">Acamado</label>
-                            <select class="form-control-sm form-control" id="acamado_det" name="acamado_det">
+                            <select class="input-lg-fullcare form-control" id="acamado_det" name="acamado_det">
                                 <option value=""></option>
                                 <option value="s">Sim</option>
                                 <option value="n">Não</option>
@@ -1323,7 +1479,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                         </div>
                         <div class="form-group col-sm-1">
                             <label class="control-label" for="atb_det">Antibiótico</label>
-                            <select class="form-control-sm form-control" id="atb_det" name="atb_det">
+                            <select class="input-lg-fullcare form-control" id="atb_det" name="atb_det">
                                 <option value=""></option>
                                 <option value="s">Sim</option>
                                 <option value="n">Não</option>
@@ -1335,7 +1491,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                         </div>
                         <div class="form-group col-sm-1">
                             <label class="control-label" for="medic_alto_custo_det">Medicação</label>
-                            <select class="form-control-sm form-control" id="medic_alto_custo_det"
+                            <select class="input-lg-fullcare form-control" id="medic_alto_custo_det"
                                 name="medic_alto_custo_det">
                                 <option value="n">Não</option>
                                 <option value="s">Sim</option>
@@ -1343,7 +1499,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                         </div>
                         <div id="medicacaoDet" class="form-group col-sm-3">
                             <label class="control-label" for="qual_medicamento_det">Medicação alto custo</label>
-                            <input class="form-control-sm form-control" type="text" name="qual_medicamento_det">
+                            <input class="input-lg-fullcare form-control" type="text" name="qual_medicamento_det">
                         </div>
                         <div>
                             <label for="exames_det">Exames relevantes</label>
@@ -1362,28 +1518,28 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                     <div class="form-group row">
                         <div class="form-group col-sm-2">
                             <label class="control-label" for="liminar_det">Possui Liminar?</label>
-                            <select class="form-control-sm form-control" id="liminar_det" name="liminar_det">
+                            <select class="input-lg-fullcare form-control" id="liminar_det" name="liminar_det">
                                 <option value="n">Não</option>
                                 <option value="s">Sim</option>
                             </select>
                         </div>
                         <div class="form-group col-sm-2">
                             <label class="control-label" for="paliativos_det">Está em Cuidados Paliativos?</label>
-                            <select class="form-control-sm form-control" id="paliativos_det" name="paliativos_det">
+                            <select class="input-lg-fullcare form-control" id="paliativos_det" name="paliativos_det">
                                 <option value="n">Não</option>
                                 <option value="s">Sim</option>
                             </select>
                         </div>
                         <div class="form-group col-sm-2">
                             <label class="control-label" for="parto_det">Parto</label>
-                            <select class="form-control-sm form-control" id="parto_det" name="parto_det">
+                            <select class="input-lg-fullcare form-control" id="parto_det" name="parto_det">
                                 <option value="n">Não</option>
                                 <option value="s">Sim</option>
                             </select>
                         </div>
                         <div class="form-group col-sm-2">
                             <label class="control-label" for="braden_det">Escala de Braden</label>
-                            <select class="form-control-sm form-control" id="braden_det" name="braden_det">
+                            <select class="input-lg-fullcare form-control" id="braden_det" name="braden_det">
                                 <option value=""></option>
                                 <option value="alto">Alto</option>
                                 <option value="moderado">Moderado</option>
@@ -1394,39 +1550,6 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                 </div>
             </div>
         </div>
-
-        <style>
-            .tabelas-adicionais-card {
-                background: #fff;
-                border-radius: 22px;
-                border: 1px solid #ebe1f5;
-                box-shadow: 0 12px 28px rgba(45, 18, 70, .08);
-                padding: 22px 24px;
-                margin-top: 25px;
-            }
-
-            .tabelas-adicionais-card__header {
-                display: flex;
-                align-items: center;
-                margin-bottom: 18px;
-            }
-
-            .tabelas-adicionais-card__title {
-                display: flex;
-                align-items: center;
-                margin: 0;
-                color: #3a184f;
-                font-weight: 600;
-            }
-
-            .tabelas-adicionais-card__marker {
-                width: 6px;
-                height: 26px;
-                border-radius: 10px;
-                margin-right: 12px;
-                background: linear-gradient(180deg, #7b3f99, #b279d0);
-            }
-        </style>
 
         <div class="tabelas-adicionais-card">
             <div class="tabelas-adicionais-card__header">
@@ -1440,7 +1563,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                 <?php if ($cargoSessao === 'Med_auditor' || $cargoSessao === 'Diretoria') { ?>
                     <div class="form-group col-sm-2">
                         <label class="control-label" style="font-weight: bold;" for="select_tuss">Tuss</label>
-                        <select class="form-control-sm form-control select-purple" id="select_tuss" name="select_tuss">
+                        <select class="input-lg-fullcare form-control select-purple" id="select_tuss" name="select_tuss">
                             <option value="">Selecione</option>
                             <option value="s">Sim</option>
                             <option value="n">Não</option>
@@ -1448,7 +1571,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                     </div>
                     <div class="form-group col-sm-2">
                         <label class="control-label" style="font-weight: bold;" for="select_prorrog">Prorrogação</label>
-                        <select class="form-control-sm form-control select-purple" id="select_prorrog"
+                        <select class="input-lg-fullcare form-control select-purple" id="select_prorrog"
                             name="select_prorrog">
                             <option value="">Selecione</option>
                             <option value="s">Sim</option>
@@ -1459,7 +1582,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
 
                 <div class="form-group col-sm-2">
                     <label class="control-label" style="font-weight: bold;" for="select_gestao">Gestão</label>
-                    <select class="form-control-sm form-control select-purple" id="select_gestao" name="select_gestao">
+                    <select class="input-lg-fullcare form-control select-purple" id="select_gestao" name="select_gestao">
                         <option value="">Selecione</option>
                         <option value="s">Sim</option>
                         <option value="n">Não</option>
@@ -1468,7 +1591,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
 
                 <div class="form-group col-sm-2">
                     <label class="control-label" style="font-weight: bold;" for="select_uti">UTI</label>
-                    <select class="form-control-sm form-control select-purple" id="select_uti" name="select_uti">
+                    <select class="input-lg-fullcare form-control select-purple" id="select_uti" name="select_uti">
                         <option value="">Selecione</option>
                         <option value="s">Sim</option>
                         <option value="n">Não</option>
@@ -1478,7 +1601,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                 <?php if ($cargoSessao === 'Med_auditor' || $cargoSessao === 'Diretoria') { ?>
                     <div class="form-group col-sm-2">
                         <label class="control-label" style="font-weight: bold;" for="select_negoc">Negociações</label>
-                        <select class="form-control-sm form-control select-purple" id="select_negoc" name="select_negoc">
+                        <select class="input-lg-fullcare form-control select-purple" id="select_negoc" name="select_negoc">
                             <option value="">Selecione</option>
                             <option value="s">Sim</option>
                             <option value="n">Não</option>
@@ -1524,6 +1647,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
             <div style="width:500px;display:none" class="alert" id="alert" role="alert"></div>
         </div>
     </form>
+    </div>
 </div>
 <!-- Modal retroativa -->
 <div class="modal fade" id="modalInternacaoAtiva" tabindex="-1" aria-hidden="true">

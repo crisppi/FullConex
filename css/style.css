@@ -1025,3 +1025,10 @@ input:invalid {
 .assist-popover-link:hover {
     text-decoration: underline;
 }
+
+.input-lg-fullcare {
+    min-height: 42px;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    border-radius: 6px;
+}
