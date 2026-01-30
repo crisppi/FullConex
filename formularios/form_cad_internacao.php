@@ -991,7 +991,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
             </div>
         </div>
 
-        <div class="form-group row">
+        <div class="form-group row" id="row-int-pertinente" style="display:none;">
             <div style="display:none;" id="div_int_pertinente_int" class="form-group col-sm-2">
                 <label class="control-label" for="int_pertinente_int"><span style="color:red;">*</span> Internação
                     pertinente?</label>
@@ -1087,8 +1087,6 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
             </div> -->
             <!-- <input type="hidden" value="" id="json-antec" name="json-antec"> -->
         </div>
-
-        <div><br></div>
 
         <div class="form-group" style="margin-left:0px; margin-top:-15px">
             <div>

@@ -552,13 +552,20 @@ document.getElementById("data_visita_int").addEventListener("change", function()
 });
 
 // Internação pertinente (quando tipo = Urgência)
+const rowPertinente = document.getElementById("row-int-pertinente");
 document.getElementById("tipo_admissao_int").addEventListener("change", function() {
     const tipo = this.value;
     const divPertinente = document.getElementById("div_int_pertinente_int");
     const divRelPertinente = document.getElementById("div_rel_pertinente_int");
+    if (rowPertinente) {
+        rowPertinente.style.display = "none";
+    }
     divPertinente.style.display = "none";
     divRelPertinente.style.display = "none";
     if (tipo === "Urgência") {
+        if (rowPertinente) {
+            rowPertinente.style.display = "flex";
+        }
         divPertinente.style.display = "block";
         document.getElementById("int_pertinente_int").addEventListener("change", function() {
             divRelPertinente.style.display = (this.value === "n") ? "block" : "none";
