@@ -314,231 +314,6 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
                 </div>
             </div>
 
-            <div class="visita-card visita-card--detalhes" id="detalhes-card">
-                <div class="visita-card__header">
-                    <div>
-                        <p class="visita-card__eyebrow">Detalhes</p>
-                        <h3 class="visita-card__title">Detalhes do relatório</h3>
-                    </div>
-                </div>
-                <div class="visita-card__body">
-                    <input type="hidden" class="form-control" id="select_detalhes" name="select_detalhes">
-                    <div class="form-group col-sm-2 visita-detalhe-select">
-                        <label class="control-label" for="relatorio-detalhado">Relatório detalhado</label>
-                        <select class="form-control-sm form-control" id="relatorio-detalhado" name="relatorio-detalhado">
-                            <option value="">Selecione</option>
-                            <option value="s">Sim</option>
-                            <option value="n">Não</option>
-                        </select>
-                    </div>
-                    <div id="div-detalhado" class="form-group row">
-                <div class="form-group row">
-                    <input type="hidden" readonly id="fk_int_det" name="fk_int_det" value="<?= ($ultimoReg + 1) ?> ">
-
-                    <div class="form-group col-sm-2">
-                        <label class="control-label" for="curativo_det">Curativo</label>
-                        <select class="form-control-sm  form-control" id="curativo_det" name="curativo_det">
-                            <option value="">Selecione</option>
-                            <option value="s">Sim</option>
-                            <option value="n">Não</option>
-                        </select>
-                    </div>
-                    <div class="form-group col-sm-2">
-                        <label class="control-label" for="dieta_det">Tipo dieta</label>
-                        <select class="form-control-sm  form-control" id="dieta_det" name="dieta_det">
-                            <option value="">Selecione</option>
-                            <option value="Oral">Oral</option>
-                            <option value="Enteral">Enteral</option>
-                            <option value="NPP">NPP</option>
-                            <option value="Jejum">Jejum</option>
-                        </select>
-                    </div>
-                    <div class="form-group col-sm-2">
-                        <label class="control-label" for="nivel_consc_det">Nível de Consciência</label>
-                        <select class="form-control-sm  form-control" id="nivel_consc_det" name="nivel_consc_det">
-                            <option value="">Selecione</option>
-                            <option value="Consciente">Consciente</option>
-                            <option value="Comatoso">Comatoso</option>
-                            <option value="Vigil">Vigil</option>
-                        </select>
-                    </div>
-                    <div class="form-group col-sm-2">
-                        <label class="control-label" for="oxig_det">Oxigênio</label>
-                        <select class="form-control-sm form-control" id="oxig_det" name="oxig_det">
-                            <option value="">Selecione</option>
-                            <option value="Cateter">Cateter</option>
-                            <option value="Mascara">Máscara</option>
-                            <option value="VNI">VNI</option>
-                            <option value="Alto Fluxo">Alto Fluxo</option>
-                        </select>
-                    </div>
-                    <div id="div-oxig" class="form-group col-sm-1">
-                        <label class="control-label" for="oxig_uso_det">Lts O2</label>
-                        <input class="form-control-sm form-control" type="text" name="oxig_uso_det"></input>
-                    </div>
-                    <div class="form-group col-sm-3">
-                        <label class="control-label">Dispositivos</label>
-                        <div class="d-flex flex-wrap align-items-center">
-                            <div class="form-check ">
-                                <label style="margin-left:-30px" class="control-label" for="tqt_det">TQT</label>
-                                <input class="form-check-input " type="checkbox" name="tqt_det" id="tqt_det"
-                                    value="TQT">
-                            </div>
-                            <div class="form-check">
-                                <label style="margin-left:-30px" class="control-label" for="svd_det">SVD</label>
-                                <input class="form-check-input" type="checkbox" name="svd_det" id="svd_det" value="SVD">
-                            </div>
-                            <div class="form-check" style="text-align: center;">
-                                <label style="margin-left:-30px" class="control-label" for="sne_det"
-                                    style="display: block;">SNE</label>
-                                <input class="form-check-input" type="checkbox" name="sne_det" id="sne_det" value="SNE">
-                            </div>
-                            <div class="form-check">
-                                <label style="margin-left:-30px" style="margin-left:-30px" class="control-label"
-                                    for="gtt_det">GTT</label>
-                                <input class="form-check-input" type="checkbox" name="gtt_det" id="gtt_det" value="GTT">
-                            </div>
-                            <div class="form-check">
-                                <label style="margin-left:-30px" class="control-label" for="dreno_det">Dreno</label>
-                                <input class="form-check-input" type="checkbox" name="dreno_det" id="dreno_det"
-                                    value="Dreno">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group col-sm-2">
-                    <label class="control-label" for="hemoderivados_det">Hemoderivados</label>
-                    <select class="form-control-sm  form-control" id="hemoderivados_det" name="hemoderivados_det">
-                        <option value="">Selecione</option>
-                        <option value="s">Sim</option>
-                        <option value="n">Não</option>
-                    </select>
-                </div>
-                <div class="form-group col-sm-2">
-                    <label class="control-label" for="dialise_det">Diálise</label>
-                    <select class="form-control-sm  form-control" id="dialise_det" name="dialise_det">
-                        <option value="">Selecione</option>
-                        <option value="s">Sim</option>
-                        <option value="n">Não</option>
-                    </select>
-                </div>
-                <div class="form-group col-sm-2">
-                    <label class="control-label" for="oxigenio_hiperbarica_det">Oxigenioterapia Hiperbárica</label>
-                    <select class="form-control-sm  form-control" id="oxigenio_hiperbarica_det"
-                        name="oxigenio_hiperbarica_det">
-                        <option value="">Selecione</option>
-                        <option value="s">Sim</option>
-                        <option value="n">Não</option>
-                    </select>
-                </div>
-
-                <div class="form-group row">
-                    <div class="form-group col-sm-1">
-                        <label class="control-label" for="qt_det">QT</label>
-                        <select class="form-control-sm form-control" id="qt_det" name="qt_det">
-                            <option value=""></option>
-                            <option value="s">Sim</option>
-                            <option value="n">Não</option>
-                        </select>
-                    </div>
-                    <div class="form-group col-sm-1">
-                        <label class="control-label" for="rt_det">RT</label>
-                        <select class="form-control-sm form-control" id="rt_det" name="rt_det">
-                            <option value=""></option>
-                            <option value="s">Sim</option>
-                            <option value="n">Não</option>
-                        </select>
-                    </div>
-                    <div class="form-group col-sm-1">
-                        <label class="control-label" for="acamado_det">Acamado</label>
-                        <select class="form-control-sm form-control" id="acamado_det" name="acamado_det">
-                            <option value=""></option>
-                            <option value="s">Sim</option>
-                            <option value="n">Não</option>
-                        </select>
-                    </div>
-                    <div class="form-group col-sm-1">
-                        <label class="control-label" for="atb_det">Antibiótico</label>
-                        <select class="form-control-sm form-control" id="atb_det" name="atb_det">
-                            <option value=""></option>
-                            <option value="s">Sim</option>
-                            <option value="n">Não</option>
-                        </select>
-                    </div>
-                    <div id="atb" class="form-group col-sm-3">
-                        <label class="control-label" for="atb_uso_det">Antibiótico em uso</label>
-                        <input class="form-control" type="text" name="atb_uso_det"></input>
-                    </div>
-                    <div class="form-group col-sm-1">
-                        <label class="control-label" for="medic_alto_custo_det">Medicação</label>
-                        <select class="form-control-sm form-control" id="medicacao" name="medic_alto_custo_det">
-                            <option value=""></option>
-                            <option value="s">Sim</option>
-                            <option value="n">Não</option>
-                        </select>
-                    </div>
-                    <div id="medicacaoDet" class="form-group col-sm-3">
-                        <label class="control-label" for="qual_medicamento_det">Medicação alto custo</label>
-                        <input class="form-control-sm form-control" type="text" name="qual_medicamento_det"></input>
-                    </div>
-                    <div>
-                        <label for="exames_det">Exames relevantes</label>
-                        <textarea type="textarea" style="resize:none" rows="3" onclick="aumentarText('exames_det')"
-                            onblur="reduzirText('exames_det', 3)" class="form-control" id="exames_det"
-                            name="exames_det" autocomplete="off" autocorrect="off" autocapitalize="none"
-                            spellcheck="false"></textarea>
-                    </div>
-                    <div>
-                        <label for="oportunidades_det">Oportunidades</label>
-                        <textarea type="textarea" style="resize:none" rows="2"
-                            onclick="aumentarText('oportunidades_det')" class="form-control" id="oportunidades_det"
-                            onblur="reduzirText('oportunidades_det', 3)" name="oportunidades_det" autocomplete="off"
-                            autocorrect="off" autocapitalize="none" spellcheck="false"></textarea>
-                    </div>
-                </div>
-
-                <div class="form-group row">
-                    <div class="form-group col-sm-3">
-                        <label class="control-label" for="liminar_det">Possui Liminar?</label>
-                        <select class="form-control-sm form-control" id="liminar_det" name="liminar_det">
-                            <option value=""></option>
-                            <option value="s">Sim</option>
-                            <option value="n">Não</option>
-                        </select>
-                    </div>
-                    <div class="form-group col-sm-3">
-                        <label class="control-label" for="paliativos_det">Está em Cuidados Paliativos?</label>
-                        <select class="form-control-sm form-control" id="paliativos_det" name="paliativos_det">
-                            <option value=""></option>
-                            <option value="s">Sim</option>
-                            <option value="n">Não</option>
-                        </select>
-                    </div>
-                    <div class="form-group col-sm-3">
-                        <label class="control-label" for="parto_det">Parto</label>
-                        <select class="form-control-sm form-control" id="parto_det" name="parto_det">
-                            <option value=""></option>
-                            <option value="s">Sim</option>
-                            <option value="n">Não</option>
-                        </select>
-                    </div>
-                    <div class="form-group col-sm-3">
-                        <label class="control-label" for="braden_det">Escala de Braden</label>
-                        <select class="form-control-sm form-control" id="braden_det" name="braden_det">
-                            <option value=""></option>
-                            <option value="alto">Alto</option>
-                            <option value="moderado">Moderado</option>
-                            <option value="baixo">Baixo</option>
-                        </select>
-                    </div>
-                </div>
-                <div>
-                    <hr>
-                </div>
-            </div>
-                </div>
-            </div>
-
             <!-- ENTRADA DE DADOS AUTOMATICOS NO INPUT-->
             <div class="form-group col-sm-1">
                 <input type="hidden" class="form-control" value="n" id="internado_uti_int" name="internado_uti_int">
@@ -558,7 +333,15 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
                     </div>
                 </div>
                 <div class="visita-card__body">
-                    <div class="form-group row d-flex justify-content-center align-items-end">
+                    <div class="form-group row d-flex justify-content-center align-items-end tabelas-selects">
+                        <div class="form-group col-sm-2">
+                            <label class="control-label" for="relatorio-detalhado">Relatório detalhado</label>
+                            <select class="form-control select-purple" id="relatorio-detalhado" name="relatorio-detalhado">
+                                <option value="">Selecione</option>
+                                <option value="s">Sim</option>
+                                <option value="n">Não</option>
+                            </select>
+                        </div>
                         <?php if ($_SESSION['cargo'] === 'Med_auditor' || ($_SESSION['cargo'] === 'Diretoria')) { ?>
 
                         <div class="form-group col-sm-2">
@@ -625,6 +408,27 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
                     <?php include_once('formularios/form_cad_internacao_negoc.php'); ?>
                 </div>
             </div>
+
+            <?php include_once('formularios/form_cad_visita_detalhes.php'); ?>
+            <script>
+            function toggleDetalhesVisita() {
+                var select = document.getElementById('relatorio-detalhado');
+                var wrapper = document.getElementById('detalhes-card-wrapper');
+                var detalhes = document.getElementById('div-detalhado');
+                if (!select || !wrapper || !detalhes) return;
+                var show = select.value === 's';
+                wrapper.style.display = show ? 'block' : 'none';
+                detalhes.style.display = show ? 'block' : 'none';
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                var select = document.getElementById('relatorio-detalhado');
+                if (select) {
+                    select.addEventListener('change', toggleDetalhesVisita);
+                }
+                toggleDetalhesVisita();
+            });
+            </script>
 
             <div class="visita-actions">
                 <button type="submit" class="btn btn-success">
@@ -1231,6 +1035,18 @@ function aumentarTextProgramacao() {
 .visita-actions .alert {
     margin: 0;
     width: 500px;
+}
+
+.tabelas-selects {
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.tabelas-selects .form-group {
+    flex: 1 1 0;
+    min-width: 150px;
+    max-width: none;
 }
 
 @media (max-width: 991.98px) {

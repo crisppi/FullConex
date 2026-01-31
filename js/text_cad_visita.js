@@ -73,21 +73,42 @@
 
 
  // aparecer campos relatorio detalhado
- $(document).ready(function() {
-     $('#div-detalhado').hide(); // Oculta o campo de texto quando a página carrega
+ (function() {
+     function toggleDetalhesVanilla() {
+         var select = document.getElementById('relatorio-detalhado');
+         var wrapper = document.getElementById('detalhes-card-wrapper');
+         var detalhes = document.getElementById('div-detalhado');
+         if (!select || !wrapper || !detalhes) return;
+         var show = select.value === 's';
+         wrapper.style.display = show ? 'block' : 'none';
+         detalhes.style.display = show ? 'block' : 'none';
+     }
 
-     $('#relatorio-detalhado').change(function() {
-         if ($(this).val() === 's') {
-             $('#div-detalhado').show();
-             $('#text-detalhado').hide();
+     if (window.jQuery) {
+         $(document).ready(function() {
+             function toggleDetalhes() {
+                 if ($('#relatorio-detalhado').val() === 's') {
+                     $('#detalhes-card-wrapper').show();
+                     $('#div-detalhado').show();
+                 } else {
+                     $('#div-detalhado').hide();
+                     $('#detalhes-card-wrapper').hide();
+                 }
+             }
 
-         } else {
-             $('#div-detalhado').hide();
-             $('#text-detalhado').show();
+             toggleDetalhes();
+             $('#relatorio-detalhado').change(toggleDetalhes);
+         });
+     }
 
+     document.addEventListener('DOMContentLoaded', function() {
+         toggleDetalhesVanilla();
+         var select = document.getElementById('relatorio-detalhado');
+         if (select) {
+             select.addEventListener('change', toggleDetalhesVanilla);
          }
      });
- });
+ })();
 
  // aparecer campo atb em uso
  $(document).ready(function() {
