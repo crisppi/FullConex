@@ -19,9 +19,24 @@
         align-items: center;
         min-height: 100vh;
         font-family: Arial, sans-serif;
-        background: linear-gradient(135deg, #f7f4ff 0%, #e2f3ff 60%, #d4f0ff 100%);
+        background-image: linear-gradient(135deg, rgba(247, 244, 255, 0.55) 0%, rgba(226, 243, 255, 0.55) 60%, rgba(212, 240, 255, 0.55) 100%);
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        position: relative;
         opacity: 0;
         animation: fadeIn .3s ease-in forwards;
+    }
+
+    body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: url("img/17450.jpg") center / cover no-repeat;
+        opacity: 0.25;
+        z-index: -1;
+        pointer-events: none;
     }
 
     @keyframes fadeIn {
@@ -37,32 +52,35 @@
     .login-container {
         display: flex;
         border-radius: 10px;
-        box-shadow: 0 10px 20px rgba(0, 0, 0, .2);
         overflow: visible;
         width: 990px;
         max-width: 95vw;
+        align-items: center;
     }
 
     /* ===============================
        Bloco Azul (formulário)
     =============================== */
     .login-form {
-        padding: 40px;
+        padding: 12px 22px 16px;
         border-top-left-radius: 10px;
         border-bottom-left-radius: 10px;
-        width: 60%;
-        background: linear-gradient(160deg, rgba(45, 99, 166, 0.95), rgba(146, 190, 226, 0.85));
+        width: 42%;
+        height: 400px;
+        min-height: 0;
+        background: linear-gradient(160deg, #2d63a6, #92bee2);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, .2);
         display: flex;
         flex-direction: column;
-        justify-content: center;
+        justify-content: flex-start;
         align-items: center;
         position: relative;
     }
 
     .login-form-logo {
         width: 100%;
-        max-width: 320px;
-        margin-bottom: 20px;
+        max-width: 256px;
+        margin-bottom: 12px;
         display: block;
     }
 
@@ -82,7 +100,7 @@
         border: none;
         border-bottom: 2px solid #fff;
         background: transparent;
-        font-size: 16px;
+        font-size: 13px;
         outline: none;
     }
 
@@ -93,12 +111,13 @@
         color: rgba(255, 255, 255, .7);
         pointer-events: none;
         transition: all .3s ease;
+        font-size: 13px;
     }
 
     .input-container input:focus+label,
     .input-container input:not(:placeholder-shown)+label {
         top: -20px;
-        font-size: 12px;
+        font-size: 11px;
         color: #fff;
     }
 
@@ -136,28 +155,29 @@
        Bloco Lilás (lado direito)
     =============================== */
     .side-panel {
-        padding: 40px;
+        padding: 22px;
         background: linear-gradient(160deg, #4b2f70, #612f7d 80%);
         color: #fff;
-        width: 40%;
-        min-height: 570px;
+        width: 58%;
+        max-height: 500px;
+        min-height: 0;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, .15);
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, .15);
         border-radius: 10px;
-        margin-top: -20px;
-        margin-bottom: -50px;
+        margin-top: 0;
+        margin-bottom: -20px;
         text-align: center;
         position: relative;
     }
 
     .side-panel-content {
-        margin-top: 70px;
+        margin-top: 22px;
     }
 
     .side-panel img.monitor-image {
-        width: 100%;
+        width: 70%;
         height: auto;
         object-fit: contain;
     }
@@ -185,78 +205,21 @@
         border-radius: 5px;
     }
 
-    /* ===============================
-       CONEX AUD no topo + TAGLINE abaixo
-       (sem alterar HTML)
-    =============================== */
-    :root {
-        --conex-side-h: 30px;
-        /* altura do logo */
-        --conex-side-top: 18px;
-        /* distância do topo */
-        --conex-tagline-gap: 8px;
-        /* espaço entre logo e texto */
-        --conex-tagline-size: 12px;
-    }
-
-    @media (max-width:768px) {
-        :root {
-            --conex-side-h: 28px;
-            --conex-side-top: 16px;
-            --conex-tagline-size: 11px;
-        }
-    }
-
-    @media (max-width:480px) {
-        :root {
-            --conex-side-h: 26px;
-            --conex-side-top: 14px;
-            --conex-tagline-size: 10.5px;
-        }
-    }
-
-    /* Logo (pinta só o desenho com máscara) */
     .side-panel::before {
-        content: "";
+        content: "SISTEMA FULLCARE";
         position: absolute;
-        top: var(--conex-side-top);
+        top: 18px;
         left: 50%;
         transform: translateX(-50%);
-        height: var(--conex-side-h);
-        aspect-ratio: 6.6 / 1;
-        -webkit-mask: url('img/LogoConexAud.png') no-repeat center / contain;
-        mask: url('img/LogoConexAud.png') no-repeat center / contain;
-        background: linear-gradient(90deg, #FFFFFF 0%, #BFC7CF 100%);
-        pointer-events: none;
-        filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .06));
-    }
-
-    /* Texto/Tagline abaixo do logo */
-    .side-panel::after {
-        /* >>> edite aqui o texto que você quer mostrar abaixo do logo <<< */
-        content: "Acesso exclusivo — Conex Aud";
-        position: absolute;
-        top: calc(var(--conex-side-top) + var(--conex-side-h) + var(--conex-tagline-gap));
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: var(--conex-tagline-size);
-        font-weight: 600;
-        letter-spacing: .06em;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: .08em;
         color: #E9EDF2;
-        /* cinza claro/branco suave */
         opacity: .95;
-        pointer-events: none;
-        white-space: nowrap;
         text-transform: uppercase;
         text-shadow: 0 1px 0 rgba(0, 0, 0, .10);
-    }
-
-    /* Fallback sem mask */
-    @supports not ((mask: url()) or (-webkit-mask: url())) {
-        .side-panel::before {
-            background: url('img/LogoConexAud.png') no-repeat center / contain;
-            filter: grayscale(1) brightness(2.2) contrast(1.1);
-        }
+        pointer-events: none;
+        white-space: nowrap;
     }
 
     /* ===============================
@@ -311,10 +274,12 @@
         .side-panel {
             width: 100%;
             border-radius: 0;
-    }
+            height: auto;
+        }
 
     .login-form {
-            padding: 32px 24px;
+            padding: 16px 20px 18px;
+            min-height: 0;
         }
 
         .side-panel {
@@ -333,17 +298,55 @@
             display: none;
         }
 
+        body {
+            min-height: 600px;
+            align-items: flex-start;
+        }
+
+        .login-container {
+            align-items: flex-start;
+            height: 600px;
+        }
+
         .login-form {
-            padding: 28px 20px;
+            padding: 6px 10px 6px;
+            min-height: 0;
+            height: 600px;
+            max-height: 600px;
         }
 
         .login-form-logo {
-            max-width: 240px;
-            margin-bottom: 16px;
+            max-width: 150px;
+            margin-bottom: 3px;
         }
 
         .form-content {
             width: 100%;
+        }
+
+        .input-container {
+            margin: 4px 0;
+        }
+
+        .input-container input {
+            padding: 4px 0 !important;
+            font-size: 11px !important;
+        }
+
+        .input-container label {
+            font-size: 11px;
+        }
+
+        .input-container input:focus+label,
+        .input-container input:not(:placeholder-shown)+label {
+            top: -13px;
+            font-size: 9px;
+        }
+
+        .login-btn {
+            padding: 6px;
+            margin-top: 4px;
+            font-size: 14px;
         }
     }
 
