@@ -664,6 +664,18 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
         margin-top: -60px;
     }
 
+    .tabelas-adicionais-card .form-group {
+        flex: 0 0 150px;
+        max-width: 150px;
+    }
+
+    @media (max-width: 992px) {
+        .tabelas-adicionais-card .form-group {
+            flex: 0 0 45%;
+            max-width: 100%;
+        }
+    }
+
     .tabelas-adicionais-card__header {
         display: flex;
         align-items: center;
@@ -684,6 +696,25 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
         border-radius: 10px;
         margin-right: 12px;
         background: linear-gradient(180deg, #7b3f99, #b279d0);
+    }
+
+    .tabelas-selects {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 12px;
+    }
+
+    .tabelas-selects .tabelas-col {
+        flex: 1 1 140px;
+        max-width: 170px;
+    }
+
+    @media (max-width: 768px) {
+        .tabelas-selects .tabelas-col {
+            flex: 0 0 48%;
+            max-width: 48%;
+        }
     }
 </style>
 
@@ -1058,7 +1089,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                         </div>
                     </div>
 
-                    <div class="form-group col-sm-2">
+                    <div class="form-group col-6 col-sm-2">
                         <label class="control-label" for="matricula_paciente_display">Matrícula</label>
                         <input type="text" class="form-control input-lg-fullcare" id="matricula_paciente_display"
                             placeholder="Digite para pesquisar por matrícula" list="matricula_list">
@@ -1442,22 +1473,6 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
 
             <input type="hidden" class="form-control" id="select_detalhes" name="select_detalhes">
             <input type="hidden" id="data_create_int" value='<?= $agora; ?>' name="data_create_int">
-            <div class="detalhes-card__controls">
-                <div class="form-group col-sm-2">
-                    <label class="control-label" style="font-weight: bold;" for="relatorio-detalhado">Relatório
-                        detalhado</label>
-                        <select class="input-lg-fullcare form-control detail-select" id="relatorio-detalhado" name="relatorio-detalhado"
-                        style="color:white; font-weight:normal; border:1px solid #5e2363; background-color:#5e2363;">
-                        <option value="">Selecione</option>
-                        <option value="s">Sim</option>
-                        <option value="n">Não</option>
-                    </select>
-                    <p id="text-detalhado" style="font-size:0.7em; margin-top:8px;">
-                        Selecione este campo caso deseje detalhar a visita
-                    </p>
-                </div>
-            </div>
-
                 <div id="div-detalhado" class="form-group row" style="margin-left:-12px">
                     <div class="form-group row">
                         <input type="hidden" readonly id="fk_int_det" name="fk_int_det" value="<?= ($ultimoReg + 1) ?>">
@@ -1670,9 +1685,17 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                 </h4>
             </div>
 
-            <div class="form-group row d-flex justify-content-center align-items-end" style="gap: 15px;">
+            <div class="tabelas-selects d-flex flex-wrap justify-content-between align-items-end">
+                <div class="form-group tabelas-col">
+                    <label class="control-label" style="font-weight: bold;" for="relatorio-detalhado">Relatório detalhado</label>
+                    <select class="input-lg-fullcare form-control detail-select" id="relatorio-detalhado" name="relatorio-detalhado">
+                        <option value="">Selecione</option>
+                        <option value="s">Sim</option>
+                        <option value="n">Não</option>
+                    </select>
+                </div>
                 <?php if ($cargoSessao === 'Med_auditor' || $cargoSessao === 'Diretoria') { ?>
-                    <div class="form-group col-sm-2">
+                    <div class="form-group tabelas-col">
                         <label class="control-label" style="font-weight: bold;" for="select_tuss">Tuss</label>
                         <select class="input-lg-fullcare form-control select-purple" id="select_tuss" name="select_tuss">
                             <option value="">Selecione</option>
@@ -1680,7 +1703,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                             <option value="n">Não</option>
                         </select>
                     </div>
-                    <div class="form-group col-sm-2">
+                    <div class="form-group tabelas-col">
                         <label class="control-label" style="font-weight: bold;" for="select_prorrog">Prorrogação</label>
                         <select class="input-lg-fullcare form-control select-purple" id="select_prorrog"
                             name="select_prorrog">
@@ -1691,7 +1714,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                     </div>
                 <?php } ?>
 
-                <div class="form-group col-sm-2">
+                <div class="form-group tabelas-col">
                     <label class="control-label" style="font-weight: bold;" for="select_gestao">Gestão</label>
                     <select class="input-lg-fullcare form-control select-purple" id="select_gestao" name="select_gestao">
                         <option value="">Selecione</option>
@@ -1700,7 +1723,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                     </select>
                 </div>
 
-                <div class="form-group col-sm-2">
+                <div class="form-group tabelas-col">
                     <label class="control-label" style="font-weight: bold;" for="select_uti">UTI</label>
                     <select class="input-lg-fullcare form-control select-purple" id="select_uti" name="select_uti">
                         <option value="">Selecione</option>
@@ -1710,7 +1733,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                 </div>
 
                 <?php if ($cargoSessao === 'Med_auditor' || $cargoSessao === 'Diretoria') { ?>
-                    <div class="form-group col-sm-2">
+                    <div class="form-group tabelas-col">
                         <label class="control-label" style="font-weight: bold;" for="select_negoc">Negociações</label>
                         <select class="input-lg-fullcare form-control select-purple" id="select_negoc" name="select_negoc">
                             <option value="">Selecione</option>
