@@ -1511,13 +1511,13 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
         </div>
     </div>
 
-    <div class="tabelas-adicionais-card">
-        <div class="tabelas-adicionais-card__header">
-            <h4 class="tabelas-adicionais-card__title">
-                <span class="tabelas-adicionais-card__marker"></span>
-                Tabelas Adicionais
-            </h4>
-        </div>
+        <div class="tabelas-adicionais-card">
+            <div class="tabelas-adicionais-card__header">
+                <h4 class="tabelas-adicionais-card__title">
+                    <span class="tabelas-adicionais-card__marker"></span>
+                    Tabelas Adicionais
+                </h4>
+            </div>
 
         <div class="tabelas-selects d-flex flex-wrap justify-content-between align-items-end">
             <div class="form-group tabelas-col">
@@ -1576,10 +1576,12 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                     </select>
                 </div>
             <?php } ?>
+            </div>
         </div>
-    </div>
 
-    <?php include_once('formularios/form_cad_internacao_detalhes.php'); ?>
+        <div id="tabelas-dynamic-stack"></div>
+
+        <?php include_once('formularios/form_cad_internacao_detalhes.php'); ?>
 
     <input type="hidden" class="form-control" value="<?= ($ultimoReg + 1) ?>" id="fk_int_capeante"
         name="fk_int_capeante">
@@ -2667,12 +2669,16 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
         function setupToggle(selectId, containerId) {
             const selectEl = document.getElementById(selectId);
             const containerEl = document.getElementById(containerId);
+            const stack = document.getElementById('tabelas-dynamic-stack');
 
             if (!selectEl || !containerEl) return;
 
             function aplicar() {
                 if (selectEl.value === 's') {
                     containerEl.style.display = 'block';
+                    if (stack) {
+                        stack.insertBefore(containerEl, stack.firstChild);
+                    }
                 } else {
                     containerEl.style.display = 'none';
                 }
@@ -2701,13 +2707,18 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
             const selectUti = document.getElementById('select_uti');
             const acomEl = document.getElementById('acomodacao_int');
             const containerUti = document.getElementById('container-uti');
+            const stack = document.getElementById('tabelas-dynamic-stack');
 
             if (!containerUti) return;
 
             function aplicarUti() {
                 const viaSelect = selectUti && selectUti.value === 's';
                 const viaAcomod = acomEl && acomEl.value === 'UTI';
-                containerUti.style.display = (viaSelect || viaAcomod) ? 'block' : 'none';
+                const ativo = (viaSelect || viaAcomod);
+                containerUti.style.display = ativo ? 'block' : 'none';
+                if (ativo && stack) {
+                    stack.insertBefore(containerUti, stack.firstChild);
+                }
             }
 
             aplicarUti();
