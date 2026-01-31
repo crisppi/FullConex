@@ -139,15 +139,44 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
     }
 
     /* Selects roxos (tabelas adicionais) */
-    .select-purple {
-        color: #fff;
-        background-color: #5e2363;
-        border: 1px solid #5e2363;
+    .select-purple,
+    .select-purple:focus {
+        background-color: #5e2363 !important;
+        color: #fff !important;
+        border: 1px solid #5e2363 !important;
     }
 
-    .select-purple:focus {
-        box-shadow: 0 0 0 .25rem rgba(94, 35, 99, .25);
+    .bootstrap-select .dropdown-toggle.select-purple,
+    .bootstrap-select .dropdown-toggle.select-purple .filter-option,
+    .bootstrap-select .dropdown-toggle.select-purple .filter-option-inner,
+    .bootstrap-select .dropdown-toggle.select-purple .filter-option-inner-inner,
+    .bootstrap-select .dropdown-toggle.select-purple.btn {
+        background-color: #5e2363 !important;
+        color: #fff !important;
+        border: 1px solid #5e2363 !important;
+        font-weight: 600 !important;
+        box-shadow: none !important;
+    }
 
+    .detail-select,
+    .detail-select:focus {
+        background-color: #5e2363 !important;
+        color: #fff !important;
+        border: 1px solid #5e2363 !important;
+        font-weight: 700;
+        box-shadow: none !important;
+    }
+
+    .detail-select option {
+        background-color: #5e2363 !important;
+        color: #fff !important;
+        font-weight: 700;
+    }
+
+    .detail-select option {
+        background-color: #fff !important;
+        color: #2d114c !important;
+        font-weight: 700;
     }
 
     .is-invalid {
@@ -401,7 +430,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
 
     .internacao-page {
         width: 100%;
-        margin: 0;
+        margin: -26px 0 0;
         padding: 0 0 60px;
     }
 
@@ -409,17 +438,18 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
         background: linear-gradient(135deg, #5a2f78, #a06bd4);
         color: #fff;
         border-radius: 32px;
-        padding: 24px 32px;
+        padding: 18px 26px;
         box-shadow: 0 25px 50px rgba(24, 0, 30, 0.35);
         display: flex;
         align-items: flex-start;
         justify-content: space-between;
         gap: 24px;
+        margin: -12px 0 4px;
     }
 
     .internacao-page__hero h1 {
         margin: 0 0 6px;
-        font-size: 2rem;
+        font-size: 1.6rem;
         letter-spacing: .02em;
         color: #fff;
     }
@@ -439,10 +469,10 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
     }
 
     .internacao-page__content {
-        margin-top: 24px;
+        margin-top: 4px;
         display: flex;
         flex-direction: column;
-        gap: 24px;
+        gap: 0;
     }
 
     .internacao-card {
@@ -469,13 +499,13 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
         letter-spacing: .35em;
         font-size: .65rem;
         margin: 0;
-        color: #5e2363;
+        color: #000;
     }
 
     .internacao-card__title {
         margin: 2px 0 0;
         font-size: 1.4rem;
-        color: #2e114c;
+        color: #000;
         font-weight: 600;
     }
 
@@ -494,33 +524,119 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
         gap: 24px;
     }
 
+    .internacao-card--central .internacao-card__body {
+        gap: 8px;
+    }
+
     .internacao-card--central {
         border-color: #c7aedc;
-        background: #fbf5ff;
+        background: #f5f5f9;
+        padding: 14px 22px 10px;
     }
 
-    .internacao-card--fields {
-        background: #fdfcfe;
+    .internacao-card--central .internacao-card__header {
+        margin-bottom: 2px;
     }
 
-    .internacao-card--notes {
-        border-color: #d4c5ff;
-        background: #fbf8ff;
+    #cadastro-central-wrapper .form-group {
+        margin-bottom: 4px;
+    }
+
+    .internacao-card--general {
+        border-color: #c7aedc;
+        background: #f5f5f9;
+    }
+
+    .internacao-card--fields,
+    .internacao-card--notes,
+    .detalhes-card,
+    .tabelas-adicionais-card {
+        border-color: #ebe1f5;
+        border-width: 1px;
+        border-style: solid;
+        background: #f5f5f9;
+        box-shadow: 0 12px 24px rgba(45, 18, 70, .08);
+    }
+
+    .internacao-card--fields .internacao-card__body {
+        gap: 8px;
+    }
+
+    .internacao-card--fields .internacao-card__body .row,
+    .internacao-card--fields .internacao-card__body .form-group.row {
+        margin-top: 0;
+    }
+
+    .internacao-card--fields .form-group {
+        margin-bottom: 6px;
+    }
+
+    .internacao-card--fields .form-group.row {
+        margin-top: 4px;
+        margin-bottom: 4px;
+    }
+
+    .internacao-card--fields .form-check {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        margin: 0 6px;
+    }
+
+    .internacao-card--fields .form-check label {
+        margin-left: 0 !important;
+        font-weight: 600;
+        color: #2b1f3b;
     }
 
     .detalhes-card {
-        background: #fff;
         border-radius: 22px;
+        background: #f5f5f9;
         border: 1px solid #ebe1f5;
-        box-shadow: 0 12px 28px rgba(45, 18, 70, .08);
-        padding: 24px 26px;
-        margin: 10px 0 22px;
+        box-shadow: 0 12px 24px rgba(45, 18, 70, .08);
+        padding: 12px 20px 6px;
+        margin: 0;
     }
 
     .detalhes-card__header {
         display: flex;
         align-items: center;
         margin-bottom: 18px;
+    }
+
+    .detalhes-card__controls {
+        display: flex;
+        justify-content: flex-start;
+        align-items: flex-start;
+        gap: 18px;
+        margin-bottom: 4px;
+        flex-wrap: wrap;
+    }
+
+    .detalhes-card__controls .form-group {
+        margin-bottom: 0;
+    }
+
+    .detalhes-card__controls #text-detalhado {
+        margin: 8px 0 0;
+        text-align: left;
+        max-width: 260px;
+    }
+
+    #relatorio-detalhado {
+        min-width: 180px;
+        background-color: #fff;
+        border: 1px solid #4caf50;
+        color: #2d114c;
+        font-weight: 700;
+        box-shadow: none;
+    }
+
+    #relatorio-detalhado:focus {
+        box-shadow: 0 0 0 .2rem rgba(76, 175, 80, .25);
+        border-color: #2e7d32;
     }
 
     .detalhes-card__title {
@@ -540,12 +656,12 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
     }
 
     .tabelas-adicionais-card {
-        background: #fff;
         border-radius: 22px;
+        background: #f5f5f9;
         border: 1px solid #ebe1f5;
-        box-shadow: 0 12px 28px rgba(45, 18, 70, .08);
-        padding: 22px 24px;
-        margin-top: 25px;
+        box-shadow: 0 12px 24px rgba(45, 18, 70, .08);
+        padding: 12px 20px 10px;
+        margin-top: -60px;
     }
 
     .tabelas-adicionais-card__header {
@@ -810,9 +926,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
             <div class="internacao-card__header">
                 <div>
                     <p class="internacao-card__eyebrow">Dados essenciais</p>
-                    <h2 class="internacao-card__title">Hospital, paciente e datas</h2>
                 </div>
-                <span class="internacao-card__tag">Campos obrigatórios marcados</span>
             </div>
             <div class="internacao-card__body">
                 <div class="col-12 d-flex align-items-end flex-wrap justify-content-between" style="margin-top:-20px;">
@@ -1047,7 +1161,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                 <div class="internacao-card__header">
                     <div>
                         <p class="internacao-card__eyebrow">Cadastro Central</p>
-                        <h3 class="internacao-card__title">Responsável pela visita</h3>
+                    <!-- título removido conforme solicitado -->
                     </div>
                     <span class="internacao-card__tag">
                         <?php if ($cadastroCentralObrigatorio): ?>
@@ -1104,7 +1218,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
             <div class="internacao-card__header">
                 <div>
                     <p class="internacao-card__eyebrow">Dados assistenciais</p>
-                    <h3 class="internacao-card__title">Características clínicas</h3>
+                    <!-- título removido conforme solicitado -->
                 </div>
             </div>
             <div class="internacao-card__body">
@@ -1275,7 +1389,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
             <div class="internacao-card__header">
                 <div>
                     <p class="internacao-card__eyebrow">Auditoria</p>
-                    <h3 class="internacao-card__title">Relatórios e observações</h3>
+                    <!-- título removido conforme solicitado -->
                 </div>
             </div>
             <div class="internacao-card__body">
@@ -1324,28 +1438,25 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                     <span class="detalhes-card__marker"></span>
                     Detalhes do relatório
                 </h4>
+            </div>
 
-                <input type="hidden" class="form-control" id="select_detalhes" name="select_detalhes">
-
-                <div class="form-group row">
-                    <div class="form-group col-sm-2" style="margin-left:10px;">
-                        <label class="control-label" style="font-weight: bold;" for="relatorio-detalhado">Relatório
-                            detalhado</label>
-                        <select class="input-lg-fullcare form-control" id="relatorio-detalhado" name="relatorio-detalhado"
-                            style="color:white; font-weight:normal; border:1px solid #5e2363; background-color:#5e2363;">
-                            <option value="">Selecione</option>
-                            <option value="s">Sim</option>
-                            <option value="n">Não</option>
-                        </select>
-                        <p id="text-detalhado"
-                            style="font-size:0.7em; text-align:center; margin-top:8px; margin-left:8px">
-                            Selecione este campo caso deseje detalhar a visita
-                        </p>
-                    </div>
-                    <div class="form-group col-sm-3">
-                        <input type="hidden" id="data_create_int" value='<?= $agora; ?>' name="data_create_int">
-                    </div>
+            <input type="hidden" class="form-control" id="select_detalhes" name="select_detalhes">
+            <input type="hidden" id="data_create_int" value='<?= $agora; ?>' name="data_create_int">
+            <div class="detalhes-card__controls">
+                <div class="form-group col-sm-2">
+                    <label class="control-label" style="font-weight: bold;" for="relatorio-detalhado">Relatório
+                        detalhado</label>
+                        <select class="input-lg-fullcare form-control detail-select" id="relatorio-detalhado" name="relatorio-detalhado"
+                        style="color:white; font-weight:normal; border:1px solid #5e2363; background-color:#5e2363;">
+                        <option value="">Selecione</option>
+                        <option value="s">Sim</option>
+                        <option value="n">Não</option>
+                    </select>
+                    <p id="text-detalhado" style="font-size:0.7em; margin-top:8px;">
+                        Selecione este campo caso deseje detalhar a visita
+                    </p>
                 </div>
+            </div>
 
                 <div id="div-detalhado" class="form-group row" style="margin-left:-12px">
                     <div class="form-group row">
@@ -1397,27 +1508,27 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                             <label class="control-label">Dispositivos</label>
                             <div class="d-flex flex-wrap align-items-center">
                                 <div class="form-check ">
-                                    <label style="margin-left:-30px" class="control-label" for="tqt_det">TQT</label>
+                                    <label class="control-label" for="tqt_det">TQT</label>
                                     <input class="form-check-input" type="checkbox" name="tqt_det" id="tqt_det"
                                         value="TQT">
                                 </div>
                                 <div class="form-check">
-                                    <label style="margin-left:-30px" class="control-label" for="svd_det">SVD</label>
+                                    <label class="control-label" for="svd_det">SVD</label>
                                     <input class="form-check-input" type="checkbox" name="svd_det" id="svd_det"
                                         value="SVD">
                                 </div>
                                 <div class="form-check" style="text-align: center;">
-                                    <label style="margin-left:-30px" class="control-label" for="sne_det">SNE</label>
+                                    <label class="control-label" for="sne_det">SNE</label>
                                     <input class="form-check-input" type="checkbox" name="sne_det" id="sne_det"
                                         value="SNE">
                                 </div>
                                 <div class="form-check">
-                                    <label style="margin-left:-30px" class="control-label" for="gtt_det">GTT</label>
+                                    <label class="control-label" for="gtt_det">GTT</label>
                                     <input class="form-check-input" type="checkbox" name="gtt_det" id="gtt_det"
                                         value="GTT">
                                 </div>
                                 <div class="form-check">
-                                    <label style="margin-left:-30px" class="control-label" for="dreno_det">Dreno</label>
+                                    <label class="control-label" for="dreno_det">Dreno</label>
                                     <input class="form-check-input" type="checkbox" name="dreno_det" id="dreno_det"
                                         value="Dreno">
                                 </div>
@@ -2624,10 +2735,10 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                     });
                     // Especificamente resetar os selects roxos para o estilo padrão deles
                     $('.select-purple').css({
-                        "color": "white",
-                        "font-weight": "normal",
-                        "border": "1px solid #5e2363",
-                        "background-color": "#5e2363"
+                        "color": "#2d114c",
+                        "font-weight": "700",
+                        "border": "1px solid #4caf50",
+                        "background-color": "#fff"
                     });
 
 

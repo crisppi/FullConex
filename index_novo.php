@@ -19,7 +19,7 @@
         align-items: center;
         min-height: 100vh;
         font-family: Arial, sans-serif;
-        background: linear-gradient(45deg, #5e2363 50%, #5bd9f3 50%);
+        background: linear-gradient(135deg, #f7f4ff 0%, #e2f3ff 60%, #d4f0ff 100%);
         opacity: 0;
         animation: fadeIn .3s ease-in forwards;
     }
@@ -51,7 +51,7 @@
         border-top-left-radius: 10px;
         border-bottom-left-radius: 10px;
         width: 60%;
-        background: linear-gradient(to bottom right, rgba(53, 186, 225, .8), rgba(91, 217, 243, .9));
+        background: linear-gradient(160deg, rgba(45, 99, 166, 0.95), rgba(146, 190, 226, 0.85));
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -105,9 +105,9 @@
     .login-btn {
         width: 100%;
         padding: 15px;
-        background: rgba(91, 217, 243, .1);
+        background: rgba(255, 255, 255, 0.15);
         color: #fff;
-        border: 2px solid #fff;
+        border: 2px solid rgba(255, 255, 255, 0.6);
         cursor: pointer;
         font-size: 18px;
         border-radius: 30px;
@@ -137,7 +137,7 @@
     =============================== */
     .side-panel {
         padding: 40px;
-        background: #421849;
+        background: linear-gradient(160deg, #4b2f70, #612f7d 80%);
         color: #fff;
         width: 40%;
         min-height: 570px;

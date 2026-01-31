@@ -789,15 +789,15 @@ select {
     z-index: 9999;
 }
 
-/* Select fechado: fundo roxo e texto branco */
+/* Select fechado: fundo lilás */
 .select-purple,
 .select-purple:focus {
     background-color: #5e2363 !important;
     color: #fff !important;
-    border: 2px solid #5e2363 !important;
+    border: 1px solid #5e2363 !important;
 }
 
-/* Dropdown das opções (funciona no Firefox, não no Chrome!) */
+/* Dropdown das opções (funciona no Firefox e em navegadores compatíveis) */
 .select-purple option {
     background-color: #5e2363 !important;
     color: #fff !important;
