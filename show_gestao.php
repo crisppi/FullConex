@@ -7,6 +7,87 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            background: #f6f3ff;
+        }
+
+        .gestao-page {
+            width: 100%;
+            margin: 0;
+            padding: 24px 0 60px;
+        }
+
+        .gestao-hero {
+            background: linear-gradient(135deg, #1d4ed8, #38bdf8);
+            color: #fff;
+            border-radius: 24px;
+            padding: 20px 28px;
+            box-shadow: 0 18px 40px rgba(24, 0, 30, 0.28);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 18px;
+        }
+
+        .gestao-hero h1 {
+            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .gestao-hero small {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .gestao-content {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .gestao-card {
+            background: #fbf7ff;
+            border: 1px solid #d9c8ef;
+            border-radius: 22px;
+            padding: 18px 22px;
+            box-shadow: 0 14px 32px rgba(45, 18, 70, 0.08);
+        }
+
+        .gestao-card--primary {
+            background: #eef6ff;
+            border-color: #c7ddf6;
+        }
+
+        .gestao-card__title {
+            margin: 0 0 10px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #2f1149;
+        }
+
+        .gestao-info-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px 28px;
+            font-size: 0.95rem;
+        }
+
+        .gestao-info-row strong {
+            color: #2f1149;
+        }
+
+        .gestao-field {
+            margin: 6px 0;
+            color: #333;
+        }
+
+        .gestao-back {
+            margin-top: 18px;
+        }
+    </style>
 
 </head>
 
@@ -52,98 +133,69 @@
     // print_r($gestao);
 
     ?>
-    <div style="margin:15px" id='main-container'>
-        <span><button type="submit"
-                style="margin-left:3px; font-size: 25px; background:transparent; border-color:transparent; color:green"
-                style="margin-top:10px; margin-left:20px" class="delete-btn"><i
-                    class="d-inline-block fas fa-eye check-icon"></i></button>
-            <h4 style="margin-top:10px; margin-left:20px">Dados da gestão do paciente: <?= $gestao['0']['nome_pac'] ?>
-            </h4>
-        </span>
+    <div class="gestao-page">
+        <div class="container-fluid">
+            <div class="gestao-hero">
+                <div>
+                    <h1>Gestão do paciente</h1>
+                </div>
+                <div>
+                    <i class="fa-solid fa-clipboard-list" style="font-size:1.4rem;"></i>
+                </div>
+            </div>
 
-        <div class="card-header container-fluid" id="view-contact-container">
-            <span style="font-weight: 500;" class="card-title bold">ID Internação:</span>
-            <span class="card-title bold"><?= $gestao['0']['id_internacao'] ?></span>
-            <br>
-        </div>
+            <div class="gestao-content">
+                <div class="gestao-card gestao-card--primary">
+                    <h2 class="gestao-card__title">Dados principais</h2>
+                    <div class="gestao-info-row">
+                        <div><strong>Paciente:</strong> <?= htmlspecialchars($gestao['0']['nome_pac'] ?? '', ENT_QUOTES, 'UTF-8') ?></div>
+                        <div><strong>ID Internação:</strong> <?= $gestao['0']['id_internacao'] ?></div>
+                        <div><strong>Hospital:</strong> <?= htmlspecialchars($gestao['0']['nome_hosp'] ?? '', ENT_QUOTES, 'UTF-8') ?></div>
+                        <div><strong>Data Internação:</strong> <?= date("d/m/Y", strtotime($gestao['0']['data_intern_int'])) ?></div>
+                    </div>
+                </div>
 
-        <div class="card-body">
-            <span style="font-weight: 500;" class=" card-text bold">Hospital:</span>
-            <span class=" card-text bold"><?= $gestao['0']['nome_hosp'] ?></span>
-            <br>
-            <span style="font-weight: 500;" class=" card-text bold">Data Internação:</span>
-            <span class=" card-text bold"><?= date("d/m/Y", strtotime($gestao['0']['data_intern_int'])) ?></span>
-            <br>
-            <hr>
-
-            <?php if ($gestao['0']['home_care_ges'] == "s") { ?>
-            <?php if ($gestao['0']['home_care_ges'] == "s") { ?>
-            <span style="font-weight: 700;" class=" card-text bold">Notificação de Home Care</span>
-            <?php } ?>
-            <br>
-            <span style="font-weight: 500;" class=" card-text bold">Relatório:</span>
-            <span class=" card-text bold"><?= $gestao['0']['rel_home_care_ges'] ?></span>
-            <hr>
-            <?php } ?>
-            <?php if ($gestao['0']['home_care_ges'] == "s") { ?>
-            <?php if ($gestao['0']['desospitalizacao_ges'] == "s") { ?>
-            <span style="font-weight: 700;" class=" card-text bold">Notificação de Desospitalização</span>
-            <?php } ?>
-            <br>
-            <span style="font-weight: 500;" class=" card-text bold">Relatório:</span>
-            <span class=" card-text bold"><?= $gestao['0']['rel_desospitalizacao_ges'] ?></span>
-            <hr>
-            <?php } ?>
-
-            <?php if ($gestao['0']['alto_custo_ges'] == "s") { ?>
-
-            <!-- <span style="font-weight: 500;" class=" card-text bold">Alto custo:</span> -->
-
-            <span class=" card-text bold">
-                <?php if ($gestao['0']['alto_custo_ges'] == "s") { ?>
-                <span style="font-weight: 700;" class=" card-text bold">Notificação de Alto Custo</span>
+                <?php if (($gestao['0']['home_care_ges'] ?? '') === "s") { ?>
+                <div class="gestao-card">
+                    <h2 class="gestao-card__title">Notificação de Home Care</h2>
+                    <div class="gestao-field"><strong>Relatório:</strong> <?= htmlspecialchars($gestao['0']['rel_home_care_ges'] ?? '', ENT_QUOTES, 'UTF-8') ?></div>
+                </div>
                 <?php } ?>
-            </span>
-            <br>
-            <span style="font-weight: 500;" class=" card-text bold">Relatório:</span>
-            <span class=" card-text bold"><?= $gestao['0']['rel_alto_custo_ges'] ?></span>
-            <br>
-            <hr>
-            <?php } ?>
 
-            <?php if ($gestao['0']['opme_ges'] == "s") { ?>
-            <span class=" card-text bold">
-                <?php if ($gestao['0']['opme_ges'] == "s") { ?>
-                <span style="font-weight: 700;" class=" card-text bold">Notificação de OPME</span>
+                <?php if (($gestao['0']['desospitalizacao_ges'] ?? '') === "s") { ?>
+                <div class="gestao-card">
+                    <h2 class="gestao-card__title">Notificação de Desospitalização</h2>
+                    <div class="gestao-field"><strong>Relatório:</strong> <?= htmlspecialchars($gestao['0']['rel_desospitalizacao_ges'] ?? '', ENT_QUOTES, 'UTF-8') ?></div>
+                </div>
                 <?php } ?>
-            </span>
-            <br>
-            <span style="font-weight: 500;" class=" card-text bold">Relatório:</span>
-            <span class=" card-text bold"><?= $gestao['0']['rel_opme_ges'] ?></span>
-            <br>
-            <hr>
-            <?php } ?>
 
-            <?php if ($gestao['0']['evento_adverso_ges'] == "s") { ?>
-            <?php if ($gestao['0']['evento_adverso_ges'] == "s") { ?>
-            <span style="font-weight: 700;" class=" card-text bold">Notificação de Evento Adverso</span>
-            <?php } ?>
-            <br>
-            <span style="font-weight: 500;" class=" card-text bold">Relatório:</span>
-            <span class=" card-text bold"><?= $gestao['0']['rel_evento_adverso_ges'] ?></span>
-            <br>
-            <span style="font-weight: 500;" class=" card-text bold">Tipo Evento:</span>
-            <span class=" card-text bold"><?= $gestao['0']['tipo_evento_adverso_gest'] ?></span>
-            <br>
-            <hr>
-            <?php } ?>
+                <?php if (($gestao['0']['alto_custo_ges'] ?? '') === "s") { ?>
+                <div class="gestao-card">
+                    <h2 class="gestao-card__title">Notificação de Alto Custo</h2>
+                    <div class="gestao-field"><strong>Relatório:</strong> <?= htmlspecialchars($gestao['0']['rel_alto_custo_ges'] ?? '', ENT_QUOTES, 'UTF-8') ?></div>
+                </div>
+                <?php } ?>
 
-            <br>
+                <?php if (($gestao['0']['opme_ges'] ?? '') === "s") { ?>
+                <div class="gestao-card">
+                    <h2 class="gestao-card__title">Notificação de OPME</h2>
+                    <div class="gestao-field"><strong>Relatório:</strong> <?= htmlspecialchars($gestao['0']['rel_opme_ges'] ?? '', ENT_QUOTES, 'UTF-8') ?></div>
+                </div>
+                <?php } ?>
+
+                <?php if (($gestao['0']['evento_adverso_ges'] ?? '') === "s") { ?>
+                <div class="gestao-card">
+                    <h2 class="gestao-card__title">Notificação de Evento Adverso</h2>
+                    <div class="gestao-field"><strong>Relatório:</strong> <?= htmlspecialchars($gestao['0']['rel_evento_adverso_ges'] ?? '', ENT_QUOTES, 'UTF-8') ?></div>
+                    <div class="gestao-field"><strong>Tipo Evento:</strong> <?= htmlspecialchars($gestao['0']['tipo_evento_adverso_gest'] ?? '', ENT_QUOTES, 'UTF-8') ?></div>
+                </div>
+                <?php } ?>
+
+                <div class="gestao-back">
+                    <?php include_once("diversos/backbtn_gestao.php"); ?>
+                </div>
+            </div>
         </div>
-
-        <?php
-        include_once("diversos/backbtn_gestao.php");
-        ?>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous">
