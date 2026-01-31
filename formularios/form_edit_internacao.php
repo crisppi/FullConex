@@ -229,24 +229,18 @@
     ?>
 
 
-    <div class="row card" style="background-color: #f6f6f7ff; margin-top:-35px">
-        <div class="form-group row">
-            <h4 class="text-center w-100" style="
-                margin: 10px;
-                background-color: #5e2363;
-                color: #fff;
-                padding: 10px 0;
-                border-radius: 0.25rem;
-            ">Editar internação</h4>
-            <hr class="w-100 margin-top: 20px mb-4">
-
-            <!-- <hr class="w-100 margin-top: 20px mb-4"> -->
-            <!-- </div> -->
-            <form class="visible" action="process_internacao_editar.php" id="myForm" method="POST"
-                enctype="multipart/form-data">
-                <div style="text-align: right;">
-                    <p style="font-size: .6em; color:red; margin-top: -20px;">* Campos Obrigatórios</p>
-                </div>
+    <div class="internacao-page">
+        <div class="internacao-page__hero">
+            <div>
+                <h1>Editar internação</h1>
+            </div>
+            <span class="internacao-page__tag">Campos obrigatórios em destaque</span>
+        </div>
+        <div class="internacao-page__content">
+            <div class="internacao-card internacao-card--general">
+                <div class="internacao-card__body">
+                    <form class="visible" action="process_internacao_editar.php" id="myForm" method="POST"
+                        enctype="multipart/form-data">
                 <!-- ID da internação (necessário no update) -->
                 <input type="hidden" id="id_internacao" name="id_internacao" value="<?= $intern['id_internacao'] ?>">
 
@@ -376,7 +370,7 @@
                             <?php
                             sort($dados_especialidade, SORT_ASC);
                             foreach ($dados_especialidade as $especial) {
-                                echo '<option value="' . htmlspecialchars($especial) . '"></option>';
+                                echo '<option value="' . htmlspecialchars($especial ?? '') . '"></option>';
                             }
                             ?>
                         </datalist>
@@ -593,9 +587,9 @@
                                 <option value="">Selecione</option>
 
                                 <?php foreach ($tipos_dieta as $tipo): ?>
-                                    <option value="<?= htmlspecialchars($tipo) ?>"
+                                    <option value="<?= htmlspecialchars($tipo ?? '') ?>"
                                         <?= $tipo === $dietaSelecionada ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($tipo) ?>
+                                        <?= htmlspecialchars($tipo ?? '') ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -610,9 +604,9 @@
                             <select class="form-control-sm form-control" id="nivel_consc_det" name="nivel_consc_det">
                                 <option value="">Selecione</option>
                                 <?php foreach ($opcoes_nivel_consc as $opcao): ?>
-                                    <option value="<?= htmlspecialchars($opcao) ?>"
+                                    <option value="<?= htmlspecialchars($opcao ?? '') ?>"
                                         <?= $opcao === $nivelConsc ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($opcao) ?>
+                                        <?= htmlspecialchars($opcao ?? '') ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -626,9 +620,9 @@
                             <select class="form-control-sm form-control" id="oxig_det" name="oxig_det">
                                 <option value="">Selecione</option>
                                 <?php foreach ($opcoes_oxigenio as $opcao): ?>
-                                    <option value="<?= htmlspecialchars($opcao) ?>"
+                                    <option value="<?= htmlspecialchars($opcao ?? '') ?>"
                                         <?= $opcao === $oxigenio ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($opcao) ?>
+                                        <?= htmlspecialchars($opcao ?? '') ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -641,7 +635,7 @@
                         <div id="div-oxig" class="form-group col-sm-1">
                             <label class="control-label" for="oxig_uso_det">Lts O2</label>
                             <input class="form-control-sm form-control" type="text" name="oxig_uso_det"
-                                id="oxig_uso_det" value="<?= htmlspecialchars($oxigenioUso) ?>">
+                                id="oxig_uso_det" value="<?= htmlspecialchars($oxigenioUso ?? '') ?>">
                         </div>
 
                         <style>
@@ -959,7 +953,9 @@
                 <button type="submit" class="btn btn-success"><i style="font-size: 1rem;margin-right:5px;" value="edit"
                         class="fa-solid fa-check edit-icon"></i>Atualizar</button>
 
-            </form>
+                    </form>
+                </div>
+            </div>
         </div>
 
         <!-- <div class="row">
@@ -972,7 +968,6 @@
         </div> -->
 
 
-        </form>
     </div>
 
     <script>
@@ -1329,5 +1324,68 @@
         /* remove o foco escuro padrão */
         .accordion .accordion-button:focus {
             box-shadow: none;
+        }
+
+        .internacao-page {
+            width: 100%;
+            margin: -26px 0 0;
+            padding: 0;
+            background: #fff;
+        }
+
+        .internacao-page__hero {
+            background: linear-gradient(135deg, #5a2f78, #a06bd4);
+            color: #fff;
+            border-radius: 32px;
+            padding: 18px 26px;
+            box-shadow: 0 25px 50px rgba(24, 0, 30, 0.35);
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 24px;
+            margin: -12px 0 4px;
+        }
+
+        .internacao-page__hero h1 {
+            margin: 0 0 6px;
+            font-size: 1.6rem;
+            letter-spacing: .02em;
+            color: #fff;
+        }
+
+        .internacao-page__tag {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 18px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: .8rem;
+        }
+
+        .internacao-page__content {
+            margin-top: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .internacao-card {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.9));
+            border-radius: 28px;
+            padding: 18px 10px;
+            border: 1px solid #ece6f2;
+            box-shadow: 0 20px 50px rgba(94, 35, 99, 0.08);
+            margin: 0;
+            width: 100%;
+        }
+
+        .internacao-card__body {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .internacao-card--general {
+            border-color: #c7aedc;
+            background: #fff;
         }
     </style>
