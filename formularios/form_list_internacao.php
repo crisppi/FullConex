@@ -235,9 +235,9 @@ try {
 
 .filter-intel-grid {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 12px;
-    align-items: flex-end;
+    align-items: center;
 }
 
 .filter-intel-grid .smart-search-group {
@@ -264,6 +264,17 @@ try {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
+    margin-left: auto;
+}
+
+@media (max-width: 991.98px) {
+    .filter-intel-grid {
+        flex-wrap: wrap;
+        align-items: flex-end;
+    }
+    .filter-memory-actions {
+        margin-left: 0;
+    }
 }
 
 .filter-memory-actions button {
