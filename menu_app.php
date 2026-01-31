@@ -22,6 +22,8 @@ include_once("dao/utiDao.php");
 include_once("models/capeante.php");
 include_once("dao/capeanteDao.php");
 
+include_once("dao/visitaDao.php");
+
 include_once("models/hospital.php");
 include_once("dao/hospitalDao.php");
 
@@ -94,6 +96,7 @@ $Internacao_geral = new internacaoDAO($conn, $BASE_URL);
 $uti_geral        = $uti = new utiDAO($conn, $BASE_URL);
 $hospitalUser     = new hospitalUserDAO($conn, $BASE_URL);
 $hospital         = new hospitalDAO($conn, $BASE_URL);
+$visitaDao        = new visitaDAO($conn, $BASE_URL);
 $indicadores      = new indicadoresDAO($conn, $BASE_URL);
 $forecastService  = new PermanenciaForecastService($conn);
 $forecastSummary  = ['updated' => 0, 'skipped' => 0, 'model' => 'permanencia-lite-v1'];
@@ -224,6 +227,27 @@ function filterVisitasAtrasadas($value)
     return false;
 }
 $dados_visitas_atraso = array_filter((array)$dados_internacoes_visitas, 'filterVisitasAtrasadas');
+
+function diasDesdeData($data)
+{
+    if (empty($data)) {
+        return null;
+    }
+    $dt = DateTime::createFromFormat('Y-m-d', $data);
+    if (!($dt instanceof DateTime)) {
+        $ts = strtotime($data);
+        if ($ts === false) {
+            return null;
+        }
+        $dt = new DateTime();
+        $dt->setTimestamp($ts);
+    }
+    $hoje = new DateTime('today');
+    if ($dt > $hoje) {
+        return 0;
+    }
+    return $dt->diff($hoje)->days;
+}
 
 // Ordena por data e pega os 8 mais recentes
 usort($dados_visitas_atraso, function ($a, $b) {
@@ -704,6 +728,7 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
                             <th scope="col" style="width:3%">Hospital</th>
                             <th scope="col" style="width:3%">Paciente</th>
                             <th scope="col" style="width:3%">Ultima Visita</th>
+                            <th scope="col" style="width:3%">Dias última visita</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -714,6 +739,10 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
                                 $formattedDate = $date->format('d/m/Y');
                             } else {
                                 $formattedDate = "Sem visita";
+                            }
+                            $diasUltimaVisita = diasDesdeData($intern["data_visita_vis"] ?? null);
+                            if ($diasUltimaVisita === null) {
+                                $diasUltimaVisita = diasDesdeData($intern["data_visita_int"] ?? null);
                             }
                             ?>
                         <tr style="font-size:15px">
@@ -729,12 +758,13 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
                                 <?= htmlspecialchars($intern["nome_pac"] ?? '', ENT_QUOTES, 'UTF-8') ?>
                             </td>
                             <td scope="row"><?= $formattedDate ?></td>
+                            <td scope="row"><?= $diasUltimaVisita !== null ? (int)$diasUltimaVisita . ' dias' : '—' ?></td>
                         </tr>
                         <?php endforeach; ?>
 
                         <?php if (count($dados_visitas_atraso_list) == 0): ?>
                         <tr>
-                            <td colspan="3" scope="row" class="col-id" style='font-size:15px'>
+                            <td colspan="4" scope="row" class="col-id" style='font-size:15px'>
                                 Não foram encontrados registros
                             </td>
                         </tr>
@@ -755,6 +785,8 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
                             <th scope="col" style="width:3%">Hospital</th>
                             <th scope="col" style="width:3%">Paciente</th>
                             <th scope="col" style="width:3%">Data Internação</th>
+                            <th scope="col" style="width:3%">Última visita</th>
+                            <th scope="col" style="width:3%">Dias última visita</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -765,6 +797,23 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
                                 $formattedDate = $date->format('d/m/Y');
                             } else {
                                 $formattedDate = "Sem visita";
+                            }
+                            $diasUltimaVisita = null;
+                            $ultimaVisitaData = null;
+                            if (!empty($intern["id_internacao"])) {
+                                $ultimaVisita = $visitaDao->selectUltimaVisitaComInternacao((int)$intern["id_internacao"]);
+                                if ($ultimaVisita && array_key_exists("dias_desde_ultima_visita", $ultimaVisita)) {
+                                    $diasUltimaVisita = $ultimaVisita["dias_desde_ultima_visita"] !== null
+                                        ? (int)$ultimaVisita["dias_desde_ultima_visita"]
+                                        : null;
+                                }
+                                if (!empty($ultimaVisita["data_visita_vis"])) {
+                                    try {
+                                        $ultimaVisitaData = (new DateTime($ultimaVisita["data_visita_vis"]))->format('d/m/Y');
+                                    } catch (Throwable $e) {
+                                        $ultimaVisitaData = null;
+                                    }
+                                }
                             }
                             ?>
                         <tr style="font-size:15px">
@@ -780,12 +829,14 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
                                 <?= htmlspecialchars($intern["nome_pac"] ?? '', ENT_QUOTES, 'UTF-8') ?>
                             </td>
                             <td scope="row"><?= $formattedDate ?></td>
+                            <td scope="row"><?= $ultimaVisitaData ?? '—' ?></td>
+                            <td scope="row"><?= $diasUltimaVisita !== null ? $diasUltimaVisita . ' dias' : '—' ?></td>
                         </tr>
                         <?php endforeach; ?>
 
                         <?php if (count($longa_perm_list) == 0): ?>
                         <tr>
-                            <td colspan="3" scope="row" class="col-id" style='font-size:15px'>
+                            <td colspan="5" scope="row" class="col-id" style='font-size:15px'>
                                 Não foram encontrados registros
                             </td>
                         </tr>

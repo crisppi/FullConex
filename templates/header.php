@@ -234,11 +234,6 @@ if (!empty($sessionIdUsuario)) {
                         width: auto\9;
                         max-height: 100px;
                         min-height: 50px;" alt="FullCare">
-                    <img src="<?= $BASE_URL ?>img/LogoConexAud.png" class="logo-novo logo-conex" style="max-width: 100%;
-                        height: auto;
-                        width: auto\9;
-                        max-height: 100px;
-                        min-height: 50px;" alt="FullCare">
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarScroll"
                     aria-controls="navbarScroll" aria-expanded="false" aria-label="Alternar navegação">
