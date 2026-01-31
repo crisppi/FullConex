@@ -22,8 +22,6 @@ include_once("dao/utiDao.php");
 include_once("models/capeante.php");
 include_once("dao/capeanteDao.php");
 
-include_once("dao/visitaDao.php");
-
 include_once("models/hospital.php");
 include_once("dao/hospitalDao.php");
 
@@ -96,7 +94,6 @@ $Internacao_geral = new internacaoDAO($conn, $BASE_URL);
 $uti_geral        = $uti = new utiDAO($conn, $BASE_URL);
 $hospitalUser     = new hospitalUserDAO($conn, $BASE_URL);
 $hospital         = new hospitalDAO($conn, $BASE_URL);
-$visitaDao        = new visitaDAO($conn, $BASE_URL);
 $indicadores      = new indicadoresDAO($conn, $BASE_URL);
 $forecastService  = new PermanenciaForecastService($conn);
 $forecastSummary  = ['updated' => 0, 'skipped' => 0, 'model' => 'permanencia-lite-v1'];
@@ -184,6 +181,25 @@ $hospital_name = (!empty($filtered_hospital) && !empty($filtered_hospital[0]['no
 $dados_internacoes_geral   = $Internacao_geral->selectAllInternacaoList($where);
 $dados_internacoes_uti     = $Internacao_geral->QtdInternacao("ac.internado_int = 's' AND ut.id_uti IS NOT NULL");
 $dados_internacoes_visitas = $Internacao_geral->selectInternVisLastWhere($where_vis);
+
+$ultimaVisitaPorInternacao = [];
+foreach ((array)$dados_internacoes_visitas as $vis) {
+    $id = (int)($vis['id_internacao'] ?? $vis['fk_internacao_vis'] ?? 0);
+    $dataVisita = $vis['data_visita_vis'] ?? null;
+    if ($id <= 0 || empty($dataVisita)) {
+        continue;
+    }
+    $ts = strtotime($dataVisita);
+    if ($ts === false) {
+        continue;
+    }
+    if (!isset($ultimaVisitaPorInternacao[$id]) || $ts > $ultimaVisitaPorInternacao[$id]['ts']) {
+        $ultimaVisitaPorInternacao[$id] = [
+            'data' => $dataVisita,
+            'ts' => $ts,
+        ];
+    }
+}
 
 // Capeante (concatenação corrigida)
 $capFilter  = "ca.em_auditoria_cap IS NULL";
@@ -800,19 +816,16 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
                             }
                             $diasUltimaVisita = null;
                             $ultimaVisitaData = null;
-                            if (!empty($intern["id_internacao"])) {
-                                $ultimaVisita = $visitaDao->selectUltimaVisitaComInternacao((int)$intern["id_internacao"]);
-                                if ($ultimaVisita && array_key_exists("dias_desde_ultima_visita", $ultimaVisita)) {
-                                    $diasUltimaVisita = $ultimaVisita["dias_desde_ultima_visita"] !== null
-                                        ? (int)$ultimaVisita["dias_desde_ultima_visita"]
-                                        : null;
-                                }
-                                if (!empty($ultimaVisita["data_visita_vis"])) {
+                            $idIntern = (int)($intern["id_internacao"] ?? 0);
+                            if ($idIntern > 0 && isset($ultimaVisitaPorInternacao[$idIntern])) {
+                                $rawData = $ultimaVisitaPorInternacao[$idIntern]['data'] ?? null;
+                                if (!empty($rawData)) {
                                     try {
-                                        $ultimaVisitaData = (new DateTime($ultimaVisita["data_visita_vis"]))->format('d/m/Y');
+                                        $ultimaVisitaData = (new DateTime($rawData))->format('d/m/Y');
                                     } catch (Throwable $e) {
                                         $ultimaVisitaData = null;
                                     }
+                                    $diasUltimaVisita = diasDesdeData($rawData);
                                 }
                             }
                             ?>
