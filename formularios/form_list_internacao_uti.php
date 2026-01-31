@@ -174,10 +174,11 @@ $sortDir = strtolower($_GET['sort_dir'] ?? 'desc');
         // REMOVE POSICOES VAZIAS DO FILTRO
         $where = implode(' AND ', $condicoes);
         $sortableColumns = [
-            'id_internacao'   => 'ac.id_internacao',
-            'nome_hosp'       => 'ho.nome_hosp',
-            'nome_pac'        => 'pa.nome_pac',
-            'data_intern_int' => 'ac.data_intern_int'
+            'id_internacao'      => 'ac.id_internacao',
+            'nome_hosp'          => 'ho.nome_hosp',
+            'nome_pac'           => 'pa.nome_pac',
+            'data_intern_int'    => 'ac.data_intern_int',
+            'data_internacao_uti'=> 'uti.data_internacao_uti'
         ];
         if ($sortField && isset($sortableColumns[$sortField])) {
             $order = $sortableColumns[$sortField] . ' ' . strtoupper($sortDir);
@@ -257,6 +258,7 @@ $sortDir = strtolower($_GET['sort_dir'] ?? 'desc');
                                 'nome_hosp'       => ['label' => 'Hospital', 'style' => 'width:15%'],
                                 'nome_pac'        => ['label' => 'Paciente', 'style' => 'width:15%'],
                                 'data_intern_int' => ['label' => 'Data internação', 'style' => 'width:8%'],
+                                'data_internacao_uti' => ['label' => 'Data internação UTI', 'style' => 'width:8%'],
                             ];
                             foreach ($sortableHeaders as $key => $meta):
                                 $ascActive = ($sortField === $key && $sortDir === 'asc');
@@ -290,13 +292,6 @@ $sortDir = strtolower($_GET['sort_dir'] ?? 'desc');
                                 <?= $intern["id_internacao"] ?>
                             </td>
                             <td scope="row" class="nome-coluna-table">
-                                <?php if ($intern["internado_int"] == "s") {
-                                        echo "Sim";
-                                    } else {
-                                        echo "Não";
-                                    }; ?>
-                            </td>
-                            <td scope="row" class="nome-coluna-table">
                                 <?= $intern["nome_hosp"] ?>
                             </td>
                             <td scope="row">
@@ -304,6 +299,12 @@ $sortDir = strtolower($_GET['sort_dir'] ?? 'desc');
                             </td>
                             <td scope="row">
                                 <?= date('d/m/Y', strtotime($intern["data_intern_int"])) ?>
+                            </td>
+                            <td scope="row">
+                                <?= !empty($intern["data_internacao_uti"]) ? date('d/m/Y', strtotime($intern["data_internacao_uti"])) : "--" ?>
+                            </td>
+                            <td scope="row" class="nome-coluna-table">
+                                <?= $intern["internado_int"] == "s" ? "Sim" : "Não" ?>
                             </td>
                             <td class="action">
                                 <div class="dropdown">
