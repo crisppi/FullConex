@@ -565,7 +565,7 @@ if (typeof jQuery !== 'undefined') {
 
 $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
 
-        $verificarVisitas = $visitaDao->selectUltimaVisitaComInternacao($where);
+        $verificarVisitas = null;
 
         if ($qtdIntItens > $limite) {
             $paginacao   = '';
@@ -709,35 +709,34 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                             <!-- Visita Médica -->
                             <td scope="row">
                                 <?php
-                                    $id_internacao4 = $intern['id_internacao'];
-                                    $cargoVis       = 'Med_auditor';
-
-                                    $condicoesVis = [
-                                        strlen($id_internacao4) ? 'vi.fk_internacao_vis LIKE "%' . $id_internacao4 . '%"' : null,
-                                        strlen($cargoVis)       ? 'vi.visita_auditor_prof_med LIKE "%' . $cargoVis . '%"' : null,
-                                    ];
-                                    $condicoesVis = array_filter($condicoesVis);
-                                    $whereVis     = implode(' AND ', $condicoesVis);
-                                    $visitasVis   = $visitaDao->selectUltimaVisitaComInternacao($whereVis);
-
-                                    if (isset($visitasVis[0]['dias_desde_ultima_visita'])) {
-                                        $dias = $visitasVis[0]['dias_desde_ultima_visita'];
-
-                                        if ($dias !== null) {
-                                            if ($dias <= 7) {
-                                                $cor   = 'green';
-                                                $icone = '<i class="fas fa-check-circle" style="color: green; margin-right: 5px;"></i>';
-                                            } elseif ($dias > 7 && $dias <= 10) {
-                                                $cor   = 'orange';
-                                                $icone = '<i class="fas fa-exclamation-circle" style="color: orange; margin-right: 5px;"></i>';
-                                            } else {
-                                                $cor   = 'red';
-                                                $icone = '<i class="fas fa-times-circle" style="color: red; margin-right: 5px;"></i>';
-                                            }
-                                            echo "$icone<span style='color: $cor; font-weight: bold;'>{$dias} dias</span>";
-                                        } else {
-                                            echo "<span>--</span>";
+                                    $ultimaMed = null;
+                                    foreach ($visitas as $vis) {
+                                        $flag = strtolower((string)($vis['visita_med_vis'] ?? ''));
+                                        if ($flag !== 's') {
+                                            continue;
                                         }
+                                        $dataVis = $vis['data_visita_vis'] ?? $vis['data_visita_int'] ?? null;
+                                        if (!$dataVis) {
+                                            continue;
+                                        }
+                                        if (!$ultimaMed || strtotime($dataVis) > strtotime($ultimaMed)) {
+                                            $ultimaMed = $dataVis;
+                                        }
+                                    }
+
+                                    if ($ultimaMed) {
+                                        $dias = (new DateTime($ultimaMed))->diff($atual)->days;
+                                        if ($dias <= 7) {
+                                            $cor   = 'green';
+                                            $icone = '<i class="fas fa-check-circle" style="color: green; margin-right: 5px;"></i>';
+                                        } elseif ($dias > 7 && $dias <= 10) {
+                                            $cor   = 'orange';
+                                            $icone = '<i class="fas fa-exclamation-circle" style="color: orange; margin-right: 5px;"></i>';
+                                        } else {
+                                            $cor   = 'red';
+                                            $icone = '<i class="fas fa-times-circle" style="color: red; margin-right: 5px;"></i>';
+                                        }
+                                        echo "$icone<span style='color: $cor; font-weight: bold;'>{$dias} dias</span>";
                                     } else {
                                         echo "<span style='color: gray;'>--</span>";
                                     }
@@ -747,36 +746,34 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                             <!-- Visita Enfermagem -->
                             <td scope="row">
                                 <?php
-                                    $id_internacao4Enf = $intern['id_internacao'];
-                                    $cargoVisEnf       = "Enf_Auditor";
-
-                                    $condicoesVisEnf = [
-                                        strlen($id_internacao4Enf) ? 'vi.fk_internacao_vis LIKE "%' . $id_internacao4Enf . '%"' : null,
-                                        strlen($cargoVisEnf)       ? 'vi.visita_auditor_prof_enf LIKE "%' . $cargoVisEnf . '%"' : null,
-                                    ];
-                                    $condicoesVisEnf = array_filter($condicoesVisEnf);
-                                    $whereVisEnf     = implode(' AND ', $condicoesVisEnf);
-
-                                    $visitasVisEnf = $visitaDao->selectUltimaVisitaComInternacao($whereVisEnf);
-
-                                    if (isset($visitasVisEnf[0]['dias_desde_ultima_visita'])) {
-                                        $diasEnf = $visitasVisEnf[0]['dias_desde_ultima_visita'];
-
-                                        if ($diasEnf !== null) {
-                                            if ($diasEnf <= 7) {
-                                                $cor   = 'green';
-                                                $icone = '<i class="fas fa-check-circle" style="color: green; margin-right: 5px;"></i>';
-                                            } elseif ($diasEnf > 7 && $diasEnf <= 10) {
-                                                $cor   = 'orange';
-                                                $icone = '<i class="fas fa-exclamation-circle" style="color: orange; margin-right: 5px;"></i>';
-                                            } else {
-                                                $cor   = 'red';
-                                                $icone = '<i class="fas fa-times-circle" style="color: red; margin-right: 5px;"></i>';
-                                            }
-                                            echo "$icone<span style='color: $cor; font-weight: bold;'>{$diasEnf} dias</span>";
-                                        } else {
-                                            echo "<span>--</span>";
+                                    $ultimaEnf = null;
+                                    foreach ($visitas as $vis) {
+                                        $flag = strtolower((string)($vis['visita_enf_vis'] ?? ''));
+                                        if ($flag !== 's') {
+                                            continue;
                                         }
+                                        $dataVis = $vis['data_visita_vis'] ?? $vis['data_visita_int'] ?? null;
+                                        if (!$dataVis) {
+                                            continue;
+                                        }
+                                        if (!$ultimaEnf || strtotime($dataVis) > strtotime($ultimaEnf)) {
+                                            $ultimaEnf = $dataVis;
+                                        }
+                                    }
+
+                                    if ($ultimaEnf) {
+                                        $diasEnf = (new DateTime($ultimaEnf))->diff($atual)->days;
+                                        if ($diasEnf <= 7) {
+                                            $cor   = 'green';
+                                            $icone = '<i class="fas fa-check-circle" style="color: green; margin-right: 5px;"></i>';
+                                        } elseif ($diasEnf > 7 && $diasEnf <= 10) {
+                                            $cor   = 'orange';
+                                            $icone = '<i class="fas fa-exclamation-circle" style="color: orange; margin-right: 5px;"></i>';
+                                        } else {
+                                            $cor   = 'red';
+                                            $icone = '<i class="fas fa-times-circle" style="color: red; margin-right: 5px;"></i>';
+                                        }
+                                        echo "$icone<span style='color: $cor; font-weight: bold;'>{$diasEnf} dias</span>";
                                     } else {
                                         echo "<span style='color: gray;'>--</span>";
                                     }

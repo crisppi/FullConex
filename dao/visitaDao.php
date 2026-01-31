@@ -682,9 +682,9 @@ class visitaDAO
 
             $whereProf = '';
             if ($profFiltro === 'med') {
-                $whereProf = " AND (v.visita_med_vis = 's' OR UPPER(v.visita_auditor_prof_med) LIKE 'MED%') ";
+                $whereProf = " AND (LOWER(v.visita_med_vis) = 's' OR UPPER(v.visita_auditor_prof_med) LIKE 'MED%') ";
             } elseif ($profFiltro === 'enf') {
-                $whereProf = " AND (v.visita_enf_vis = 's' OR UPPER(v.visita_auditor_prof_enf) LIKE 'ENF%') ";
+                $whereProf = " AND (LOWER(v.visita_enf_vis) = 's' OR UPPER(v.visita_auditor_prof_enf) LIKE 'ENF%') ";
             }
 
             $sql = "

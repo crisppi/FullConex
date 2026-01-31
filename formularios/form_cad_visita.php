@@ -406,10 +406,9 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
 
                     <!-- <FORMULARO DE NEGOCIACOES -->
                     <?php include_once('formularios/form_cad_internacao_negoc.php'); ?>
+                    <?php include_once('formularios/form_cad_visita_detalhes.php'); ?>
                 </div>
             </div>
-
-            <?php include_once('formularios/form_cad_visita_detalhes.php'); ?>
             <script>
             function toggleDetalhesVisita() {
                 var select = document.getElementById('relatorio-detalhado');
@@ -581,6 +580,23 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
             applySelection(sessionId, 'enf');
         } else {
             applySelection(sessionId, '');
+            if (auditorMed) auditorMed.value = '';
+            if (auditorEnf) auditorEnf.value = '';
+            if (flagMed) flagMed.value = 'n';
+            if (flagEnf) flagEnf.value = 'n';
+        }
+    }
+
+    function syncCadastroCentral() {
+        const tipo = respTipo ? respTipo.value : '';
+        if (tipo === 'med' && selectMed && selectMed.value) {
+            applySelection(selectMed.value, 'med');
+            if (auditorEnf) auditorEnf.value = '';
+        } else if (tipo === 'enf' && selectEnf && selectEnf.value) {
+            applySelection(selectEnf.value, 'enf');
+            if (auditorMed) auditorMed.value = '';
+        } else {
+            resetToSession();
         }
     }
 
@@ -622,22 +638,17 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
     });
 
     if (selectMed) selectMed.addEventListener('change', function() {
-        const opt = this.selectedOptions[0];
-        if (!opt || !opt.value) {
-            resetToSession();
-            return;
-        }
-        applySelection(opt.value, 'med');
+        syncCadastroCentral();
     });
 
     if (selectEnf) selectEnf.addEventListener('change', function() {
-        const opt = this.selectedOptions[0];
-        if (!opt || !opt.value) {
-            resetToSession();
-            return;
-        }
-        applySelection(opt.value, 'enf');
+        syncCadastroCentral();
     });
+
+    const form = document.getElementById('add-visita-form');
+    if (form) {
+        form.addEventListener('submit', syncCadastroCentral);
+    }
 })();
 </script>
 <script>
@@ -880,7 +891,7 @@ function aumentarTextProgramacao() {
 #add-visita-form {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 0;
 }
 
 .modal-backdrop {
@@ -1037,6 +1048,14 @@ function aumentarTextProgramacao() {
     width: 500px;
 }
 
+.visita-card--auditoria {
+    margin-bottom: 0;
+}
+
+.visita-card--tabelas {
+    margin-top: -12px;
+}
+
 .tabelas-selects {
     gap: 14px;
     flex-wrap: wrap;
@@ -1047,6 +1066,19 @@ function aumentarTextProgramacao() {
     flex: 1 1 0;
     min-width: 150px;
     max-width: none;
+}
+
+.tabelas-detalhes-block {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid #e0d4ef;
+}
+
+.tabelas-detalhes-title {
+    margin: 6px 0 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #3a184f;
 }
 
 @media (max-width: 991.98px) {
