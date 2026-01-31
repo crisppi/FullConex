@@ -115,38 +115,37 @@ $queryVis = $internacaoDAO->selectAllInternacaoCountVis($wherevisita);
 $contarVis = $queryVis[0]['numero_de_id_visita'];
 ?>
 
-<div class="row">
-    <h4 class="w-100 position-relative text-center" style="
-    background-color: #5e2363;
-    color: #fff;
-    padding: 13px 0;
-    border-radius: 0.25rem;
-">
-        Cadastrar visita
+<div class="visita-page">
+    <div class="visita-hero">
+        <div>
+            <h1>Cadastrar visita</h1>
+        </div>
+        <div class="visita-hero__actions">
+            <span class="visita-hero__tag">Campos obrigatórios em destaque</span>
+            <?php if ($contarVis > 0): ?>
+            <button type="button" class="btn btn-sm btn-visita-historico" data-bs-toggle="modal" data-bs-target="#myModal1">
+                <i class="fas fa-eye me-2"></i>
+                Visitas Anteriores
+            </button>
+            <?php endif; ?>
+        </div>
+    </div>
 
-        <?php if ($contarVis > 0): ?>
-        <button type="button" class="btn btn-sm" style="
-              position: absolute;
-              right: 10px;
-              top: 50%;
-              transform: translateY(-50%);
-              background-color: #5bd9f3;
-            " data-bs-toggle="modal" data-bs-target="#myModal1">
-            <i class="fas fa-eye me-2"></i>
-            Visitas Anteriores
-        </button>
-        <?php endif; ?>
-    </h4>
-
-
-
-    <!-- </div> -->
-
+    <div class="visita-page__content">
     <form action="<?= $BASE_URL ?>process_visita.php" id="add-visita-form" method="POST" enctype="multipart/form-data">
         <input type="hidden" name="type" value="create">
         <input type="hidden" name="timer_vis" id="timer_vis" value="">
 
-        <div class="form-group row" style="margin:15px">
+        <div class="visita-card visita-card--general">
+            <div class="visita-card__header">
+                <div>
+                    <p class="visita-card__eyebrow">Dados essenciais</p>
+                    <h2 class="visita-card__title">Dados da visita</h2>
+                </div>
+                <span class="visita-card__tag">Informações principais</span>
+            </div>
+            <div class="visita-card__body">
+        <div class="form-group row visita-dados-row">
             <div id="view-contact-container" style="align-items:center">
                 <hr>
                 <span style="font-weight: 500; margin:0px 5px 0px 5px ">Reg Int:</span>
@@ -236,91 +235,103 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
                 value="<?= date("d/m/Y", strtotime($internacaoList['0']['data_intern_int'])); ?>">
             <input type="hidden" class="form-control" id="data_intern_int" name="data_intern_int"
                 value="<?= date("d/m/Y", strtotime($internacaoList['0']['data_intern_int'])); ?>">
+        </div>
+            </div>
+        </div>
             <?php if ($mostrarCadastroCentral): ?>
-            <div class="w-100 my-3 p-3 border rounded" id="cadastro-central-visita"
-                style="border-color:#8a2be2 !important;">
-                <div class="fw-semibold text-primary mb-2" style="color:#5e2363 !important;">
-                    Cadastro Central ativo
-                    <small class="text-muted ms-2">(selecione o profissional responsável pela visita)</small>
+            <div class="visita-card visita-card--central" id="cadastro-central-visita">
+                <div class="visita-card__header">
+                    <div>
+                        <p class="visita-card__eyebrow">Cadastro central</p>
+                        <h3 class="visita-card__title">Responsável pela visita</h3>
+                    </div>
+                    <span class="visita-card__tag">Obrigatório selecionar tipo e responsável</span>
                 </div>
-                <div class="row g-2 align-items-end">
-                    <div class="col-sm-3">
-                        <label class="form-label" for="visita_resp_tipo">Tipo de responsável</label>
-                        <select id="visita_resp_tipo" class="form-select form-select-sm">
-                            <option value="">(sem seleção)</option>
-                            <option value="med">Médico auditor</option>
-                            <option value="enf">Enfermeiro auditor</option>
-                        </select>
-                    </div>
-                    <div class="col-sm-4 d-none" id="box_visita_resp_med">
-                        <label class="form-label" for="visita_resp_med_id">Selecionar médico</label>
-                        <select id="visita_resp_med_id" class="form-select form-select-sm">
-                            <option value="">Selecione</option>
-                            <?php foreach ($medicosAud as $med): ?>
-                            <option value="<?= (int)$med['id_usuario'] ?>">
-                                <?= htmlspecialchars($med['usuario_user'] ?? ('#' . $med['id_usuario'])) ?>
-                            </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="col-sm-4 d-none" id="box_visita_resp_enf">
-                        <label class="form-label" for="visita_resp_enf_id">Selecionar enfermeiro</label>
-                        <select id="visita_resp_enf_id" class="form-select form-select-sm">
-                            <option value="">Selecione</option>
-                            <?php foreach ($enfsAud as $enf): ?>
-                            <option value="<?= (int)$enf['id_usuario'] ?>">
-                                <?= htmlspecialchars($enf['usuario_user'] ?? ('#' . $enf['id_usuario'])) ?>
-                            </option>
-                            <?php endforeach; ?>
-                        </select>
+                <div class="visita-card__body">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-sm-3">
+                            <label class="form-label" for="visita_resp_tipo">Tipo de responsável</label>
+                            <select id="visita_resp_tipo" class="form-select form-select-sm">
+                                <option value="">(sem seleção)</option>
+                                <option value="med">Médico auditor</option>
+                                <option value="enf">Enfermeiro auditor</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-4 d-none" id="box_visita_resp_med">
+                            <label class="form-label" for="visita_resp_med_id">Selecionar médico</label>
+                            <select id="visita_resp_med_id" class="form-select form-select-sm">
+                                <option value="">Selecione</option>
+                                <?php foreach ($medicosAud as $med): ?>
+                                <option value="<?= (int)$med['id_usuario'] ?>">
+                                    <?= htmlspecialchars($med['usuario_user'] ?? ('#' . $med['id_usuario'])) ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-sm-4 d-none" id="box_visita_resp_enf">
+                            <label class="form-label" for="visita_resp_enf_id">Selecionar enfermeiro</label>
+                            <select id="visita_resp_enf_id" class="form-select form-select-sm">
+                                <option value="">Selecione</option>
+                                <?php foreach ($enfsAud as $enf): ?>
+                                <option value="<?= (int)$enf['id_usuario'] ?>">
+                                    <?= htmlspecialchars($enf['usuario_user'] ?? ('#' . $enf['id_usuario'])) ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>
             <?php endif; ?>
 
-            <div>
-                <label for="rel_visita_vis">Relatório de Auditoria</label>
-                <textarea type="textarea" style="resize:none" rows="2" onclick="aumentarTextAudit()"
-                    class="form-control" id="rel_visita_vis" name="rel_visita_vis" autocomplete="off"
-                    autocorrect="off" autocapitalize="none" spellcheck="false"></textarea>
+            <div class="visita-card visita-card--auditoria">
+                <div class="visita-card__header">
+                    <div>
+                        <p class="visita-card__eyebrow">Auditoria</p>
+                        <h3 class="visita-card__title">Relatórios e observações</h3>
+                    </div>
+                </div>
+                <div class="visita-card__body">
+                    <div>
+                        <label for="rel_visita_vis">Relatório de Auditoria</label>
+                        <textarea type="textarea" style="resize:none" rows="2" onclick="aumentarTextAudit()"
+                            class="form-control" id="rel_visita_vis" name="rel_visita_vis" autocomplete="off"
+                            autocorrect="off" autocapitalize="none" spellcheck="false"></textarea>
+                    </div>
+                    <div>
+                        <label for="acoes_int_vis">Ações da Auditoria</label>
+                        <textarea type="textarea" style="resize:none" rows="2" onclick="aumentarTextAcoes()"
+                            class="form-control" id="acoes_int_vis" name="acoes_int_vis" autocomplete="off"
+                            autocorrect="off" autocapitalize="none" spellcheck="false"></textarea>
+                    </div>
+                    <div>
+                        <label for="programacao_enf">Programação Terapêutica</label>
+                        <textarea type="textarea" style="resize:none" rows="2"
+                            onclick="aumentarTextProgVis()" class="form-control" id="programacao_enf"
+                            name="programacao_enf" autocomplete="off" autocorrect="off" autocapitalize="none"
+                            spellcheck="false"></textarea>
+                    </div>
+                </div>
             </div>
-            <div style="margin-bottom:20px">
-                <label for="acoes_int_vis">Ações da Auditoria</label>
-                <textarea type="textarea" style="resize:none" rows="2" onclick="aumentarTextAcoes()"
-                    class="form-control" id="acoes_int_vis" name="acoes_int_vis" autocomplete="off"
-                    autocorrect="off" autocapitalize="none" spellcheck="false"></textarea>
-            </div>
-            <div>
-                <label for="programacao_enf">Programação Terapêutica</label>
-                <textarea type="textarea" style="resize:none" style="resize:none" rows="2"
-                    onclick="aumentarTextProgVis()" class="form-control" id="programacao_enf"
-                    name="programacao_enf" autocomplete="off" autocorrect="off" autocapitalize="none"
-                    spellcheck="false"></textarea>
-            </div>
-            <div><br></div>
 
-            <!--****************************************-->
-            <!--************ div de detalhes ***********-->
-            <!--****************************************-->
-            <input type="hidden" class="form-control" id="select_detalhes" name="select_detalhes">
-            <h4 class="text-center w-100"
-                style="margin: 7px 10px 0px 0px;background-color: #5e2363;color: #fff;padding: 13px 0;border-radius: 0.25rem;">
-                Detalhes do relatório</h4>
-            <hr>
-            <div class="form-group col-sm-2" style=" margin-top:-15px">
-                <label class="control-label" style="font-weight: bold;" for="relatorio-detalhado">Relatório
-                    detalhado</label>
-                <select class="form-control-sm form-control" id="relatorio-detalhado" name="relatorio-detalhado">
-                    <option value="">Selecione</option>
-                    <option value="s">Sim</option>
-                    <option value="n">Não</option>
-                </select>
-                <p id="text-detalhado" style="font-size:0.7em; text-align:center; margin-top:8px; margin-left:8px">
-                    Selecione este
-                    campo caso deseje
-                    detalhar a visita</p>
-            </div>
-            <div id="div-detalhado" class="form-group row">
+            <div class="visita-card visita-card--detalhes" id="detalhes-card">
+                <div class="visita-card__header">
+                    <div>
+                        <p class="visita-card__eyebrow">Detalhes</p>
+                        <h3 class="visita-card__title">Detalhes do relatório</h3>
+                    </div>
+                </div>
+                <div class="visita-card__body">
+                    <input type="hidden" class="form-control" id="select_detalhes" name="select_detalhes">
+                    <div class="form-group col-sm-2 visita-detalhe-select">
+                        <label class="control-label" for="relatorio-detalhado">Relatório detalhado</label>
+                        <select class="form-control-sm form-control" id="relatorio-detalhado" name="relatorio-detalhado">
+                            <option value="">Selecione</option>
+                            <option value="s">Sim</option>
+                            <option value="n">Não</option>
+                        </select>
+                    </div>
+                    <div id="div-detalhado" class="form-group row">
                 <div class="form-group row">
                     <input type="hidden" readonly id="fk_int_det" name="fk_int_det" value="<?= ($ultimoReg + 1) ?> ">
 
@@ -365,9 +376,6 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
                         <label class="control-label" for="oxig_uso_det">Lts O2</label>
                         <input class="form-control-sm form-control" type="text" name="oxig_uso_det"></input>
                     </div>
-                    <style>
-
-                    </style>
                     <div class="form-group col-sm-3">
                         <label class="control-label">Dispositivos</label>
                         <div class="d-flex flex-wrap align-items-center">
@@ -528,6 +536,8 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
                     <hr>
                 </div>
             </div>
+                </div>
+            </div>
 
             <!-- ENTRADA DE DADOS AUTOMATICOS NO INPUT-->
             <div class="form-group col-sm-1">
@@ -540,84 +550,90 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
                 <input type="hidden" class="form-control" value="s" id="internacao_ativa_int"
                     name="internacao_ativa_int">
             </div>
-            <h4 class="text-center w-100"
-                style="margin: -15px 10px 0px 0px;background-color: #5e2363;color: #fff;padding: 13px 0;border-radius: 0.25rem;">
-                Tabelas Adicionais</h4>
-            <hr>
-            <div class="form-group row d-flex justify-content-center align-items-end">
-                <?php if ($_SESSION['cargo'] === 'Med_auditor' || ($_SESSION['cargo'] === 'Diretoria')) { ?>
+            <div class="visita-card visita-card--tabelas">
+                <div class="visita-card__header">
+                    <div>
+                        <p class="visita-card__eyebrow">Tabelas adicionais</p>
+                        <h3 class="visita-card__title">Complementos da visita</h3>
+                    </div>
+                </div>
+                <div class="visita-card__body">
+                    <div class="form-group row d-flex justify-content-center align-items-end">
+                        <?php if ($_SESSION['cargo'] === 'Med_auditor' || ($_SESSION['cargo'] === 'Diretoria')) { ?>
 
-                <div class="form-group col-sm-2">
-                    <label class="control-label" for="select_tuss">Tuss</label>
-                    <select class="form-control select-purple" id="select_tuss" name="select_tuss">
-                        <option value="">Selecione</option>
-                        <option value="s">Sim</option>
-                        <option value="n">Não</option>
-                    </select>
-                </div>
-                <div class="form-group col-sm-2">
-                    <label class="control-label" for="select_prorrog">Prorrogação</label>
-                    <select class="form-control select-purple" id="select_prorrog" name="select_prorrog">
-                        <option value="">Selecione</option>
-                        <option value="s">Sim</option>
-                        <option value="n">Não</option>
-                    </select>
-                </div>
-                <?php }; ?>
-                <div class="form-group col-sm-2">
-                    <label class="control-label" for="select_gestao">Gestão</label>
+                        <div class="form-group col-sm-2">
+                            <label class="control-label" for="select_tuss">Tuss</label>
+                            <select class="form-control select-purple" id="select_tuss" name="select_tuss">
+                                <option value="">Selecione</option>
+                                <option value="s">Sim</option>
+                                <option value="n">Não</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-sm-2">
+                            <label class="control-label" for="select_prorrog">Prorrogação</label>
+                            <select class="form-control select-purple" id="select_prorrog" name="select_prorrog">
+                                <option value="">Selecione</option>
+                                <option value="s">Sim</option>
+                                <option value="n">Não</option>
+                            </select>
+                        </div>
+                        <?php }; ?>
+                        <div class="form-group col-sm-2">
+                            <label class="control-label" for="select_gestao">Gestão</label>
 
-                    <select class="form-control select-purple" id="select_gestao" name="select_gestao">
-                        <option value="">Selecione</option>
-                        <option value="s">Sim</option>
-                        <option value="n">Não</option>
-                    </select>
-                </div>
-                <div class="form-group col-sm-2">
-                    <label class="control-label" for="select_uti">UTI</label>
-                    <select class="form-control select-purple" id="select_uti" name="select_uti">
-                        <option value="">Selecione</option>
-                        <option value="s">Sim</option>
-                        <option value="n">Não</option>
-                    </select>
-                </div>
-                <?php if ($_SESSION['cargo'] === 'Med_auditor' || ($_SESSION['cargo'] === 'Diretoria')) { ?>
+                            <select class="form-control select-purple" id="select_gestao" name="select_gestao">
+                                <option value="">Selecione</option>
+                                <option value="s">Sim</option>
+                                <option value="n">Não</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-sm-2">
+                            <label class="control-label" for="select_uti">UTI</label>
+                            <select class="form-control select-purple" id="select_uti" name="select_uti">
+                                <option value="">Selecione</option>
+                                <option value="s">Sim</option>
+                                <option value="n">Não</option>
+                            </select>
+                        </div>
+                        <?php if ($_SESSION['cargo'] === 'Med_auditor' || ($_SESSION['cargo'] === 'Diretoria')) { ?>
 
-                <div class="form-group col-sm-2">
-                    <label class="control-label" for="select_negoc">Negociações</label>
-                    <select class="form-control select-purple" id="select_negoc" name="select_negoc">
-                        <option value="">Selecione</option>
-                        <option value="s">Sim</option>
-                        <option value="n">Não</option>
-                    </select>
-                </div>
-                <?php }; ?>
+                        <div class="form-group col-sm-2">
+                            <label class="control-label" for="select_negoc">Negociações</label>
+                            <select class="form-control select-purple" id="select_negoc" name="select_negoc">
+                                <option value="">Selecione</option>
+                                <option value="s">Sim</option>
+                                <option value="n">Não</option>
+                            </select>
+                        </div>
+                        <?php }; ?>
 
-                <br>
+                        <br>
+                    </div>
+                    <!-- FORMULARIO DE GESTÃO -->
+                    <?php include_once('formularios/form_cad_internacao_tuss.php'); ?>
+                    <!-- FORMULARIO DE GESTÃO -->
+
+                    <?php include_once('formularios/form_cad_internacao_gestao.php'); ?>
+
+                    <!-- FORMULARIO DE UTI -->
+                    <?php include_once('formularios/form_cad_internacao_uti.php'); ?>
+
+                    <!-- FORMULARIO DE PRORROGACOES -->
+                    <?php include_once('formularios/form_cad_internacao_prorrog.php'); ?>
+
+                    <!-- <FORMULARO DE NEGOCIACOES -->
+                    <?php include_once('formularios/form_cad_internacao_negoc.php'); ?>
+                </div>
             </div>
-            <!-- FORMULARIO DE GESTÃO -->
-            <?php include_once('formularios/form_cad_internacao_tuss.php'); ?>
-            <!-- FORMULARIO DE GESTÃO -->
 
-            <?php include_once('formularios/form_cad_internacao_gestao.php'); ?>
-
-            <!-- FORMULARIO DE UTI -->
-            <?php include_once('formularios/form_cad_internacao_uti.php'); ?>
-
-            <!-- FORMULARIO DE PRORROGACOES -->
-            <?php include_once('formularios/form_cad_internacao_prorrog.php'); ?>
-
-            <!-- <FORMULARO DE NEGOCIACOES -->
-            <?php include_once('formularios/form_cad_internacao_negoc.php'); ?>
-
-            <div>
+            <div class="visita-actions">
                 <button type="submit" class="btn btn-success">
                     <i class="fas fa-check"></i> Cadastrar
                 </button>
+                <div class="alert" id="alert" role="alert"></div>
             </div>
-            <div style="margin-left:20px; width:500px" class="alert" id="alert" role="alert"></div>
-
     </form>
+    </div>
 </div>
 
 <!-- Modal para abrir tela de cadastro -->
@@ -1038,6 +1054,31 @@ function aumentarTextProgramacao() {
 }
 </script>
 <style>
+.form-select-placeholder,
+#add-visita-form select.select-placeholder {
+    color: #c4c4c4 !important;
+}
+
+#add-visita-form input::placeholder,
+#add-visita-form textarea::placeholder {
+    color: #c4c4c4 !important;
+    opacity: 1;
+}
+
+#add-visita-form select:required:invalid {
+    color: #c4c4c4 !important;
+}
+
+#add-visita-form option[value=""] {
+    color: #c4c4c4;
+}
+
+#add-visita-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
 .modal-backdrop {
     display: none;
 
@@ -1053,6 +1094,157 @@ function aumentarTextProgramacao() {
     background: #35bae1;
 
 
+}
+
+.visita-page {
+    width: 100%;
+    margin: 0;
+    padding: 0 0 40px;
+}
+
+.visita-page__content {
+    margin-top: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.visita-hero {
+    background: linear-gradient(135deg, #1f5d99, #58a9ff);
+    color: #fff;
+    border-radius: 28px;
+    padding: 20px 24px;
+    box-shadow: 0 20px 40px rgba(24, 0, 30, 0.25);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.visita-hero h1 {
+    margin: 0 0 6px;
+    font-size: 1.7rem;
+    letter-spacing: .02em;
+    color: #fff;
+}
+
+.visita-hero p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.9);
+    max-width: 460px;
+}
+
+.visita-hero__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.visita-hero__tag {
+    background: rgba(255, 255, 255, 0.18);
+    color: #eef6ff;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: .78rem;
+}
+
+.btn-visita-historico {
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    color: #eef6ff;
+    background: rgba(255, 255, 255, 0.16);
+}
+
+.btn-visita-historico:hover {
+    background: rgba(255, 255, 255, 0.26);
+    color: #fff;
+}
+
+.visita-card {
+    background: #f5f5f9;
+    border: 1px solid #ebe1f5;
+    border-radius: 18px;
+    box-shadow: 0 12px 24px rgba(45, 18, 70, .08);
+    padding: 18px 18px 22px;
+}
+
+.visita-card__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.visita-card__eyebrow {
+    text-transform: uppercase;
+    letter-spacing: .3em;
+    font-size: .62rem;
+    margin: 0;
+    color: #5e2363;
+}
+
+.visita-card__title {
+    margin: 2px 0 0;
+    font-size: 1.2rem;
+    color: #2e114c;
+    font-weight: 600;
+}
+
+.visita-card__tag {
+    background: #f8eefc;
+    color: #5e2363;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: .75rem;
+}
+
+.visita-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.visita-card .form-group.row {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.visita-dados-row {
+    margin: 0;
+}
+
+.visita-detalhe-select {
+    margin-bottom: 8px;
+}
+
+.visita-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 8px 6px 0;
+}
+
+.visita-actions .alert {
+    margin: 0;
+    width: 500px;
+}
+
+@media (max-width: 991.98px) {
+    .visita-hero {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .visita-actions {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .visita-actions .alert {
+        width: 100%;
+    }
 }
 </style>
 <script>
@@ -1117,6 +1309,22 @@ document.addEventListener("DOMContentLoaded", function() {
         select.add(novaOption);
         select.value = dataValor;
     }
+});
+</script>
+
+<script>
+function updateVisitaSelectPlaceholders() {
+    const selects = document.querySelectorAll('#add-visita-form select');
+    selects.forEach((selectEl) => {
+        const empty = !selectEl.value;
+        selectEl.classList.toggle('select-placeholder', empty);
+    });
+}
+document.addEventListener('DOMContentLoaded', function() {
+    updateVisitaSelectPlaceholders();
+    document.querySelectorAll('#add-visita-form select').forEach((selectEl) => {
+        selectEl.addEventListener('change', updateVisitaSelectPlaceholders);
+    });
 });
 </script>
 
