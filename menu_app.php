@@ -231,14 +231,18 @@ function filterVisitasAtrasadas($value)
     };
     $dtVisita = $toDate($value['data_visita_vis'] ?? null);
     $dtIntern = $toDate($value['data_visita_int'] ?? null);
+    $limiteDias = (int)($value['dias_visita_seg'] ?? 0);
+    if ($limiteDias <= 0) {
+        $limiteDias = 10;
+    }
 
     if ($dtVisita instanceof DateTime) {
         $dias = ($dtVisita > $hoje) ? 0 : $dtVisita->diff($hoje)->days;
-        return $dias > 10;
+        return $dias > $limiteDias;
     }
     if ($dtIntern instanceof DateTime) {
         $dias = ($dtIntern > $hoje) ? 0 : $dtIntern->diff($hoje)->days;
-        return $dias > 10;
+        return $dias > $limiteDias;
     }
     return false;
 }
@@ -735,13 +739,12 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
             <div class="col-sm-6 col-lg-6">
                 <div class="header_div">
                     <spam>Visitas em atraso</spam>
-                    <i style="color:white; margin-left:10px;margin-top:10px;float:left"
-                        class="fa-solid fa-right-to-bracket"></i>
                 </div>
                 <table style="margin-top:10px;" class="table table-sm table-striped table-hover table-condensed">
                     <thead style="background: linear-gradient(135deg, #7a3a80, #5a296a);">
                         <tr>
                             <th scope="col" style="width:3%">Hospital</th>
+                            <th scope="col" style="width:3%">Seguradora</th>
                             <th scope="col" style="width:3%">Paciente</th>
                             <th scope="col" style="width:3%">Ultima Visita</th>
                             <th scope="col" style="width:3%">Dias última visita</th>
@@ -760,10 +763,27 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
                             if ($diasUltimaVisita === null) {
                                 $diasUltimaVisita = diasDesdeData($intern["data_visita_int"] ?? null);
                             }
+                            $limiteDiasVisita = (int)($intern["dias_visita_seg"] ?? 0);
+                            if ($limiteDiasVisita <= 0) {
+                                $limiteDiasVisita = 10;
+                            }
+                            $classeDiasVisita = '';
+                            if ($diasUltimaVisita !== null && $limiteDiasVisita > 0) {
+                                if ($diasUltimaVisita >= $limiteDiasVisita) {
+                                    $classeDiasVisita = 'text-danger fw-semibold';
+                                } elseif ($diasUltimaVisita === ($limiteDiasVisita - 1)) {
+                                    $classeDiasVisita = 'text-warning fw-semibold';
+                                } else {
+                                    $classeDiasVisita = 'text-success fw-semibold';
+                                }
+                            }
                             ?>
                         <tr style="font-size:15px">
                             <td scope="row">
                                 <?= htmlspecialchars($intern["nome_hosp"] ?? '', ENT_QUOTES, 'UTF-8') ?>
+                            </td>
+                            <td scope="row">
+                                <?= htmlspecialchars($intern["seguradora_seg"] ?? '—', ENT_QUOTES, 'UTF-8') ?>
                             </td>
                             <td scope="row">
                                 <a
@@ -774,13 +794,15 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
                                 <?= htmlspecialchars($intern["nome_pac"] ?? '', ENT_QUOTES, 'UTF-8') ?>
                             </td>
                             <td scope="row"><?= $formattedDate ?></td>
-                            <td scope="row"><?= $diasUltimaVisita !== null ? (int)$diasUltimaVisita . ' dias' : '—' ?></td>
+                            <td scope="row" class="<?= $classeDiasVisita ?>">
+                                <?= $diasUltimaVisita !== null ? (int)$diasUltimaVisita . ' dias' : '—' ?>
+                            </td>
                         </tr>
                         <?php endforeach; ?>
 
                         <?php if (count($dados_visitas_atraso_list) == 0): ?>
                         <tr>
-                            <td colspan="4" scope="row" class="col-id" style='font-size:15px'>
+                            <td colspan="5" scope="row" class="col-id" style='font-size:15px'>
                                 Não foram encontrados registros
                             </td>
                         </tr>
@@ -792,8 +814,6 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
             <div class="col-sm-6 col-lg-6">
                 <div class="header_div">
                     <spam>Pacientes de longa permanência</spam>
-                    <i style="color:white; margin-left:10px;margin-top:10px;float:left"
-                        class="fa-solid fa-right-to-bracket"></i>
                 </div>
                 <table style="margin-top:10px;" class="table table-sm table-striped table-hover table-condensed">
                     <thead style="background: linear-gradient(135deg, #7a3a80, #5a296a);">
@@ -828,6 +848,20 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
                                     $diasUltimaVisita = diasDesdeData($rawData);
                                 }
                             }
+                            $limiteDiasVisita = (int)($intern["dias_visita_seg"] ?? 0);
+                            if ($limiteDiasVisita <= 0) {
+                                $limiteDiasVisita = 10;
+                            }
+                            $classeDiasVisita = '';
+                            if ($diasUltimaVisita !== null && $limiteDiasVisita > 0) {
+                                if ($diasUltimaVisita >= $limiteDiasVisita) {
+                                    $classeDiasVisita = 'text-danger fw-semibold';
+                                } elseif ($diasUltimaVisita === ($limiteDiasVisita - 1)) {
+                                    $classeDiasVisita = 'text-warning fw-semibold';
+                                } else {
+                                    $classeDiasVisita = 'text-success fw-semibold';
+                                }
+                            }
                             ?>
                         <tr style="font-size:15px">
                             <td scope="row">
@@ -843,7 +877,9 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
                             </td>
                             <td scope="row"><?= $formattedDate ?></td>
                             <td scope="row"><?= $ultimaVisitaData ?? '—' ?></td>
-                            <td scope="row"><?= $diasUltimaVisita !== null ? $diasUltimaVisita . ' dias' : '—' ?></td>
+                            <td scope="row" class="<?= $classeDiasVisita ?>">
+                                <?= $diasUltimaVisita !== null ? $diasUltimaVisita . ' dias' : '—' ?>
+                            </td>
                         </tr>
                         <?php endforeach; ?>
 

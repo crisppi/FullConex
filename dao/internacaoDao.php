@@ -2401,7 +2401,9 @@ class internacaoDAO implements internacaoDAOInterface
                 vi.visita_no_vis,
                 vi.data_visita_vis,
                 pa.nome_pac,
-                hos.nome_hosp
+                hos.nome_hosp,
+                s.dias_visita_seg,
+                s.seguradora_seg
                 
                 FROM tb_internacao ac 
 
@@ -2412,7 +2414,10 @@ class internacaoDAO implements internacaoDAOInterface
                 ac.fk_hospital_int = hos.id_hospital
 
                 inner join tb_paciente as pa on
-                ac.fk_paciente_int = pa.id_paciente " . $where
+                ac.fk_paciente_int = pa.id_paciente
+
+                left join tb_seguradora as s on
+                pa.fk_seguradora_pac = s.id_seguradora " . $where
         );
 
         $query->execute();
