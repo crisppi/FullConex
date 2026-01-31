@@ -661,7 +661,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
         border: 1px solid #ebe1f5;
         box-shadow: 0 12px 24px rgba(45, 18, 70, .08);
         padding: 12px 20px 10px;
-        margin-top: -60px;
+        margin-top: 12px;
     }
 
     .tabelas-adicionais-card .form-group {
