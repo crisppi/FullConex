@@ -261,6 +261,18 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
         margin-bottom: 4px;
     }
 
+    .hospital-col label {
+        margin-bottom: 0px;
+    }
+
+    .hospital-col .d-flex.mb-1 {
+        margin-bottom: 0 !important;
+    }
+
+    .hospital-col .hospital-select-wrapper {
+        margin-top: -2px;
+    }
+
     #myForm {
         transition: filter .2s ease, opacity .2s ease;
     }
