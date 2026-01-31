@@ -38,6 +38,8 @@ $internacao = new internacaoDAO($conn, $BASE_URL);
 $order = null;
 $obLimite = null;
 $uti = new utiDAO($conn, $BASE_URL);
+$sortField = trim($_GET['sort_field'] ?? '');
+$sortDir = strtolower($_GET['sort_dir'] ?? 'desc');
 
 ?>
 
@@ -57,6 +59,28 @@ $uti = new utiDAO($conn, $BASE_URL);
                     $pesquisa_matricula = filter_input(INPUT_GET, 'pesquisa_matricula', FILTER_SANITIZE_SPECIAL_CHARS);
                     $ordenar = filter_input(INPUT_GET, 'ordenar');
                     ?>
+                    <style>
+                    .th-sortable {
+                        display: flex;
+                        align-items: center;
+                        gap: 0.35rem;
+                    }
+
+                    .th-sortable .sort-icons a {
+                        text-decoration: none;
+                        font-size: 0.85rem;
+                        color: #ffffff;
+                        margin-left: 2px;
+                        opacity: 0.9;
+                        font-weight: 700;
+                    }
+
+                    .th-sortable .sort-icons a.active {
+                        color: #ffd966;
+                        opacity: 1;
+                        font-weight: bold;
+                    }
+                    </style>
                     <div class="row">
                         <div class="col-sm-3" style="padding:2px !important;padding-left:16px !important;">
                             <!-- <label>Pesquisa por Hospital</label> -->
@@ -99,24 +123,6 @@ $uti = new utiDAO($conn, $BASE_URL);
                                 </option>
                             </select>
                         </div>
-                        <div class="col-sm-2" style="padding:2px !important">
-                            <!-- <label>Classificar</label> -->
-                            <select class="form-control sm-3 form-control-sm" id="ordenar" name="ordenar"
-                                style="margin-top:7px">
-                                <option value="">Classificar por</option>
-                                <option value="nome_pac" <?= $ordenar == 'nome_pac' ? 'selected' : null ?>>Paciente
-                                </option>
-                                <option value="nome_hosp" <?= $ordenar == 'nome_hosp' ? 'selected' : null ?>>Hospital
-                                </option>
-                                <option value="id_internacao" <?= $ordenar == 'id_internacao' ? 'selected' : null ?>>
-                                    Internação
-                                </option>
-                                <option value="data_intern_int"
-                                    <?= $ordenar == 'data_intern_int' ? 'selected' : null ?>>
-                                    Data
-                                    Internação</option>
-                            </select>
-                        </div>
                         <div class="col-sm-1" style="padding:2px !important" style="margin:0px 0px 20px 0px">
                             <button type="submit" class="btn btn-primary"
                                 style="background-color:#5e2363;width:42px;height:32px;margin-top:7px;border-color:#5e2363"><span
@@ -125,6 +131,8 @@ $uti = new utiDAO($conn, $BASE_URL);
                                 </span></button>
                         </div>
                     </div>
+                    <input type="hidden" name="sort_field" value="<?= htmlspecialchars((string)$sortField) ?>">
+                    <input type="hidden" name="sort_dir" value="<?= htmlspecialchars((string)$sortDir) ?>">
                 </form>
             </div>
         </div>
@@ -165,7 +173,17 @@ $uti = new utiDAO($conn, $BASE_URL);
         $condicoes = array_filter($condicoes);
         // REMOVE POSICOES VAZIAS DO FILTRO
         $where = implode(' AND ', $condicoes);
-        $order = $ordenar ?: 'id_internacao DESC';
+        $sortableColumns = [
+            'id_internacao'   => 'ac.id_internacao',
+            'nome_hosp'       => 'ho.nome_hosp',
+            'nome_pac'        => 'pa.nome_pac',
+            'data_intern_int' => 'ac.data_intern_int'
+        ];
+        if ($sortField && isset($sortableColumns[$sortField])) {
+            $order = $sortableColumns[$sortField] . ' ' . strtoupper($sortDir);
+        } else {
+            $order = 'ac.id_internacao DESC';
+        }
         // QUANTIDADE InternacaoS
         $qtdIntItens1 = $uti->selectAllUTI($where, $order, $obLimite);
         // print_r($qtdIntItens1);
@@ -202,6 +220,28 @@ $uti = new utiDAO($conn, $BASE_URL);
             $last_block = end($paginas)["bloco"];
             $current_block = reset($block_pages)["bloco"];
         }
+        $paginationBaseParams = [
+            'pesquisa_nome'      => $pesquisa_nome,
+            'pesquisa_pac'       => $pesquisa_pac,
+            'pesquisa_matricula' => $pesquisa_matricula,
+            'pesqInternado'      => $pesqInternado,
+            'limite_pag'         => $limite_pag,
+            'data_intern_int'    => $data_intern_int,
+            'sort_field'         => $sortField,
+            'sort_dir'           => $sortDir,
+        ];
+
+        if (!function_exists('buildInternacaoUtiPaginationUrl')) {
+            function buildInternacaoUtiPaginationUrl(array $baseParams, array $override = []): string
+            {
+                $params = array_merge($baseParams, $override);
+                $params = array_filter($params, function ($value) {
+                    return $value !== null && $value !== '';
+                });
+                $query = http_build_query($params);
+                return $query ? 'list_internacao_uti.php?' . $query : 'list_internacao_uti.php';
+            }
+        }
         ?>
 
         <div style="margin-top:10px;" id='container'>
@@ -211,11 +251,32 @@ $uti = new utiDAO($conn, $BASE_URL);
                 <table class="table table-sm table-striped table-hover table-condensed">
                     <thead>
                         <tr>
-                            <th scope="col" width="4%">Id-Int</th>
+                            <?php
+                            $sortableHeaders = [
+                                'id_internacao'   => ['label' => 'Id-Int',   'style' => 'width:4%'],
+                                'nome_hosp'       => ['label' => 'Hospital', 'style' => 'width:15%'],
+                                'nome_pac'        => ['label' => 'Paciente', 'style' => 'width:15%'],
+                                'data_intern_int' => ['label' => 'Data internação', 'style' => 'width:8%'],
+                            ];
+                            foreach ($sortableHeaders as $key => $meta):
+                                $ascActive = ($sortField === $key && $sortDir === 'asc');
+                                $descActive = ($sortField === $key && $sortDir === 'desc');
+                                $ascUrl = buildInternacaoUtiPaginationUrl($paginationBaseParams, ['sort_field' => $key, 'sort_dir' => 'asc', 'pag' => 1]);
+                                $descUrl = buildInternacaoUtiPaginationUrl($paginationBaseParams, ['sort_field' => $key, 'sort_dir' => 'desc', 'pag' => 1]);
+                            ?>
+                            <th scope="col" style="<?= $meta['style'] ?>" class="text-center">
+                                <div class="th-sortable justify-content-center">
+                                    <span><?= htmlspecialchars($meta['label'], ENT_QUOTES, 'UTF-8') ?></span>
+                                    <span class="sort-icons">
+                                        <a href="<?= htmlspecialchars($ascUrl, ENT_QUOTES, 'UTF-8') ?>"
+                                            class="<?= $ascActive ? 'active' : '' ?>" title="Ordenar crescente">↑</a>
+                                        <a href="<?= htmlspecialchars($descUrl, ENT_QUOTES, 'UTF-8') ?>"
+                                            class="<?= $descActive ? 'active' : '' ?>" title="Ordenar decrescente">↓</a>
+                                    </span>
+                                </div>
+                            </th>
+                            <?php endforeach; ?>
                             <th scope="col" width="4%">Internado</th>
-                            <th scope="col" width="15%">Hospital</th>
-                            <th scope="col" width="15%">Paciente</th>
-                            <th scope="col" width="8%">Data internação</th>
                             <th scope="col" width="4%">Ações</th>
                         </tr>
                     </thead>

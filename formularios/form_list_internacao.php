@@ -293,6 +293,44 @@ try {
     color: #fff;
 }
 
+.filter-inline-row {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.filter-inline-row > .filter-inline-field {
+    flex: 1 1 0;
+    min-width: 80px;
+}
+
+.filter-inline-row > .filter-inline-field:last-child {
+    flex: 0 0 auto;
+}
+
+.filter-inline--wide {
+    min-width: 140px;
+}
+
+.filter-inline--date {
+    min-width: 120px;
+}
+
+.filter-inline--short {
+    min-width: 100px;
+}
+
+.filter-inline--icon {
+    min-width: 48px;
+}
+
+@media (max-width: 1199.98px) {
+    .filter-inline-row {
+        flex-wrap: wrap;
+    }
+}
+
 .filter-favorites {
     margin-top: 10px;
     display: flex;
@@ -392,7 +430,7 @@ if (typeof jQuery !== 'undefined') {
                 $limite              = filter_input(INPUT_GET, 'limite_pag');
                 $pesquisa_pac        = filter_input(INPUT_GET, 'pesquisa_pac');
                 $pesquisa_matricula  = filter_input(INPUT_GET, 'pesquisa_matricula');
-                $ordenar             = filter_input(INPUT_GET, 'ordenar');
+        $ordenar             = filter_input(INPUT_GET, 'ordenar');
                 $data_intern_int     = filter_input(INPUT_GET, 'data_intern_int') ?: null;
                 $data_intern_int_max = filter_input(INPUT_GET, 'data_intern_int_max') ?: null;
                 $senha_int           = filter_input(INPUT_GET, 'senha_int') ?: null;
@@ -420,9 +458,9 @@ if (typeof jQuery !== 'undefined') {
                     <div class="filter-favorites" id="filterFavorites"></div>
                     <div class="filter-empty-hint" id="filterFavoritesHint">Nenhum favorito salvo ainda.</div>
                 </div>
-                <div class="form-group row">
-                    <div class="form-group col-sm-2" style="padding:2px;padding-left:16px !important;">
-                        <input class="form-control form-control-sm" type="text" style="color:#878787;margin-top:7px;"
+                <div class="form-group row filter-inline-row">
+                    <div class="form-group col-sm-2 filter-inline-field filter-inline--wide" style="padding:2px;padding-left:16px !important;">
+                        <input class="form-control form-control-sm" type="text" style="color:#878787;margin-top:0;"
                             name="pesquisa_nome" list="internacaoHospitaisList" placeholder="Selecione o Hospital"
                             value="<?= htmlspecialchars((string)$pesquisa_nome) ?>">
                         <datalist id="internacaoHospitaisList">
@@ -432,25 +470,25 @@ if (typeof jQuery !== 'undefined') {
                         </datalist>
                     </div>
 
-                    <div class="form-group col-sm-2" style="padding:2px;">
-                        <input class="form-control form-control-sm" type="text" style="color:#878787;margin-top:7px;"
+                    <div class="form-group col-sm-2 filter-inline-field filter-inline--wide" style="padding:2px;">
+                        <input class="form-control form-control-sm" type="text" style="color:#878787;margin-top:0;"
                             name="pesquisa_pac" placeholder="Selecione o Paciente"
                             value="<?= htmlspecialchars((string)$pesquisa_pac) ?>">
                     </div>
 
-                    <div class="form-group col-sm-2" style="padding:2px;">
-                        <input class="form-control form-control-sm" type="text" style="color:#878787;margin-top:7px;"
+                    <div class="form-group col-sm-2 filter-inline-field" style="padding:2px;">
+                        <input class="form-control form-control-sm" type="text" style="color:#878787;margin-top:0;"
                             name="pesquisa_matricula" placeholder="Matrícula"
                             value="<?= htmlspecialchars((string)($pesquisa_matricula ?? '')) ?>">
                     </div>
 
-                    <div class="form-group col-sm-1" style="padding:2px;">
-                        <input class="form-control form-control-sm" type="text" style="color:#878787;margin-top:7px;"
+                    <div class="form-group col-sm-1 filter-inline-field filter-inline--short" style="padding:2px;">
+                        <input class="form-control form-control-sm" type="text" style="color:#878787;margin-top:0;"
                             name="senha_int" placeholder="Senha" value="<?= htmlspecialchars((string)$senha_int) ?>">
                     </div>
 
-                    <div class="col-sm-1" style="padding:2px !important">
-                        <select class="form-control mb-3 form-control-sm" style="color:#878787;margin-top:7px;"
+                    <div class="col-sm-1 filter-inline-field filter-inline--short" style="padding:2px !important">
+                        <select class="form-control form-control-sm" style="color:#878787;margin-top:0;"
                             id="limite" name="limite_pag">
                             <option value="">Reg por pag</option>
                             <option value="5" <?= $limite == '5'  ? 'selected' : null ?>>Reg por pág = 5</option>
@@ -460,37 +498,21 @@ if (typeof jQuery !== 'undefined') {
                         </select>
                     </div>
 
-                    <div class="form-group col-sm-1" style="padding:2px;">
-                        <select class="form-control form-control-sm" style="color:#878787;margin-top:7px;" id="ordenar"
-                            name="ordenar">
-                            <option value="">Classificar</option>
-                            <option value="nome_pac" <?= $ordenar == 'nome_pac'       ? 'selected' : null ?>>Paciente
-                            </option>
-                            <option value="nome_hosp" <?= $ordenar == 'nome_hosp'      ? 'selected' : null ?>>Hospital
-                            </option>
-                            <option value="id_internacao" <?= $ordenar == 'id_internacao'  ? 'selected' : null ?>>
-                                Internação</option>
-                            <option value="data_intern_int" <?= $ordenar == 'data_intern_int' ? 'selected' : null ?>>
-                                Data
-                                Internação</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group col-sm-1" style="padding:2px;">
-                        <input class="form-control form-control-sm" type="date" style="color:#878787;margin-top:7px;"
+                    <div class="form-group col-sm-1 filter-inline-field filter-inline--date" style="padding:2px;">
+                        <input class="form-control form-control-sm" type="date" style="color:#878787;margin-top:0;"
                             name="data_intern_int" placeholder="Data Internação Min"
                             value="<?= htmlspecialchars((string)$data_intern_int) ?>">
                     </div>
 
-                    <div class="form-group col-sm-1" style="padding:2px;">
-                        <input class="form-control form-control-sm" type="date" style="color:#878787;margin-top:7px;"
+                    <div class="form-group col-sm-1 filter-inline-field filter-inline--date" style="padding:2px;">
+                        <input class="form-control form-control-sm" type="date" style="color:#878787;margin-top:0;"
                             name="data_intern_int_max" placeholder="Data Internação Max"
                             value="<?= htmlspecialchars((string)$data_intern_int_max) ?>">
                     </div>
 
-                    <div class="form-group col-sm-1" style="padding:2px;">
+                    <div class="form-group col-sm-1 filter-inline-field filter-inline--icon" style="padding:2px;">
                         <button type="submit" class="btn btn-primary"
-                            style="background-color:#5e2363;width:42px;height:32px;border-color:#5e2363;margin-top:7px;">
+                            style="background-color:#5e2363;width:42px;height:32px;border-color:#5e2363;margin-top:0;">
                             <span class="material-icons" style="margin-left:-3px;margin-top:-2px;">
                                 search
                             </span>
@@ -551,18 +573,8 @@ if (typeof jQuery !== 'undefined') {
             'nome_pac'        => 'pa.nome_pac',
             'data_intern_int' => 'ac.data_intern_int'
         ];
-        $dropdownOrders = [
-            'nome_pac'        => 'pa.nome_pac ASC',
-            'nome_hosp'       => 'ho.nome_hosp ASC',
-            'id_internacao'   => 'ac.id_internacao DESC',
-            'data_intern_int' => 'ac.data_intern_int DESC'
-        ];
-
         if ($sortField && isset($sortableColumns[$sortField])) {
             $order = $sortableColumns[$sortField] . ' ' . strtoupper($sortDir);
-        } elseif ($ordenar && isset($dropdownOrders[$ordenar])) {
-            $order = $dropdownOrders[$ordenar];
-            $sortField = '';
         } else {
             $order = 'ac.id_internacao DESC';
         }
@@ -606,7 +618,6 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
             'data_intern_int_max' => $data_intern_int_max,
             'pesqInternado'       => $pesqInternado,
             'limite_pag'          => $limite,
-            'ordenar'             => $ordenar,
             'sort_field'          => $sortField,
             'sort_dir'            => $sortDir,
             'sem_senha'           => $onlySemSenha ? '1' : null,
@@ -1270,10 +1281,7 @@ function callProcessPdf(id_internacao) {
 <script>
 // ajax para submit do formulario de pesquisa + modal de exportação
 $(document).ready(function() {
-    $('#ordenar').on('change', function() {
-        $('input[name="sort_field"]').val('');
-        $('input[name="sort_dir"]').val('');
-    });
+    // campo "ordenar" removido (classificação agora nos headers)
 
     // ============================
     // 1) SUBMIT AJAX – FILTRO
@@ -1449,7 +1457,6 @@ if (typeof window.paginateInternacao !== 'function') {
         'pesquisa_matricula',
         'senha_int',
         'limite_pag',
-        'ordenar',
         'data_intern_int',
         'data_intern_int_max',
         'pesqInternado',
@@ -1616,7 +1623,7 @@ if (typeof window.paginateInternacao !== 'function') {
             const field = form.elements.namedItem(name);
             if (field) field.value = '';
         });
-        ['limite_pag', 'ordenar'].forEach((name) => {
+        ['limite_pag'].forEach((name) => {
             const field = form.elements.namedItem(name);
             if (field && field.tagName === 'SELECT') {
                 field.selectedIndex = 0;
