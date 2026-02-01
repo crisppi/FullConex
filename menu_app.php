@@ -600,8 +600,14 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
 }
 
 .select-hospital option {
-    color: #432654;
-    background: #fff;
+    color: #3b1d4a;
+    background: #f7f1ff;
+}
+
+.select-hospital option:checked,
+.select-hospital option:focus {
+    background: #6b3d7d;
+    color: #fff;
 }
 
 .header_div {
@@ -710,158 +716,18 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
                 <div class="header_div">
                     <spam>Visitas em atraso</spam>
                 </div>
-                <table style="margin-top:10px;" class="table table-sm table-striped table-hover table-condensed">
-                    <thead style="background: linear-gradient(135deg, #7a3a80, #5a296a);">
-                        <tr>
-                            <th scope="col" style="width:3%">Hospital</th>
-                            <th scope="col" style="width:3%">Seguradora</th>
-                            <th scope="col" style="width:3%">Paciente</th>
-                            <th scope="col" style="width:3%">Ultima Visita</th>
-                            <th scope="col" style="width:3%">Dias última visita</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($dados_visitas_atraso_list as $intern): ?>
-                        <?php
-                            if (!empty($intern["data_visita_vis"])) {
-                                $date = new DateTime($intern["data_visita_vis"]);
-                                $formattedDate = $date->format('d/m/Y');
-                            } else {
-                                $formattedDate = "Sem visita";
-                            }
-                            $diasUltimaVisita = diasDesdeData($intern["data_visita_vis"] ?? null);
-                            if ($diasUltimaVisita === null) {
-                                $diasUltimaVisita = diasDesdeData($intern["data_visita_int"] ?? null);
-                            }
-                            $limiteDiasVisita = (int)($intern["dias_visita_seg"] ?? 0);
-                            if ($limiteDiasVisita <= 0) {
-                                $limiteDiasVisita = 10;
-                            }
-                            $classeDiasVisita = '';
-                            if ($diasUltimaVisita !== null && $limiteDiasVisita > 0) {
-                                if ($diasUltimaVisita >= $limiteDiasVisita) {
-                                    $classeDiasVisita = 'text-danger fw-semibold';
-                                } elseif ($diasUltimaVisita === ($limiteDiasVisita - 1)) {
-                                    $classeDiasVisita = 'text-warning fw-semibold';
-                                } else {
-                                    $classeDiasVisita = 'text-success fw-semibold';
-                                }
-                            }
-                            ?>
-                        <tr style="font-size:15px">
-                            <td scope="row">
-                                <?= htmlspecialchars($intern["nome_hosp"] ?? '', ENT_QUOTES, 'UTF-8') ?>
-                            </td>
-                            <td scope="row">
-                                <?= htmlspecialchars($intern["seguradora_seg"] ?? '—', ENT_QUOTES, 'UTF-8') ?>
-                            </td>
-                            <td scope="row">
-                                <a
-                                    href="<?= $BASE_URL ?>cad_visita.php?id_internacao=<?= (int)($intern["id_internacao"] ?? 0) ?>">
-                                    <i class="bi bi-box-arrow-in-right fw-bold"
-                                        style="margin-right:8px; font-size:1.2em;"></i>
-                                </a>
-                                <?= htmlspecialchars($intern["nome_pac"] ?? '', ENT_QUOTES, 'UTF-8') ?>
-                            </td>
-                            <td scope="row"><?= $formattedDate ?></td>
-                            <td scope="row" class="<?= $classeDiasVisita ?>">
-                                <?= $diasUltimaVisita !== null ? (int)$diasUltimaVisita . ' dias' : '—' ?>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-
-                        <?php if (count($dados_visitas_atraso_list) == 0): ?>
-                        <tr>
-                            <td colspan="5" scope="row" class="col-id" style='font-size:15px'>
-                                Não foram encontrados registros
-                            </td>
-                        </tr>
-                        <?php endif ?>
-                    </tbody>
-                </table>
+                <div id="dash-visitas-atraso" class="dash-table-loading">
+                    Carregando...
+                </div>
             </div>
 
             <div class="col-sm-6 col-lg-6">
                 <div class="header_div">
                     <spam>Pacientes de longa permanência</spam>
                 </div>
-                <table style="margin-top:10px;" class="table table-sm table-striped table-hover table-condensed">
-                    <thead style="background: linear-gradient(135deg, #7a3a80, #5a296a);">
-                        <tr>
-                            <th scope="col" style="width:3%">Hospital</th>
-                            <th scope="col" style="width:3%">Paciente</th>
-                            <th scope="col" style="width:3%">Data Internação</th>
-                            <th scope="col" style="width:3%">Última visita</th>
-                            <th scope="col" style="width:3%">Dias última visita</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($longa_perm_list as $intern): ?>
-                        <?php
-                            if (!empty($intern["data_intern_int"])) {
-                                $date = new DateTime($intern["data_intern_int"]);
-                                $formattedDate = $date->format('d/m/Y');
-                            } else {
-                                $formattedDate = "Sem visita";
-                            }
-                            $diasUltimaVisita = null;
-                            $ultimaVisitaData = null;
-                            $idIntern = (int)($intern["id_internacao"] ?? 0);
-                            if ($idIntern > 0 && isset($ultimaVisitaPorInternacao[$idIntern])) {
-                                $rawData = $ultimaVisitaPorInternacao[$idIntern]['data'] ?? null;
-                                if (!empty($rawData)) {
-                                    try {
-                                        $ultimaVisitaData = (new DateTime($rawData))->format('d/m/Y');
-                                    } catch (Throwable $e) {
-                                        $ultimaVisitaData = null;
-                                    }
-                                    $diasUltimaVisita = diasDesdeData($rawData);
-                                }
-                            }
-                            $limiteDiasVisita = (int)($intern["dias_visita_seg"] ?? 0);
-                            if ($limiteDiasVisita <= 0) {
-                                $limiteDiasVisita = 10;
-                            }
-                            $classeDiasVisita = '';
-                            if ($diasUltimaVisita !== null && $limiteDiasVisita > 0) {
-                                if ($diasUltimaVisita >= $limiteDiasVisita) {
-                                    $classeDiasVisita = 'text-danger fw-semibold';
-                                } elseif ($diasUltimaVisita === ($limiteDiasVisita - 1)) {
-                                    $classeDiasVisita = 'text-warning fw-semibold';
-                                } else {
-                                    $classeDiasVisita = 'text-success fw-semibold';
-                                }
-                            }
-                            ?>
-                        <tr style="font-size:15px">
-                            <td scope="row">
-                                <?= htmlspecialchars($intern["nome_hosp"] ?? '', ENT_QUOTES, 'UTF-8') ?>
-                            </td>
-                            <td scope="row">
-                                <a
-                                    href="<?= $BASE_URL ?>show_internacao.php?id_internacao=<?= (int)($intern["id_internacao"] ?? 0) ?>">
-                                    <i class="bi bi-box-arrow-right"
-                                        style="color:green; margin-right:8px; font-size:1.2em;"></i>
-                                </a>
-                                <?= htmlspecialchars($intern["nome_pac"] ?? '', ENT_QUOTES, 'UTF-8') ?>
-                            </td>
-                            <td scope="row"><?= $formattedDate ?></td>
-                            <td scope="row"><?= $ultimaVisitaData ?? '—' ?></td>
-                            <td scope="row" class="<?= $classeDiasVisita ?>">
-                                <?= $diasUltimaVisita !== null ? $diasUltimaVisita . ' dias' : '—' ?>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-
-                        <?php if (count($longa_perm_list) == 0): ?>
-                        <tr>
-                            <td colspan="5" scope="row" class="col-id" style='font-size:15px'>
-                                Não foram encontrados registros
-                            </td>
-                        </tr>
-                        <?php endif ?>
-                    </tbody>
-                </table>
+                <div id="dash-longa-perm" class="dash-table-loading">
+                    Carregando...
+                </div>
             </div>
         </div>
     </div>
@@ -1104,6 +970,41 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
         selectElement.addEventListener('blur', function() {
             selectElement.classList.remove('open');
         });
+
+        function loadDashTables() {
+            const visitasEl = document.getElementById('dash-visitas-atraso');
+            const longaEl = document.getElementById('dash-longa-perm');
+            if (!visitasEl || !longaEl) return;
+
+            const formData = new URLSearchParams();
+            const hospVal = selectElement ? selectElement.value : '';
+            if (hospVal) formData.append('hospital_id', hospVal);
+
+            fetch('<?= $BASE_URL ?>ajax/dashboard_tabelas.php?_ts=' + Date.now(), {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
+            })
+            .then(function(res) {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return res.text();
+            })
+            .then(function(html) {
+                const temp = document.createElement('div');
+                temp.innerHTML = html;
+                const visitasContent = temp.querySelector('#dash-visitas-atraso-content');
+                const longaContent = temp.querySelector('#dash-longa-perm-content');
+                visitasEl.innerHTML = visitasContent ? visitasContent.innerHTML : '<div style="padding:10px">Não foi possível carregar.</div>';
+                longaEl.innerHTML = longaContent ? longaContent.innerHTML : '<div style="padding:10px">Não foi possível carregar.</div>';
+            })
+            .catch(function() {
+                visitasEl.innerHTML = '<div style="padding:10px">Erro ao carregar.</div>';
+                longaEl.innerHTML = '<div style="padding:10px">Erro ao carregar.</div>';
+            });
+        }
+
+        loadDashTables();
     });
     </script>
 </div>
@@ -1149,6 +1050,19 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
 canvas {
     width: 100%;
     border: none;
+}
+
+.dash-table-loading {
+    margin-top: 10px;
+    min-height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+    font-weight: 600;
+    background: #f8f7fb;
+    border-radius: 10px;
+    border: 1px dashed rgba(94, 35, 99, 0.2);
 }
 </style>
 
