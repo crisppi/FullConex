@@ -63,6 +63,10 @@ require_once("templates/header.php");
                     performance</a>
             </li>
             <li>
+                <a href="dashboard_operacional.php"><i class="bi bi-activity"
+                        style="font-size: 1rem;margin-right:5px; color: rgb(94, 35, 99);"></i> Dashboard operacional</a>
+            </li>
+            <li>
                 <a href="inteligencia/performance-equipes"><i class="bi bi-trophy"
                         style="font-size: 1rem;margin-right:5px; color: rgb(124, 58, 237);"></i> Performance equipes</a>
             </li>

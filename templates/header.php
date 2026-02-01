@@ -258,6 +258,10 @@ if (!empty($sessionIdUsuario)) {
                                                     class="bi bi-speedometer2"
                                                     style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
                                                 Dashboard</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>dashboard_operacional.php"><i
+                                                    class="bi bi-activity"
+                                                    style="font-size: 1rem;margin-right:5px; color: rgb(94, 35, 99);"></i>
+                                                Dashboard operacional</a></li>
                                     <li><a class="dropdown-item" href="<?= $BASE_URL ?>manual.html"><i class="bi bi-person"
                                                 style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
                                             Manual</a></li>
