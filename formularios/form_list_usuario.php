@@ -6,6 +6,10 @@ include_once("dao/usuarioDao.php");
 include_once("templates/header.php");
 include_once("array_dados.php");
 
+// Debug simples por querystring (?debug=1)
+$debug = isset($_GET['debug']) && $_GET['debug'] == '1';
+$__t0 = microtime(true);
+
 //Instanciando a classe
 $usuarioDAO = new UserDAO($conn, $BASE_URL);
 $QtdTotalUser = new UserDAO($conn, $BASE_URL);
@@ -33,16 +37,17 @@ $condicoes = array_filter($condicoes);
 // REMOVE POSICOES VAZIAS DO FILTRO
 $where = implode(' AND ', $condicoes);
 // print_r($condicoes);
-$qtdUserItens1 = $QtdTotalUser->selectAllUsuario($where, $order, $obLimite);
+$qtdIntItens = (int) $QtdTotalUser->countUsuario($where);
 
 $order = $ordenar;
-$qtdIntItens = count($qtdUserItens1);
 // PAGINACAO
 $obPagination = new pagination($qtdIntItens, $_GET['pag'] ?? 1, $limite ?? 10);
 $obLimite = $obPagination->getLimit();
 
 // PREENCHIMENTO DO FORMULARIO COM QUERY
 $query = $usuarioDAO->selectAllUsuario($where, $order, $obLimite);
+
+$__t1 = microtime(true);
 
 // PAGINACAO
 $paginacao = '';
@@ -74,6 +79,17 @@ if ($qtdIntItens > $limite) {
 
 <!--tabela evento-->
 <div class="container-fluid form_container" style="margin-top:-5px;">
+    <?php if ($debug): ?>
+        <div class="alert alert-warning" style="font-size:0.9rem;">
+            <strong>DEBUG list_usuario</strong><br>
+            where: <?= htmlspecialchars($where, ENT_QUOTES, 'UTF-8') ?><br>
+            order: <?= htmlspecialchars((string)$order, ENT_QUOTES, 'UTF-8') ?><br>
+            limit: <?= htmlspecialchars((string)$obLimite, ENT_QUOTES, 'UTF-8') ?><br>
+            total: <?= (int)$qtdIntItens ?><br>
+            query_count: <?= is_array($query) ? count($query) : 0 ?><br>
+            tempo: <?= number_format((($__t1 ?? microtime(true)) - $__t0), 4, '.', '') ?>s
+        </div>
+    <?php endif; ?>
     <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
     <script src="./scripts/cadastro/general.js"></script>

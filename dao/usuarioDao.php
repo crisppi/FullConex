@@ -485,6 +485,14 @@ class UserDAO implements UserDAOInterface
 
         return $usuario;
     }
+
+    public function countUsuario($where = null): int
+    {
+        $where = strlen($where) ? 'WHERE ' . $where : '';
+        $stmt = $this->conn->query('SELECT COUNT(*) AS total FROM tb_user ' . $where);
+        $stmt->execute();
+        return (int) $stmt->fetchColumn();
+    }
     public function QtdUsuario($where = null, $order = null, $limite = null)
     {
         $estipulante = [];

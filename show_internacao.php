@@ -729,14 +729,20 @@ usort($neg_filtered, function ($a, $b) {
                                                 </span>
                                             </a>
 
+                                            <?php
+                                                $rangeEnabled = !empty($minD) && !empty($maxD);
+                                                $rangeHref = $rangeEnabled
+                                                    ? ($visitaRangePdfBase . '&data_ini=' . urlencode((string)$minD) . '&data_fim=' . urlencode((string)$maxD))
+                                                    : '#';
+                                            ?>
                                             <a id="btn-visitas-range-pdf"
-                                                class="btn btn-sm btn-outline-primary disabled btn-visitas-eq"
-                                                data-base="<?= e($visitaRangePdfBase) ?>" href="#"
+                                                class="btn btn-sm btn-outline-primary btn-visitas-eq<?= $rangeEnabled ? '' : ' disabled' ?>"
+                                                data-base="<?= e($visitaRangePdfBase) ?>" href="<?= e($rangeHref) ?>"
                                                 target="_blank" rel="noopener"
-                                                aria-disabled="true">
+                                                aria-disabled="<?= $rangeEnabled ? 'false' : 'true' ?>">
                                                 <i class="fa-solid fa-file-pdf me-1"></i> PDF (período)
                                                 <span id="btn-visitas-range-info" class="d-block small mt-1 text-start text-muted">
-                                                    Use o filtro de datas
+                                                    <?= $rangeEnabled ? ('Período: ' . e($minLabel) . ' — ' . e($maxLabel)) : 'Use o filtro de datas' ?>
                                                 </span>
                                             </a>
 
@@ -1169,6 +1175,12 @@ usort($neg_filtered, function ($a, $b) {
             var currentId = <?= $initId ? (int)$initId : 'null' ?>;
             var currentRet = <?= $activeVisitRet ? 'true' : 'false' ?>;
             var redirectUrl = <?= json_encode($BASE_URL . 'show_internacao.php?id_internacao=' . (int)$id_internacao . '#visitas') ?>;
+            var rangeBtn = document.getElementById('btn-visitas-range-pdf');
+            var rangeInfo = document.getElementById('btn-visitas-range-info');
+            var rangeSel = document.getElementById('vis-periodo-selecionado');
+            var rangeSpan = document.getElementById('vis-periodo-range');
+            var visIni = document.getElementById('vis_ini');
+            var visFim = document.getElementById('vis_fim');
 
             function updateDeleteBtn() {
                 if (!deleteBtn) return;
@@ -1186,6 +1198,69 @@ usort($neg_filtered, function ($a, $b) {
             };
 
             updateDeleteBtn();
+
+            function formatDateBr(value) {
+                if (!value) return '';
+                var parts = value.split('-');
+                if (parts.length === 3) {
+                    return parts[2] + '/' + parts[1] + '/' + parts[0];
+                }
+                return value;
+            }
+
+            function updateRangeBtn() {
+                if (!rangeBtn || !visIni || !visFim) return;
+                var iniVal = visIni.value;
+                var fimVal = visFim.value;
+                var hasRange = !!(iniVal && fimVal);
+                var base = rangeBtn.getAttribute('data-base') || '';
+
+                if (hasRange) {
+                    rangeBtn.classList.remove('disabled');
+                    rangeBtn.setAttribute('aria-disabled', 'false');
+                    rangeBtn.href = base + '&data_ini=' + encodeURIComponent(iniVal) + '&data_fim=' + encodeURIComponent(fimVal);
+                    if (rangeInfo) {
+                        rangeInfo.textContent = 'Período: ' + formatDateBr(iniVal) + ' — ' + formatDateBr(fimVal);
+                        rangeInfo.classList.remove('text-muted');
+                    }
+                    if (rangeSel && rangeSpan) {
+                        rangeSpan.textContent = formatDateBr(iniVal) + ' — ' + formatDateBr(fimVal);
+                        rangeSel.style.display = 'block';
+                    }
+                } else {
+                    rangeBtn.classList.add('disabled');
+                    rangeBtn.setAttribute('aria-disabled', 'true');
+                    rangeBtn.href = '#';
+                    if (rangeInfo) {
+                        rangeInfo.textContent = 'Use o filtro de datas';
+                        rangeInfo.classList.add('text-muted');
+                    }
+                    if (rangeSel) {
+                        rangeSel.style.display = 'none';
+                    }
+                }
+            }
+
+            if (rangeBtn) {
+                rangeBtn.addEventListener('click', function(evt) {
+                    if (rangeBtn.classList.contains('disabled')) {
+                        evt.preventDefault();
+                    }
+                });
+            }
+            if (visIni) {
+                visIni.addEventListener('change', updateRangeBtn);
+                visIni.addEventListener('input', updateRangeBtn);
+            }
+            if (visFim) {
+                visFim.addEventListener('change', updateRangeBtn);
+                visFim.addEventListener('input', updateRangeBtn);
+            }
+            var btnAplicar = document.getElementById('btnAplicarVisitas');
+            var btnLimpar = document.getElementById('btnLimparVisitas');
+            if (btnAplicar) btnAplicar.addEventListener('click', updateRangeBtn);
+            if (btnLimpar) btnLimpar.addEventListener('click', updateRangeBtn);
+            updateRangeBtn();
 
             if (!modal || !confirmBtn) return;
 

@@ -1,7 +1,3 @@
-<script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
-<script src="./scripts/cadastro/general.js"></script>
-
 <?php
 
 include_once("models/hospitalUser.php");
@@ -12,6 +8,10 @@ include_once("models/message.php");
 include_once("array_dados.php");
 
 include_once("models/pagination.php");
+
+// Debug simples por querystring (?debug=1)
+$debug = isset($_GET['debug']) && $_GET['debug'] == '1';
+$__t0 = microtime(true);
 
 //Instanciando a classe 
 $hospitalUser = new hospitalUserDAO($conn, $BASE_URL);
@@ -37,8 +37,8 @@ $order = $ordenar;
 // REMOVE POSICOES VAZIAS DO FILTRO
 $where = implode(' AND ', $condicoes);
 
-$qtdHospItens1 = $QtdTotalpac->selectAllhospitalUser($where, $order, $obLimite);
-$qtdIntItens = count($qtdHospItens1); // total de registros
+$qtdRow = $QtdTotalpac->QtdhospitalUser($where);
+$qtdIntItens = (int)($qtdRow['qtd'] ?? 0); // total de registros
 $order = $ordenar;
 
 // PAGINACAO
@@ -47,6 +47,8 @@ $obLimite = $obPagination->getLimit();
 
 // PREENCHIMENTO DO FORMULARIO COM QUERY
 $query = $hospitalUser->selectAllhospitalUser($where, $order, $obLimite);
+
+$__t1 = microtime(true);
 
 // GETS 
 // unset($_GET['pag']);
@@ -79,9 +81,19 @@ if ($qtdIntItens > $limite) {
     $current_block = reset($block_pages)["bloco"];
 };
 ?>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <div class="container-fluid form_container" style="margin-top:-5px;">
+    <?php if ($debug): ?>
+        <div class="alert alert-warning" style="font-size:0.9rem;">
+            <strong>DEBUG list_hospitalUser</strong><br>
+            where: <?= htmlspecialchars($where, ENT_QUOTES, 'UTF-8') ?><br>
+            order: <?= htmlspecialchars((string)$order, ENT_QUOTES, 'UTF-8') ?><br>
+            limit: <?= htmlspecialchars((string)$obLimite, ENT_QUOTES, 'UTF-8') ?><br>
+            total: <?= (int)$qtdIntItens ?><br>
+            query_count: <?= is_array($query) ? count($query) : 0 ?><br>
+            tempo: <?= number_format((($__t1 ?? microtime(true)) - $__t0), 4, '.', '') ?>s
+        </div>
+    <?php endif; ?>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <div class="d-flex justify-content-between align-items-center">
         <h4 style="margin-top:-10px" class="page-title">Hospitais por Usuário</h4>
@@ -262,27 +274,7 @@ if ($qtdIntItens > $limite) {
                 <!-- paginacao que aparece abaixo da tabela -->
                 <div style="display: flex;margin-top:20px">
 
-                    <!-- Modal para abrir tela de cadastro -->
-                    <div class="modal fade" id="myModal">
-                        <div class="modal-dialog  modal-dialog-centered modal-xl">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h4 style="margin-top:-10px" class="page-title" style="color:white;">Cadastrar
-                                        Hospital por Usuário</h4>
-                                    <p class="page-description" style="color:white; margin-top:5px">Adicione
-                                        informações
-                                        sobre o Usuários/Hospital</p>
-                                </div>
-                                <div class="modal-body">
-                                    <div id="content-php"></div>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Modal para abrir tela de cadastro -->
-
-                    <div class="pagination" style="margin: 0 auto;">
+                <div class="pagination" style="margin: 0 auto;">
                         <?php if ($total_pages ?? 1 > 1): ?>
                         <ul class="pagination">
                             <?php
@@ -355,6 +347,8 @@ if ($qtdIntItens > $limite) {
     </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
+<script src="<?= $BASE_URL ?>scripts/cadastro/general.js"></script>
 <script>
 // ajax para submit do formulario de pesquisa
 $(document).ready(function() {
@@ -383,11 +377,6 @@ $(document).ready(function() {
     });
 });
 
-$(document).ready(function() {
-    loadContent(
-        'list_hospitalUser.php?pesquisa_nome=<?php print $busca ?>&pesquisa_user=<?php print $busca_user ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&ativo_user=<?php print 's' ?>&pag=<?php print 1 ?>&bl=<?php print 0 ?>'
-    );
-});
 </script>
 <style>
 .modal-backdrop {
@@ -407,11 +396,4 @@ $(document).ready(function() {
 </style>
 
 <script src="./js/input-estilo.js"></script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-src = "https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js";
-</script>
-<script src="./scripts/cadastro/general.js"></script>
-<script src="./js/load/form_list_imagem.js"></script>
