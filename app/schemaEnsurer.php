@@ -128,3 +128,49 @@ if (!function_exists('ensure_schema_version_table')) {
         }
     }
 }
+
+if (!function_exists('ensure_password_reset_table')) {
+    function ensure_password_reset_table(PDO $conn): void
+    {
+        static $checked = false;
+        if ($checked) return;
+        $checked = true;
+        try {
+            $stmt = $conn->prepare("
+                SELECT COUNT(*)
+                  FROM information_schema.TABLES
+                 WHERE TABLE_SCHEMA = DATABASE()
+                   AND TABLE_NAME = 'tb_user_password_reset'
+            ");
+            $stmt->execute();
+            $exists = (int)$stmt->fetchColumn() > 0;
+            if ($exists) {
+                return;
+            }
+            $conn->exec("
+                CREATE TABLE tb_user_password_reset (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    user_id INT NOT NULL,
+                    email VARCHAR(255) NOT NULL,
+                    token_hash CHAR(64) NOT NULL,
+                    code_hash CHAR(64) NOT NULL,
+                    expires_at DATETIME NOT NULL,
+                    used_at DATETIME NULL DEFAULT NULL,
+                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    request_ip VARCHAR(64) NULL DEFAULT NULL,
+                    user_agent VARCHAR(255) NULL DEFAULT NULL,
+                    UNIQUE KEY uq_token_hash (token_hash),
+                    KEY idx_user_id (user_id),
+                    KEY idx_email (email),
+                    KEY idx_expires_at (expires_at),
+                    KEY idx_used_at (used_at),
+                    CONSTRAINT fk_password_reset_user
+                        FOREIGN KEY (user_id) REFERENCES tb_user(id_usuario)
+                        ON DELETE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            ");
+        } catch (Throwable $e) {
+            error_log('[SCHEMA][tb_user_password_reset] ' . $e->getMessage());
+        }
+    }
+}

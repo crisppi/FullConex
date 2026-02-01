@@ -36,7 +36,10 @@ final class Gate
         $script = strtolower($_SERVER['SCRIPT_NAME'] ?? '');
         $scriptBase = strtolower(basename($script));
         if (($scriptBase === 'process_usuario.php' && strtolower($_POST['type'] ?? '') === 'update-senha')
-            || $scriptBase === 'process_reset_senha.php' || $scriptBase === 'nova_senha.php') {
+            || $scriptBase === 'process_reset_senha.php'
+            || $scriptBase === 'process_recuperar_senha.php'
+            || $scriptBase === 'process_redefinir_senha.php'
+            || $scriptBase === 'nova_senha.php') {
             return;
         }
 

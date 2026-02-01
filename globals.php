@@ -108,6 +108,8 @@ $__guardSkip = [
     'index.php',         // tela de login
     'index_novo.php',    // sua tela de login nova
     'nova_senha.php',    // troca de senha inicial
+    'process_recuperar_senha.php',
+    'process_redefinir_senha.php',
     // acrescente aqui quaisquer webhooks ou callbacks públicos, se existirem
 ];
 
@@ -121,6 +123,7 @@ ensure_visita_timer_column($conn);
 ensure_internacao_timer_column($conn);
 ensure_internacao_forecast_columns($conn);
 ensure_schema_version_table($conn);
+ensure_password_reset_table($conn);
 require_once __DIR__ . '/app/version.php';
 
 // ------------------ 7) Helpers globais (opcional) ----------

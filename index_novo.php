@@ -151,6 +151,24 @@
         text-decoration: none;
     }
 
+    .login-links {
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+        margin: -6px 0 10px;
+    }
+
+    .login-links a {
+        font-size: 12px;
+        color: #f3f7ff;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .login-links a:hover {
+        text-decoration: underline;
+    }
+
     /* ===============================
        Bloco Lilás (lado direito)
     =============================== */
@@ -386,6 +404,10 @@
                         <input type="password" id="senha_login" autocomplete="off" name="senha_login" required
                             style="border-radius:10px; border:1px solid #ccc; padding:10px; font-size:14px; width:100%; box-sizing:border-box; background-color: rgba(255,255,255,.6);" />
                         <label for="senha_login">Senha</label>
+                    </div>
+
+                    <div class="login-links">
+                        <a href="esqueci_senha.php">Esqueci minha senha</a>
                     </div>
 
                     <input type="submit" value="Login" class="login-btn" />
