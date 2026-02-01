@@ -471,7 +471,7 @@ $complexInfo = $complexMap[$effectiveLevel];
   </div>
   <div class="col-12 col-lg-5">
     <div class="card shadow-sm h-100 hub-compact-card hub-compact-card--neutral" style="border-radius:16px;">
-      <div class="card-body">
+      <div class="card-body hub-compact-right">
         <small class="text-uppercase text-muted fw-semibold" style="letter-spacing:.08em;">Indicadores clínicos</small>
         <div class="row mt-1 gy-1 text-secondary fw-semibold">
           <div class="col-sm-6 col-xl-4">
@@ -851,6 +851,10 @@ $complexInfo = $complexMap[$effectiveLevel];
     display: flex;
     justify-content: center;
     padding-top: .2rem;
+  }
+
+  .hub-compact-right {
+    padding-top: 26px;
   }
 
   .hub-compact-card--primary .hub-compact-recos {
