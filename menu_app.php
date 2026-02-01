@@ -611,12 +611,18 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
 }
 
 .header_div {
-    height: 40px;
-    background: linear-gradient(135deg, #7a3a80, #5a296a);
-    color: white;
-    border-top-right-radius: 5px;
-    border-top-left-radius: 5px;
-    text-align: center;
+    background: linear-gradient(135deg, #5a2f78, #a06bd4);
+    color: #fff;
+    border-radius: 32px;
+    padding: 18px 26px;
+    box-shadow: 0 25px 50px rgba(24, 0, 30, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin: 8px 0 4px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
 }
 </style>
 
@@ -712,7 +718,7 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
 
     <div class=" container-fluid">
         <div class="row m-t-25">
-            <div class="col-sm-6 col-lg-6">
+            <div class="col-12">
                 <div class="header_div">
                     <spam>Visitas em atraso</spam>
                 </div>
@@ -721,7 +727,7 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
                 </div>
             </div>
 
-            <div class="col-sm-6 col-lg-6">
+            <div class="col-12" style="margin-top:20px;">
                 <div class="header_div">
                     <spam>Pacientes de longa permanência</spam>
                 </div>
@@ -1117,6 +1123,19 @@ canvas {
     background: #f8f7fb;
     border-radius: 10px;
     border: 1px dashed rgba(94, 35, 99, 0.2);
+}
+
+.dash-table-scroll {
+    margin-top: 10px;
+    max-height: 420px;
+    overflow-y: auto;
+    overflow-x: auto;
+    border-radius: 10px;
+    width: 100%;
+}
+
+.dash-table-scroll table {
+    width: 100%;
 }
 
 .th-sortable {

@@ -81,7 +81,8 @@ class indicadoresDAO
                 p.nome_pac,
                 i.data_intern_int,
                 hos.nome_hosp,
-                s.dias_visita_seg
+                s.dias_visita_seg,
+                s.seguradora_seg
             FROM tb_internacao i
             JOIN tb_paciente  p   ON i.fk_paciente_int  = p.id_paciente
             JOIN tb_hospital  hos ON i.fk_hospital_int  = hos.id_hospital

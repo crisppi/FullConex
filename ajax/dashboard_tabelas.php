@@ -121,7 +121,7 @@ foreach ((array)$dados_internacoes_visitas as $v) {
 usort($dados_visitas_atraso, function ($a, $b) {
     return ($b['_dias_atraso'] ?? 0) <=> ($a['_dias_atraso'] ?? 0);
 });
-$dados_visitas_atraso_list = array_slice($dados_visitas_atraso, 0, 20);
+$dados_visitas_atraso_list = array_slice($dados_visitas_atraso, 0, 50);
 
 $longa_perm = $indicadores->getLongaPermanencia($where_hospital);
 $longa_perm_list = $longa_perm;
@@ -131,7 +131,7 @@ if (!empty($longa_perm_list)) {
         $db = diasDesdeData($b['data_intern_int'] ?? null) ?? 0;
         return $db <=> $da; // mais dias internado primeiro
     });
-$longa_perm_list = array_slice($longa_perm_list, 0, 20);
+$longa_perm_list = array_slice($longa_perm_list, 0, 50);
 } else {
     $longa_perm_list = [];
 }
@@ -145,9 +145,16 @@ $longa_perm_list = array_slice($longa_perm_list, 0, 20);
 ?>
 
 <div id="dash-visitas-atraso-content">
+    <div class="dash-table-scroll">
     <table style="margin-top:10px;" class="table table-sm table-striped table-hover table-condensed dash-sortable">
         <thead style="background: linear-gradient(135deg, #7a3a80, #5a296a);">
             <tr>
+                <th scope="col" style="width:3%" class="th-sortable" data-sort-type="number">Id Int
+                    <span class="sort-icons">
+                        <a href="#" data-dir="asc">▲</a>
+                        <a href="#" data-dir="desc">▼</a>
+                    </span>
+                </th>
                 <th scope="col" style="width:3%" class="th-sortable" data-sort-type="text">Hospital
                     <span class="sort-icons">
                         <a href="#" data-dir="asc">▲</a>
@@ -172,7 +179,7 @@ $longa_perm_list = array_slice($longa_perm_list, 0, 20);
                         <a href="#" data-dir="desc">▼</a>
                     </span>
                 </th>
-                <th scope="col" style="width:3%" class="th-sortable" data-sort-type="number">Dias de internação
+                <th scope="col" style="width:3%" class="th-sortable" data-sort-type="number">Dias última visita
                     <span class="sort-icons">
                         <a href="#" data-dir="asc">▲</a>
                         <a href="#" data-dir="desc">▼</a>
@@ -209,6 +216,7 @@ $longa_perm_list = array_slice($longa_perm_list, 0, 20);
                 }
                 ?>
             <tr style="font-size:15px">
+                <td scope="row"><?= (int)($intern["id_internacao"] ?? 0) ?></td>
                 <td scope="row">
                     <?= htmlspecialchars($intern["nome_hosp"] ?? '', ENT_QUOTES, 'UTF-8') ?>
                 </td>
@@ -232,20 +240,34 @@ $longa_perm_list = array_slice($longa_perm_list, 0, 20);
 
             <?php if (count($dados_visitas_atraso_list) == 0): ?>
             <tr>
-                <td colspan="5" scope="row" class="col-id" style='font-size:15px'>
+                <td colspan="6" scope="row" class="col-id" style='font-size:15px'>
                     Não foram encontrados registros
                 </td>
             </tr>
             <?php endif ?>
         </tbody>
     </table>
+    </div>
 </div>
 
 <div id="dash-longa-perm-content">
+    <div class="dash-table-scroll">
     <table style="margin-top:10px;" class="table table-sm table-striped table-hover table-condensed dash-sortable">
         <thead style="background: linear-gradient(135deg, #7a3a80, #5a296a);">
             <tr>
+                <th scope="col" style="width:3%" class="th-sortable" data-sort-type="number">Id Int
+                    <span class="sort-icons">
+                        <a href="#" data-dir="asc">▲</a>
+                        <a href="#" data-dir="desc">▼</a>
+                    </span>
+                </th>
                 <th scope="col" style="width:3%" class="th-sortable" data-sort-type="text">Hospital
+                    <span class="sort-icons">
+                        <a href="#" data-dir="asc">▲</a>
+                        <a href="#" data-dir="desc">▼</a>
+                    </span>
+                </th>
+                <th scope="col" style="width:3%" class="th-sortable" data-sort-type="text">Seguradora
                     <span class="sort-icons">
                         <a href="#" data-dir="asc">▲</a>
                         <a href="#" data-dir="desc">▼</a>
@@ -269,10 +291,10 @@ $longa_perm_list = array_slice($longa_perm_list, 0, 20);
                         <a href="#" data-dir="desc">▼</a>
                     </span>
                 </th>
-                <th scope="col" style="width:3%" class="th-sortable" data-sort-type="number">Dias última visita
+                <th scope="col" style="width:3%" class="th-sortable" data-sort-type="number">Dias Internacao
                     <span class="sort-icons">
                         <a href="#" data-dir="asc">▲</a>
-                        <a href="#" data-dir="desc">▼</a>
+                        <a href="#" data-dir="desc" class="active">▼</a>
                     </span>
                 </th>
             </tr>
@@ -303,8 +325,12 @@ $longa_perm_list = array_slice($longa_perm_list, 0, 20);
                 $diasInternacao = diasDesdeData($intern["data_intern_int"] ?? null);
                 ?>
             <tr style="font-size:15px">
+                <td scope="row"><?= (int)($intern["id_internacao"] ?? 0) ?></td>
                 <td scope="row">
                     <?= htmlspecialchars($intern["nome_hosp"] ?? '', ENT_QUOTES, 'UTF-8') ?>
+                </td>
+                <td scope="row">
+                    <?= htmlspecialchars($intern["seguradora_seg"] ?? '—', ENT_QUOTES, 'UTF-8') ?>
                 </td>
                 <td scope="row">
                     <a
@@ -316,7 +342,7 @@ $longa_perm_list = array_slice($longa_perm_list, 0, 20);
                 </td>
                 <td scope="row"><?= $formattedDate ?></td>
                 <td scope="row"><?= $ultimaVisitaData ?? '—' ?></td>
-                <td scope="row">
+                <td scope="row" class="text-danger fw-semibold">
                     <?= $diasInternacao !== null ? $diasInternacao . ' dias' : '—' ?>
                 </td>
             </tr>
@@ -324,11 +350,12 @@ $longa_perm_list = array_slice($longa_perm_list, 0, 20);
 
             <?php if (count($longa_perm_list) == 0): ?>
             <tr>
-                <td colspan="5" scope="row" class="col-id" style='font-size:15px'>
+                <td colspan="7" scope="row" class="col-id" style='font-size:15px'>
                     Não foram encontrados registros
                 </td>
             </tr>
             <?php endif ?>
         </tbody>
     </table>
+    </div>
 </div>
