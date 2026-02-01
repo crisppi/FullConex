@@ -709,49 +709,45 @@ usort($neg_filtered, function ($a, $b) {
                                     </div>
 
                                     <div class="mt-3">
-                                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-                                            <div class="d-flex flex-wrap gap-2 align-items-stretch">
-                                                <?php if (!empty($visitas_norm)): ?>
-                                                    <button type="button" class="btn btn-sm btn-outline-danger btn-ultimas-visitas"
-                                                        data-bs-toggle="modal" data-bs-target="#modalUltimasVisitas">
-                                                        <i class="fa-solid fa-clock-rotate-left me-1"></i> Últimas visitas
-                                                    </button>
-                                                <?php endif; ?>
+                                        <div class="d-flex flex-wrap justify-content-end align-items-stretch gap-2 mb-2 btn-visitas-row">
+                                            <?php if (!empty($visitas_norm)): ?>
+                                                <button type="button" class="btn btn-sm btn-outline-danger btn-ultimas-visitas btn-visitas-eq"
+                                                    data-bs-toggle="modal" data-bs-target="#modalUltimasVisitas">
+                                                    <i class="fa-solid fa-clock-rotate-left me-1"></i> Últimas visitas
+                                                </button>
+                                            <?php endif; ?>
 
-                                                <a id="btn-visita-pdf"
-                                                    class="btn btn-sm <?= e($visitaBtnClass) ?><?= $initId ? '' : ' disabled' ?>"
-                                                    data-pdf-base="<?= e($visitaPdfBase) ?>"
-                                                    href="<?= e($visitaPdfHref) ?>"
-                                                    target="_blank" rel="noopener"
-                                                    aria-disabled="<?= $initId ? 'false' : 'true' ?>">
-                                                    <i class="fa-solid fa-file-pdf me-1"></i> Baixar PDF
-                                                    <span id="btn-visita-date" class="d-block small mt-1 text-start<?= $initId ? '' : ' text-muted' ?>">
-                                                        <?= e($initId ? 'Data: ' . $initDateLabel : 'Selecione uma visita') ?>
-                                                    </span>
-                                                </a>
+                                            <a id="btn-visita-pdf"
+                                                class="btn btn-sm <?= e($visitaBtnClass) ?><?= $initId ? '' : ' disabled' ?> btn-visitas-eq"
+                                                data-pdf-base="<?= e($visitaPdfBase) ?>"
+                                                href="<?= e($visitaPdfHref) ?>"
+                                                target="_blank" rel="noopener"
+                                                aria-disabled="<?= $initId ? 'false' : 'true' ?>">
+                                                <i class="fa-solid fa-file-pdf me-1"></i> Baixar PDF
+                                                <span id="btn-visita-date" class="d-block small mt-1 text-start<?= $initId ? '' : ' text-muted' ?>">
+                                                    <?= e($initId ? 'Data: ' . $initDateLabel : 'Selecione uma visita') ?>
+                                                </span>
+                                            </a>
 
-                                                <a id="btn-visitas-range-pdf"
-                                                    class="btn btn-sm btn-outline-primary disabled"
-                                                    data-base="<?= e($visitaRangePdfBase) ?>" href="#"
-                                                    target="_blank" rel="noopener"
-                                                    aria-disabled="true">
-                                                    <i class="fa-solid fa-file-pdf me-1"></i> PDF (período)
-                                                    <span id="btn-visitas-range-info" class="d-block small mt-1 text-start text-muted">
-                                                        Use o filtro de datas
-                                                    </span>
-                                                </a>
-                                            </div>
-                                        </div>
+                                            <a id="btn-visitas-range-pdf"
+                                                class="btn btn-sm btn-outline-primary disabled btn-visitas-eq"
+                                                data-base="<?= e($visitaRangePdfBase) ?>" href="#"
+                                                target="_blank" rel="noopener"
+                                                aria-disabled="true">
+                                                <i class="fa-solid fa-file-pdf me-1"></i> PDF (período)
+                                                <span id="btn-visitas-range-info" class="d-block small mt-1 text-start text-muted">
+                                                    Use o filtro de datas
+                                                </span>
+                                            </a>
 
-                                        <?php $disableDeleteBtn = ($countVis <= 1) || !$initId || $activeVisitRet; ?>
-                                        <div class="d-flex justify-content-end">
+                                            <?php $disableDeleteBtn = ($countVis <= 1) || !$initId || $activeVisitRet; ?>
                                             <button type="button" id="btn-visita-delete-main"
-                                                class="btn btn-sm btn-outline-danger<?= $disableDeleteBtn ? ' disabled' : '' ?>"
+                                                class="btn btn-sm btn-danger btn-visitas-eq<?= $disableDeleteBtn ? ' disabled' : '' ?>"
                                                 data-bs-toggle="modal" data-bs-target="#modalDeleteVisitaInternacao"
                                                 data-delete-visita="<?= $initId ? e($initId) : '' ?>"
                                                 aria-disabled="<?= $disableDeleteBtn ? 'true' : 'false' ?>"
                                                 <?= $disableDeleteBtn ? 'disabled' : '' ?>>
-                                                <i class="fa-solid fa-trash-can me-1"></i> Remover visita selecionada
+                                                <i class="fa-solid fa-trash-can me-1"></i> Excluir visita
                                             </button>
                                         </div>
 
@@ -779,7 +775,6 @@ usort($neg_filtered, function ($a, $b) {
                                             </div>
 
                                             <div class="d-flex justify-content-between align-items-center mt-2">
-                                                <div class="small"><span class="legend-dot"></span> Clique nas datas para visualizar o relatório</div>
                                             </div>
                                         </div>
                                     </div>
@@ -1340,6 +1335,35 @@ usort($neg_filtered, function ($a, $b) {
     .btn-ultimas-visitas:focus {
         background-color: #ffeceb;
         color: #a11212
+    }
+
+    .btn-visitas-row .btn {
+        min-width: 170px;
+        height: 52px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 0.4rem 0.9rem;
+        white-space: nowrap;
+    }
+
+    .btn-visitas-row .btn span {
+        line-height: 1.1;
+    }
+
+    .btn-visitas-row .btn.btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .btn-visitas-row .btn.btn-danger:hover,
+    .btn-visitas-row .btn.btn-danger:focus {
+        background-color: #c82333;
+        border-color: #bd2130;
+        color: #fff;
     }
 
     .modal-ultimas-visitas .modal-dialog {
