@@ -1138,6 +1138,13 @@ canvas {
     width: 100%;
 }
 
+.dash-table-scroll thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: linear-gradient(135deg, #7a3a80, #5a296a);
+}
+
 .th-sortable {
     white-space: nowrap;
 }
