@@ -971,6 +971,60 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
             selectElement.classList.remove('open');
         });
 
+        function parseDashValue(value, type) {
+            const text = (value || '').trim();
+            if (type === 'number') {
+                const num = parseFloat(text.replace(/[^\d.-]/g, ''));
+                return Number.isFinite(num) ? num : -Infinity;
+            }
+            if (type === 'date') {
+                const parts = text.split('/');
+                if (parts.length === 3) {
+                    return Number(parts[2] + parts[1].padStart(2, '0') + parts[0].padStart(2, '0'));
+                }
+                return -Infinity;
+            }
+            return text.toLowerCase();
+        }
+
+        function sortDashTable(table, colIndex, dir, type) {
+            const tbody = table.querySelector('tbody');
+            if (!tbody) return;
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            rows.sort(function(a, b) {
+                const aCell = a.children[colIndex];
+                const bCell = b.children[colIndex];
+                const aVal = parseDashValue(aCell ? aCell.textContent : '', type);
+                const bVal = parseDashValue(bCell ? bCell.textContent : '', type);
+                if (type === 'text') {
+                    return dir === 'asc' ? aVal.localeCompare(bVal, 'pt-BR') : bVal.localeCompare(aVal, 'pt-BR');
+                }
+                return dir === 'asc' ? (aVal - bVal) : (bVal - aVal);
+            });
+            rows.forEach(function(row) {
+                tbody.appendChild(row);
+            });
+        }
+
+        document.addEventListener('click', function(event) {
+            const link = event.target.closest('.dash-sortable .sort-icons a');
+            if (!link) return;
+            event.preventDefault();
+            const th = link.closest('th');
+            const table = link.closest('table');
+            if (!th || !table) return;
+            const dir = link.getAttribute('data-dir') || 'asc';
+            const type = th.getAttribute('data-sort-type') || 'text';
+            const colIndex = th.cellIndex;
+
+            table.querySelectorAll('.sort-icons a').forEach(function(a) {
+                a.classList.remove('active');
+            });
+            link.classList.add('active');
+
+            sortDashTable(table, colIndex, dir, type);
+        });
+
         function loadDashTables() {
             const visitasEl = document.getElementById('dash-visitas-atraso');
             const longaEl = document.getElementById('dash-longa-perm');
@@ -1063,6 +1117,32 @@ canvas {
     background: #f8f7fb;
     border-radius: 10px;
     border: 1px dashed rgba(94, 35, 99, 0.2);
+}
+
+.th-sortable {
+    white-space: nowrap;
+}
+
+.th-sortable .sort-icons {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+.th-sortable .sort-icons a {
+    text-decoration: none;
+    font-size: 0.75rem;
+    color: #ffffff;
+    margin-left: 2px;
+    opacity: 0.7;
+}
+
+.th-sortable .sort-icons a.active {
+    color: #ffd966;
+    opacity: 1;
+    font-weight: bold;
 }
 </style>
 

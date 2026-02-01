@@ -145,14 +145,39 @@ $longa_perm_list = array_slice($longa_perm_list, 0, 20);
 ?>
 
 <div id="dash-visitas-atraso-content">
-    <table style="margin-top:10px;" class="table table-sm table-striped table-hover table-condensed">
+    <table style="margin-top:10px;" class="table table-sm table-striped table-hover table-condensed dash-sortable">
         <thead style="background: linear-gradient(135deg, #7a3a80, #5a296a);">
             <tr>
-                <th scope="col" style="width:3%">Hospital</th>
-                <th scope="col" style="width:3%">Seguradora</th>
-                <th scope="col" style="width:3%">Paciente</th>
-                <th scope="col" style="width:3%">Ultima Visita</th>
-                <th scope="col" style="width:3%">Dias última visita</th>
+                <th scope="col" style="width:3%" class="th-sortable" data-sort-type="text">Hospital
+                    <span class="sort-icons">
+                        <a href="#" data-dir="asc">▲</a>
+                        <a href="#" data-dir="desc">▼</a>
+                    </span>
+                </th>
+                <th scope="col" style="width:3%" class="th-sortable" data-sort-type="text">Seguradora
+                    <span class="sort-icons">
+                        <a href="#" data-dir="asc">▲</a>
+                        <a href="#" data-dir="desc">▼</a>
+                    </span>
+                </th>
+                <th scope="col" style="width:3%" class="th-sortable" data-sort-type="text">Paciente
+                    <span class="sort-icons">
+                        <a href="#" data-dir="asc">▲</a>
+                        <a href="#" data-dir="desc">▼</a>
+                    </span>
+                </th>
+                <th scope="col" style="width:3%" class="th-sortable" data-sort-type="date">Ultima Visita
+                    <span class="sort-icons">
+                        <a href="#" data-dir="asc">▲</a>
+                        <a href="#" data-dir="desc">▼</a>
+                    </span>
+                </th>
+                <th scope="col" style="width:3%" class="th-sortable" data-sort-type="number">Dias de internação
+                    <span class="sort-icons">
+                        <a href="#" data-dir="asc">▲</a>
+                        <a href="#" data-dir="desc">▼</a>
+                    </span>
+                </th>
             </tr>
         </thead>
         <tbody>
@@ -217,14 +242,39 @@ $longa_perm_list = array_slice($longa_perm_list, 0, 20);
 </div>
 
 <div id="dash-longa-perm-content">
-    <table style="margin-top:10px;" class="table table-sm table-striped table-hover table-condensed">
+    <table style="margin-top:10px;" class="table table-sm table-striped table-hover table-condensed dash-sortable">
         <thead style="background: linear-gradient(135deg, #7a3a80, #5a296a);">
             <tr>
-                <th scope="col" style="width:3%">Hospital</th>
-                <th scope="col" style="width:3%">Paciente</th>
-                <th scope="col" style="width:3%">Data Internação</th>
-                <th scope="col" style="width:3%">Última visita</th>
-                <th scope="col" style="width:3%">Dias última visita</th>
+                <th scope="col" style="width:3%" class="th-sortable" data-sort-type="text">Hospital
+                    <span class="sort-icons">
+                        <a href="#" data-dir="asc">▲</a>
+                        <a href="#" data-dir="desc">▼</a>
+                    </span>
+                </th>
+                <th scope="col" style="width:3%" class="th-sortable" data-sort-type="text">Paciente
+                    <span class="sort-icons">
+                        <a href="#" data-dir="asc">▲</a>
+                        <a href="#" data-dir="desc">▼</a>
+                    </span>
+                </th>
+                <th scope="col" style="width:3%" class="th-sortable" data-sort-type="date">Data Internação
+                    <span class="sort-icons">
+                        <a href="#" data-dir="asc">▲</a>
+                        <a href="#" data-dir="desc">▼</a>
+                    </span>
+                </th>
+                <th scope="col" style="width:3%" class="th-sortable" data-sort-type="date">Última visita
+                    <span class="sort-icons">
+                        <a href="#" data-dir="asc">▲</a>
+                        <a href="#" data-dir="desc">▼</a>
+                    </span>
+                </th>
+                <th scope="col" style="width:3%" class="th-sortable" data-sort-type="number">Dias última visita
+                    <span class="sort-icons">
+                        <a href="#" data-dir="asc">▲</a>
+                        <a href="#" data-dir="desc">▼</a>
+                    </span>
+                </th>
             </tr>
         </thead>
         <tbody>
@@ -250,20 +300,7 @@ $longa_perm_list = array_slice($longa_perm_list, 0, 20);
                         $diasUltimaVisita = diasDesdeData($rawData);
                     }
                 }
-                $limiteDiasVisita = (int)($intern["dias_visita_seg"] ?? 0);
-                if ($limiteDiasVisita <= 0) {
-                    $limiteDiasVisita = 10;
-                }
-                $classeDiasVisita = '';
-                if ($diasUltimaVisita !== null && $limiteDiasVisita > 0) {
-                    if ($diasUltimaVisita >= $limiteDiasVisita) {
-                        $classeDiasVisita = 'text-danger fw-semibold';
-                    } elseif ($diasUltimaVisita === ($limiteDiasVisita - 1)) {
-                        $classeDiasVisita = 'text-warning fw-semibold';
-                    } else {
-                        $classeDiasVisita = 'text-success fw-semibold';
-                    }
-                }
+                $diasInternacao = diasDesdeData($intern["data_intern_int"] ?? null);
                 ?>
             <tr style="font-size:15px">
                 <td scope="row">
@@ -279,8 +316,8 @@ $longa_perm_list = array_slice($longa_perm_list, 0, 20);
                 </td>
                 <td scope="row"><?= $formattedDate ?></td>
                 <td scope="row"><?= $ultimaVisitaData ?? '—' ?></td>
-                <td scope="row" class="<?= $classeDiasVisita ?>">
-                    <?= $diasUltimaVisita !== null ? $diasUltimaVisita . ' dias' : '—' ?>
+                <td scope="row">
+                    <?= $diasInternacao !== null ? $diasInternacao . ' dias' : '—' ?>
                 </td>
             </tr>
             <?php endforeach; ?>
