@@ -1329,6 +1329,15 @@ document.addEventListener('DOMContentLoaded', function() {
         --ov-accent-100: var(--brand-100)
     }
 
+    #internTabsContent .tab-pane {
+        display: none !important;
+    }
+
+    #internTabsContent .tab-pane.active,
+    #internTabsContent .tab-pane.active.show {
+        display: block !important;
+    }
+
     .btn-ultimas-visitas {
         border: 2px solid #c62828;
         color: #c62828;

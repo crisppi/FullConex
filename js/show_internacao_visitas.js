@@ -27,6 +27,27 @@
         var tabsEl = document.getElementById('internTabs');
         if (!tabsEl) return;
 
+        function enforceSinglePane(targetSel) {
+            var panes = document.querySelectorAll('#internTabsContent .tab-pane');
+            panes.forEach(function(pane) {
+                pane.classList.remove('show', 'active');
+                pane.style.display = 'none';
+            });
+            if (targetSel) {
+                var active = document.querySelector(targetSel);
+                if (active) {
+                    active.classList.add('active', 'show');
+                    active.style.display = 'block';
+                }
+            }
+        }
+
+        function scrollTabsToTop() {
+            var rect = tabsEl.getBoundingClientRect();
+            var top = rect.top + window.pageYOffset - 12;
+            window.scrollTo({ top: Math.max(0, top), behavior: 'instant' });
+        }
+
         var hash = window.location.hash;
         if (hash) {
             var triggerEl = tabsEl.querySelector('button[data-bs-target="' + hash + '"]');
@@ -34,6 +55,7 @@
                 new window.bootstrap.Tab(triggerEl).show();
             }
         }
+        enforceSinglePane(hash || '#resumo');
 
         if (tabsBound) {
             ensureTimelineFocus();
@@ -41,9 +63,25 @@
         }
 
         tabsEl.querySelectorAll('button[data-bs-toggle="pill"]').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                scrollTabsToTop();
+            });
             btn.addEventListener('shown.bs.tab', function(ev) {
                 var target = ev.target.getAttribute('data-bs-target');
-                if (target) history.replaceState(null, '', target);
+                if (target) {
+                    var baseUrl = window.location.pathname + window.location.search.split('#')[0];
+                    var tabKey = target.replace('#', '');
+                    var url = baseUrl;
+                    if (url.indexOf('aba=') === -1) {
+                        url += (url.indexOf('?') === -1 ? '?' : '&') + 'aba=' + tabKey;
+                    } else {
+                        url = url.replace(/([?&]aba=)[^&]*/i, '$1' + tabKey);
+                    }
+                    history.replaceState(null, '', url);
+                }
+                scrollTabsToTop();
+                setTimeout(scrollTabsToTop, 60);
+                enforceSinglePane(target);
                 if (target === '#visitas') {
                     setTimeout(ensureTimelineFocus, 0);
                 }
