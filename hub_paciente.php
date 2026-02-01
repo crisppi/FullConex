@@ -23,6 +23,16 @@ $pacienteDao = new pacienteDAO($conn, $BASE_URL);
 $seguradoraDao = new seguradoraDAO($conn, $BASE_URL);
 $estipulanteDao = new estipulanteDAO($conn, $BASE_URL);
 
+// Debug opcional de timing (?debug_timing=1)
+$debugTiming = filter_input(INPUT_GET, 'debug_timing');
+$hubT0 = microtime(true);
+$hubLog = function (string $label) use ($debugTiming, $hubT0) {
+  if ($debugTiming) {
+    $elapsed = (int) round((microtime(true) - $hubT0) * 1000);
+    error_log("hub_paciente timing: {$label} ({$elapsed} ms)");
+  }
+};
+
 // GET
 $id_paciente = filter_input(INPUT_GET, "id_paciente");
 if (!$id_paciente) {
@@ -39,6 +49,7 @@ if ($rahAfterSave) {
     unset($_SESSION['rah_after_save']);
 }
 $internacoes = $internacaoDao->listByPaciente((int)$id_paciente); // já vem com senha_int
+$hubLog('listByPaciente');
 
 // Dados do paciente
 $paciente = $pacienteDao->findById($id_paciente); // seu findById retorna array-like com $paciente['0'][campo]
@@ -217,6 +228,12 @@ $allowedCargos = [
 ];
 $showClinicalGroups = $cargoNorm !== '' && in_array($cargoNorm, $allowedCargos, true);
 $riskInternacaoId = null;
+// Tenta limitar tempo das consultas (quando suportado pelo MySQL/MariaDB)
+try {
+  $conn->exec("SET SESSION MAX_EXECUTION_TIME=5000");
+} catch (Throwable $e) {
+  // ignora se o servidor não suportar
+}
 try {
   $stmtLast = $conn->prepare("
       SELECT id_internacao
@@ -232,6 +249,7 @@ try {
     $riskService = new ReadmissionRiskService($conn);
     $riskOverview = $riskService->scoreInternacao($riskInternacaoId);
     $riskOverview['internacao_referencia'] = $riskInternacaoId;
+    $hubLog('scoreInternacao');
   } else {
     $riskOverview = [
       'available' => false,
@@ -271,6 +289,7 @@ try {
     ");
   $stmtResumo->bindValue(':pac', (int)$id_paciente, PDO::PARAM_INT);
   $stmtResumo->execute();
+  $hubLog('indicadoresResumo');
   $rowResumo = $stmtResumo->fetch(PDO::FETCH_ASSOC) ?: [];
   $indicadoresPaciente['total_internacoes'] = (int)($rowResumo['total_int'] ?? 0);
   $indicadoresPaciente['media_permanencia'] = round((float)($rowResumo['media_dias'] ?? 0), 1);
@@ -285,13 +304,15 @@ try {
     ");
   $stmtEventos->bindValue(':pac', (int)$id_paciente, PDO::PARAM_INT);
   $stmtEventos->execute();
-$indicadoresPaciente['eventos_adversos'] = (int)$stmtEventos->fetchColumn();
+  $hubLog('indicadoresEventos');
+  $indicadoresPaciente['eventos_adversos'] = (int)$stmtEventos->fetchColumn();
 
   $stmtAnt = $conn->prepare("
       SELECT COUNT(*) FROM tb_intern_antec WHERE fk_id_paciente = :pac
     ");
   $stmtAnt->bindValue(':pac', (int)$id_paciente, PDO::PARAM_INT);
   $stmtAnt->execute();
+  $hubLog('indicadoresAntecedentes');
   $indicadoresPaciente['antecedentes'] = (int)$stmtAnt->fetchColumn();
 } catch (Throwable $e) {
   // Mantém valores padrão silenciosamente
@@ -404,13 +425,13 @@ $complexInfo = $complexMap[$effectiveLevel];
 <?php if ($showClinicalGroups): ?>
 <div class="row g-3 mb-3">
   <div class="col-12 col-lg-5">
-    <div class="card shadow-sm h-100" style="border-radius:16px;border:2px solid <?= $palette['border'] ?>;background:<?= $palette['bg'] ?>;color:<?= $palette['text'] ?>;">
+    <div class="card shadow-sm h-100 hub-compact-card" style="border-radius:16px;border:2px solid <?= $palette['border'] ?>;background:<?= $palette['bg'] ?>;color:<?= $palette['text'] ?>;">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-start mb-2">
           <div>
             <small class="text-uppercase fw-semibold" style="letter-spacing:.08em;color:<?= $palette['text'] ?>;">Indicador de readmissão</small>
             <?php if (!empty($riskOverview['available'])): ?>
-              <div style="font-size:2.6rem;font-weight:700;line-height:1;"><?= $probPct ?>%</div>
+              <div class="hub-compact-big"><?= $probPct ?>%</div>
               <div class="small">
                 Nível <?= strtoupper($riskLevel ?: 'BAIXO') ?> • limiar <?= $thresholdPct ?>%
               </div>
@@ -446,33 +467,33 @@ $complexInfo = $complexMap[$effectiveLevel];
     </div>
   </div>
   <div class="col-12 col-lg-7">
-    <div class="card shadow-sm h-100" style="border-radius:16px;">
+    <div class="card shadow-sm h-100 hub-compact-card" style="border-radius:16px;">
       <div class="card-body">
         <small class="text-uppercase text-muted fw-semibold" style="letter-spacing:.08em;">Indicadores clínicos</small>
-        <div class="row mt-2 gy-3 text-secondary fw-semibold">
+        <div class="row mt-2 gy-2 text-secondary fw-semibold">
           <div class="col-sm-6 col-xl-4">
             <div class="small text-muted">Total de internações</div>
-            <div style="font-size:1.4rem;"><?= (int)$indicadoresPaciente['total_internacoes'] ?></div>
+            <div class="hub-compact-metric"><?= (int)$indicadoresPaciente['total_internacoes'] ?></div>
           </div>
           <div class="col-sm-6 col-xl-4">
             <div class="small text-muted">Média de permanência</div>
-            <div style="font-size:1.4rem;"><?= number_format($indicadoresPaciente['media_permanencia'], 1, ',', '.') ?> dias</div>
+            <div class="hub-compact-metric"><?= number_format($indicadoresPaciente['media_permanencia'], 1, ',', '.') ?> dias</div>
           </div>
           <div class="col-sm-6 col-xl-4">
             <div class="small text-muted">Longa permanência (&ge;20d)</div>
-            <div style="font-size:1.4rem;"><?= (int)$indicadoresPaciente['long_stay'] ?></div>
+            <div class="hub-compact-metric"><?= (int)$indicadoresPaciente['long_stay'] ?></div>
           </div>
           <div class="col-sm-6 col-xl-4">
             <div class="small text-muted">Eventos adversos</div>
-            <div style="font-size:1.4rem;"><?= (int)$indicadoresPaciente['eventos_adversos'] ?></div>
+            <div class="hub-compact-metric"><?= (int)$indicadoresPaciente['eventos_adversos'] ?></div>
           </div>
           <div class="col-sm-6 col-xl-4">
             <div class="small text-muted">Antecedentes registrados</div>
-            <div style="font-size:1.4rem;"><?= (int)$indicadoresPaciente['antecedentes'] ?></div>
+            <div class="hub-compact-metric"><?= (int)$indicadoresPaciente['antecedentes'] ?></div>
           </div>
           <div class="col-sm-6 col-xl-4">
             <div class="small text-muted">Última internação</div>
-            <div style="font-size:1.4rem;"><?= htmlspecialchars($ultimaInternFmt) ?></div>
+            <div class="hub-compact-metric"><?= htmlspecialchars($ultimaInternFmt) ?></div>
           </div>
         </div>
       </div>
@@ -652,6 +673,20 @@ $complexInfo = $complexMap[$effectiveLevel];
 
 </div>
 
+<script>
+  (function() {
+    try {
+      console.log('[hub_paciente] DOM ready:', document.readyState);
+      window.addEventListener('load', function() {
+        console.log('[hub_paciente] window load fired');
+      });
+      setTimeout(function() {
+        console.log('[hub_paciente] 3s after load. readyState=', document.readyState);
+      }, 3000);
+    } catch (e) {}
+  })();
+</script>
+
 <style>
   :root {
     --brand: #5e2363;
@@ -697,6 +732,24 @@ $complexInfo = $complexMap[$effectiveLevel];
     border-radius: 999px;
     background: linear-gradient(180deg, var(--brand), #c997d2);
     opacity: .85;
+  }
+
+  .hub-compact-card .card-body {
+    padding: 8px 10px;
+  }
+
+  .hub-compact-card .hub-compact-big {
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .hub-compact-card .hub-compact-metric {
+    font-size: .95rem;
+  }
+
+  .hub-compact-card .small {
+    font-size: .7rem;
   }
 
   .contas-summary .summary-card .card-body {
@@ -1018,21 +1071,15 @@ $complexInfo = $complexMap[$effectiveLevel];
 </script>
 <script src="<?= $BASE_URL ?>js/hub_paciente.js?v=<?= filemtime('js/hub_paciente.js') ?>"></script>
 
-
-<?php
-// Carrega as internações (precisa vir com 'senha_int' do DAO)
-$preloadedInt = $internacaoDao->listByPaciente((int)$id_paciente);
-?>
 <script>
   // Diz qual campo é a senha e injeta os dados pro JS
   window.HUB_SENHA_FIELD = 'senha_int';
-  window.PRELOADED_INT = <?= json_encode($preloadedInt, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+  window.PRELOADED_INT = <?= json_encode($internacoes, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 
   // (mantém o que você já tinha)
   window.BASE_URL = '<?= rtrim($BASE_URL, '/') . '/' ?>';
   window.PACIENTE_ID = <?= (int) $id_paciente ?>;
 </script>
-<script src="<?= rtrim($BASE_URL, '/') ?>/js/pages/hub_paciente.js?v=<?= time() ?>"></script>
 
 <?php if ($rahAfterSave && !empty($rahAfterSave['accounts_url'])): ?>
 <div class="modal fade" id="rahContinueModal" tabindex="-1" aria-labelledby="rahContinueTitle" aria-hidden="true">
@@ -1065,6 +1112,10 @@ $preloadedInt = $internacaoDao->listByPaciente((int)$id_paciente);
     document.addEventListener('DOMContentLoaded', function () {
         var modalEl = document.getElementById('rahContinueModal');
         if (!modalEl) return;
+        if (!(window.bootstrap && typeof window.bootstrap.Modal === 'function')) {
+            console.warn('[hub_paciente] bootstrap.Modal indisponível; pulando modal');
+            return;
+        }
         var modal = new bootstrap.Modal(modalEl, {backdrop: 'static', keyboard: false});
         modal.show();
         document.getElementById('rahModalAccounts').addEventListener('click', function () {
