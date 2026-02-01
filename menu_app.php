@@ -35,6 +35,31 @@ $hospital_selecionado = isset($_POST['hospital_id']) ? (int)$_POST['hospital_id'
 $id_usuario_sessao    = isset($_SESSION['id_usuario']) ? (int)$_SESSION['id_usuario'] : 0;
 $nivel_sessao         = isset($_SESSION['nivel']) ? (int)$_SESSION['nivel'] : 99;
 
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
+
+function dashCacheGet(string $key, int $ttl)
+{
+    $cache = $_SESSION['dash_menu_cache'] ?? [];
+    if (!isset($cache[$key])) return null;
+    $item = $cache[$key];
+    if (!is_array($item) || !isset($item['ts'])) return null;
+    if ((time() - (int)$item['ts']) > $ttl) return null;
+    return $item['data'] ?? null;
+}
+
+function dashCacheSet(string $key, $data): void
+{
+    if (!isset($_SESSION['dash_menu_cache'])) $_SESSION['dash_menu_cache'] = [];
+    $_SESSION['dash_menu_cache'][$key] = [
+        'ts' => time(),
+        'data' => $data,
+    ];
+}
+
+$cacheBase = 'dash_menu_' . $hospital_selecionado . '_' . $id_usuario_sessao . '_' . $nivel_sessao;
+
 // -----------------------------
 // CONDIÇÕES / WHEREs
 // -----------------------------
@@ -99,12 +124,27 @@ $forecastService  = new PermanenciaForecastService($conn);
 $forecastSummary  = ['updated' => 0, 'skipped' => 0, 'model' => 'permanencia-lite-v1'];
 $forecastRows     = [];
 try {
-    $forecastSummary = $forecastService->refreshActiveForecasts($hospital_selecionado ?: null);
-    $forecastRows    = $forecastService->fetchDashboardRows(
-        $hospital_selecionado ?: null,
-        $id_usuario_sessao ?: null,
-        $nivel_sessao ?? null
-    );
+    $refreshKey = $cacheBase . '_forecast_refresh_ts';
+    $lastRefresh = dashCacheGet($refreshKey, 3600);
+    $shouldRefresh = !$lastRefresh || (time() - (int)$lastRefresh) > 600;
+    if ($shouldRefresh) {
+        $forecastSummary = $forecastService->refreshActiveForecasts($hospital_selecionado ?: null);
+        dashCacheSet($refreshKey, time());
+        dashCacheSet($cacheBase . '_forecast_summary', $forecastSummary);
+    } else {
+        $cachedSummary = dashCacheGet($cacheBase . '_forecast_summary', 3600);
+        if (is_array($cachedSummary)) $forecastSummary = $cachedSummary;
+    }
+
+    $forecastRows = dashCacheGet($cacheBase . '_forecast_rows', 120);
+    if (!is_array($forecastRows)) {
+        $forecastRows = $forecastService->fetchDashboardRows(
+            $hospital_selecionado ?: null,
+            $id_usuario_sessao ?: null,
+            $nivel_sessao ?? null
+        );
+        dashCacheSet($cacheBase . '_forecast_rows', $forecastRows);
+    }
 } catch (Throwable $e) {
     error_log('[ForecastService] ' . $e->getMessage());
 }
@@ -178,9 +218,23 @@ $hospital_name = (!empty($filtered_hospital) && !empty($filtered_hospital[0]['no
 // -----------------------------
 // BUSCAS
 // -----------------------------
-$dados_internacoes_geral   = $Internacao_geral->selectAllInternacaoList($where);
-$dados_internacoes_uti     = $Internacao_geral->QtdInternacao("ac.internado_int = 's' AND ut.id_uti IS NOT NULL");
-$dados_internacoes_visitas = $Internacao_geral->selectInternVisLastWhere($where_vis);
+$dados_internacoes_geral = dashCacheGet($cacheBase . '_internacoes_geral', 60);
+if (!is_array($dados_internacoes_geral)) {
+    $dados_internacoes_geral = $Internacao_geral->selectAllInternacaoList($where);
+    dashCacheSet($cacheBase . '_internacoes_geral', $dados_internacoes_geral);
+}
+
+$dados_internacoes_uti = dashCacheGet($cacheBase . '_internacoes_uti', 60);
+if (!is_array($dados_internacoes_uti)) {
+    $dados_internacoes_uti = $Internacao_geral->QtdInternacao("ac.internado_int = 's' AND ut.id_uti IS NOT NULL");
+    dashCacheSet($cacheBase . '_internacoes_uti', $dados_internacoes_uti);
+}
+
+$dados_internacoes_visitas = dashCacheGet($cacheBase . '_internacoes_visitas', 60);
+if (!is_array($dados_internacoes_visitas)) {
+    $dados_internacoes_visitas = $Internacao_geral->selectInternVisLastWhere($where_vis);
+    dashCacheSet($cacheBase . '_internacoes_visitas', $dados_internacoes_visitas);
+}
 
 $ultimaVisitaPorInternacao = [];
 foreach ((array)$dados_internacoes_visitas as $vis) {
@@ -204,7 +258,11 @@ foreach ((array)$dados_internacoes_visitas as $vis) {
 // Capeante (concatenação corrigida)
 $capFilter  = "ca.em_auditoria_cap IS NULL";
 $where_cap  = trim($where) !== '' ? ($where . " AND " . $capFilter) : $capFilter;
-$dados_capeante = $Internacao_geral->selectAllInternacaoCapList($where_cap);
+$dados_capeante = dashCacheGet($cacheBase . '_capeante', 60);
+if (!is_array($dados_capeante)) {
+    $dados_capeante = $Internacao_geral->selectAllInternacaoCapList($where_cap);
+    dashCacheSet($cacheBase . '_capeante', $dados_capeante);
+}
 
 // -----------------------------
 // FILTROS AUXILIARES
@@ -276,12 +334,25 @@ usort($dados_visitas_atraso, function ($a, $b) {
 $dados_visitas_atraso_list = array_slice($dados_visitas_atraso, -8);
 
 // Indicadores
-$drg_acima          = $indicadores->getDrgAcima($where_gerais);
-$perc_uti           = $indicadores->getUtiPerc($where_gerais);
+$drg_acima = dashCacheGet($cacheBase . '_drg_acima', 60);
+if (!is_array($drg_acima)) {
+    $drg_acima = $indicadores->getDrgAcima($where_gerais);
+    dashCacheSet($cacheBase . '_drg_acima', $drg_acima);
+}
+
+$perc_uti = dashCacheGet($cacheBase . '_perc_uti', 60);
+if (!is_array($perc_uti)) {
+    $perc_uti = $indicadores->getUtiPerc($where_gerais);
+    dashCacheSet($cacheBase . '_perc_uti', $perc_uti);
+}
 
 // Longa permanência
-$longa_perm         = $indicadores->getLongaPermanencia($where_hospital);
-$longa_perm_list    = $indicadores->getLongaPermanencia($where_hospital);
+$longa_perm = dashCacheGet($cacheBase . '_longa_perm', 60);
+if (!is_array($longa_perm)) {
+    $longa_perm = $indicadores->getLongaPermanencia($where_hospital);
+    dashCacheSet($cacheBase . '_longa_perm', $longa_perm);
+}
+$longa_perm_list = $longa_perm;
 if (!empty($longa_perm_list)) {
     usort($longa_perm_list, function ($a, $b) {
         return strcmp($a['data_intern_int'] ?? '', $b['data_intern_int'] ?? '');
@@ -292,16 +363,32 @@ if (!empty($longa_perm_list)) {
 }
 
 // Contas paradas
-$contas_paradas     = $indicadores->getContasParadas($where_contas);
+$contas_paradas = dashCacheGet($cacheBase . '_contas_paradas', 60);
+if (!is_array($contas_paradas)) {
+    $contas_paradas = $indicadores->getContasParadas($where_contas);
+    dashCacheSet($cacheBase . '_contas_paradas', $contas_paradas);
+}
 
 // UTI não pertinente
-$uti_nao_pertinente = $indicadores->getUtiPertinente($where_gerais);
+$uti_nao_pertinente = dashCacheGet($cacheBase . '_uti_nao_pertinente', 60);
+if (!is_array($uti_nao_pertinente)) {
+    $uti_nao_pertinente = $indicadores->getUtiPertinente($where_gerais);
+    dashCacheSet($cacheBase . '_uti_nao_pertinente', $uti_nao_pertinente);
+}
 
 // Score baixo
-$score_baixo        = $indicadores->getScoreBaixo($where_gerais);
+$score_baixo = dashCacheGet($cacheBase . '_score_baixo', 60);
+if (!is_array($score_baixo)) {
+    $score_baixo = $indicadores->getScoreBaixo($where_gerais);
+    dashCacheSet($cacheBase . '_score_baixo', $score_baixo);
+}
 
 // Reinternações
-$reinternacaohosp    = $Internacao_geral->reinternacaoNova($where_gerais_reint);
+$reinternacaohosp = dashCacheGet($cacheBase . '_reinternacao', 60);
+if (!is_array($reinternacaohosp)) {
+    $reinternacaohosp = $Internacao_geral->reinternacaoNova($where_gerais_reint);
+    dashCacheSet($cacheBase . '_reinternacao', $reinternacaohosp);
+}
 $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 0;
 ?>
 

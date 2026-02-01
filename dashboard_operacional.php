@@ -17,36 +17,67 @@ function dashFetchCount(PDO $conn, string $sql): int
     }
 }
 
-$internacoesAtivas = dashFetchCount(
-    $conn,
-    "SELECT COUNT(*) FROM tb_internacao WHERE internado_int = 's'"
-);
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
 
-$contasAuditoria = dashFetchCount(
-    $conn,
-    "SELECT COUNT(*) FROM tb_capeante WHERE COALESCE(encerrado_cap,'n') <> 's'"
-);
+function dashCacheGet(string $key, int $ttl)
+{
+    $cache = $_SESSION['dash_oper_cache'] ?? [];
+    if (!isset($cache[$key])) return null;
+    $item = $cache[$key];
+    if (!is_array($item) || !isset($item['ts'])) return null;
+    if ((time() - (int)$item['ts']) > $ttl) return null;
+    return $item['data'] ?? null;
+}
 
-$visitasAtrasadas = dashFetchCount(
-    $conn,
-    "SELECT COUNT(*)
-       FROM tb_visita
-      WHERE DATE(IFNULL(data_visita_vis, DATE(data_lancamento_vis))) < CURDATE()
-        AND (data_lancamento_vis IS NULL OR data_lancamento_vis = '0000-00-00 00:00:00')"
-);
+function dashCacheSet(string $key, $data): void
+{
+    if (!isset($_SESSION['dash_oper_cache'])) $_SESSION['dash_oper_cache'] = [];
+    $_SESSION['dash_oper_cache'][$key] = [
+        'ts' => time(),
+        'data' => $data,
+    ];
+}
 
-$negociacoesPendentes = dashFetchCount(
-    $conn,
-    "SELECT COUNT(*) FROM tb_negociacao WHERE data_fim_neg IS NULL OR data_fim_neg = '0000-00-00'"
-);
+$counts = dashCacheGet('counts', 60);
+if (!is_array($counts)) {
+    $counts = [
+        'internacoesAtivas' => dashFetchCount(
+            $conn,
+            "SELECT COUNT(*) FROM tb_internacao WHERE internado_int = 's'"
+        ),
+        'contasAuditoria' => dashFetchCount(
+            $conn,
+            "SELECT COUNT(*) FROM tb_capeante WHERE COALESCE(encerrado_cap,'n') <> 's'"
+        ),
+        'visitasAtrasadas' => dashFetchCount(
+            $conn,
+            "SELECT COUNT(*)
+               FROM tb_visita
+              WHERE DATE(IFNULL(data_visita_vis, DATE(data_lancamento_vis))) < CURDATE()
+                AND (data_lancamento_vis IS NULL OR data_lancamento_vis = '0000-00-00 00:00:00')"
+        ),
+        'negociacoesPendentes' => dashFetchCount(
+            $conn,
+            "SELECT COUNT(*) FROM tb_negociacao WHERE data_fim_neg IS NULL OR data_fim_neg = '0000-00-00'"
+        ),
+        'eventosCriticos' => dashFetchCount(
+            $conn,
+            "SELECT COUNT(*)
+               FROM tb_gestao
+              WHERE evento_adverso_ges = 's'
+                AND (evento_encerrar_ges IS NULL OR evento_encerrar_ges <> 's')"
+        ),
+    ];
+    dashCacheSet('counts', $counts);
+}
 
-$eventosCriticos = dashFetchCount(
-    $conn,
-    "SELECT COUNT(*)
-       FROM tb_gestao
-      WHERE evento_adverso_ges = 's'
-        AND (evento_encerrar_ges IS NULL OR evento_encerrar_ges <> 's')"
-);
+$internacoesAtivas = (int)($counts['internacoesAtivas'] ?? 0);
+$contasAuditoria = (int)($counts['contasAuditoria'] ?? 0);
+$visitasAtrasadas = (int)($counts['visitasAtrasadas'] ?? 0);
+$negociacoesPendentes = (int)($counts['negociacoesPendentes'] ?? 0);
+$eventosCriticos = (int)($counts['eventosCriticos'] ?? 0);
 
 $cards = [
     [
@@ -91,9 +122,11 @@ $cards = [
     ],
 ];
 
-$prioridades = [];
-try {
-    $sqlScore = "
+$prioridades = dashCacheGet('prioridades', 60);
+if (!is_array($prioridades)) {
+    $prioridades = [];
+    try {
+        $sqlScore = "
         SELECT
             i.id_internacao,
             p.nome_pac,
@@ -110,28 +143,30 @@ try {
         GROUP BY i.id_internacao
         ORDER BY i.data_intern_int ASC
         LIMIT 30";
-    $stmtScore = $conn->prepare($sqlScore);
-    $stmtScore->execute();
-    $rows = $stmtScore->fetchAll(PDO::FETCH_ASSOC);
+        $stmtScore = $conn->prepare($sqlScore);
+        $stmtScore->execute();
+        $rows = $stmtScore->fetchAll(PDO::FETCH_ASSOC);
 
-    foreach ($rows as $row) {
-        $dias     = max(0, (int)($row['dias_internado'] ?? 0));
-        $valorApr = (float)($row['valor_apresentado'] ?? 0);
-        $eventos  = max(0, (int)($row['eventos_abertos'] ?? 0));
+        foreach ($rows as $row) {
+            $dias     = max(0, (int)($row['dias_internado'] ?? 0));
+            $valorApr = (float)($row['valor_apresentado'] ?? 0);
+            $eventos  = max(0, (int)($row['eventos_abertos'] ?? 0));
 
-        $score = round(($dias * 1.2) + ($valorApr / 1000) + ($eventos * 5), 1);
-        $row['score'] = $score;
-        $row['valor_apresentado'] = $valorApr;
-        $prioridades[] = $row;
+            $score = round(($dias * 1.2) + ($valorApr / 1000) + ($eventos * 5), 1);
+            $row['score'] = $score;
+            $row['valor_apresentado'] = $valorApr;
+            $prioridades[] = $row;
+        }
+
+        usort($prioridades, function ($a, $b) {
+            return $b['score'] <=> $a['score'];
+        });
+        $prioridades = array_slice($prioridades, 0, 8);
+        dashCacheSet('prioridades', $prioridades);
+    } catch (Throwable $e) {
+        error_log('[DASHBOARD_360][SCORE] ' . $e->getMessage());
+        $prioridades = [];
     }
-
-    usort($prioridades, function ($a, $b) {
-        return $b['score'] <=> $a['score'];
-    });
-    $prioridades = array_slice($prioridades, 0, 8);
-} catch (Throwable $e) {
-    error_log('[DASHBOARD_360][SCORE] ' . $e->getMessage());
-    $prioridades = [];
 }
 ?>
 
