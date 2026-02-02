@@ -235,7 +235,7 @@ $pdf->setPrintFooter(true); // rodapé automático
 
 $pdf->AddPage();
 
-$logoPath = 'img/LogoConexAud.png';
+$logoPath = __DIR__ . '/img/LogoFullCare.png';
 renderHeader($pdf, $logoPath);
 
 // Cores (azul + cinza padrão)
