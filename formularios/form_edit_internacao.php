@@ -979,6 +979,29 @@
         function reduzirText(textareaId, originalRows) {
             document.getElementById(textareaId).rows = originalRows;
         }
+        // Abre accordion de prorrogações/TUSS quando solicitado via hash ou querystring
+        document.addEventListener('DOMContentLoaded', function() {
+            var params = new URLSearchParams(window.location.search);
+            var target = null;
+            if (window.location.hash === '#collapseProrrog' || params.get('section') === 'prorrog') {
+                target = 'collapseProrrog';
+            } else if (window.location.hash === '#collapseTuss' || params.get('section') === 'tuss') {
+                target = 'collapseTuss';
+            }
+            if (!target) return;
+            var collapseEl = document.getElementById(target);
+            if (!collapseEl) return;
+            try {
+                var bs = bootstrap.Collapse.getOrCreateInstance(collapseEl, {
+                    toggle: false
+                });
+                bs.show();
+            } catch (e) {
+                collapseEl.classList.add('show');
+            }
+            var btn = document.querySelector('[data-bs-target="#' + target + '"]');
+            if (btn) btn.setAttribute('aria-expanded', 'true');
+        });
     </script>
     <script>
         $(document).ready(function() {

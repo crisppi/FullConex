@@ -265,6 +265,10 @@ header("Content-type: text/html; charset=utf-8");
                                             class="bi bi-postcard-heart"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i> Lista
                                         Gestão</a></li>
+                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_prorrogacao_pendente.php"><i
+                                            class="bi bi-hourglass-split"
+                                            style="font-size: 1rem;margin-right:5px; color: rgb(180, 120, 20);"></i>
+                                        Prorrogação Pendente</a></li>
 
                             </ul>
                         </li>

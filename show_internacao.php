@@ -75,6 +75,63 @@ function after_dash($s)
     $out = preg_replace('/\s+/', ' ', $out);
     return trim($out);
 }
+function dateToTs(?string $date): ?int
+{
+    if (!$date) return null;
+    $ts = strtotime(substr((string)$date, 0, 10));
+    return $ts ? (int)$ts : null;
+}
+function daysExclusive(int $startTs, int $endTs): int
+{
+    if ($endTs <= $startTs) return 0;
+    return (int)floor(($endTs - $startTs) / 86400);
+}
+function computeCoverageAndGaps(array $intervals, int $startTs, int $endTs): array
+{
+    if (!$intervals) {
+        return [0, daysExclusive($startTs, $endTs), [[date('d/m/Y', $startTs), date('d/m/Y', $endTs)]]];
+    }
+    usort($intervals, fn($a, $b) => $a['s'] <=> $b['s']);
+    $coveredDays = 0;
+    $gaps = [];
+    $curS = $intervals[0]['s'];
+    $curE = $intervals[0]['e'];
+    foreach ($intervals as $idx => $it) {
+        if ($idx === 0) continue;
+        if ($it['s'] <= $curE) {
+            if ($it['e'] > $curE) $curE = $it['e'];
+            continue;
+        }
+        if ($curS > $startTs) {
+            $gapStart = $startTs;
+            $gapEnd = $curS;
+            if ($gapEnd > $gapStart) {
+                $gaps[] = [date('d/m/Y', $gapStart), date('d/m/Y', $gapEnd)];
+            }
+        }
+        $coveredDays += daysExclusive($curS, $curE);
+        $curS = $it['s'];
+        $curE = $it['e'];
+    }
+    if ($curS > $startTs) {
+        $gapStart = $startTs;
+        $gapEnd = $curS;
+        if ($gapEnd > $gapStart) {
+            $gaps[] = [date('d/m/Y', $gapStart), date('d/m/Y', $gapEnd)];
+        }
+    }
+    $coveredDays += daysExclusive($curS, $curE);
+    if ($curE < $endTs) {
+        $gapStart = $curE;
+        $gapEnd = $endTs;
+        if ($gapEnd > $gapStart) {
+            $gaps[] = [date('d/m/Y', $gapStart), date('d/m/Y', $gapEnd)];
+        }
+    }
+    $totalDays = daysExclusive($startTs, $endTs);
+    $missingDays = max(0, $totalDays - $coveredDays);
+    return [$coveredDays, $missingDays, $gaps];
+}
 if (!function_exists('fmtDateAny')) {
     function fmtDateAny($s)
     {
@@ -311,6 +368,39 @@ usort($pr_filtered, function ($a, $b) {
     return $db <=> $da;
 });
 $pr_total_diarias = array_reduce($pr_filtered, fn($s, $p) => $s + (int)($p['diarias'] ?? 0), 0);
+
+// Sinalizador de período aberto na prorrogação
+$pr_pendente_label = '';
+$pr_pendente_gaps = [];
+$internStart = ymd($data['data_intern_int'] ?? '');
+$internStartTs = $internStart ? dateToTs($internStart) : null;
+$altaStmt = $conn->prepare("SELECT MAX(data_alta_alt) AS data_alta_alt FROM tb_alta WHERE fk_id_int_alt = :id");
+$altaStmt->bindValue(':id', (int)$id_internacao, PDO::PARAM_INT);
+$altaStmt->execute();
+$altaRow = $altaStmt->fetch(PDO::FETCH_ASSOC) ?: [];
+$altaDate = $altaRow['data_alta_alt'] ?? null;
+$internEnd = $altaDate ? ymd($altaDate) : date('Y-m-d');
+$internEndTs = $internEnd ? dateToTs($internEnd) : null;
+
+if ($internStartTs && $internEndTs && $internEndTs > $internStartTs) {
+    $intervals = [];
+    foreach ($prorrogacoes as $p) {
+        $ini = ymd($p['ini'] ?? null);
+        if (!$ini) continue;
+        $fim = ymd($p['fim'] ?? null);
+        $iniTs = dateToTs($ini);
+        $fimTs = dateToTs($fim) ?: $internEndTs;
+        if (!$iniTs || $fimTs <= $internStartTs || $iniTs >= $internEndTs) continue;
+        $iniTs = max($iniTs, $internStartTs);
+        $fimTs = min($fimTs, $internEndTs);
+        $intervals[] = ['s' => $iniTs, 'e' => $fimTs];
+    }
+    [$coveredDays, $missingDays, $gaps] = computeCoverageAndGaps($intervals, $internStartTs, $internEndTs);
+    if ($missingDays > 0) {
+        $parts = array_map(fn($g) => $g[0] . ' → ' . $g[1], $gaps);
+        $pr_pendente_label = $missingDays . ' dias | ' . implode(' • ', $parts);
+    }
+}
 
 /* =========================================================
    TUSS
@@ -935,8 +1025,14 @@ usort($neg_filtered, function ($a, $b) {
                         <div class="card ov-card ov-int"
                             style="border-radius:14px;background:#fff;box-shadow:0 8px 24px rgba(0,0,0,.06);background-image:linear-gradient(to right, var(--ov, #5e2363) 6px, #fff 6px);">
                             <div class="card-body">
-                                <div class="ov-head">
+                                <div class="ov-head ov-head-space">
                                     <h6 class="ov-title mb-0">Prorrogações</h6>
+                                    <?php if (!empty($pr_pendente_label)): ?>
+                                        <a class="prorrog-pendente-badge"
+                                            href="<?= e($BASE_URL) ?>edit_internacao.php?id_internacao=<?= (int)$id_internacao ?>&section=prorrog#collapseProrrog">
+                                            Período em aberto: <?= e($pr_pendente_label) ?>
+                                        </a>
+                                    <?php endif; ?>
                                 </div>
                                 <form method="get" action="<?= e($_SERVER['PHP_SELF']) ?>#prorrog" class="row g-2 align-items-end mb-3">
                                     <input type="hidden" name="id_internacao" value="<?= e($id_internacao) ?>">
@@ -1003,8 +1099,12 @@ usort($neg_filtered, function ($a, $b) {
                         <div class="card ov-card ov-int"
                             style="border-radius:14px;background:#fff;box-shadow:0 8px 24px rgba(0,0,0,.06);background-image:linear-gradient(to right, var(--ov, #5e2363) 6px, #fff 6px);">
                             <div class="card-body">
-                                <div class="ov-head">
+                                <div class="ov-head ov-head-space">
                                     <h6 class="ov-title mb-0">TUSS</h6>
+                                    <a class="btn btn-sm btn-outline-secondary"
+                                        href="<?= e($BASE_URL) ?>edit_internacao.php?id_internacao=<?= (int)$id_internacao ?>&section=tuss#collapseTuss">
+                                        <i class="bi bi-pencil-square me-1"></i>Editar TUSS
+                                    </a>
                                 </div>
 
                                 <form method="get" action="<?= e($_SERVER['PHP_SELF']) ?>#tuss" class="row g-2 align-items-end mb-3">
@@ -1365,6 +1465,27 @@ usort($neg_filtered, function ($a, $b) {
         align-items: center;
         gap: .5rem;
         margin-bottom: .5rem
+    }
+    .ov-head-space {
+        justify-content: space-between;
+    }
+
+    .prorrog-pendente-badge {
+        background: #ffe3e3;
+        color: #8a1c1c;
+        border: 1px solid #dc3545;
+        border-radius: 999px;
+        padding: 4px 12px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        white-space: nowrap;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+    }
+    .prorrog-pendente-badge:hover {
+        background: #ffd6d6;
+        color: #7a1414;
     }
 
     .ov-card .ov-icon {

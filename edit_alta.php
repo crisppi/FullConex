@@ -30,6 +30,97 @@ extract($internacao);
 
 $dataAtual = date('Y-m-d');
 
+function dateToTs(?string $date): ?int
+{
+    if (!$date) return null;
+    $ts = strtotime(substr((string)$date, 0, 10));
+    return $ts ? (int)$ts : null;
+}
+function daysExclusive(int $startTs, int $endTs): int
+{
+    if ($endTs <= $startTs) return 0;
+    return (int)floor(($endTs - $startTs) / 86400);
+}
+function computeCoverageAndGaps(array $intervals, int $startTs, int $endTs): array
+{
+    if (!$intervals) {
+        return [0, daysExclusive($startTs, $endTs), [[date('d/m/Y', $startTs), date('d/m/Y', $endTs)]]];
+    }
+    usort($intervals, fn($a, $b) => $a['s'] <=> $b['s']);
+    $coveredDays = 0;
+    $gaps = [];
+    $curS = $intervals[0]['s'];
+    $curE = $intervals[0]['e'];
+    foreach ($intervals as $idx => $it) {
+        if ($idx === 0) continue;
+        if ($it['s'] <= $curE) {
+            if ($it['e'] > $curE) $curE = $it['e'];
+            continue;
+        }
+        if ($curS > $startTs) {
+            $gapStart = $startTs;
+            $gapEnd = $curS;
+            if ($gapEnd > $gapStart) {
+                $gaps[] = [date('d/m/Y', $gapStart), date('d/m/Y', $gapEnd)];
+            }
+        }
+        $coveredDays += daysExclusive($curS, $curE);
+        $curS = $it['s'];
+        $curE = $it['e'];
+    }
+    if ($curS > $startTs) {
+        $gapStart = $startTs;
+        $gapEnd = $curS;
+        if ($gapEnd > $gapStart) {
+            $gaps[] = [date('d/m/Y', $gapStart), date('d/m/Y', $gapEnd)];
+        }
+    }
+    $coveredDays += daysExclusive($curS, $curE);
+    if ($curE < $endTs) {
+        $gapStart = $curE;
+        $gapEnd = $endTs;
+        if ($gapEnd > $gapStart) {
+            $gaps[] = [date('d/m/Y', $gapStart), date('d/m/Y', $gapEnd)];
+        }
+    }
+    $totalDays = daysExclusive($startTs, $endTs);
+    $missingDays = max(0, $totalDays - $coveredDays);
+    return [$coveredDays, $missingDays, $gaps];
+}
+
+$pr_pendente_label = '';
+$internStart = $internacao['0']['data_intern_int'] ?? null;
+$internStartTs = dateToTs($internStart);
+$altaStmt = $conn->prepare("SELECT MAX(data_alta_alt) AS data_alta_alt FROM tb_alta WHERE fk_id_int_alt = :id");
+$altaStmt->bindValue(':id', (int)$id_internacao, PDO::PARAM_INT);
+$altaStmt->execute();
+$altaRow = $altaStmt->fetch(PDO::FETCH_ASSOC) ?: [];
+$altaDate = $altaRow['data_alta_alt'] ?? null;
+$internEnd = $altaDate ?: $dataAtual;
+$internEndTs = dateToTs($internEnd);
+
+if ($internStartTs && $internEndTs && $internEndTs > $internStartTs) {
+    $stmt = $conn->prepare("SELECT prorrog1_ini_pror, prorrog1_fim_pror FROM tb_prorrogacao WHERE fk_internacao_pror = :id ORDER BY prorrog1_ini_pror");
+    $stmt->bindValue(':id', (int)$id_internacao, PDO::PARAM_INT);
+    $stmt->execute();
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    $intervals = [];
+    foreach ($rows as $p) {
+        $iniTs = dateToTs($p['prorrog1_ini_pror'] ?? null);
+        if (!$iniTs) continue;
+        $fimTs = dateToTs($p['prorrog1_fim_pror'] ?? null) ?: $internEndTs;
+        if ($fimTs <= $internStartTs || $iniTs >= $internEndTs) continue;
+        $iniTs = max($iniTs, $internStartTs);
+        $fimTs = min($fimTs, $internEndTs);
+        $intervals[] = ['s' => $iniTs, 'e' => $fimTs];
+    }
+    [, $missingDays, $gaps] = computeCoverageAndGaps($intervals, $internStartTs, $internEndTs);
+    if ($missingDays > 0) {
+        $parts = array_map(fn($g) => $g[0] . ' → ' . $g[1], $gaps);
+        $pr_pendente_label = $missingDays . ' dias | ' . implode(' • ', $parts);
+    }
+}
+
 ?>
 
 <style>
@@ -113,6 +204,57 @@ $dataAtual = date('Y-m-d');
         font-weight: 600;
         font-size: .75rem;
     }
+    .alta-open-badge {
+        background: #ffe3e3;
+        color: #8a1c1c;
+        border: 1px solid #dc3545;
+        border-radius: 999px;
+        padding: 4px 12px;
+        font-weight: 600;
+        font-size: .75rem;
+        text-decoration: none;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+    }
+    .alta-open-badge:hover {
+        background: #ffd6d6;
+        color: #7a1414;
+    }
+    .alta-confirm-dialog {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 1050;
+        background: rgba(0, 0, 0, .4);
+        align-items: center;
+        justify-content: center;
+    }
+    .alta-confirm-content {
+        background: #fff;
+        width: 90%;
+        max-width: 520px;
+        border-radius: 12px;
+        padding: 18px 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, .25);
+    }
+    .alta-confirm-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+    .alta-confirm-close {
+        cursor: pointer;
+        font-size: 1.5rem;
+        line-height: 1;
+    }
+    .alta-confirm-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 14px;
+    }
 
     .alta-actions {
         display: flex;
@@ -174,6 +316,12 @@ $dataAtual = date('Y-m-d');
                         <p class="alta-card__eyebrow">Alta</p>
                         <h3 class="alta-card__title">Data, hora e motivo</h3>
                     </div>
+                    <?php if (!empty($pr_pendente_label)): ?>
+                        <a class="alta-open-badge"
+                            href="<?= $BASE_URL ?>edit_internacao.php?id_internacao=<?= (int)$id_internacao ?>&section=prorrog#collapseProrrog">
+                            Diárias sem prorrogação: <?= htmlspecialchars($pr_pendente_label, ENT_QUOTES, 'UTF-8') ?>
+                        </a>
+                    <?php endif; ?>
                 </div>
                 <div class="row g-2">
                     <div class="form-group col-sm-2">
@@ -270,6 +418,24 @@ $dataAtual = date('Y-m-d');
     </div>
 </div>
 
+<?php if (!empty($pr_pendente_label)): ?>
+<div id="altaConfirmDialog" class="alta-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="altaConfirmTitle">
+    <div class="alta-confirm-content">
+        <div class="alta-confirm-header">
+            <strong id="altaConfirmTitle">Atenção</strong>
+            <span class="alta-confirm-close" onclick="closeAltaConfirm()">&times;</span>
+        </div>
+        <div>
+            Deseja dar alta mesmo com diárias a serem prorrogadas?
+        </div>
+        <div class="alta-confirm-actions">
+            <button type="button" class="btn btn-outline-secondary" onclick="closeAltaConfirm()">Cancelar</button>
+            <button type="button" class="btn btn-danger" onclick="confirmAlta()">Sim, dar alta</button>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous">
 </script>
@@ -280,5 +446,36 @@ include_once("templates/footer.php");
 <script src="js/scriptDataAltaHospitalar.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"></script>
+<?php if (!empty($pr_pendente_label)): ?>
+<script>
+    const altaForm = document.getElementById('add-movie-form');
+    let altaConfirmOpen = false;
+    function openAltaConfirm() {
+        const dlg = document.getElementById('altaConfirmDialog');
+        if (dlg) {
+            dlg.style.display = 'flex';
+            altaConfirmOpen = true;
+        }
+    }
+    function closeAltaConfirm() {
+        const dlg = document.getElementById('altaConfirmDialog');
+        if (dlg) {
+            dlg.style.display = 'none';
+            altaConfirmOpen = false;
+        }
+    }
+    function confirmAlta() {
+        closeAltaConfirm();
+        if (altaForm) altaForm.submit();
+    }
+    if (altaForm) {
+        altaForm.addEventListener('submit', function(e) {
+            if (altaConfirmOpen) return;
+            e.preventDefault();
+            openAltaConfirm();
+        });
+    }
+</script>
+<?php endif; ?>
 
 </html>

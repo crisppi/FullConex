@@ -22,10 +22,110 @@ function optAcomod(array $lista, $sel = ''): string
     return $out;
 }
 
+function dateToTs(?string $date): ?int
+{
+    if (!$date) return null;
+    $ts = strtotime(substr((string)$date, 0, 10));
+    return $ts ? (int)$ts : null;
+}
+function daysExclusive(int $startTs, int $endTs): int
+{
+    if ($endTs <= $startTs) return 0;
+    return (int)floor(($endTs - $startTs) / 86400);
+}
+function computeCoverageAndGaps(array $intervals, int $startTs, int $endTs): array
+{
+    if (!$intervals) {
+        return [0, daysExclusive($startTs, $endTs), [[date('d/m/Y', $startTs), date('d/m/Y', $endTs)]]];
+    }
+    usort($intervals, fn($a, $b) => $a['s'] <=> $b['s']);
+    $coveredDays = 0;
+    $gaps = [];
+    $curS = $intervals[0]['s'];
+    $curE = $intervals[0]['e'];
+    foreach ($intervals as $idx => $it) {
+        if ($idx === 0) continue;
+        if ($it['s'] <= $curE) {
+            if ($it['e'] > $curE) $curE = $it['e'];
+            continue;
+        }
+        if ($curS > $startTs) {
+            $gapStart = $startTs;
+            $gapEnd = $curS;
+            if ($gapEnd > $gapStart) {
+                $gaps[] = [date('d/m/Y', $gapStart), date('d/m/Y', $gapEnd)];
+            }
+        }
+        $coveredDays += daysExclusive($curS, $curE);
+        $curS = $it['s'];
+        $curE = $it['e'];
+    }
+    if ($curS > $startTs) {
+        $gapStart = $startTs;
+        $gapEnd = $curS;
+        if ($gapEnd > $gapStart) {
+            $gaps[] = [date('d/m/Y', $gapStart), date('d/m/Y', $gapEnd)];
+        }
+    }
+    $coveredDays += daysExclusive($curS, $curE);
+    if ($curE < $endTs) {
+        $gapStart = $curE;
+        $gapEnd = $endTs;
+        if ($gapEnd > $gapStart) {
+            $gaps[] = [date('d/m/Y', $gapStart), date('d/m/Y', $gapEnd)];
+        }
+    }
+    $totalDays = daysExclusive($startTs, $endTs);
+    $missingDays = max(0, $totalDays - $coveredDays);
+    return [$coveredDays, $missingDays, $gaps];
+}
+
 /* garante pelo menos 1 linha exibida */
 $prorList = array_map(fn($r) => (array)$r, $prorList ?? []);
 if (!$prorList) {
     $prorList[] = ['acomod' => '', 'ini' => '', 'fim' => '', 'diarias' => '', 'isolamento' => 'n'];
+}
+
+// Última data prorrogada para sugerir nova data inicial
+$lastProrTs = null;
+foreach ($prorList as $p) {
+    $fimTs = dateToTs($p['fim'] ?? null);
+    $iniTs = dateToTs($p['ini'] ?? null);
+    $cand = $fimTs ?: $iniTs;
+    if ($cand && ($lastProrTs === null || $cand > $lastProrTs)) {
+        $lastProrTs = $cand;
+    }
+}
+$defaultIni = $lastProrTs ? date('Y-m-d', $lastProrTs) : '';
+
+// Sinalizador período em aberto
+$pr_pendente_label = '';
+$internStartTs = dateToTs($intern['data_intern_int'] ?? null);
+$altaStmt = $conn->prepare("SELECT MAX(data_alta_alt) AS data_alta_alt FROM tb_alta WHERE fk_id_int_alt = :id");
+$altaStmt->bindValue(':id', (int)$intern['id_internacao'], PDO::PARAM_INT);
+$altaStmt->execute();
+$altaRow = $altaStmt->fetch(PDO::FETCH_ASSOC) ?: [];
+$internEndTs = dateToTs($altaRow['data_alta_alt'] ?? null) ?: strtotime(date('Y-m-d'));
+$todayTs = strtotime(date('Y-m-d'));
+$maxProrTs = $internEndTs ? min($internEndTs, $todayTs) : $todayTs;
+$maxProrDate = date('Y-m-d', $maxProrTs);
+
+if ($internStartTs && $internEndTs && $internEndTs > $internStartTs) {
+    $intervals = [];
+    foreach ($prorList as $p) {
+        $iniTs = dateToTs($p['ini'] ?? null);
+        if (!$iniTs) continue;
+        $fimTs = dateToTs($p['fim'] ?? null) ?: $internEndTs;
+        if ($fimTs <= $internStartTs || $iniTs >= $internEndTs) continue;
+        $iniTs = max($iniTs, $internStartTs);
+        $fimTs = min($fimTs, $internEndTs);
+        $intervals[] = ['s' => $iniTs, 'e' => $fimTs];
+    }
+    [$coveredDays, $missingDays, $gaps] = computeCoverageAndGaps($intervals, $internStartTs, $internEndTs);
+    if ($missingDays > 0) {
+        $parts = array_map(fn($g) => $g[0] . ' → ' . $g[1], $gaps);
+        $pr_pendente_label = $missingDays . ' dias | ' . implode(' • ', $parts);
+    }
 }
 ?>
 <style>
@@ -158,10 +258,36 @@ if (!$prorList) {
 .custom-dialog-footer .cancel:hover {
     background: #c82333
 }
+
+.prorrog-pendente-badge {
+    background: #ffe3e3;
+    color: #8a1c1c;
+    border: 1px solid #dc3545;
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+.prorrog-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
 </style>
 
 <div>
-    <h4 class="mb-3">Editar Prorrogação</h4>
+    <div class="prorrog-head mb-3">
+        <h4 class="mb-0">Editar Prorrogação</h4>
+        <?php if (!empty($pr_pendente_label)): ?>
+            <span class="prorrog-pendente-badge">Período em aberto: <?= htmlspecialchars($pr_pendente_label) ?></span>
+        <?php endif; ?>
+    </div>
+    <script>
+        window.PRORROG_MAX_DATE = "<?= htmlspecialchars($maxProrDate, ENT_QUOTES, 'UTF-8') ?>";
+    </script>
 
     <!-- chaves principais -->
     <input type="hidden" name="type" value="edit_prorrogacao">
@@ -185,8 +311,14 @@ if (!$prorList) {
 
                 <div class="form-group w-ini">
                     <label>Data inicial</label>
+                    <?php
+                    $iniVal = $p['ini'] ?? '';
+                    if ($iniVal === '' && $defaultIni) {
+                        $iniVal = $defaultIni;
+                    }
+                    ?>
                     <input type="date" class="form-control form-control-sm" name="pror[<?= $idx ?>][ini]"
-                        value="<?= htmlspecialchars($p['ini'] ?? '') ?>">
+                        value="<?= htmlspecialchars($iniVal) ?>">
                 </div>
 
                 <div class="form-group w-fim">
@@ -248,6 +380,9 @@ if (!$prorList) {
 let dialogResolve = null;
 
 function openDialog() {
+    const el = document.getElementById('customDialog');
+    const footer = el ? el.querySelector('.custom-dialog-footer') : null;
+    if (footer) footer.style.display = 'flex';
     document.getElementById('customDialog').style.display = 'block';
 }
 
@@ -265,6 +400,16 @@ function askOver15() {
         dialogResolve = r;
         openDialog();
     });
+}
+
+function openErrorDialog(msg) {
+    const el = document.getElementById('customDialog');
+    if (!el) return;
+    const body = el.querySelector('.custom-dialog-body');
+    if (body) body.textContent = msg;
+    const footer = el.querySelector('.custom-dialog-footer');
+    if (footer) footer.style.display = 'none';
+    el.style.display = 'block';
 }
 
 /* Utilidades */
@@ -299,9 +444,25 @@ function recalcRow($row, changedName) {
     const ini = $row.find('[name$="[ini]"]').val();
     const fim = $row.find('[name$="[fim]"]').val();
     const $dia = $row.find('[name$="[diarias]"]');
+    const maxDate = window.PRORROG_MAX_DATE;
 
     if (changedName && changedName.endsWith('[ini]')) {
         $row.find('[name$="[fim]"]').attr('min', ini || null);
+    }
+
+    if (maxDate && ini && new Date(ini) > new Date(maxDate)) {
+        openErrorDialog('Não é permitido prorrogar após a data atual/alta.');
+        $row.find('[name$="[ini]"]').val('');
+        $dia.val('');
+        syncJson();
+        return;
+    }
+    if (maxDate && fim && new Date(fim) > new Date(maxDate)) {
+        openErrorDialog('Não é permitido prorrogar após a data atual/alta.');
+        $row.find('[name$="[fim]"]').val('');
+        $dia.val('');
+        syncJson();
+        return;
     }
 
     if (ini && fim && new Date(fim) >= new Date(ini)) {
@@ -333,6 +494,17 @@ function recalcRow($row, changedName) {
 /* Inicialização */
 $(function() {
     const $container = $('#prorContainer');
+    function getSuggestedIni() {
+        let last = '';
+        $container.find('.pror-row').each(function() {
+            const $row = $(this);
+            const fim = $row.find('[name$="[fim]"]').val();
+            const ini = $row.find('[name$="[ini]"]').val();
+            if (fim) last = fim;
+            else if (ini) last = ini;
+        });
+        return last;
+    }
 
     // change das datas com cálculo e popup
     $container.on('change', 'input[type="date"]', function() {
@@ -341,13 +513,19 @@ $(function() {
 
     // adicionar linha
     $container.on('click', '.btn-add-pror', function() {
+        const suggestedIni = getSuggestedIni();
         const $clone = $container.find('.pror-row').last().clone();
         $clone.find('[name]').each(function() {
             this.value = '';
         });
         $clone.find('[name$="[fim]"]').removeAttr('min');
+        if (suggestedIni) {
+            $clone.find('[name$="[ini]"]').val(suggestedIni);
+            $clone.find('[name$="[fim]"]').attr('min', suggestedIni);
+        }
         $container.append($clone);
         reindexNames();
+        recalcRow($clone);
         syncJson();
     });
 
@@ -369,6 +547,22 @@ $(function() {
         const ini = $row.find('[name$="[ini]"]').val();
         if (ini) $row.find('[name$="[fim]"]').attr('min', ini);
         recalcRow($row);
+    });
+    // preenche datas iniciais vazias com a última data prorrogada
+    let last = '';
+    $container.find('.pror-row').each(function() {
+        const $row = $(this);
+        const $ini = $row.find('[name$="[ini]"]');
+        const $fim = $row.find('[name$="[fim]"]');
+        const ini = $ini.val();
+        const fim = $fim.val();
+        if (!ini && last) {
+            $ini.val(last);
+            $fim.attr('min', last);
+            recalcRow($row);
+        }
+        if (fim) last = fim;
+        else if (ini) last = ini;
     });
     syncJson();
 });

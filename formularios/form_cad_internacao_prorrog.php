@@ -72,6 +72,32 @@
     margin-right:12px;
     background:linear-gradient(180deg,#8f5ff3,#b995ff);
 }
+.custom-dialog {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1050;
+    background: rgba(0, 0, 0, .4)
+}
+.custom-dialog-content {
+    background: #fff;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 600px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, .2)
+}
+.custom-dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center
+}
+.custom-dialog-header .close {
+    cursor: pointer;
+    font-size: 1.5rem
+}
 </style>
 
 <div class="prorrogacao-container" id="container-prorrog" style="display:none;">
@@ -198,7 +224,32 @@
     </div>
 </div>
 
+<div id="prorrogErrorDialog" class="custom-dialog" role="dialog" aria-modal="true" aria-labelledby="prorrogDlgTitle" style="display:none;">
+    <div class="custom-dialog-content">
+        <div class="custom-dialog-header">
+            <span id="prorrogDlgTitle">Atenção</span>
+            <span class="close" onclick="closeProrrogError()">&times;</span>
+        </div>
+        <div class="custom-dialog-body" id="prorrogErrorBody"></div>
+    </div>
+</div>
+
 <script>
+    window.PRORROG_MAX_DATE = "<?= date('Y-m-d') ?>";
+</script>
+<script>
+function openProrrogError(msg) {
+    const dlg = document.getElementById("prorrogErrorDialog");
+    const body = document.getElementById("prorrogErrorBody");
+    if (!dlg || !body) return;
+    body.textContent = msg;
+    dlg.style.display = "block";
+}
+function closeProrrogError() {
+    const dlg = document.getElementById("prorrogErrorDialog");
+    if (dlg) dlg.style.display = "none";
+}
+
 // Exibe o container ao carregar a página, se "select_prorrog" estiver marcado
 document.addEventListener("DOMContentLoaded", function() {
     const selectProrrog = document.getElementById("select_prorrog");
@@ -301,6 +352,7 @@ function calculateDiarias(container) {
     const dataAtual = new Date().toISOString().split("T")[0];
     const dataInternacaoEl = document.getElementById("data_intern_int");
     const dataInternacao = dataInternacaoEl ? dataInternacaoEl.value : null;
+    const maxDate = window.PRORROG_MAX_DATE || dataAtual;
 
     const dataInicial = container.querySelector('[name="prorrog1_ini_pror"]').value;
     const dataFinal = container.querySelector('[name="prorrog1_fim_pror"]').value;
@@ -326,9 +378,17 @@ function calculateDiarias(container) {
             diariasField.value = "";
             return;
         }
-        if (fim > new Date(dataAtual)) {
-            errorMessage.textContent = "A data final não pode ser maior que a data atual.";
+        if (dataInicial && new Date(dataInicial) > new Date(maxDate)) {
+            errorMessage.textContent = "Não é permitido prorrogar após a data atual.";
             errorMessage.style.display = "block";
+            openProrrogError("Não é permitido prorrogar após a data atual.");
+            diariasField.value = "";
+            return;
+        }
+        if (dataFinal && new Date(dataFinal) > new Date(maxDate)) {
+            errorMessage.textContent = "Não é permitido prorrogar após a data atual.";
+            errorMessage.style.display = "block";
+            openProrrogError("Não é permitido prorrogar após a data atual.");
             diariasField.value = "";
             return;
         }

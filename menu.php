@@ -230,6 +230,11 @@ require_once("templates/header.php");
                 <a href="list_fila_tarefas.php"><span class="bi bi-list-check"
                         style="font-size: 1rem;margin-right:5px; color: rgb(20, 120, 90);"></span> Fila de Tarefas</a>
             </li>
+            <li>
+                <a href="list_prorrogacao_pendente.php"><span class="bi bi-hourglass-split"
+                        style="font-size: 1rem;margin-right:5px; color: rgb(180, 120, 20);"></span> Prorrogação
+                    Pendente</a>
+            </li>
         </div>
         <hr>
         <!-- <?php include_once("nivel_login.php"); ?> -->

@@ -488,6 +488,10 @@ if (!empty($sessionIdUsuario)) {
                                                     class="bi bi-list-check"
                                                     style="font-size: 1rem;margin-right:5px; color: rgb(20, 120, 90);"></i>
                                                 Fila de Tarefas</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>list_prorrogacao_pendente.php"><i
+                                                    class="bi bi-hourglass-split"
+                                                    style="font-size: 1rem;margin-right:5px; color: rgb(180, 120, 20);"></i>
+                                                Prorrogação Pendente</a></li>
 
                                     </ul>
                                 </li>
