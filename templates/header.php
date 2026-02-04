@@ -450,25 +450,30 @@ if (!empty($sessionIdUsuario)) {
                                                     style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
                                                 Internação UTI</a>
                                         </li>
-                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>gestao"><i
-                                                    class="bi bi-postcard-heart"
-                                                    style="font-size: 1rem;margin-right:5px; color: rgb(144, 17, 194);"></i>
-                                                Gestão</a></li>
                                         <li><a class="dropdown-item" href="<?= $BASE_URL ?>listas/altas"><i
                                                     class="bi bi-clipboard-check"
                                                     style="font-size: 1rem;margin-right:5px; color: rgb(9,132,227);"></i>
                                                 Lista de altas</a></li>
-                                        <li>
-                                            <hr class="dropdown-divider">
-                                        </li>
+                                    </ul>
+                                </li>
+                            <?php }; ?>
+                            <?php if ($sessionNivel >= 3) { ?>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i style="font-size: 1rem;margin-right:5px; color:#5e2363;" name="type" value="edite"
+                                            class="fa-solid fa-file-invoice edit-icon"></i>
+                                        Gestão
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>gestao"><i
+                                                    class="bi bi-postcard-heart"
+                                                    style="font-size: 1rem;margin-right:5px; color: rgb(144, 17, 194);"></i>
+                                                Gestão</a></li>
                                         <li><a class="dropdown-item" href="<?= $BASE_URL ?>internacoes/ciclo"><i
                                                     class="bi bi-postcard-heart"
                                                     style="font-size:  1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
                                                 Rota do Paciente</a></li>
-                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>visitas/lista"><i
-                                                    class="bi bi-postcard-heart"
-                                                    style="font-size:  1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
-                                                Lista de Visitas</a></li>
                                         <li><a class="dropdown-item" href="<?= $BASE_URL ?>internacoes/sem-senha"><i
                                                     class="bi bi-shield-exclamation"
                                                     style="font-size:  1rem;margin-right:5px; color:#d63384;"></i>
@@ -492,19 +497,9 @@ if (!empty($sessionIdUsuario)) {
                                                     class="bi bi-hourglass-split"
                                                     style="font-size: 1rem;margin-right:5px; color: rgb(180, 120, 20);"></i>
                                                 Prorrogação Pendente</a></li>
-
-                                    </ul>
-                                </li>
-                            <?php }; ?>
-                            <?php if ($sessionNivel >= 3) { ?>
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
-                                        data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i style="font-size: 1rem;margin-right:5px; color:#5e2363;" name="type" value="edite"
-                                            class="fa-solid fa-file-invoice edit-icon"></i>
-                                        Faturamento
-                                    </a>
-                                    <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
                                         <li><a class="dropdown-item" href="<?= $BASE_URL ?>visitas/lista"><i
                                                     class="bi bi-list-check"
                                                     style="font-size: 1rem;margin-right:5px; color:#5e2363;"></i>
