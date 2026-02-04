@@ -987,6 +987,8 @@
                 target = 'collapseProrrog';
             } else if (window.location.hash === '#collapseTuss' || params.get('section') === 'tuss') {
                 target = 'collapseTuss';
+            } else if (window.location.hash === '#collapseNegoc' || params.get('section') === 'negoc') {
+                target = 'collapseNegoc';
             }
             if (!target) return;
             var collapseEl = document.getElementById(target);

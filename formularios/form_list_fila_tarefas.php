@@ -25,6 +25,10 @@ $dt_ini = filter_input(INPUT_GET, 'dt_ini', FILTER_SANITIZE_SPECIAL_CHARS);
 $dt_fim = filter_input(INPUT_GET, 'dt_fim', FILTER_SANITIZE_SPECIAL_CHARS);
 $seguradora_id = filter_input(INPUT_GET, 'seguradora_id', FILTER_VALIDATE_INT);
 $responsavel = trim((string) filter_input(INPUT_GET, 'responsavel', FILTER_SANITIZE_SPECIAL_CHARS));
+$visita_pag = (int)(filter_input(INPUT_GET, 'v_pag') ?: 1);
+$conta_pag = (int)(filter_input(INPUT_GET, 'c_pag') ?: 1);
+$limite_visitas = 10;
+$limite_contas = 10;
 
 $seguradoras = [];
 try {
@@ -39,7 +43,7 @@ $visitasErro = null;
 $contasErro = null;
 
 try {
-    $visitaWhere = ["vi.id_visita IS NULL"];
+    $visitaWhere = ["ac.internado_int = 's'"];
     $visitaParams = [];
 
     if ($dt_ini) {
@@ -59,6 +63,40 @@ try {
         $visitaParams[':v_resp'] = "%" . $responsavel . "%";
     }
 
+    $visitaCountSql = "
+        SELECT COUNT(*) FROM (
+            SELECT ac.id_internacao
+            FROM tb_internacao ac
+            LEFT JOIN tb_paciente pa ON pa.id_paciente = ac.fk_paciente_int
+            LEFT JOIN tb_hospital ho ON ho.id_hospital = ac.fk_hospital_int
+            LEFT JOIN tb_seguradora se ON se.id_seguradora = pa.fk_seguradora_pac
+            LEFT JOIN tb_visita vi
+                ON vi.fk_internacao_vis = ac.id_internacao
+                AND (vi.retificado IS NULL OR vi.retificado IN (0, '0', '', 'n', 'N'))
+            WHERE " . implode(" AND ", $visitaWhere) . "
+            GROUP BY ac.id_internacao
+            HAVING CURDATE() > DATE_ADD(
+                COALESCE(MAX(COALESCE(DATE(vi.data_visita_vis), DATE(vi.data_lancamento_vis))), MIN(ac.data_intern_int)),
+                INTERVAL CASE
+                    WHEN (MIN(ac.internado_uti_int) = 's' OR MIN(ac.internacao_uti_int) = 's')
+                        THEN COALESCE(NULLIF(MIN(se.dias_visita_uti_seg), 0), NULLIF(MIN(se.dias_visita_seg), 0), 7)
+                    ELSE COALESCE(NULLIF(MIN(se.dias_visita_seg), 0), 7)
+                END DAY
+            )
+        ) x
+    ";
+    $stmt = $conn->prepare($visitaCountSql);
+    foreach ($visitaParams as $key => $value) {
+        $stmt->bindValue($key, $value);
+    }
+    $stmt->execute();
+    $visita_total = (int)($stmt->fetchColumn() ?: 0);
+
+    $visita_pag = max(1, $visita_pag);
+    $visita_total_pag = max(1, (int)ceil($visita_total / $limite_visitas));
+    $visita_pag = min($visita_pag, $visita_total_pag);
+    $visita_offset = ($visita_pag - 1) * $limite_visitas;
+
     $visitaSql = "
         SELECT
             ac.id_internacao,
@@ -75,14 +113,25 @@ try {
             ON vi.fk_internacao_vis = ac.id_internacao
             AND (vi.retificado IS NULL OR vi.retificado IN (0, '0', '', 'n', 'N'))
         WHERE " . implode(" AND ", $visitaWhere) . "
+        GROUP BY ac.id_internacao
+        HAVING CURDATE() > DATE_ADD(
+            COALESCE(MAX(COALESCE(DATE(vi.data_visita_vis), DATE(vi.data_lancamento_vis))), MIN(ac.data_intern_int)),
+            INTERVAL CASE
+                WHEN (MIN(ac.internado_uti_int) = 's' OR MIN(ac.internacao_uti_int) = 's')
+                    THEN COALESCE(NULLIF(MIN(se.dias_visita_uti_seg), 0), NULLIF(MIN(se.dias_visita_seg), 0), 7)
+                ELSE COALESCE(NULLIF(MIN(se.dias_visita_seg), 0), 7)
+            END DAY
+        )
         ORDER BY ac.data_intern_int DESC
-        LIMIT 200
+        LIMIT :v_limit OFFSET :v_offset
     ";
 
     $stmt = $conn->prepare($visitaSql);
     foreach ($visitaParams as $key => $value) {
         $stmt->bindValue($key, $value);
     }
+    $stmt->bindValue(':v_limit', $limite_visitas, PDO::PARAM_INT);
+    $stmt->bindValue(':v_offset', $visita_offset, PDO::PARAM_INT);
     $stmt->execute();
     $visitasPendentes = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 } catch (Throwable $th) {
@@ -112,6 +161,27 @@ try {
         $contaParams[':c_resp'] = "%" . $responsavel . "%";
     }
 
+    $contaCountSql = "
+        SELECT COUNT(*) AS total
+        FROM tb_capeante ca
+        LEFT JOIN tb_internacao ac ON ac.id_internacao = ca.fk_int_capeante
+        LEFT JOIN tb_paciente pa ON pa.id_paciente = ac.fk_paciente_int
+        LEFT JOIN tb_hospital ho ON ho.id_hospital = ac.fk_hospital_int
+        LEFT JOIN tb_seguradora se ON se.id_seguradora = pa.fk_seguradora_pac
+        WHERE " . implode(" AND ", $contaWhere) . "
+    ";
+    $stmt = $conn->prepare($contaCountSql);
+    foreach ($contaParams as $key => $value) {
+        $stmt->bindValue($key, $value);
+    }
+    $stmt->execute();
+    $conta_total = (int)($stmt->fetchColumn() ?: 0);
+
+    $conta_pag = max(1, $conta_pag);
+    $conta_total_pag = max(1, (int)ceil($conta_total / $limite_contas));
+    $conta_pag = min($conta_pag, $conta_total_pag);
+    $conta_offset = ($conta_pag - 1) * $limite_contas;
+
     $contaSql = "
         SELECT
             ca.id_capeante,
@@ -129,13 +199,15 @@ try {
         LEFT JOIN tb_seguradora se ON se.id_seguradora = pa.fk_seguradora_pac
         WHERE " . implode(" AND ", $contaWhere) . "
         ORDER BY ca.data_create_cap DESC
-        LIMIT 200
+        LIMIT :c_limit OFFSET :c_offset
     ";
 
     $stmt = $conn->prepare($contaSql);
     foreach ($contaParams as $key => $value) {
         $stmt->bindValue($key, $value);
     }
+    $stmt->bindValue(':c_limit', $limite_contas, PDO::PARAM_INT);
+    $stmt->bindValue(':c_offset', $conta_offset, PDO::PARAM_INT);
     $stmt->execute();
     $contasPendentes = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 } catch (Throwable $th) {
@@ -181,16 +253,58 @@ try {
         </div>
     </form>
 
+    <style>
+        .fila-table thead th {
+            color: #3a184f;
+            background: #f1edf6;
+        }
+        .internacao-card__header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 0;
+            padding: 14px 16px;
+            border-bottom: 1px solid #ebe1f5;
+            background: #f7f5fb;
+        }
+        .internacao-card__eyebrow {
+            text-transform: uppercase;
+            letter-spacing: .35em;
+            font-size: .65rem;
+            margin: 0;
+            color: #000;
+        }
+        .internacao-card__title {
+            margin: 2px 0 0;
+            font-size: 1.1rem;
+            color: #000;
+            font-weight: 600;
+        }
+        .internacao-card__tag {
+            background: #f8eefc;
+            color: #5e2363;
+            padding: 6px 16px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: .8rem;
+        }
+    </style>
+
     <div class="card mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <span>Visitas pendentes</span>
-            <span class="badge bg-warning text-dark"><?= count($visitasPendentes) ?></span>
+        <div class="internacao-card__header">
+            <div>
+                <p class="internacao-card__eyebrow">Fila</p>
+                <h3 class="internacao-card__title">Visitas pendentes</h3>
+            </div>
+            <span class="internacao-card__tag"><?= (int)($visita_total ?? count($visitasPendentes)) ?></span>
         </div>
         <div class="card-body table-responsive">
             <?php if ($visitasErro): ?>
             <div class="alert alert-warning">Falha ao carregar visitas pendentes. <?= h($visitasErro) ?></div>
             <?php endif; ?>
-            <table class="table table-striped table-sm align-middle">
+            <table class="table table-striped table-sm align-middle fila-table">
                 <thead class="table-light">
                     <tr>
                         <th>Internacao</th>
@@ -225,19 +339,60 @@ try {
                     <?php endif; ?>
                 </tbody>
             </table>
+            <?php if (($visita_total_pag ?? 1) > 1): ?>
+            <nav class="d-flex justify-content-center mt-3">
+                <ul class="pagination pagination-sm mb-0">
+                    <?php
+                    $baseQuery = [
+                        'dt_ini' => $dt_ini,
+                        'dt_fim' => $dt_fim,
+                        'seguradora_id' => $seguradora_id,
+                        'responsavel' => $responsavel,
+                        'c_pag' => $conta_pag,
+                    ];
+                    $v_window = 5;
+                    $v_start = max(1, $visita_pag - $v_window);
+                    $v_end = min($visita_total_pag, $visita_pag + $v_window);
+                    if ($v_end - $v_start < 2 * $v_window) {
+                        if ($v_start == 1) {
+                            $v_end = min($visita_total_pag, $v_start + 2 * $v_window);
+                        } elseif ($v_end == $visita_total_pag) {
+                            $v_start = max(1, $v_end - 2 * $v_window);
+                        }
+                    }
+                    ?>
+                    <?php if ($visita_pag > 1): ?>
+                    <li class="page-item"><a class="page-link" href="?<?= h(http_build_query($baseQuery + ['v_pag' => 1])) ?>">&laquo;</a></li>
+                    <li class="page-item"><a class="page-link" href="?<?= h(http_build_query($baseQuery + ['v_pag' => $visita_pag - 1])) ?>">&lsaquo;</a></li>
+                    <?php endif; ?>
+                    <?php for ($i = $v_start; $i <= $v_end; $i++): ?>
+                    <li class="page-item <?= $i === $visita_pag ? 'active' : '' ?>">
+                        <a class="page-link" href="?<?= h(http_build_query($baseQuery + ['v_pag' => $i])) ?>"><?= $i ?></a>
+                    </li>
+                    <?php endfor; ?>
+                    <?php if ($visita_pag < $visita_total_pag): ?>
+                    <li class="page-item"><a class="page-link" href="?<?= h(http_build_query($baseQuery + ['v_pag' => $visita_pag + 1])) ?>">&rsaquo;</a></li>
+                    <li class="page-item"><a class="page-link" href="?<?= h(http_build_query($baseQuery + ['v_pag' => $visita_total_pag])) ?>">&raquo;</a></li>
+                    <?php endif; ?>
+                </ul>
+            </nav>
+            <?php endif; ?>
         </div>
     </div>
 
     <div class="card mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <span>Contas pendentes</span>
-            <span class="badge bg-warning text-dark"><?= count($contasPendentes) ?></span>
+        <div class="internacao-card__header">
+            <div>
+                <p class="internacao-card__eyebrow">Fila</p>
+                <h3 class="internacao-card__title">Contas Pendentes</h3>
+            </div>
+            <span class="internacao-card__tag"><?= (int)($conta_total ?? count($contasPendentes)) ?></span>
         </div>
         <div class="card-body table-responsive">
             <?php if ($contasErro): ?>
             <div class="alert alert-warning">Falha ao carregar contas pendentes. <?= h($contasErro) ?></div>
             <?php endif; ?>
-            <table class="table table-striped table-sm align-middle">
+            <table class="table table-striped table-sm align-middle fila-table">
                 <thead class="table-light">
                     <tr>
                         <th>Conta</th>
@@ -266,14 +421,58 @@ try {
                         <td><?= h(fmt_date_br($row['data_create_cap'] ?? '')) ?></td>
                         <td><?= h($row['usuario_create_cap'] ?? '-') ?></td>
                         <td class="text-end">
-                            <a class="btn btn-outline-primary btn-sm"
-                                href="show_capeante.php?id_capeante=<?= h($row['id_capeante']) ?>">Abrir</a>
+                            <?php
+                            $capeanteId = (int)($row['id_capeante'] ?? 0);
+                            $internacaoId = (int)($row['id_internacao'] ?? 0);
+                            $capeanteLink = $capeanteId
+                                ? $BASE_URL . "cad_capeante_rah.php?id_capeante=" . $capeanteId
+                                : $BASE_URL . "cad_capeante_rah.php?id_internacao=" . $internacaoId . "&type=create";
+                            ?>
+                            <a class="btn btn-outline-primary btn-sm" href="<?= h($capeanteLink) ?>">Abrir</a>
                         </td>
                     </tr>
                     <?php endforeach; ?>
                     <?php endif; ?>
                 </tbody>
             </table>
+            <?php if (($conta_total_pag ?? 1) > 1): ?>
+            <nav class="d-flex justify-content-center mt-3">
+                <ul class="pagination pagination-sm mb-0">
+                    <?php
+                    $baseQuery = [
+                        'dt_ini' => $dt_ini,
+                        'dt_fim' => $dt_fim,
+                        'seguradora_id' => $seguradora_id,
+                        'responsavel' => $responsavel,
+                        'v_pag' => $visita_pag,
+                    ];
+                    $c_window = 5;
+                    $c_start = max(1, $conta_pag - $c_window);
+                    $c_end = min($conta_total_pag, $conta_pag + $c_window);
+                    if ($c_end - $c_start < 2 * $c_window) {
+                        if ($c_start == 1) {
+                            $c_end = min($conta_total_pag, $c_start + 2 * $c_window);
+                        } elseif ($c_end == $conta_total_pag) {
+                            $c_start = max(1, $c_end - 2 * $c_window);
+                        }
+                    }
+                    ?>
+                    <?php if ($conta_pag > 1): ?>
+                    <li class="page-item"><a class="page-link" href="?<?= h(http_build_query($baseQuery + ['c_pag' => 1])) ?>">&laquo;</a></li>
+                    <li class="page-item"><a class="page-link" href="?<?= h(http_build_query($baseQuery + ['c_pag' => $conta_pag - 1])) ?>">&lsaquo;</a></li>
+                    <?php endif; ?>
+                    <?php for ($i = $c_start; $i <= $c_end; $i++): ?>
+                    <li class="page-item <?= $i === $conta_pag ? 'active' : '' ?>">
+                        <a class="page-link" href="?<?= h(http_build_query($baseQuery + ['c_pag' => $i])) ?>"><?= $i ?></a>
+                    </li>
+                    <?php endfor; ?>
+                    <?php if ($conta_pag < $conta_total_pag): ?>
+                    <li class="page-item"><a class="page-link" href="?<?= h(http_build_query($baseQuery + ['c_pag' => $conta_pag + 1])) ?>">&rsaquo;</a></li>
+                    <li class="page-item"><a class="page-link" href="?<?= h(http_build_query($baseQuery + ['c_pag' => $conta_total_pag])) ?>">&raquo;</a></li>
+                    <?php endif; ?>
+                </ul>
+            </nav>
+            <?php endif; ?>
         </div>
     </div>
 </div>

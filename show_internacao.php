@@ -1178,8 +1178,12 @@ usort($neg_filtered, function ($a, $b) {
                         <div class="card ov-card ov-int"
                             style="border-radius:14px;background:#fff;box-shadow:0 8px 24px rgba(0,0,0,.06);background-image:linear-gradient(to right, var(--ov, #5e2363) 6px, #fff 6px);">
                             <div class="card-body">
-                                <div class="ov-head">
+                                <div class="ov-head ov-head-space">
                                     <h6 class="ov-title mb-0">Negociações</h6>
+                                    <a class="btn btn-sm btn-outline-secondary"
+                                        href="<?= e($BASE_URL) ?>edit_internacao.php?id_internacao=<?= (int)$id_internacao ?>&section=negoc#collapseNegoc">
+                                        <i class="bi bi-pencil-square me-1"></i>Editar Negociações
+                                    </a>
                                 </div>
 
                                 <form method="get" action="<?= e($_SERVER['PHP_SELF']) ?>#neg" class="row g-2 align-items-end mb-3">
