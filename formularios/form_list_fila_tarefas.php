@@ -32,7 +32,7 @@ $limite_contas = 10;
 
 $seguradoras = [];
 try {
-    $seguradoras = $conn->query("SELECT id_seguradora, seguradora_seg FROM tb_seguradora WHERE deletado_seg <> 's' OR deletado_seg IS NULL ORDER BY seguradora_seg")->fetchAll(PDO::FETCH_ASSOC);
+    $seguradoras = $conn->query("SELECT DISTINCT seguradora_seg, id_seguradora FROM tb_seguradora WHERE deletado_seg <> 's' OR deletado_seg IS NULL ORDER BY seguradora_seg")->fetchAll(PDO::FETCH_ASSOC);
 } catch (Throwable $th) {
     $seguradoras = [];
 }
@@ -215,10 +215,45 @@ try {
 }
 ?>
 
-<div class="container-fluid" id="main-container" style="margin-top:-5px">
-    <h4 class="page-title">Fila de Tarefas</h4>
-    <p class="text-muted" style="margin-top:-6px">Visitas e contas pendentes, com filtros por periodo, convenio e responsavel.</p>
-    <hr>
+    <div class="container-fluid" id="main-container" style="margin-top:-5px">
+        <style>
+            .fila-hero {
+                background: linear-gradient(135deg, #5e2363, #9b70d1);
+                color: #fff;
+                border-radius: 28px;
+                padding: 18px 24px;
+                box-shadow: 0 20px 40px rgba(24, 0, 30, 0.25);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 16px;
+                margin-bottom: 14px;
+            }
+            .fila-hero h1 {
+                margin: 0;
+                font-size: 1.4rem;
+                letter-spacing: .02em;
+                color: #fff;
+            }
+            .fila-hero__tag {
+                background: rgba(255, 255, 255, 0.2);
+                padding: 6px 14px;
+                border-radius: 999px;
+                font-weight: 600;
+                font-size: .78rem;
+                color: #fff;
+                white-space: nowrap;
+            }
+            .fila-subtitle {
+                color: #6c757d;
+                margin: 4px 0 0;
+            }
+        </style>
+        <div class="fila-hero">
+            <h1>Fila de Tarefas</h1>
+            <span class="fila-hero__tag">Pendências</span>
+        </div>
+        <p class="fila-subtitle">Visitas e contas pendentes, com filtros por periodo, convenio e responsavel.</p>
 
     <form method="GET" class="row g-2 align-items-end mb-3">
         <div class="col-sm-2">
@@ -266,20 +301,20 @@ try {
             gap: 12px;
             margin: 0;
             padding: 14px 16px;
-            border-bottom: 1px solid #ebe1f5;
-            background: #f7f5fb;
+            border-bottom: 1px solid #d9cfe6;
+            background: #e1d8ee;
         }
         .internacao-card__eyebrow {
             text-transform: uppercase;
             letter-spacing: .35em;
             font-size: .65rem;
             margin: 0;
-            color: #000;
+            color: #2b0f3f;
         }
         .internacao-card__title {
             margin: 2px 0 0;
             font-size: 1.1rem;
-            color: #000;
+            color: #2b0f3f;
             font-weight: 600;
         }
         .internacao-card__tag {
@@ -362,17 +397,17 @@ try {
                     }
                     ?>
                     <?php if ($visita_pag > 1): ?>
-                    <li class="page-item"><a class="page-link" href="?<?= h(http_build_query($baseQuery + ['v_pag' => 1])) ?>">&laquo;</a></li>
-                    <li class="page-item"><a class="page-link" href="?<?= h(http_build_query($baseQuery + ['v_pag' => $visita_pag - 1])) ?>">&lsaquo;</a></li>
+                    <li class="page-item"><a class="page-link" href="list_fila_tarefas.php?<?= h(http_build_query($baseQuery + ['v_pag' => 1])) ?>">&laquo;</a></li>
+                    <li class="page-item"><a class="page-link" href="list_fila_tarefas.php?<?= h(http_build_query($baseQuery + ['v_pag' => $visita_pag - 1])) ?>">&lsaquo;</a></li>
                     <?php endif; ?>
                     <?php for ($i = $v_start; $i <= $v_end; $i++): ?>
                     <li class="page-item <?= $i === $visita_pag ? 'active' : '' ?>">
-                        <a class="page-link" href="?<?= h(http_build_query($baseQuery + ['v_pag' => $i])) ?>"><?= $i ?></a>
+                        <a class="page-link" href="list_fila_tarefas.php?<?= h(http_build_query($baseQuery + ['v_pag' => $i])) ?>"><?= $i ?></a>
                     </li>
                     <?php endfor; ?>
                     <?php if ($visita_pag < $visita_total_pag): ?>
-                    <li class="page-item"><a class="page-link" href="?<?= h(http_build_query($baseQuery + ['v_pag' => $visita_pag + 1])) ?>">&rsaquo;</a></li>
-                    <li class="page-item"><a class="page-link" href="?<?= h(http_build_query($baseQuery + ['v_pag' => $visita_total_pag])) ?>">&raquo;</a></li>
+                    <li class="page-item"><a class="page-link" href="list_fila_tarefas.php?<?= h(http_build_query($baseQuery + ['v_pag' => $visita_pag + 1])) ?>">&rsaquo;</a></li>
+                    <li class="page-item"><a class="page-link" href="list_fila_tarefas.php?<?= h(http_build_query($baseQuery + ['v_pag' => $visita_total_pag])) ?>">&raquo;</a></li>
                     <?php endif; ?>
                 </ul>
             </nav>
@@ -458,17 +493,17 @@ try {
                     }
                     ?>
                     <?php if ($conta_pag > 1): ?>
-                    <li class="page-item"><a class="page-link" href="?<?= h(http_build_query($baseQuery + ['c_pag' => 1])) ?>">&laquo;</a></li>
-                    <li class="page-item"><a class="page-link" href="?<?= h(http_build_query($baseQuery + ['c_pag' => $conta_pag - 1])) ?>">&lsaquo;</a></li>
+                    <li class="page-item"><a class="page-link" href="list_fila_tarefas.php?<?= h(http_build_query($baseQuery + ['c_pag' => 1])) ?>">&laquo;</a></li>
+                    <li class="page-item"><a class="page-link" href="list_fila_tarefas.php?<?= h(http_build_query($baseQuery + ['c_pag' => $conta_pag - 1])) ?>">&lsaquo;</a></li>
                     <?php endif; ?>
                     <?php for ($i = $c_start; $i <= $c_end; $i++): ?>
                     <li class="page-item <?= $i === $conta_pag ? 'active' : '' ?>">
-                        <a class="page-link" href="?<?= h(http_build_query($baseQuery + ['c_pag' => $i])) ?>"><?= $i ?></a>
+                        <a class="page-link" href="list_fila_tarefas.php?<?= h(http_build_query($baseQuery + ['c_pag' => $i])) ?>"><?= $i ?></a>
                     </li>
                     <?php endfor; ?>
                     <?php if ($conta_pag < $conta_total_pag): ?>
-                    <li class="page-item"><a class="page-link" href="?<?= h(http_build_query($baseQuery + ['c_pag' => $conta_pag + 1])) ?>">&rsaquo;</a></li>
-                    <li class="page-item"><a class="page-link" href="?<?= h(http_build_query($baseQuery + ['c_pag' => $conta_total_pag])) ?>">&raquo;</a></li>
+                    <li class="page-item"><a class="page-link" href="list_fila_tarefas.php?<?= h(http_build_query($baseQuery + ['c_pag' => $conta_pag + 1])) ?>">&rsaquo;</a></li>
+                    <li class="page-item"><a class="page-link" href="list_fila_tarefas.php?<?= h(http_build_query($baseQuery + ['c_pag' => $conta_total_pag])) ?>">&raquo;</a></li>
                     <?php endif; ?>
                 </ul>
             </nav>
