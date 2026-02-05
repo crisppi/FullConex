@@ -53,7 +53,7 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar
 <!-- FORMULARIO DE PESQUISAS -->
 <div class="container-fluid form_container" id='main-container' style="margin-top:12px;">
     <script src="./js/ajaxNav.js"></script>
-    <h4 class="page-title">Gestão</h4>
+    <h4 class="page-title">Gestão Assistencial</h4>
     <hr>
     <style>
     .gestao-filter-bar {
@@ -435,12 +435,6 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar
 
                     <!-- paginacao que aparece abaixo da tabela -->
                     <div style="display: flex;margin-top:20px">
-                        <div class="table-new-btn">
-                            <a class="btn btn-success styled"
-                                style="background-color: #35bae1;font-family:var(--bs-font-sans-serif);box-shadow: 0px 10px 15px -3px rgba(0,0,0,0.1);border:none"
-                                href="internacoes/nova"><i class="fa-solid fa-plus" style='font-size: 1rem;'></i>Nova
-                                internação</a>
-                        </div>
 
                         <!-- Modal para abrir tela de cadastro -->
                         <div class="modal fade" id="myModal">
