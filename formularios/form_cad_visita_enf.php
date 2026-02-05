@@ -178,7 +178,7 @@
                     </select>
                 </div>
                 <div class="form-group col-sm-2">
-                    <label style="color:blue;" class="control-label" for="select_gestao">Gestão</label>
+                    <label style="color:blue;" class="control-label" for="select_gestao">Gestão Assistencial</label>
 
                     <select class="form-control" id="select_gestao" name="select_gestao">
                         <option value="">Selecione</option>

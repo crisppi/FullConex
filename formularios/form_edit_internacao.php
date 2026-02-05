@@ -905,7 +905,7 @@
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                                 data-bs-target="#collapseGestao" aria-expanded="false" aria-controls="collapseGestao">
                                 <i class="fa-solid fa-wallet me-2"></i>
-                                <span>Editar Gestão</span>
+                                <span>Editar Gestão Assistencial</span>
                             </button>
                         </h2>
                         <div id="collapseGestao" class="accordion-collapse collapse" aria-labelledby="headingGestao">

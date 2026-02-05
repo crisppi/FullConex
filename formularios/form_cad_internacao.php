@@ -1015,8 +1015,6 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                                 <label class="control-label mb-0" for="hospital_selected">
                                     <span style="color:red;">*</span> Hospital
                                 </label>
-                                <button type="button" id="hospitalTipButtonInline" class="patient-insight-inline-btn"
-                                    title="Clique para mostrar/ocultar os insights" aria-expanded="false">i</button>
                             </div>
                             <div class="hospital-select-wrapper">
                                 <select onchange="myFunctionSelected()"
@@ -1037,12 +1035,6 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                                     <?php endif; ?>
                                 </select>
                             </div>
-                            <div class="hospital-tip" id="hospitalTipContainer">
-                                <div class="hospital-tip-popover" id="hospitalTipPopover">
-                                    Selecione um hospital para ver negociações e internações em UTI.
-                                </div>
-                            </div>
-                            <div id="hospitalUtiAlert" class="hospital-uti-alert"></div>
                         </div>
                         <div class="d-flex justify-content-center align-items-center" style="flex:1">
                             <div id="hospitalNomeTexto" style="
@@ -1550,7 +1542,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
             <?php } ?>
 
             <div class="form-group tabelas-col">
-                <label class="control-label" style="font-weight: bold;" for="select_gestao">Gestão</label>
+                <label class="control-label" style="font-weight: bold;" for="select_gestao">Gestão Assistencial</label>
                 <select class="input-lg-fullcare form-control select-purple" id="select_gestao" name="select_gestao">
                     <option value="">Selecione</option>
                     <option value="s">Sim</option>
@@ -1760,7 +1752,12 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                 }
             }
 
-            $('.selectpicker').selectpicker();
+            $('.selectpicker').each(function() {
+                var $el = $(this);
+                if (!$el.data('selectpicker')) {
+                    $el.selectpicker();
+                }
+            });
             $('.selectpicker').selectpicker('refresh');
             $('.selectpicker').each(function() {
                 updateSelectPlaceholder($(this));
@@ -1838,7 +1835,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
             }
             setLoading(hospitalName || 'hospital selecionado');
             try {
-                const response = await fetch('ajax/hospital_insights.php?id_hospital=' + encodeURIComponent(
+                const response = await fetch('<?= $BASE_URL ?>ajax/hospital_insights.php?id_hospital=' + encodeURIComponent(
                     hospitalId), {
                     credentials: 'same-origin'
                 });
@@ -1872,7 +1869,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                     hideAlert();
                 }
             } catch (err) {
-                if (button) button.disabled = true;
+                if (button) button.disabled = false;
                 setPopover(`Não foi possível carregar os dados. ${err.message}`);
                 showAlert('Não foi possível verificar os pacientes em UTI agora.');
             }
@@ -1938,7 +1935,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
             setMessage(`Carregando dados de <strong>${pacName || 'paciente'}</strong>...`);
             disableHub();
             try {
-                const response = await fetch('ajax/paciente_insights.php?id_paciente=' + encodeURIComponent(
+                const response = await fetch('<?= $BASE_URL ?>ajax/paciente_insights.php?id_paciente=' + encodeURIComponent(
                     pacId), {
                     credentials: 'same-origin'
                 });
@@ -2846,7 +2843,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
         var internadoSelect = document.getElementById('internado_int');
         var dataAltaField = document.getElementById('data_alta_alt');
         var modalEl = document.getElementById('modalInternacaoAtiva');
-        var modalInstance = modalEl ? new bootstrap.Modal(modalEl) : null;
+        var modalInstance = (window.bootstrap && bootstrap.Modal && modalEl) ? new bootstrap.Modal(modalEl) : null;
         var modalHospital = document.getElementById('modalInternacaoHospital');
         var modalData = document.getElementById('modalInternacaoData');
         var confirmBtn = modalEl ? modalEl.querySelector('[data-action="confirm-retroativa"]') : null;
@@ -2966,7 +2963,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
     document.addEventListener('DOMContentLoaded', function() {
         var senhaInput = document.getElementById('senha_int');
         var senhaModalEl = document.getElementById('modalSenhaDuplicada');
-        var senhaModal = senhaModalEl ? new bootstrap.Modal(senhaModalEl) : null;
+        var senhaModal = (window.bootstrap && bootstrap.Modal && senhaModalEl) ? new bootstrap.Modal(senhaModalEl) : null;
         var senhaTexto = document.getElementById('modalSenhaDuplicadaTexto');
         var senhaDuplicadaFlag = false;
 
@@ -3047,23 +3044,6 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
             bubbles: true
         }));
     });
-    let option = Array.from(select.options).find(opt => String(opt.value) === String(novoId));
-    const label = data.nome || data.nome_pac || `Paciente #${novoId}`;
-
-    if (!option) {
-        option = new Option(label, novoId, true, true);
-        select.appendChild(option);
-    } else {
-        option.selected = true;
-        option.textContent = label;
-    }
-
-    if (window.$ && $.fn.selectpicker && $(select).hasClass('selectpicker')) {
-        $(select).selectpicker('refresh');
-        $(select).selectpicker('val', String(novoId));
-    } else {
-        select.value = novoId;
-    }
     window.formInternacaoConfig = Object.assign({}, window.formInternacaoConfig || {}, {
         prefillPacienteId: <?= !empty($id_paciente_get) ? (int) $id_paciente_get : 'null' ?>,
         idSessao: <?= json_encode($idSessao ?? '') ?>,

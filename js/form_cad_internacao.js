@@ -193,7 +193,12 @@ document.addEventListener('DOMContentLoaded', function() {
 // selectpicker só se o plugin existir (evita quebrar tudo)
 $(function() {
     if ($.fn.selectpicker) {
-        $('.selectpicker').selectpicker();
+        $('.selectpicker').each(function() {
+            var $el = $(this);
+            if (!$el.data('selectpicker')) {
+                $el.selectpicker();
+            }
+        });
         $('.selectpicker').selectpicker('refresh');
         $('.selectpicker').on('loaded.bs.select', function() {
             $('.bs-searchbox input').attr('placeholder', 'Digite para pesquisar...');

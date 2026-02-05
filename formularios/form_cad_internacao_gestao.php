@@ -35,7 +35,7 @@
         <div class="adicional-card__header">
             <h4 class="adicional-card__title">
                 <span class="adicional-card__marker"></span>
-                Gestão
+                Gestão Assistencial
             </h4>
         </div>
     <input type="hidden" name="type" value="create">

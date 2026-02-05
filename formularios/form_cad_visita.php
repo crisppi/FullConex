@@ -362,7 +362,7 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
                         </div>
                         <?php }; ?>
                         <div class="form-group col-sm-2">
-                            <label class="control-label" for="select_gestao">Gestão</label>
+                            <label class="control-label" for="select_gestao">Gestão Assistencial</label>
 
                             <select class="form-control select-purple" id="select_gestao" name="select_gestao">
                                 <option value="">Selecione</option>

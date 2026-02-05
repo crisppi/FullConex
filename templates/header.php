@@ -469,7 +469,7 @@ if (!empty($sessionIdUsuario)) {
                                         <li><a class="dropdown-item" href="<?= $BASE_URL ?>gestao"><i
                                                     class="bi bi-postcard-heart"
                                                     style="font-size: 1rem;margin-right:5px; color: rgb(144, 17, 194);"></i>
-                                                Gestão</a></li>
+                                                Gestão Assistencial</a></li>
                                         <li><a class="dropdown-item" href="<?= $BASE_URL ?>internacoes/ciclo"><i
                                                     class="bi bi-postcard-heart"
                                                     style="font-size:  1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
