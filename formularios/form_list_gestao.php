@@ -71,7 +71,9 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar
         min-width: 200px;
     }
     .gestao-filter-bar .filter-item.compact {
-        min-width: 120px;
+        flex: 0 0 120px;
+        width: 120px;
+        max-width: 120px;
     }
     @media (max-width: 1199px) {
         .gestao-filter-bar {
