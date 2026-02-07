@@ -237,10 +237,12 @@ if (!is_array($prioridades)) {
     color: #4b3d59;
 }
 .dash-card .dash-value {
-    font-size: 2.5rem;
+    font-size: clamp(1.4rem, 3.6vw, 2.5rem);
     font-weight: 800;
     margin: 10px 0;
     color: #1f1034;
+    line-height: 1.05;
+    white-space: nowrap;
 }
 .dash-card p {
     margin: 0;
@@ -309,7 +311,9 @@ if (!is_array($prioridades)) {
 .badge-score.mid { background: linear-gradient(120deg, #f97316, #ef4444); }
 .badge-score.high { background: linear-gradient(120deg, #be185d, #7e22ce); }
 @media (max-width: 768px) {
-    .dash-card .dash-value { font-size: 2rem; }
+    .dash-card { padding: 16px; }
+    .dash-card h3 { font-size: .85rem; }
+    .dash-card .dash-value { font-size: clamp(1.2rem, 6vw, 2rem); }
 }
 </style>
 

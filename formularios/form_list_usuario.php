@@ -164,6 +164,13 @@ if ($qtdIntItens > $limite) {
                                     search
                                 </span></button>
                         </div>
+                        <div class="col-sm-1" style="padding:2px !important">
+                            <button type="button" id="btnLimparFiltro" class="btn btn-secondary"
+                                style="background-color:#888;width:42px;height:32px;margin-top:7px;border-color:#888"
+                                title="Limpar filtros">
+                                <span class="material-icons" style="margin-left:-3px;margin-top:-2px;">close</span>
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -174,24 +181,25 @@ if ($qtdIntItens > $limite) {
                 <!-- <div> -->
                 <!-- <h6 class="page-title">Relação de usuários</h6> -->
                 <!-- </div> -->
-                <table class="table table-sm table-striped table-hover table-condensed">
-                    <thead>
-                        <tr>
-                            <th scope="col">Id</th>
-                            <th scope="col">Usuário</th>
-                            <th scope="col">CPF</th>
-                            <th scope="col">Endereço</th>
-                            <th scope="col">Cargo</th>
-                            <th scope="col">Depto</th>
-                            <th scope="col">Nível</th>
-                            <th scope="col">Email</th>
-                            <th scope="col">Telefone</th>
-                            <th scope="col">Ativo</th>
-                            <th scope="col" width="8%">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
+                <div class="table-responsive table-responsive-page">
+                    <table class="table table-sm table-striped table-hover table-condensed">
+                        <thead>
+                            <tr>
+                                <th scope="col">Id</th>
+                                <th scope="col">Usuário</th>
+                                <th scope="col">CPF</th>
+                                <th scope="col">Endereço</th>
+                                <th scope="col">Cargo</th>
+                                <th scope="col">Depto</th>
+                                <th scope="col">Nível</th>
+                                <th scope="col">Email</th>
+                                <th scope="col">Telefone</th>
+                                <th scope="col">Ativo</th>
+                                <th scope="col" width="8%">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
 
                         foreach ($query as $usuario):
                             extract($usuario);
@@ -283,9 +291,10 @@ if ($qtdIntItens > $limite) {
                                 </div>
                             </td>
                         </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
                 <!-- salvar variavel qtdIntItens no PHP para passar para JS -->
                 <div style="text-align:right">
                     <input type="hidden" id="qtd" value="<?php echo $qtdIntItens ?>">
@@ -401,9 +410,21 @@ $(document).ready(function() {
             },
             error: function() {
                 $('#responseMessage').html('Ocorreu um erro ao enviar o formulário.');
-            }
-        });
+        }
     });
+});
+
+$(document).ready(function() {
+    $('#btnLimparFiltro').on('click', function() {
+        const $form = $('#form_pesquisa');
+        $form[0].reset();
+        $form.find('input[type="text"]').val('');
+        $form.find('select').prop('selectedIndex', 0);
+
+        const baseUrl = '<?= $BASE_URL ?>list_usuario.php';
+        loadContent(baseUrl);
+    });
+});
 });
 
 
@@ -462,6 +483,16 @@ $(document).ready(function() {
 .modal-header {
     color: white;
     background: #35bae1;
+}
+
+.table-responsive-page {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.complete-table {
+    width: 100%;
 }
 </style>
 <script src="./js/input-estilo.js"></script>
