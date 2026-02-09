@@ -2,7 +2,7 @@
     --select-border: #777;
     --select-focus: blue;
     --select-arrow: var(--select-border);
-    --app-zoom: 0.8;
+    --app-zoom: 0.9;
 }
 
 * {
@@ -18,7 +18,7 @@
 
 body {
     padding-top: 100px;
-    zoom: 80%;
+    zoom: 90%;
 
     /* Ajuste este valor de acordo com a altura real do seu header */
 }
