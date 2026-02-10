@@ -4,7 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-if (empty($_SESSION['email_user'])) {
+if (empty($_SESSION['email_user']) && empty($_SESSION['id_usuario'])) {
     header('location:index.php');
     exit;
 }

@@ -189,6 +189,19 @@ if (!$data) {
     exit;
 }
 
+if ($isGestorSeguradora) {
+    $segUserId = (int)($_SESSION['fk_seguradora_user'] ?? 0);
+    $pacienteDao = new pacienteDAO($conn, $BASE_URL);
+    $pacienteRow = $pacienteDao->findById((int)($data['fk_paciente_int'] ?? 0));
+    $pacienteInfo = $pacienteRow && isset($pacienteRow[0]) ? $pacienteRow[0] : [];
+    $segPacId = (int)($pacienteInfo['fk_seguradora_pac'] ?? 0);
+    if (!$segUserId || $segUserId !== $segPacId) {
+        echo "<div class='container mt-4'><div class='alert alert-danger'>Acesso negado para este paciente.</div></div>";
+        include_once("templates/footer.php");
+        exit;
+    }
+}
+
 // Datas / auxiliares
 $iniciais = initials_from_name($data['nome_pac'] ?? '');
 $data_intern_format = fmtDate($data['data_intern_int'] ?? '');

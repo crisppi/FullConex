@@ -369,7 +369,7 @@ class seguradoraDAO implements seguradoraDAOInterface
     { // filtrar apenas as seguradoras que nao foram deletados
         //DADOS DA QUERY
         $where = strlen($where) ? 'WHERE ' . $where : '';
-        $where = $where . ' AND deletado_seg <> "s" '; // filtrar apenas as seguradoras que nao foram deletados
+        $where = $where ? ($where . ' AND deletado_seg <> "s" ') : 'WHERE deletado_seg <> "s" '; // filtrar apenas as seguradoras que nao foram deletados
 
         $order = strlen($order) ? 'ORDER BY ' . $order : '';
         $limit = strlen($limit) ? 'LIMIT ' . $limit : '';

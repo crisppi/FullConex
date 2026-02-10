@@ -76,6 +76,15 @@ if (!$paciente || !isset($paciente['0'])) {
   exit;
 }
 $p = $paciente['0'];
+if ($isGestorSeguradora) {
+  $segUserId = (int)($_SESSION['fk_seguradora_user'] ?? 0);
+  $segPacId = (int)($p['fk_seguradora_pac'] ?? 0);
+  if (!$segUserId || $segUserId !== $segPacId) {
+    echo "<div class='container mt-4'><div class='alert alert-danger'>Acesso negado para este paciente.</div></div>";
+    include_once("templates/footer.php");
+    exit;
+  }
+}
 
 // Helpers de formatação (iguais aos seus)
 function formatCpf($cpf)

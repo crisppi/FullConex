@@ -29,6 +29,7 @@ class Usuario
     public $reg_profissional_user;
     public $tipo_reg_user;
     public $cpf_user;
+    public $fk_seguradora_user;
     public $senha_user;
     public $senha_default_user;
     public $obs_user;

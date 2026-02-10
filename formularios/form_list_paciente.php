@@ -10,6 +10,19 @@
     include_once("templates/header.php");
     include_once("array_dados.php");
 
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        session_start();
+    }
+    $normCargoAccess = function ($txt)
+    {
+        $txt = mb_strtolower(trim((string)$txt), 'UTF-8');
+        $c = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $txt);
+        $txt = $c !== false ? $c : $txt;
+        return preg_replace('/[^a-z]/', '', $txt);
+    };
+    $isGestorSeguradora = ($normCargoAccess($_SESSION['cargo'] ?? '') === 'gestorseguradora');
+    $seguradoraUserId = isset($_SESSION['fk_seguradora_user']) ? (int)$_SESSION['fk_seguradora_user'] : 0;
+
     if (!function_exists('paciente_escape')) {
         function paciente_escape($valor)
         {
@@ -66,7 +79,10 @@
         $nameMatClause ? '(' . $nameMatClause . ')' : null,
         strlen($buscaSeguradora) ? 'se.seguradora_seg LIKE "%' . $buscaSeguradora . '%"' : null,
         strlen($buscaAtivo) ? 'ativo_pac = "' . $buscaAtivo . '"' : null,
-        strlen($pacienteInicio) ? 'id_paciente > ' . $pacienteInicio . ' ' : null
+        strlen($pacienteInicio) ? 'id_paciente > ' . $pacienteInicio . ' ' : null,
+        $isGestorSeguradora
+            ? ($seguradoraUserId > 0 ? 'pa.fk_seguradora_pac = ' . $seguradoraUserId : '1=0')
+            : null,
     ];
 
 

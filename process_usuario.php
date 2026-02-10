@@ -85,6 +85,10 @@ if ($type === "create") {
         $cargo_user = filter_input(INPUT_POST, "cargo_user");
         $obs_user = filter_input(INPUT_POST, "obs_user");
         $senha_default_user = filter_input(INPUT_POST, "senha_default_user");
+        $fk_seguradora_user = filter_input(INPUT_POST, "fk_seguradora_user", FILTER_VALIDATE_INT);
+        if ($cargo_user !== 'Gestor Seguradora') {
+            $fk_seguradora_user = null;
+        }
 
         // $hash_user = password_hash(filter_input(INPUT_POST, "senha_user"), PASSWORD_DEFAULT);
         // $senha_user = filter_input(INPUT_POST, "senha_user");
@@ -133,6 +137,7 @@ if ($type === "create") {
             $usuario->cargo_user = $cargo_user;
             $usuario->obs_user = $obs_user;
             $usuario->foto_usuario = $foto_usuario;
+            $usuario->fk_seguradora_user = $fk_seguradora_user;
 
             $userDao->create($usuario);
             header("location:list_usuario.php");
@@ -208,6 +213,10 @@ if ($type === "create") {
         $depto_user = filter_input(INPUT_POST, "depto_user");
         $vinculo_user = filter_input(INPUT_POST, "vinculo_user");
         $nivel_user = filter_input(INPUT_POST, "nivel_user");
+        $fk_seguradora_user = filter_input(INPUT_POST, "fk_seguradora_user", FILTER_VALIDATE_INT);
+        if ($cargo_user !== 'Gestor Seguradora') {
+            $fk_seguradora_user = null;
+        }
 
         $hash_user = password_hash(filter_input(INPUT_POST, "senha_user"), PASSWORD_DEFAULT);
         $senha_user = password_hash($hash_user, PASSWORD_DEFAULT);
@@ -267,6 +276,7 @@ if ($type === "create") {
         $usuarioData->obs_user = $obs_user;
 
         $usuarioData->foto_usuario = $foto_usuario;
+        $usuarioData->fk_seguradora_user = $fk_seguradora_user;
 
         $usuarioDao->update($usuarioData);
 

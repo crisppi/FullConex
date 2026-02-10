@@ -8,9 +8,18 @@ require_once("dao/pacienteDao.php");
 require_once("templates/header.php");
 
 include_once("array_dados.php");
+include_once("models/seguradora.php");
+include_once("dao/seguradoraDao.php");
 
 $user = new Usuario();
 $usuarioDao = new UserDAO($conn, $BASE_URL);
+$seguradoraDao = new seguradoraDAO($conn, $BASE_URL);
+$seguradoras = $seguradoraDao->selectAllSeguradora();
+$cargoAtualRaw = (string)($usuario->cargo_user ?? '');
+$cargoAtualNorm = mb_strtolower(trim($cargoAtualRaw), 'UTF-8');
+$cargoAtualNorm = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $cargoAtualNorm) ?: $cargoAtualNorm;
+$cargoAtualNorm = preg_replace('/[^a-z]/', '', $cargoAtualNorm);
+$isGestorSeguradoraUser = ($cargoAtualNorm === 'gestorseguradora');
 
 // Receber id do usuário
 $id_usuario = filter_input(INPUT_GET, "id_usuario");
@@ -140,6 +149,17 @@ $usuario = $usuarioDao->findById_user($id_usuario);
                         </option>
                         <?php endforeach; ?>
                         </option>
+                    </select>
+                </div>
+                <div class="form-group col-sm-2" id="seguradora-wrap">
+                    <label class="control-label" for="fk_seguradora_user">Seguradora</label>
+                    <select class="form-control" id="fk_seguradora_user" name="fk_seguradora_user">
+                        <option value="">Selecione</option>
+                        <?php foreach ($seguradoras as $seg): ?>
+                        <option value="<?= (int) $seg['id_seguradora'] ?>" <?= ((int) ($usuario->fk_seguradora_user ?? 0) === (int) $seg['id_seguradora']) ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($seg['seguradora_seg'] ?? '', ENT_QUOTES, 'UTF-8') ?>
+                        </option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
                 <div class="form-group col-sm-1">

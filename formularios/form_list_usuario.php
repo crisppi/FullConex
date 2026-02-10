@@ -331,15 +331,15 @@ if ($qtdIntItens > $limite) {
                                 ?>
                             <?php if ($current_block > $first_block): ?>
                             <li class="page-item">
-                                <a class="page-link" id="blocoNovo" href="#"
-                                    onclick="loadContent('<?= $BASE_URL ?>list_usuario.php?pesquisa_nome=<?php print $pesquisa_nome ?>&cargo=<?php print $cargo ?>&depto=<?php print $depto ?>&ativo_user=<?php print $buscaAtivo ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print 1 ?>&bl=<?php print 0 ?>')">
+                                <a class="page-link" id="blocoNovo"
+                                    href="list_usuario.php?pesquisa_nome=<?php print $pesquisa_nome ?>&cargo=<?php print $cargo ?>&depto=<?php print $depto ?>&ativo_user=<?php print $buscaAtivo ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print 1 ?>&bl=<?php print 0 ?>">
                                     <i class="fa-solid fa-angles-left"></i></a>
                             </li>
                             <?php endif; ?>
                             <?php if ($current_block <= $last_block && $last_block > 1 && $current_block != 1): ?>
                             <li class="page-item">
-                                <a class="page-link" href="#"
-                                    onclick="loadContent('<?= $BASE_URL ?>list_usuario.php?pesquisa_nome=<?php print $pesquisa_nome ?>&cargo=<?php print $cargo ?>&depto=<?php print $depto ?>&ativo_user=<?php print $buscaAtivo ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $paginaAtual - 1 ?>&bl=<?php print $blocoAtual - 5 ?>')">
+                                <a class="page-link"
+                                    href="list_usuario.php?pesquisa_nome=<?php print $pesquisa_nome ?>&cargo=<?php print $cargo ?>&depto=<?php print $depto ?>&ativo_user=<?php print $buscaAtivo ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $paginaAtual - 1 ?>&bl=<?php print $blocoAtual - 5 ?>">
                                     <i class="fa-solid fa-angle-left"></i> </a>
                             </li>
                             <?php endif; ?>
@@ -347,8 +347,8 @@ if ($qtdIntItens > $limite) {
                             <?php for ($i = $first_page_in_block; $i <= $last_page_in_block; $i++): ?>
                             <li class="page-item <?php print ($_GET['pag'] ?? 1) == $i ? "active" : "" ?>">
 
-                                <a class="page-link" href="#"
-                                    onclick="loadContent('<?= $BASE_URL ?>list_usuario.php?pesquisa_nome=<?php print $pesquisa_nome ?>&cargo=<?php print $cargo ?>&depto=<?php print $depto ?>&ativo_user=<?php print $buscaAtivo ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $i ?>&bl=<?php print $blocoAtual ?>')">
+                                <a class="page-link"
+                                    href="list_usuario.php?pesquisa_nome=<?php print $pesquisa_nome ?>&cargo=<?php print $cargo ?>&depto=<?php print $depto ?>&ativo_user=<?php print $buscaAtivo ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $i ?>&bl=<?php print $blocoAtual ?>">
                                     <?php echo $i; ?>
                                 </a>
                             </li>
@@ -356,15 +356,15 @@ if ($qtdIntItens > $limite) {
 
                             <?php if ($current_block < $last_block): ?>
                             <li class="page-item">
-                                <a class="page-link" id="blocoNovo" href="#"
-                                    onclick="loadContent('<?= $BASE_URL ?>list_usuario.php?pesquisa_nome=<?php print $pesquisa_nome ?>&cargo=<?php print $cargo ?>&depto=<?php print $depto ?>&ativo_user=<?php print $buscaAtivo ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $paginaAtual + 1 ?>&bl=<?php print $blocoAtual + 5 ?>')"><i
+                                <a class="page-link" id="blocoNovo"
+                                    href="list_usuario.php?pesquisa_nome=<?php print $pesquisa_nome ?>&cargo=<?php print $cargo ?>&depto=<?php print $depto ?>&ativo_user=<?php print $buscaAtivo ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $paginaAtual + 1 ?>&bl=<?php print $blocoAtual + 5 ?>"><i
                                         class="fa-solid fa-angle-right"></i></a>
                             </li>
                             <?php endif; ?>
                             <?php if ($current_block < $last_block): ?>
                             <li class="page-item">
-                                <a class="page-link" id="blocoNovo" href="#"
-                                    onclick="loadContent('<?= $BASE_URL ?>list_usuario.php?pesquisa_nome=<?php print $pesquisa_nome ?>&cargo=<?php print $cargo ?>&depto=<?php print $depto ?>&ativo_user=<?php print $buscaAtivo ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print count($paginas) ?>&bl=<?php print ($last_block - 1) * 5 ?>')"><i
+                                <a class="page-link" id="blocoNovo"
+                                    href="list_usuario.php?pesquisa_nome=<?php print $pesquisa_nome ?>&cargo=<?php print $cargo ?>&depto=<?php print $depto ?>&ativo_user=<?php print $buscaAtivo ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print count($paginas) ?>&bl=<?php print ($last_block - 1) * 5 ?>"><i
                                         class="fa-solid fa-angles-right"></i></a>
                             </li>
                             <?php endif; ?>
@@ -420,11 +420,8 @@ $(document).ready(function() {
         $form[0].reset();
         $form.find('input[type="text"]').val('');
         $form.find('select').prop('selectedIndex', 0);
-
-        const baseUrl = '<?= $BASE_URL ?>list_usuario.php';
-        loadContent(baseUrl);
+        window.location.href = 'list_usuario.php';
     });
-});
 });
 
 
@@ -463,11 +460,7 @@ function resetSenha(id_user, evt) {
 }
 
 
-$(document).ready(function() {
-    loadContent(
-        '<?= $BASE_URL ?>list_usuario.php?pesquisa_nome=<?php print $pesquisa_nome ?>&cargo=<?php print $cargo ?>&depto=<?php print $depto ?>&ativo_user=<?php print $buscaAtivo ?>&limite=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print 1 ?>&bl=<?php print 0 ?>'
-    );
-});
+// carregamento inicial já vem do servidor, não precisa de AJAX aqui
 </script>
 <style>
 .modal-backdrop {

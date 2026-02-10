@@ -45,6 +45,7 @@ if ($query[0]['ativo_user'] == "s") {
     $id_user = $query[0]['id_usuario'];
     $senha_user = $query[0]['senha_user'];
     $foto_usuario = $query[0]['foto_usuario'];
+    $fk_seguradora_user = $query[0]['fk_seguradora_user'] ?? null;
 
     $_SESSION['id_usuario'] = $id_user;
     $_SESSION['foto_usuario'] = $foto_usuario;;
@@ -56,6 +57,7 @@ if ($query[0]['ativo_user'] == "s") {
     $_SESSION['id_usuario'] = $id_user;
     $_SESSION['nivel'] = $nivel;
     $_SESSION['cargo'] = $cargo;
+    $_SESSION['fk_seguradora_user'] = $fk_seguradora_user;
     $_SESSION['mensagem'] = "";
     $_SESSION['msg'] = "";
 
@@ -78,6 +80,7 @@ if ($query[0]['ativo_user'] == "s") {
             $cargo = $query[0]['cargo_user'];
             $id_user = $query[0]['id_usuario'];
             $senha_user = $query[0]['senha_user'];
+            $fk_seguradora_user = $query[0]['fk_seguradora_user'] ?? null;
 
             $_SESSION['id_usuario'] = $id_user;
             $_SESSION['email_user'] = $email_user;
@@ -87,6 +90,7 @@ if ($query[0]['ativo_user'] == "s") {
             $_SESSION['id_usuario'] = $id_user;
             $_SESSION['nivel'] = $nivel;
             $_SESSION['cargo'] = $cargo;
+            $_SESSION['fk_seguradora_user'] = $fk_seguradora_user;
             $_SESSION['mensagem'] = "";
             $_SESSION['msg'] = "";
 

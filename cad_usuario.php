@@ -5,8 +5,12 @@ require_once("templates/header.php");
 require_once("dao/usuarioDao.php");
 require_once("models/message.php");
 include_once("array_dados.php");
+include_once("models/seguradora.php");
+include_once("dao/seguradoraDao.php");
 
 $usuarioDao = new userDAO($conn, $BASE_URL);
+$seguradoraDao = new seguradoraDAO($conn, $BASE_URL);
+$seguradoras = $seguradoraDao->selectAllSeguradora();
 
 // Receber id do usuário
 $id_usuario = filter_input(INPUT_GET, "id_usuario");
@@ -151,6 +155,17 @@ if (empty($id_usuario)) {
                         <?php } ?>
                     </select>
                 </div>
+                <div class="form-group col-sm-2" id="seguradora-wrap" style="display:none;">
+                    <label class="control-label" for="fk_seguradora_user">Seguradora</label>
+                    <select class="form-control" id="fk_seguradora_user" name="fk_seguradora_user">
+                        <option value="">Selecione</option>
+                        <?php foreach ($seguradoras as $seg): ?>
+                        <option value="<?= (int) $seg['id_seguradora'] ?>">
+                            <?= htmlspecialchars($seg['seguradora_seg'] ?? '', ENT_QUOTES, 'UTF-8') ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
                 <div class="form-group col-sm-2 ">
                     <label class="control-label" for="nivel_user">Nível</label>
                     <select class="form-control" name="nivel_user">
@@ -274,6 +289,26 @@ function mascara(i) {
     if (v.length == 11) i.value += "-";
 
 }
+</script>
+<script>
+function toggleSeguradoraField() {
+    var cargoSel = document.getElementById('cargo_user');
+    var wrap = document.getElementById('seguradora-wrap');
+    var segSel = document.getElementById('fk_seguradora_user');
+    if (!cargoSel || !wrap || !segSel) return;
+    var cargoNorm = cargoSel.value.toString().trim().toLowerCase().replace(/[^a-z]/g, '');
+    var isGestor = (cargoNorm === 'gestorseguradora');
+    wrap.style.display = isGestor ? '' : 'none';
+    segSel.required = isGestor;
+    if (!isGestor) segSel.value = '';
+}
+document.addEventListener('DOMContentLoaded', function () {
+    var cargoSel = document.getElementById('cargo_user');
+    if (cargoSel) {
+        cargoSel.addEventListener('change', toggleSeguradoraField);
+    }
+    toggleSeguradoraField();
+});
 </script>
 <script>
 function mascara(i, t) {

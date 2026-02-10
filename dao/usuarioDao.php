@@ -15,12 +15,32 @@ class UserDAO implements UserDAOInterface
     private $conn;
     private $url;
     private $message;
+    private $hasSeguradoraColumn = false;
 
     public function __construct(PDO $conn, $url)
     {
         $this->conn = $conn;
         $this->url = $url;
         $this->message = new Message($url);
+
+        // Garante coluna de seguradora no usuário (evita erro 500 se não existir)
+        try {
+            $stmt = $this->conn->query("SHOW COLUMNS FROM tb_user LIKE 'fk_seguradora_user'");
+            $hasCol = $stmt && $stmt->fetch();
+            if ($hasCol) {
+                $this->hasSeguradoraColumn = true;
+            } else {
+                try {
+                    $this->conn->exec("ALTER TABLE tb_user ADD COLUMN fk_seguradora_user INT NULL AFTER cargo_user");
+                    $this->conn->exec("ALTER TABLE tb_user ADD INDEX idx_user_seguradora (fk_seguradora_user)");
+                    $this->hasSeguradoraColumn = true;
+                } catch (Throwable $e) {
+                    $this->hasSeguradoraColumn = false;
+                }
+            }
+        } catch (Throwable $e) {
+            $this->hasSeguradoraColumn = false;
+        }
     }
 
     public function buildUser($data)
@@ -65,6 +85,7 @@ class UserDAO implements UserDAOInterface
         $user->reg_profissional_user = $data["reg_profissional_user"];
         $user->tipo_reg_user = $data["tipo_reg_user"];
         $user->obs_user = $data["obs_user"];
+        $user->fk_seguradora_user = $data["fk_seguradora_user"] ?? null;
 
         $user->foto_usuario = $data["foto_usuario"];
 
@@ -74,66 +95,47 @@ class UserDAO implements UserDAOInterface
     public function create(Usuario $usuario)
     {
 
+        $fields = [
+            'usuario_user',
+            'login_user',
+            'sexo_user',
+            'idade_user',
+            'email_user',
+            'email02_user',
+            'senha_user',
+            'senha_default_user',
+            'endereco_user',
+            'numero_user',
+            'cidade_user',
+            'bairro_user',
+            'estado_user',
+            'telefone01_user',
+            'telefone02_user',
+            'data_create_user',
+            'usuario_create_user',
+            'fk_usuario_user',
+            'ativo_user',
+            'data_admissao_user',
+            'vinculo_user',
+            'nivel_user',
+            'cargo_user',
+            'depto_user',
+            'cpf_user',
+            'obs_user',
+            'tipo_reg_user',
+            'reg_profissional_user',
+        ];
+        if ($this->hasSeguradoraColumn) {
+            $fields[] = 'fk_seguradora_user';
+        }
+        $fields[] = 'foto_usuario';
+
+        $placeholders = array_map(fn($f) => ':' . $f, $fields);
+
         $stmt = $this->conn->prepare("INSERT INTO tb_user(
-          usuario_user, 
-          login_user, 
-          sexo_user, 
-          idade_user, 
-          email_user, 
-          email02_user, 
-          senha_user, 
-          senha_default_user, 
-          endereco_user, 
-          numero_user, 
-          cidade_user, 
-          bairro_user, 
-          estado_user, 
-          telefone01_user, 
-          telefone02_user, 
-          data_create_user, 
-          usuario_create_user, 
-          fk_usuario_user, 
-          ativo_user, 
-          data_admissao_user, 
-          vinculo_user, 
-          nivel_user, 
-          cargo_user, 
-          depto_user, 
-          cpf_user, 
-          obs_user, 
-          tipo_reg_user,
-          reg_profissional_user,
-          foto_usuario
+          " . implode(", \n          ", $fields) . "
         ) VALUES (
-          :usuario_user, 
-          :login_user, 
-          :sexo_user, 
-          :idade_user, 
-          :email_user, 
-          :email02_user, 
-          :senha_user, 
-          :senha_default_user, 
-          :endereco_user, 
-          :numero_user, 
-          :cidade_user, 
-          :bairro_user, 
-          :estado_user, 
-          :telefone01_user, 
-          :telefone02_user, 
-          :data_create_user, 
-          :usuario_create_user, 
-          :fk_usuario_user, 
-          :ativo_user, 
-          :data_admissao_user, 
-          :vinculo_user, 
-          :nivel_user, 
-          :cargo_user, 
-          :depto_user, 
-          :cpf_user, 
-          :obs_user,
-          :tipo_reg_user,
-          :reg_profissional_user,
-          :foto_usuario
+          " . implode(", \n          ", $placeholders) . "
         )");
 
         $stmt->bindParam(":usuario_user", $usuario->usuario_user);
@@ -164,6 +166,9 @@ class UserDAO implements UserDAOInterface
         $stmt->bindParam(":obs_user", $usuario->obs_user);
         $stmt->bindParam(":reg_profissional_user", $usuario->reg_profissional_user);
         $stmt->bindParam(":tipo_reg_user", $usuario->tipo_reg_user);
+        if ($this->hasSeguradoraColumn) {
+            $stmt->bindParam(":fk_seguradora_user", $usuario->fk_seguradora_user);
+        }
         $stmt->bindParam(":foto_usuario", $usuario->foto_usuario);
 
         $stmt->execute();
@@ -172,38 +177,44 @@ class UserDAO implements UserDAOInterface
     public function update(Usuario $usuario)
     {
 
-        $stmt = $this->conn->prepare("UPDATE tb_user SET
-        usuario_user = :usuario_user,
-        login_user = :login_user,
-        fk_usuario_user = :fk_usuario_user,
-        sexo_user = :sexo_user,
-        idade_user = :idade_user,
-        email_user = :email_user,
-        email02_user = :email02_user,
-        telefone01_user = :telefone01_user,
-        telefone02_user = :telefone02_user,
-        endereco_user = :endereco_user,
-        numero_user = :numero_user,
-        bairro_user = :bairro_user,
-        cidade_user = :cidade_user,
-        estado_user = :estado_user,
-        usuario_create_user = :usuario_create_user,
-        data_create_user = :data_create_user,
-        ativo_user = :ativo_user,
-        data_admissao_user = :data_admissao_user,
-        data_demissao_user = :data_demissao_user,
-        cargo_user = :cargo_user,
-        depto_user = :depto_user,
-        vinculo_user = :vinculo_user,
-        nivel_user = :nivel_user,
-        cpf_user = :cpf_user,
-        reg_profissional_user = :reg_profissional_user,
-        tipo_reg_user = :tipo_reg_user,
-        senha_user = :senha_user,
-        senha_default_user = :senha_default_user,
-        obs_user =:obs_user,
-        foto_usuario =:foto_usuario
+        $sets = [
+        "usuario_user = :usuario_user",
+        "login_user = :login_user",
+        "fk_usuario_user = :fk_usuario_user",
+        "sexo_user = :sexo_user",
+        "idade_user = :idade_user",
+        "email_user = :email_user",
+        "email02_user = :email02_user",
+        "telefone01_user = :telefone01_user",
+        "telefone02_user = :telefone02_user",
+        "endereco_user = :endereco_user",
+        "numero_user = :numero_user",
+        "bairro_user = :bairro_user",
+        "cidade_user = :cidade_user",
+        "estado_user = :estado_user",
+        "usuario_create_user = :usuario_create_user",
+        "data_create_user = :data_create_user",
+        "ativo_user = :ativo_user",
+        "data_admissao_user = :data_admissao_user",
+        "data_demissao_user = :data_demissao_user",
+        "cargo_user = :cargo_user",
+        "depto_user = :depto_user",
+        "vinculo_user = :vinculo_user",
+        "nivel_user = :nivel_user",
+        "cpf_user = :cpf_user",
+        "reg_profissional_user = :reg_profissional_user",
+        "tipo_reg_user = :tipo_reg_user",
+        "senha_user = :senha_user",
+        "senha_default_user = :senha_default_user",
+        "obs_user = :obs_user",
+        "foto_usuario = :foto_usuario",
+        ];
+        if ($this->hasSeguradoraColumn) {
+            $sets[] = "fk_seguradora_user = :fk_seguradora_user";
+        }
 
+        $stmt = $this->conn->prepare("UPDATE tb_user SET
+        " . implode(",\n        ", $sets) . "
         WHERE id_usuario = :id_usuario
       ");
 
@@ -242,6 +253,9 @@ class UserDAO implements UserDAOInterface
 
         $stmt->bindParam(":reg_profissional_user", $usuario->reg_profissional_user);
         $stmt->bindParam(":tipo_reg_user", $usuario->tipo_reg_user);
+        if ($this->hasSeguradoraColumn) {
+            $stmt->bindParam(":fk_seguradora_user", $usuario->fk_seguradora_user);
+        }
 
         $stmt->bindParam(":senha_user", $usuario->senha_user);
         $stmt->bindParam(":senha_default_user", $usuario->senha_default_user);

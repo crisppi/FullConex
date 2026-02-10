@@ -36,6 +36,7 @@ $normCargoAccess = function ($txt) {
     return preg_replace('/[^a-z]/', '', $txt);
 };
 $isGestorSeguradora = ($normCargoAccess($_SESSION['cargo'] ?? '') === 'gestorseguradora');
+$seguradoraUserId = isset($_SESSION['fk_seguradora_user']) ? (int)$_SESSION['fk_seguradora_user'] : 0;
 
 // inicializacao de variaveis
 $data_intern_int      = null;
@@ -573,6 +574,9 @@ if (typeof jQuery !== 'undefined') {
             strlen($senha_int)           ? 'ac.senha_int LIKE "%' . $senha_int . '%"'                         : null,
             strlen($auditor)             ? 'hos.fk_usuario_hosp = "' . $auditor . '"'                      : null,
             $onlySemSenha ? '(ac.senha_int IS NULL OR TRIM(ac.senha_int) = "")' : null,
+            $isGestorSeguradora
+                ? ($seguradoraUserId > 0 ? 'pa.fk_seguradora_pac = ' . $seguradoraUserId : '1=0')
+                : null,
         ];
 
         $condicoes = array_filter($condicoes);
