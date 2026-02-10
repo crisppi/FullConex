@@ -26,6 +26,17 @@ include_once("dao/hospitalUserDao.php");
 
 include_once("models/pagination.php");
 
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
+$normCargoAccess = function ($txt) {
+    $txt = mb_strtolower(trim((string)$txt), 'UTF-8');
+    $c = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $txt);
+    $txt = $c !== false ? $c : $txt;
+    return preg_replace('/[^a-z]/', '', $txt);
+};
+$isGestorSeguradora = ($normCargoAccess($_SESSION['cargo'] ?? '') === 'gestorseguradora');
+
 // inicializacao de variaveis
 $data_intern_int      = null;
 $order                = null;
@@ -867,25 +878,27 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                                         </li>
                                         <?php } ?>
 
-                                        <li>
-                                            <button type="button" class="btn btn-default" style="font-size: .9rem;"
-                                                onclick="window.location.href='<?= $BASE_URL ?>cad_visita.php?id_internacao=<?= $intern['id_internacao'] ?>'">
-                                                <i class="bi bi-file-text"
-                                                    style="font-size: 1rem; margin-right:5px; color: rgba(128, 27, 156, 1);"></i>
-                                                Visita
-                                            </button>
-                                        </li>
+                                        <?php if (!$isGestorSeguradora) { ?>
+                                            <li>
+                                                <button type="button" class="btn btn-default" style="font-size: .9rem;"
+                                                    onclick="window.location.href='<?= $BASE_URL ?>cad_visita.php?id_internacao=<?= $intern['id_internacao'] ?>'">
+                                                    <i class="bi bi-file-text"
+                                                        style="font-size: 1rem; margin-right:5px; color: rgba(128, 27, 156, 1);"></i>
+                                                    Visita
+                                                </button>
+                                            </li>
+                                        <?php } ?>
 
-                                        <?php if ($pesqInternado == "s") { ?>
-                                        <li>
-                                            <button class="btn btn-default"
-                                                onclick="edit('<?= $BASE_URL ?>edit_alta.php?type=alta&id_internacao=<?= $intern['id_internacao'] ?>')"
-                                                style="font-size: .9rem;">
-                                                <i class="bi bi-door-open"
-                                                    style="font-size: 1rem;margin-right:5px; color: rgba(27, 64, 156, 1);"></i>
-                                                Alta
-                                            </button>
-                                        </li>
+                                        <?php if ($pesqInternado == "s" && !$isGestorSeguradora) { ?>
+                                            <li>
+                                                <button class="btn btn-default"
+                                                    onclick="edit('<?= $BASE_URL ?>edit_alta.php?type=alta&id_internacao=<?= $intern['id_internacao'] ?>')"
+                                                    style="font-size: .9rem;">
+                                                    <i class="bi bi-door-open"
+                                                        style="font-size: 1rem;margin-right:5px; color: rgba(27, 64, 156, 1);"></i>
+                                                    Alta
+                                                </button>
+                                            </li>
                                         <?php } ?>
 
                                         <li>
@@ -908,24 +921,26 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                                             </button> -->
                                         </li>
 
-                                        <li>
-                                            <button type="button" class="btn btn-default" style="font-size: .9rem;"
-                                                onclick="window.location.href='<?= $BASE_URL ?>edit_internacao.php?id_internacao=<?= $intern['id_internacao'] ?>'">
-                                                <i class="bi bi-pencil-square"
-                                                    style="font-size: 1rem; margin-right: 5px; color: rgba(113, 27, 156, 1);"></i>
-                                                Editar
-                                            </button>
-                                        </li>
+                                        <?php if (!$isGestorSeguradora) { ?>
+                                            <li>
+                                                <button type="button" class="btn btn-default" style="font-size: .9rem;"
+                                                    onclick="window.location.href='<?= $BASE_URL ?>edit_internacao.php?id_internacao=<?= $intern['id_internacao'] ?>'">
+                                                    <i class="bi bi-pencil-square"
+                                                        style="font-size: 1rem; margin-right: 5px; color: rgba(113, 27, 156, 1);"></i>
+                                                    Editar
+                                                </button>
+                                            </li>
 
-                                        <li>
-                                            <button class="btn btn-default"
-                                                onclick="callProcessPdf(<?= $intern['id_internacao'] ?>)"
-                                                style="font-size: .9rem;">
-                                                <i class="bi-file-earmark-pdf"
-                                                    style="font-size: 1rem; margin-right:5px; color: #ff7043;"></i>
-                                                PDF - Internação
-                                            </button>
-                                        </li>
+                                            <li>
+                                                <button class="btn btn-default"
+                                                    onclick="callProcessPdf(<?= $intern['id_internacao'] ?>)"
+                                                    style="font-size: .9rem;">
+                                                    <i class="bi-file-earmark-pdf"
+                                                        style="font-size: 1rem; margin-right:5px; color: #ff7043;"></i>
+                                                    PDF - Internação
+                                                </button>
+                                            </li>
+                                        <?php } ?>
                                     </ul>
                                 </div>
                             </td>

@@ -137,7 +137,7 @@ $dados_alta = [
     "Alta Administrativa"
 ];
 
-$cargo_user = ["Administrativo", "Analista", "Diretoria", "Enf_Auditor", "Gerência", "Hospital", "Med_auditor", "Secretária"];
+$cargo_user = ["Administrativo", "Analista", "Diretoria", "Enf_Auditor", "Gerência", "Hospital", "Med_auditor", "Secretária", "Gestor Seguradora"];
 
 $depto_sel = ["Auditoria", "Adm", "Diretoria", "Gerência", "Secretaria"];
 

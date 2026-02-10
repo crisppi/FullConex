@@ -17,6 +17,17 @@ require_once("app/services/ReadmissionRiskService.php");
 include_once("models/internacao.php");      // se existir
 include_once("dao/internacaoDao.php");      // o seu DAO
 
+if (session_status() !== PHP_SESSION_ACTIVE) {
+  session_start();
+}
+$normCargoAccess = function ($txt) {
+  $txt = mb_strtolower(trim((string)$txt), 'UTF-8');
+  $c = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $txt);
+  $txt = $c !== false ? $c : $txt;
+  return preg_replace('/[^a-z]/', '', $txt);
+};
+$isGestorSeguradora = ($normCargoAccess($_SESSION['cargo'] ?? '') === 'gestorseguradora');
+
 $internacaoDao = new internacaoDAO($conn, $BASE_URL);  // ajuste o nome da classe se diferente
 // DAOs
 $pacienteDao = new pacienteDAO($conn, $BASE_URL);
@@ -542,9 +553,11 @@ $complexInfo = $complexMap[$effectiveLevel];
                 <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
                 <input id="buscaInternacoes" type="text" class="form-control" placeholder="Filtrar...">
               </div>
-              <a class="btn btn-sm btn-primary" href="<?= $BASE_URL ?>cad_internacao.php?id_paciente=<?= (int)$p['id_paciente'] ?>">
-                <i class="fa-solid fa-plus me-1"></i> Nova Internação
-              </a>
+              <?php if (!$isGestorSeguradora) { ?>
+                <a class="btn btn-sm btn-primary" href="<?= $BASE_URL ?>cad_internacao.php?id_paciente=<?= (int)$p['id_paciente'] ?>">
+                  <i class="fa-solid fa-plus me-1"></i> Nova Internação
+                </a>
+              <?php } ?>
             </div>
           </div>
 
@@ -586,8 +599,10 @@ $complexInfo = $complexMap[$effectiveLevel];
         <div class="tab-pane fade" id="tab-antecedentes" role="tabpanel">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <h6 class="mb-0">Antecedentes e condições</h6>
-            <button class="btn btn-outline-secondary btn-sm"><i
-                class="fa-solid fa-plus me-2"></i>Novo</button>
+            <?php if (!$isGestorSeguradora) { ?>
+              <button class="btn btn-outline-secondary btn-sm"><i
+                  class="fa-solid fa-plus me-2"></i>Novo</button>
+            <?php } ?>
           </div>
           <div id="chipsAntecedentes" class="d-flex flex-wrap gap-2">
             <!-- chips com antecedentes (ex.: HAS, DM2, etc.) -->

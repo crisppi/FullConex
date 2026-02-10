@@ -21,6 +21,14 @@ $normAccess = function ($txt) {
     $txt = $c !== false ? $c : $txt;
     return preg_replace('/[^a-z]/', '', $txt);
 };
+$normCargoAccess = $normAccess($_SESSION['cargo'] ?? '');
+$isBiHubOnly = ($normCargoAccess === 'gestorseguradora');
+$canSeeFullMenu = ($sessionNivel > 0) && !$isBiHubOnly;
+$canSeeBiMenu = ($sessionNivel >= 3) || $isBiHubOnly;
+$canSeeInteligenciaMenu = ($sessionNivel > 0);
+$canSeeHubMenu = $isBiHubOnly;
+$canSeeInternadosMenu = $isBiHubOnly;
+$canSeeGestorListas = $isBiHubOnly;
 $isDiretoria = in_array($normAccess($_SESSION['cargo'] ?? ''), ['diretoria', 'diretor', 'administrador', 'admin', 'board'], true)
     || in_array($normAccess($_SESSION['nivel'] ?? ''), ['diretoria', 'diretor', 'administrador', 'admin', 'board'], true)
     || ($sessionNivel === -1);
@@ -246,13 +254,14 @@ if (!empty($sessionIdUsuario)) {
 
                         <?php if ($sessionNivel > 0) { ?>
 
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
-                                    data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i style="font-size: 1rem;margin-right:5px; color:#5e2363;" name="type" value="edite"
-                                        class="bi bi-stack edit-icon"></i>
-                                    Menu
-                                </a>
+                            <?php if ($canSeeFullMenu) { ?>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i style="font-size: 1rem;margin-right:5px; color:#5e2363;" name="type" value="edite"
+                                            class="bi bi-stack edit-icon"></i>
+                                        Menu
+                                    </a>
                                     <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
                                         <li><a class="dropdown-item" href="<?= $BASE_URL ?>dashboard"><i
                                                     class="bi bi-speedometer2"
@@ -262,14 +271,14 @@ if (!empty($sessionIdUsuario)) {
                                                     class="bi bi-activity"
                                                     style="font-size: 1rem;margin-right:5px; color: rgb(94, 35, 99);"></i>
                                                 Dashboard operacional</a></li>
-                                    <li><a class="dropdown-item" href="<?= $BASE_URL ?>manual.html"><i class="bi bi-person"
-                                                style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
-                                            Manual</a></li>
-                                    <li><a class="dropdown-item" href="<?= $BASE_URL ?>SolicitacaoCustomizacao.php">
-                                            <i class="bi bi-file-earmark-text"
-                                                style="font-size: 1rem;margin-right:5px; color: #5e2363;"></i>
-                                            Solicitação de Customização
-                                        </a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>manual.html"><i class="bi bi-person"
+                                                    style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
+                                                Manual</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>SolicitacaoCustomizacao.php">
+                                                <i class="bi bi-file-earmark-text"
+                                                    style="font-size: 1rem;margin-right:5px; color: #5e2363;"></i>
+                                                Solicitação de Customização
+                                            </a></li>
                                         <?php if ($isDiretoria) { ?>
                                             <li><a class="dropdown-item" href="<?= $BASE_URL ?>SolicitacaoCustomizacaoList.php">
                                                     <i class="bi bi-clipboard-check"
@@ -282,19 +291,19 @@ if (!empty($sessionIdUsuario)) {
                                                     style="font-size: 1rem;margin-right:5px; color:#7c3aed;"></i>
                                                 Performance equipes</a></li>
                                         <?php if ($sessionNivel > 3) { ?>
-                                        <li class="nav-item">
-                                            <a class="dropdown-item" href="<?= $BASE_URL ?>admin_permissao.php">
-                                                <i class="bi bi-shield-lock"
-                                                    style="font-size: 1rem;margin-right:5px; color: rgb(21, 56, 210);"></i>
-                                                Permissões
-                                            </a>
-                                        </li>
-                                    <?php }; ?>
-                                <?php }; ?>
-                                </ul>
-                            </li>
+                                            <li class="nav-item">
+                                                <a class="dropdown-item" href="<?= $BASE_URL ?>admin_permissao.php">
+                                                    <i class="bi bi-shield-lock"
+                                                        style="font-size: 1rem;margin-right:5px; color: rgb(21, 56, 210);"></i>
+                                                    Permissões
+                                                </a>
+                                            </li>
+                                        <?php } ?>
+                                    </ul>
+                                </li>
+                            <?php } ?>
 
-                            <?php if ($sessionNivel > 3) { ?>
+                            <?php if ($canSeeFullMenu && $sessionNivel > 3) { ?>
                                 <li id="drop1" class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle" href="<?= $BASE_URL ?>pacientes"
                                         id="navbarScrollingDropdown" role="button" data-bs-toggle="dropdown"
@@ -318,7 +327,7 @@ if (!empty($sessionIdUsuario)) {
                                 </li>
 
                             <?php }; ?>
-                            <?php if ($sessionNivel > 3) { ?>
+                            <?php if ($canSeeFullMenu && $sessionNivel > 3) { ?>
 
                                 <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
@@ -362,7 +371,7 @@ if (!empty($sessionIdUsuario)) {
                                     </ul>
                                 </li>
                             <?php }; ?>
-                            <?php if ($sessionNivel >= 3) { ?>
+                            <?php if ($canSeeFullMenu && $sessionNivel >= 3) { ?>
 
                                 <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle" href="#" id="navbarScrollingDropdown" role="button"
@@ -401,7 +410,7 @@ if (!empty($sessionIdUsuario)) {
                                     </ul>
                                 </li>
                             <?php }; ?>
-                            <?php if ($sessionNivel >= 3): ?>
+                            <?php if ($canSeeFullMenu && $sessionNivel >= 3): ?>
                                 <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle" href="#" id="dropdownContasRah" role="button"
                                         data-bs-toggle="dropdown" aria-expanded="false">
@@ -427,7 +436,7 @@ if (!empty($sessionIdUsuario)) {
                                 </li>
                             <?php endif; ?>
 
-                            <?php if ($sessionNivel >= 3) { ?>
+                            <?php if ($canSeeFullMenu && $sessionNivel >= 3) { ?>
 
                                 <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
@@ -457,7 +466,7 @@ if (!empty($sessionIdUsuario)) {
                                     </ul>
                                 </li>
                             <?php }; ?>
-                            <?php if ($sessionNivel >= 3) { ?>
+                            <?php if ($canSeeFullMenu && $sessionNivel >= 3) { ?>
                                 <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
                                         data-bs-toggle="dropdown" aria-expanded="false">
@@ -511,7 +520,7 @@ if (!empty($sessionIdUsuario)) {
                                     </ul>
                                 </li>
                             <?php }; ?>
-                            <?php if ($sessionNivel >= 3) { ?>
+                            <?php if ($canSeeBiMenu) { ?>
                                 <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
                                         data-bs-toggle="dropdown" aria-expanded="false">
@@ -574,7 +583,7 @@ if (!empty($sessionIdUsuario)) {
                                     </ul>
                                 </li>
                             <?php }; ?>
-                            <?php if ($sessionNivel > 0) { ?>
+                            <?php if ($canSeeInteligenciaMenu) { ?>
                                 <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
                                         data-bs-toggle="dropdown" aria-expanded="false">
@@ -641,7 +650,50 @@ if (!empty($sessionIdUsuario)) {
                                                 Assistente de Textos</a></li>
                                     </ul>
                                 </li>
-                            <?php }; ?>
+                            <?php } ?>
+                            <?php if ($canSeeHubMenu) { ?>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="<?= $BASE_URL ?>pacientes">
+                                        <i style="font-size: 1rem;margin-right:5px; color:#5e2363;"
+                                            class="bi bi-person-badge edit-icon"></i>
+                                        HUB de Pacientes
+                                    </a>
+                                </li>
+                            <?php } ?>
+                            <?php if ($canSeeInternadosMenu) { ?>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="<?= $BASE_URL ?>internacoes/lista">
+                                        <i style="font-size: 1rem;margin-right:5px; color:#5e2363;"
+                                            class="bi bi-clipboard-heart edit-icon"></i>
+                                        Lista de Internados
+                                    </a>
+                                </li>
+                            <?php } ?>
+                            <?php if ($canSeeGestorListas) { ?>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="navbarGestorListas" role="button"
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i style="font-size: 1rem;margin-right:5px; color:#5e2363;"
+                                            class="bi bi-list edit-icon"></i>
+                                        Lista
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="navbarGestorListas">
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>internacoes/lista">
+                                                <i class="bi bi-clipboard-data"
+                                                    style="font-size: 1rem;margin-right:5px; color:#5e2363;"></i>
+                                                Internacao</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>gestao">
+                                                <i class="bi bi-postcard-heart"
+                                                    style="font-size: 1rem;margin-right:5px; color:#5e2363;"></i>
+                                                Gestao Assistencial</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>listas/altas">
+                                                <i class="bi bi-clipboard-check"
+                                                    style="font-size: 1rem;margin-right:5px; color:#5e2363;"></i>
+                                                Altas</a></li>
+                                    </ul>
+                                </li>
+                            <?php } ?>
+                        <?php } ?>
                             <!-- <?php if ($_SESSION['nivel'] >= 2) { ?>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle " href="#" id="navbarScrollingDropdown" role="button"
