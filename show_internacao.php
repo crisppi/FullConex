@@ -38,6 +38,17 @@ include_once("dao/prorrogacaoDao.php");
 include_once("models/visita.php");
 include_once("dao/visitaDao.php");
 
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
+$normCargoAccess = function ($txt) {
+    $txt = mb_strtolower(trim((string)$txt), 'UTF-8');
+    $c = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $txt);
+    $txt = $c !== false ? $c : $txt;
+    return preg_replace('/[^a-z]/', '', $txt);
+};
+$isGestorSeguradora = ($normCargoAccess($_SESSION['cargo'] ?? '') === 'gestorseguradora');
+
 include_once("models/tuss.php");
 include_once("dao/tussDao.php");
 
@@ -550,12 +561,14 @@ usort($neg_filtered, function ($a, $b) {
                     </ul>
 
                     <div class="d-flex gap-2">
-                        <button type="button"
-                            class="btn btn-sm rounded-pill text-white shadow-sm d-inline-flex align-items-center"
-                            style="background-color: #5e2363; border-color: #5e2363;"
-                            onclick="window.location.href='<?= $BASE_URL ?>cad_visita.php?id_internacao=<?= (int)$id_internacao ?>'">
-                            <i class="fa-solid fa-plus me-2"></i>Nova Visita
-                        </button>
+                        <?php if (!$isGestorSeguradora) { ?>
+                            <button type="button"
+                                class="btn btn-sm rounded-pill text-white shadow-sm d-inline-flex align-items-center"
+                                style="background-color: #5e2363; border-color: #5e2363;"
+                                onclick="window.location.href='<?= $BASE_URL ?>cad_visita.php?id_internacao=<?= (int)$id_internacao ?>'">
+                                <i class="fa-solid fa-plus me-2"></i>Nova Visita
+                            </button>
+                        <?php } ?>
 
                         <a href="<?= !empty($_SERVER['HTTP_REFERER']) ? 'javascript:history.back()' : $BASE_URL . 'list_intenacao.php' ?>"
                             class="btn btn-ghost-brand btn-sm rounded-pill shadow-sm d-inline-flex align-items-center">
@@ -836,15 +849,17 @@ usort($neg_filtered, function ($a, $b) {
                                                 </span>
                                             </a>
 
-                                            <?php $disableDeleteBtn = ($countVis <= 1) || !$initId || $activeVisitRet; ?>
-                                            <button type="button" id="btn-visita-delete-main"
-                                                class="btn btn-sm btn-danger btn-visitas-eq<?= $disableDeleteBtn ? ' disabled' : '' ?>"
-                                                data-bs-toggle="modal" data-bs-target="#modalDeleteVisitaInternacao"
-                                                data-delete-visita="<?= $initId ? e($initId) : '' ?>"
-                                                aria-disabled="<?= $disableDeleteBtn ? 'true' : 'false' ?>"
-                                                <?= $disableDeleteBtn ? 'disabled' : '' ?>>
-                                                <i class="fa-solid fa-trash-can me-1"></i> Excluir visita
-                                            </button>
+                                            <?php if (!$isGestorSeguradora) { ?>
+                                                <?php $disableDeleteBtn = ($countVis <= 1) || !$initId || $activeVisitRet; ?>
+                                                <button type="button" id="btn-visita-delete-main"
+                                                    class="btn btn-sm btn-danger btn-visitas-eq<?= $disableDeleteBtn ? ' disabled' : '' ?>"
+                                                    data-bs-toggle="modal" data-bs-target="#modalDeleteVisitaInternacao"
+                                                    data-delete-visita="<?= $initId ? e($initId) : '' ?>"
+                                                    aria-disabled="<?= $disableDeleteBtn ? 'true' : 'false' ?>"
+                                                    <?= $disableDeleteBtn ? 'disabled' : '' ?>>
+                                                    <i class="fa-solid fa-trash-can me-1"></i> Excluir visita
+                                                </button>
+                                            <?php } ?>
                                         </div>
 
                                         <div class="border-top mt-3 mb-3"></div>
