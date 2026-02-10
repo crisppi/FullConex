@@ -715,7 +715,7 @@ if ($totalContasTimer !== null) {
     $centralTotals['contas']['timer_den'] = 1;
 }
 
-$registerProfile = function (string $rawKey = null, string $nome = null) use (&$centralProfiles) {
+$registerProfile = function (?string $rawKey = null, ?string $nome = null) use (&$centralProfiles) {
     $key = strtolower(trim((string) $rawKey));
     if ($key === '') {
         return null;

@@ -17,6 +17,7 @@ $QtdTotalUser = new UserDAO($conn, $BASE_URL);
 // METODO DE BUSCA DE PAGINACAO
 $usuario = filter_input(INPUT_GET, 'pesquisa_nome');
 $pesquisa_nome = filter_input(INPUT_GET, 'pesquisa_nome');
+$busca = $pesquisa_nome ?? '';
 $cargo = filter_input(INPUT_GET, 'cargo');
 $depto = filter_input(INPUT_GET, 'depto');
 $buscaAtivo = filter_input(INPUT_GET, 'ativo_user');
@@ -410,7 +411,8 @@ $(document).ready(function() {
             },
             error: function() {
                 $('#responseMessage').html('Ocorreu um erro ao enviar o formulário.');
-        }
+            }
+        });
     });
 });
 

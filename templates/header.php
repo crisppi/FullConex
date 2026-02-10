@@ -150,6 +150,13 @@ if (!empty($sessionIdUsuario)) {
             }
         }
 
+        #navbarGestorListas {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
         .header-actions {
             margin-left: auto !important;
             margin-right: 0 !important;
@@ -657,15 +664,6 @@ if (!empty($sessionIdUsuario)) {
                                         <i style="font-size: 1rem;margin-right:5px; color:#5e2363;"
                                             class="bi bi-person-badge edit-icon"></i>
                                         HUB de Pacientes
-                                    </a>
-                                </li>
-                            <?php } ?>
-                            <?php if ($canSeeInternadosMenu) { ?>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="<?= $BASE_URL ?>internacoes/lista">
-                                        <i style="font-size: 1rem;margin-right:5px; color:#5e2363;"
-                                            class="bi bi-clipboard-heart edit-icon"></i>
-                                        Lista de Internados
                                     </a>
                                 </li>
                             <?php } ?>
