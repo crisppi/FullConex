@@ -21,6 +21,34 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
+$normCargoAccess = static function ($txt): string {
+    $txt = mb_strtolower(trim((string)$txt), 'UTF-8');
+    $ascii = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $txt);
+    $txt = $ascii !== false ? $ascii : $txt;
+    return preg_replace('/[^a-z]/', '', $txt);
+};
+$isGestorSeguradora = ($normCargoAccess($_SESSION['cargo'] ?? '') === 'gestorseguradora');
+$seguradoraUserId = (int)($_SESSION['fk_seguradora_user'] ?? 0);
+if ($isGestorSeguradora && $seguradoraUserId <= 0) {
+    try {
+        $uid = (int)($_SESSION['id_usuario'] ?? 0);
+        if ($uid > 0) {
+            $stmtSeg = $conn->prepare("SELECT fk_seguradora_user FROM tb_user WHERE id_usuario = :id LIMIT 1");
+            $stmtSeg->bindValue(':id', $uid, PDO::PARAM_INT);
+            $stmtSeg->execute();
+            $seguradoraUserId = (int)($stmtSeg->fetchColumn() ?: 0);
+            if ($seguradoraUserId > 0) {
+                $_SESSION['fk_seguradora_user'] = $seguradoraUserId;
+            }
+        }
+    } catch (Throwable $e) {
+        error_log('[DASHBOARD_360][SEGURADORA] ' . $e->getMessage());
+    }
+}
+$seguradoraFiltroPac = $isGestorSeguradora
+    ? ($seguradoraUserId > 0 ? ' AND p.fk_seguradora_pac = ' . $seguradoraUserId : ' AND 1=0')
+    : '';
+
 function dashCacheGet(string $key, int $ttl)
 {
     $cache = $_SESSION['dash_oper_cache'] ?? [];
@@ -40,37 +68,53 @@ function dashCacheSet(string $key, $data): void
     ];
 }
 
-$counts = dashCacheGet('counts', 60);
+$cacheScope = $isGestorSeguradora ? 'seg_' . $seguradoraUserId : 'geral';
+$counts = dashCacheGet('counts_' . $cacheScope, 60);
 if (!is_array($counts)) {
     $counts = [
         'internacoesAtivas' => dashFetchCount(
             $conn,
-            "SELECT COUNT(*) FROM tb_internacao WHERE internado_int = 's'"
+            "SELECT COUNT(*)
+               FROM tb_internacao i
+               JOIN tb_paciente p ON p.id_paciente = i.fk_paciente_int
+              WHERE i.internado_int = 's'{$seguradoraFiltroPac}"
         ),
         'contasAuditoria' => dashFetchCount(
             $conn,
-            "SELECT COUNT(*) FROM tb_capeante WHERE COALESCE(encerrado_cap,'n') <> 's'"
+            "SELECT COUNT(*)
+               FROM tb_capeante c
+               JOIN tb_internacao i ON i.id_internacao = c.fk_int_capeante
+               JOIN tb_paciente p ON p.id_paciente = i.fk_paciente_int
+              WHERE COALESCE(c.encerrado_cap,'n') <> 's'{$seguradoraFiltroPac}"
         ),
         'visitasAtrasadas' => dashFetchCount(
             $conn,
             "SELECT COUNT(*)
-               FROM tb_visita
-              WHERE DATE(IFNULL(data_visita_vis, DATE(data_lancamento_vis))) < CURDATE()
-                AND (data_lancamento_vis IS NULL OR data_lancamento_vis = '0000-00-00 00:00:00')"
+               FROM tb_visita v
+               JOIN tb_internacao i ON i.id_internacao = v.fk_internacao_vis
+               JOIN tb_paciente p ON p.id_paciente = i.fk_paciente_int
+              WHERE DATE(IFNULL(v.data_visita_vis, DATE(v.data_lancamento_vis))) < CURDATE()
+                AND (v.data_lancamento_vis IS NULL OR v.data_lancamento_vis = '0000-00-00 00:00:00'){$seguradoraFiltroPac}"
         ),
         'negociacoesPendentes' => dashFetchCount(
             $conn,
-            "SELECT COUNT(*) FROM tb_negociacao WHERE data_fim_neg IS NULL OR data_fim_neg = '0000-00-00'"
+            "SELECT COUNT(*)
+               FROM tb_negociacao n
+               JOIN tb_internacao i ON i.id_internacao = n.fk_id_int
+               JOIN tb_paciente p ON p.id_paciente = i.fk_paciente_int
+              WHERE (n.data_fim_neg IS NULL OR n.data_fim_neg = '0000-00-00'){$seguradoraFiltroPac}"
         ),
         'eventosCriticos' => dashFetchCount(
             $conn,
             "SELECT COUNT(*)
-               FROM tb_gestao
-              WHERE evento_adverso_ges = 's'
-                AND (evento_encerrar_ges IS NULL OR evento_encerrar_ges <> 's')"
+               FROM tb_gestao g
+               JOIN tb_internacao i ON i.id_internacao = g.fk_internacao_ges
+               JOIN tb_paciente p ON p.id_paciente = i.fk_paciente_int
+              WHERE g.evento_adverso_ges = 's'
+                AND (g.evento_encerrar_ges IS NULL OR g.evento_encerrar_ges <> 's'){$seguradoraFiltroPac}"
         ),
     ];
-    dashCacheSet('counts', $counts);
+    dashCacheSet('counts_' . $cacheScope, $counts);
 }
 
 $internacoesAtivas = (int)($counts['internacoesAtivas'] ?? 0);
@@ -122,7 +166,7 @@ $cards = [
     ],
 ];
 
-$prioridades = dashCacheGet('prioridades', 60);
+$prioridades = dashCacheGet('prioridades_' . $cacheScope, 60);
 if (!is_array($prioridades)) {
     $prioridades = [];
     try {
@@ -139,7 +183,7 @@ if (!is_array($prioridades)) {
         JOIN tb_hospital  h ON h.id_hospital   = i.fk_hospital_int
         LEFT JOIN tb_capeante c ON c.fk_int_capeante = i.id_internacao
         LEFT JOIN tb_gestao   g ON g.fk_internacao_ges = i.id_internacao
-        WHERE i.internado_int = 's'
+        WHERE i.internado_int = 's'{$seguradoraFiltroPac}
         GROUP BY i.id_internacao
         ORDER BY i.data_intern_int ASC
         LIMIT 30";
@@ -162,7 +206,7 @@ if (!is_array($prioridades)) {
             return $b['score'] <=> $a['score'];
         });
         $prioridades = array_slice($prioridades, 0, 8);
-        dashCacheSet('prioridades', $prioridades);
+        dashCacheSet('prioridades_' . $cacheScope, $prioridades);
     } catch (Throwable $e) {
         error_log('[DASHBOARD_360][SCORE] ' . $e->getMessage());
         $prioridades = [];

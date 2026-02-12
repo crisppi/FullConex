@@ -15,17 +15,47 @@ $hospital_selecionado = (int)(filter_input(INPUT_POST, 'hospital_id', FILTER_SAN
     ?: filter_input(INPUT_GET, 'hospital_id', FILTER_SANITIZE_NUMBER_INT));
 $id_usuario_sessao    = (int)($_SESSION['id_usuario'] ?? 0);
 $nivel_sessao         = (int)($_SESSION['nivel'] ?? 99);
+$normCargoAccess = static function ($txt): string {
+    $txt = mb_strtolower(trim((string)$txt), 'UTF-8');
+    $ascii = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $txt);
+    $txt = $ascii !== false ? $ascii : $txt;
+    return preg_replace('/[^a-z]/', '', $txt);
+};
+$isGestorSeguradora = ($normCargoAccess($_SESSION['cargo'] ?? '') === 'gestorseguradora');
+$seguradoraUserId = (int)($_SESSION['fk_seguradora_user'] ?? 0);
+if ($isGestorSeguradora && $seguradoraUserId <= 0) {
+    try {
+        $uid = (int)($_SESSION['id_usuario'] ?? 0);
+        if ($uid > 0) {
+            $stmtSeg = $conn->prepare("SELECT fk_seguradora_user FROM tb_user WHERE id_usuario = :id LIMIT 1");
+            $stmtSeg->bindValue(':id', $uid, PDO::PARAM_INT);
+            $stmtSeg->execute();
+            $seguradoraUserId = (int)($stmtSeg->fetchColumn() ?: 0);
+            if ($seguradoraUserId > 0) {
+                $_SESSION['fk_seguradora_user'] = $seguradoraUserId;
+            }
+        }
+    } catch (Throwable $e) {
+        error_log('[DASH_TABELAS][SEGURADORA] ' . $e->getMessage());
+    }
+}
 
 $condicoes_vis = [
     $hospital_selecionado ? "ac.fk_hospital_int = {$hospital_selecionado}" : null,
     "ac.internado_int = 's'",
-    "(vi.id_visita = (SELECT MAX(vi2.id_visita) FROM tb_visita vi2 WHERE vi2.fk_internacao_vis = ac.id_internacao) OR vi.id_visita IS NULL)"
+    "(vi.id_visita = (SELECT MAX(vi2.id_visita) FROM tb_visita vi2 WHERE vi2.fk_internacao_vis = ac.id_internacao) OR vi.id_visita IS NULL)",
+    $isGestorSeguradora
+        ? ($seguradoraUserId > 0 ? "pa.fk_seguradora_pac = {$seguradoraUserId}" : '1=0')
+        : null
 ];
 $condicoes_hospital = [
     $hospital_selecionado ? "i.fk_hospital_int = {$hospital_selecionado}" : null,
     ($id_usuario_sessao && $nivel_sessao <= 3) ? "hos.fk_usuario_hosp = {$id_usuario_sessao}" : null,
     "i.internado_int = 's'",
-    ($id_usuario_sessao && $nivel_sessao <= 3) ? "i.fk_hospital_int IN (SELECT hos.fk_hospital_user FROM tb_hospitalUser hos WHERE hos.fk_usuario_hosp = {$id_usuario_sessao})" : null
+    ($id_usuario_sessao && $nivel_sessao <= 3) ? "i.fk_hospital_int IN (SELECT hos.fk_hospital_user FROM tb_hospitalUser hos WHERE hos.fk_usuario_hosp = {$id_usuario_sessao})" : null,
+    $isGestorSeguradora
+        ? ($seguradoraUserId > 0 ? "p.fk_seguradora_pac = {$seguradoraUserId}" : '1=0')
+        : null
 ];
 
 $where_vis      = implode(' AND ', array_filter($condicoes_vis));

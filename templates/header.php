@@ -23,6 +23,7 @@ $normAccess = function ($txt) {
 };
 $normCargoAccess = $normAccess($_SESSION['cargo'] ?? '');
 $isBiHubOnly = ($normCargoAccess === 'gestorseguradora');
+$isSeguradoraRole = (strpos($normCargoAccess, 'seguradora') !== false);
 $canSeeFullMenu = ($sessionNivel > 0) && !$isBiHubOnly;
 $canSeeBiMenu = ($sessionNivel >= 3) || $isBiHubOnly;
 $canSeeInteligenciaMenu = ($sessionNivel > 0);
@@ -32,6 +33,100 @@ $canSeeGestorListas = $isBiHubOnly;
 $isDiretoria = in_array($normAccess($_SESSION['cargo'] ?? ''), ['diretoria', 'diretor', 'administrador', 'admin', 'board'], true)
     || in_array($normAccess($_SESSION['nivel'] ?? ''), ['diretoria', 'diretor', 'administrador', 'admin', 'board'], true)
     || ($sessionNivel === -1);
+$seguradoraHeaderLogoUrl = null;
+$seguradoraHeaderNome = null;
+$resolveSeguradoraLogoUrl = static function (string $logoSeg, int $seguradoraId, string $seguradoraNome) use ($BASE_URL): ?string {
+    $logoSeg = trim($logoSeg);
+    if ($logoSeg !== '') {
+        if (preg_match('#^https?://#i', $logoSeg)) {
+            return $logoSeg;
+        }
+
+        $logoPath = ltrim($logoSeg, '/');
+        $localCandidates = [];
+        $urlCandidates = [];
+
+        if (stripos($logoPath, 'img/') === 0 || stripos($logoPath, 'uploads/') === 0) {
+            $localCandidates[] = __DIR__ . '/../' . $logoPath;
+            $urlCandidates[] = $BASE_URL . $logoPath;
+        } else {
+            $localCandidates[] = __DIR__ . '/../img/' . $logoPath;
+            $urlCandidates[] = $BASE_URL . 'img/' . $logoPath;
+            $localCandidates[] = __DIR__ . '/../uploads/' . $logoPath;
+            $urlCandidates[] = $BASE_URL . 'uploads/' . $logoPath;
+        }
+
+        foreach ($localCandidates as $idx => $localFile) {
+            if (is_file($localFile)) {
+                return $urlCandidates[$idx] ?? null;
+            }
+        }
+    }
+
+    $nomeNorm = mb_strtolower(trim($seguradoraNome), 'UTF-8');
+    $nomeAscii = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $nomeNorm);
+    $nomeNorm = $nomeAscii !== false ? $nomeAscii : $nomeNorm;
+    $nomeNorm = preg_replace('/[^a-z0-9]+/', '_', $nomeNorm);
+    $nomeNorm = trim((string)$nomeNorm, '_');
+
+    $baseNames = array_filter([
+        $seguradoraId > 0 ? 'seguradora_' . $seguradoraId : null,
+        $seguradoraId > 0 ? 'logo_seguradora_' . $seguradoraId : null,
+        $nomeNorm !== '' ? $nomeNorm : null,
+        $nomeNorm !== '' ? 'logo_' . $nomeNorm : null,
+    ]);
+    $exts = ['png', 'jpg', 'jpeg', 'webp', 'svg'];
+
+    foreach ($baseNames as $baseName) {
+        foreach ($exts as $ext) {
+            $candidate = $baseName . '.' . $ext;
+            $imgFile = __DIR__ . '/../img/' . $candidate;
+            if (is_file($imgFile)) {
+                return $BASE_URL . 'img/' . $candidate;
+            }
+            $uploadFile = __DIR__ . '/../uploads/' . $candidate;
+            if (is_file($uploadFile)) {
+                return $BASE_URL . 'uploads/' . $candidate;
+            }
+        }
+    }
+
+    return null;
+};
+if ($isSeguradoraRole || !empty($_SESSION['fk_seguradora_user'])) {
+    $seguradoraId = (int)($_SESSION['fk_seguradora_user'] ?? 0);
+    if ($seguradoraId <= 0 && !empty($sessionIdUsuario)) {
+        try {
+            $stmtUserSeg = $conn->prepare("SELECT fk_seguradora_user FROM tb_user WHERE id_usuario = :id LIMIT 1");
+            $stmtUserSeg->bindValue(':id', (int)$sessionIdUsuario, PDO::PARAM_INT);
+            $stmtUserSeg->execute();
+            $seguradoraId = (int)($stmtUserSeg->fetchColumn() ?: 0);
+            if ($seguradoraId > 0) {
+                $_SESSION['fk_seguradora_user'] = $seguradoraId;
+            }
+        } catch (Throwable $e) {
+            $seguradoraId = 0;
+        }
+    }
+
+    if ($seguradoraId > 0) {
+        try {
+            $stmtSeg = $conn->prepare("SELECT seguradora_seg, logo_seg FROM tb_seguradora WHERE id_seguradora = :id LIMIT 1");
+            $stmtSeg->bindValue(':id', $seguradoraId, PDO::PARAM_INT);
+            $stmtSeg->execute();
+            $seguradoraHeader = $stmtSeg->fetch(PDO::FETCH_ASSOC) ?: null;
+
+            if (is_array($seguradoraHeader)) {
+                $logoSeg = trim((string)($seguradoraHeader['logo_seg'] ?? ''));
+                $seguradoraHeaderNome = trim((string)($seguradoraHeader['seguradora_seg'] ?? ''));
+                $seguradoraHeaderLogoUrl = $resolveSeguradoraLogoUrl($logoSeg, $seguradoraId, $seguradoraHeaderNome);
+            }
+        } catch (Throwable $e) {
+            $seguradoraHeaderLogoUrl = null;
+            $seguradoraHeaderNome = null;
+        }
+    }
+}
 
 $chatUnreadCount = 0;
 $chatAssistantLink = $BASE_URL . 'show_chat.php';
@@ -150,6 +245,38 @@ if (!empty($sessionIdUsuario)) {
             }
         }
 
+        .navbar .navbar-brand .brand-divider {
+            width: 1px;
+            height: 34px;
+            background: rgba(94, 35, 99, 0.35);
+        }
+
+        .navbar .navbar-brand .logo-seguradora {
+            height: 44px;
+            width: auto;
+            max-width: 160px;
+            object-fit: contain;
+            display: block;
+        }
+
+        @media (max-width: 1199.98px) {
+            .navbar .navbar-brand .logo-seguradora {
+                height: 38px;
+                max-width: 140px;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .navbar .navbar-brand .brand-divider {
+                height: 30px;
+            }
+
+            .navbar .navbar-brand .logo-seguradora {
+                height: 34px;
+                max-width: 118px;
+            }
+        }
+
         #navbarGestorListas {
             display: inline-flex;
             align-items: center;
@@ -249,6 +376,12 @@ if (!empty($sessionIdUsuario)) {
                         width: auto\9;
                         max-height: 100px;
                         min-height: 50px;" alt="FullCare">
+                    <?php if (!empty($seguradoraHeaderLogoUrl)): ?>
+                    <span class="brand-divider" aria-hidden="true"></span>
+                    <img src="<?= htmlspecialchars($seguradoraHeaderLogoUrl, ENT_QUOTES, 'UTF-8') ?>"
+                        class="logo-seguradora"
+                        alt="<?= htmlspecialchars($seguradoraHeaderNome ?: 'Seguradora', ENT_QUOTES, 'UTF-8') ?>">
+                    <?php endif; ?>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarScroll"
                     aria-controls="navbarScroll" aria-expanded="false" aria-label="Alternar navegação">
