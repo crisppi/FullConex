@@ -1,7 +1,7 @@
 <?php
 // Conexão principal (mydb_accert_ho - Hostinger)
 
-$host1 = "2.59.150.2";
+$host1 = "srv953.hstgr.io";
 $user1 = "u650318666_diretoria10";
 $pass1 = "FullCare@BD2025!";
 $dbname1 = "u650318666_mydb_accert_ho";

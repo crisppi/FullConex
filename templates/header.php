@@ -252,17 +252,17 @@ if (!empty($sessionIdUsuario)) {
         }
 
         .navbar .navbar-brand .logo-seguradora {
-            height: 44px;
+            height: 56px;
             width: auto;
-            max-width: 160px;
+            max-width: 220px;
             object-fit: contain;
             display: block;
         }
 
         @media (max-width: 1199.98px) {
             .navbar .navbar-brand .logo-seguradora {
-                height: 38px;
-                max-width: 140px;
+                height: 48px;
+                max-width: 180px;
             }
         }
 
@@ -272,8 +272,8 @@ if (!empty($sessionIdUsuario)) {
             }
 
             .navbar .navbar-brand .logo-seguradora {
-                height: 34px;
-                max-width: 118px;
+                height: 38px;
+                max-width: 130px;
             }
         }
 

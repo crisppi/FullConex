@@ -11,6 +11,124 @@ function e($v)
     return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 }
 
+function buildWhereClause(string $auditorExpr, ?int $ano, ?int $mes, ?int $hospitalId, string $auditorNome, array $monthsIn = []): array
+{
+    $where = "v.fk_internacao_vis IS NOT NULL";
+    $params = [];
+
+    if (!empty($ano)) {
+        $where .= " AND YEAR(v.data_visita_vis) = :ano";
+        $params[':ano'] = (int)$ano;
+    }
+
+    if (!empty($mes)) {
+        $where .= " AND MONTH(v.data_visita_vis) = :mes";
+        $params[':mes'] = (int)$mes;
+    } elseif (!empty($monthsIn)) {
+        $placeholders = [];
+        foreach (array_values($monthsIn) as $idx => $monthVal) {
+            $ph = ':m_in_' . $idx;
+            $placeholders[] = $ph;
+            $params[$ph] = (int)$monthVal;
+        }
+        $where .= " AND MONTH(v.data_visita_vis) IN (" . implode(',', $placeholders) . ")";
+    }
+
+    if (!empty($hospitalId)) {
+        $where .= " AND i.fk_hospital_int = :hospital_id";
+        $params[':hospital_id'] = (int)$hospitalId;
+    }
+
+    if ($auditorNome !== '') {
+        $where .= " AND {$auditorExpr} = :auditor_nome";
+        $params[':auditor_nome'] = $auditorNome;
+    }
+
+    return [$where, $params];
+}
+
+function fetchStats(PDO $conn, string $auditorExpr, string $where, array $params): array
+{
+    $sqlBaseIntern = "
+        SELECT DISTINCT i.id_internacao,
+            {$auditorExpr} AS auditor_nome,
+            GREATEST(1, DATEDIFF(COALESCE(al.data_alta_alt, CURDATE()), i.data_intern_int) + 1) AS diarias
+        FROM tb_visita v
+        LEFT JOIN tb_user u ON u.id_usuario = v.fk_usuario_vis
+        LEFT JOIN tb_user u_med ON u_med.id_usuario = CAST(NULLIF(v.visita_auditor_prof_med,'') AS UNSIGNED)
+        LEFT JOIN tb_user u_enf ON u_enf.id_usuario = CAST(NULLIF(v.visita_auditor_prof_enf,'') AS UNSIGNED)
+        LEFT JOIN tb_internacao i ON i.id_internacao = v.fk_internacao_vis
+        LEFT JOIN (
+            SELECT fk_id_int_alt, MAX(data_alta_alt) AS data_alta_alt
+            FROM tb_alta
+            GROUP BY fk_id_int_alt
+        ) al ON al.fk_id_int_alt = i.id_internacao
+        WHERE {$where}
+    ";
+
+    $sqlStats = "
+        SELECT
+            COUNT(DISTINCT id_internacao) AS total_internacoes,
+            SUM(diarias) AS total_diarias,
+            MAX(diarias) AS maior_permanencia,
+            ROUND(AVG(diarias), 1) AS mp
+        FROM ({$sqlBaseIntern}) t
+    ";
+
+    $stmt = $conn->prepare($sqlStats);
+    $stmt->execute($params);
+
+    return [
+        'stats' => ($stmt->fetch(PDO::FETCH_ASSOC) ?: []),
+        'sqlBaseIntern' => $sqlBaseIntern,
+    ];
+}
+
+function labelsAndValues(array $rows): array
+{
+    $labels = array_map(fn($r) => $r['auditor_nome'] ?? 'Sem informacoes', $rows);
+    $values = array_map(fn($r) => (float)($r['total'] ?? 0), $rows);
+    return [$labels, $values];
+}
+
+function buildTrend(float $current, ?float $previous, bool $inverse = false): array
+{
+    if ($previous === null || $previous <= 0) {
+        return [
+            'previous' => $previous,
+            'delta_percent' => null,
+            'trend_state' => 'neutral',
+            'trend_label' => 'Sem base',
+            'trend_icon' => 'bi bi-dash',
+        ];
+    }
+
+    $deltaPercent = (($current - $previous) / $previous) * 100;
+    $rounded = round($deltaPercent, 1);
+    $display = number_format(abs($rounded), 1, ',', '.');
+
+    if (abs($rounded) < 0.05) {
+        return [
+            'previous' => $previous,
+            'delta_percent' => 0.0,
+            'trend_state' => 'neutral',
+            'trend_label' => '0,0%',
+            'trend_icon' => 'bi bi-dash',
+        ];
+    }
+
+    $isPositive = $rounded > 0;
+    $semanticUp = $inverse ? !$isPositive : $isPositive;
+
+    return [
+        'previous' => $previous,
+        'delta_percent' => $rounded,
+        'trend_state' => $semanticUp ? 'up' : 'down',
+        'trend_label' => ($isPositive ? '+' : '-') . $display . '%',
+        'trend_icon' => $isPositive ? 'bi bi-arrow-up-right' : 'bi bi-arrow-down-right',
+    ];
+}
+
 $anoInput = filter_input(INPUT_GET, 'ano', FILTER_VALIDATE_INT);
 $mesInput = filter_input(INPUT_GET, 'mes', FILTER_VALIDATE_INT);
 $ano = ($anoInput !== null && $anoInput !== false) ? (int)$anoInput : null;
@@ -54,58 +172,62 @@ $auditorListSql = "
 ";
 $auditores = $conn->query($auditorListSql)->fetchAll(PDO::FETCH_COLUMN);
 
-$where = "v.fk_internacao_vis IS NOT NULL";
-$params = [];
-if (!empty($ano)) {
-    $where .= " AND YEAR(v.data_visita_vis) = :ano";
-    $params[':ano'] = (int)$ano;
-}
-if (!empty($mes)) {
-    $where .= " AND MONTH(v.data_visita_vis) = :mes";
-    $params[':mes'] = (int)$mes;
-}
-if (!empty($hospitalId)) {
-    $where .= " AND i.fk_hospital_int = :hospital_id";
-    $params[':hospital_id'] = (int)$hospitalId;
-}
-if (!empty($auditorNome)) {
-    $where .= " AND {$auditorExpr} = :auditor_nome";
-    $params[':auditor_nome'] = $auditorNome;
-}
+[$where, $params] = buildWhereClause($auditorExpr, $ano, $mes, $hospitalId, $auditorNome);
+$current = fetchStats($conn, $auditorExpr, $where, $params);
+$stats = $current['stats'];
+$sqlBaseIntern = $current['sqlBaseIntern'];
 
-$sqlBaseIntern = "
-    SELECT DISTINCT i.id_internacao,
-        {$auditorExpr} AS auditor_nome,
-        GREATEST(1, DATEDIFF(COALESCE(al.data_alta_alt, CURDATE()), i.data_intern_int) + 1) AS diarias
-    FROM tb_visita v
-    LEFT JOIN tb_user u ON u.id_usuario = v.fk_usuario_vis
-    LEFT JOIN tb_user u_med ON u_med.id_usuario = CAST(NULLIF(v.visita_auditor_prof_med,'') AS UNSIGNED)
-    LEFT JOIN tb_user u_enf ON u_enf.id_usuario = CAST(NULLIF(v.visita_auditor_prof_enf,'') AS UNSIGNED)
-    LEFT JOIN tb_internacao i ON i.id_internacao = v.fk_internacao_vis
-    LEFT JOIN (
-        SELECT fk_id_int_alt, MAX(data_alta_alt) AS data_alta_alt
-        FROM tb_alta
-        GROUP BY fk_id_int_alt
-    ) al ON al.fk_id_int_alt = i.id_internacao
-    WHERE {$where}
-";
-
-$sqlStats = "
-    SELECT
-        COUNT(DISTINCT id_internacao) AS total_internacoes,
-        SUM(diarias) AS total_diarias,
-        MAX(diarias) AS maior_permanencia,
-        ROUND(AVG(diarias), 1) AS mp
-    FROM ({$sqlBaseIntern}) t
-";
-$stmt = $conn->prepare($sqlStats);
-$stmt->execute($params);
-$stats = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
-
-$totalInternações = (int)($stats['total_internacoes'] ?? 0);
-$totalDiárias = (int)($stats['total_diarias'] ?? 0);
+$totalInternacoes = (int)($stats['total_internacoes'] ?? 0);
+$totalDiarias = (int)($stats['total_diarias'] ?? 0);
 $maiorPermanencia = (int)($stats['maior_permanencia'] ?? 0);
 $mp = (float)($stats['mp'] ?? 0);
+
+$prevStats = null;
+
+if (!empty($mes)) {
+    $prevMonth = $mes - 1;
+    $prevYear = (int)$ano;
+    if ($prevMonth <= 0) {
+        $prevMonth = 12;
+        $prevYear--;
+    }
+
+    [$prevWhere, $prevParams] = buildWhereClause($auditorExpr, $prevYear, $prevMonth, $hospitalId, $auditorNome);
+    $prev = fetchStats($conn, $auditorExpr, $prevWhere, $prevParams);
+    $prevStats = $prev['stats'];
+} else {
+    [$monthWhere, $monthParams] = buildWhereClause($auditorExpr, $ano, null, $hospitalId, $auditorNome);
+    $sqlMonths = "
+        SELECT DISTINCT MONTH(v.data_visita_vis) AS mes_ref
+        FROM tb_visita v
+        LEFT JOIN tb_user u ON u.id_usuario = v.fk_usuario_vis
+        LEFT JOIN tb_user u_med ON u_med.id_usuario = CAST(NULLIF(v.visita_auditor_prof_med,'') AS UNSIGNED)
+        LEFT JOIN tb_user u_enf ON u_enf.id_usuario = CAST(NULLIF(v.visita_auditor_prof_enf,'') AS UNSIGNED)
+        LEFT JOIN tb_internacao i ON i.id_internacao = v.fk_internacao_vis
+        WHERE {$monthWhere}
+        ORDER BY mes_ref
+    ";
+
+    $stmtMonths = $conn->prepare($sqlMonths);
+    $stmtMonths->execute($monthParams);
+    $availableMonths = array_map('intval', $stmtMonths->fetchAll(PDO::FETCH_COLUMN));
+
+    $windowSize = intdiv(count($availableMonths), 2);
+    if ($windowSize > 0) {
+        $previousMonths = array_slice($availableMonths, -($windowSize * 2), $windowSize);
+
+        if (count($previousMonths) === $windowSize) {
+            [$prevWhere, $prevParams] = buildWhereClause($auditorExpr, $ano, null, $hospitalId, $auditorNome, $previousMonths);
+            $prev = fetchStats($conn, $auditorExpr, $prevWhere, $prevParams);
+            $prevStats = $prev['stats'];
+        }
+    }
+}
+
+$trendInternacoes = buildTrend((float)$totalInternacoes, isset($prevStats['total_internacoes']) ? (float)$prevStats['total_internacoes'] : null);
+$trendDiarias = buildTrend((float)$totalDiarias, isset($prevStats['total_diarias']) ? (float)$prevStats['total_diarias'] : null);
+$trendMp = buildTrend((float)$mp, isset($prevStats['mp']) ? (float)$prevStats['mp'] : null);
+$trendPermanencia = buildTrend((float)$maiorPermanencia, isset($prevStats['maior_permanencia']) ? (float)$prevStats['maior_permanencia'] : null);
 
 $sqlContas = "
     SELECT auditor_nome, SUM(COALESCE(ca.valor_apresentado_capeante,0)) AS total
@@ -158,25 +280,18 @@ $stmt = $conn->prepare($sqlVisitas);
 $stmt->execute($params);
 $visitasRows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
-function labelsAndValues(array $rows): array
-{
-    $labels = array_map(fn($r) => $r['auditor_nome'] ?? 'Sem informacoes', $rows);
-    $values = array_map(fn($r) => (float)($r['total'] ?? 0), $rows);
-    return [$labels, $values];
-}
-
 [$contasLabels, $contasValues] = labelsAndValues($contasRows);
 [$glosaLabels, $glosaValues] = labelsAndValues($glosaRows);
 [$auditadasLabels, $auditadasValues] = labelsAndValues($auditadasRows);
 [$visitasLabels, $visitasValues] = labelsAndValues($visitasRows);
 ?>
 
-<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260110">
+<link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260213b">
 <script src="diversos/chartjs/Chart.min.js"></script>
 <script src="<?= $BASE_URL ?>js/bi.js?v=20260110"></script>
 <script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('bi-theme'));</script>
 
-<div class="bi-wrapper bi-theme">
+<div class="bi-wrapper bi-theme bi-auditor-page">
     <div class="bi-header">
         <h1 class="bi-title">Auditor</h1>
         <div class="bi-header-actions">
@@ -238,22 +353,53 @@ function labelsAndValues(array $rows): array
         </aside>
 
         <section class="bi-main bi-stack">
-            <div class="bi-kpis kpi-compact">
-                <div class="bi-kpi kpi-berry kpi-compact">
-                    <small>Internações</small>
-                    <strong><?= number_format($totalInternações, 0, ',', '.') ?></strong>
+            <div class="bi-kpis kpi-auditor-v2">
+                <div class="bi-kpi kpi-card-v2 kpi-card-v2-1">
+                    <div class="kpi-card-v2-head">
+                        <span class="kpi-card-v2-icon"><i class="bi bi-hospital"></i></span>
+                        <small>Internações</small>
+                    </div>
+                    <strong><?= number_format($totalInternacoes, 0, ',', '.') ?></strong>
+                    <div class="kpi-trend kpi-trend-<?= e($trendInternacoes['trend_state']) ?>">
+                        <i class="<?= e($trendInternacoes['trend_icon']) ?>"></i>
+                        <span><?= e($trendInternacoes['trend_label']) ?></span>
+                    </div>
                 </div>
-                <div class="bi-kpi kpi-teal kpi-compact">
-                    <small>Diárias</small>
-                    <strong><?= number_format($totalDiárias, 0, ',', '.') ?></strong>
+
+                <div class="bi-kpi kpi-card-v2 kpi-card-v2-2">
+                    <div class="kpi-card-v2-head">
+                        <span class="kpi-card-v2-icon"><i class="bi bi-moon-stars"></i></span>
+                        <small>Diárias</small>
+                    </div>
+                    <strong><?= number_format($totalDiarias, 0, ',', '.') ?></strong>
+                    <div class="kpi-trend kpi-trend-<?= e($trendDiarias['trend_state']) ?>">
+                        <i class="<?= e($trendDiarias['trend_icon']) ?>"></i>
+                        <span><?= e($trendDiarias['trend_label']) ?></span>
+                    </div>
                 </div>
-                <div class="bi-kpi kpi-indigo kpi-compact">
-                    <small>MP</small>
+
+                <div class="bi-kpi kpi-card-v2 kpi-card-v2-3">
+                    <div class="kpi-card-v2-head">
+                        <span class="kpi-card-v2-icon"><i class="bi bi-activity"></i></span>
+                        <small>MP</small>
+                    </div>
                     <strong><?= number_format($mp, 1, ',', '.') ?></strong>
+                    <div class="kpi-trend kpi-trend-<?= e($trendMp['trend_state']) ?>">
+                        <i class="<?= e($trendMp['trend_icon']) ?>"></i>
+                        <span><?= e($trendMp['trend_label']) ?></span>
+                    </div>
                 </div>
-                <div class="bi-kpi kpi-rose kpi-compact">
-                    <small>Maior permanência</small>
+
+                <div class="bi-kpi kpi-card-v2 kpi-card-v2-4">
+                    <div class="kpi-card-v2-head">
+                        <span class="kpi-card-v2-icon"><i class="bi bi-stopwatch"></i></span>
+                        <small>Maior permanência</small>
+                    </div>
                     <strong><?= number_format($maiorPermanencia, 0, ',', '.') ?></strong>
+                    <div class="kpi-trend kpi-trend-<?= e($trendPermanencia['trend_state']) ?>">
+                        <i class="<?= e($trendPermanencia['trend_icon']) ?>"></i>
+                        <span><?= e($trendPermanencia['trend_label']) ?></span>
+                    </div>
                 </div>
             </div>
 

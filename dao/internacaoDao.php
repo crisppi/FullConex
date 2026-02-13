@@ -721,6 +721,7 @@ class internacaoDAO implements internacaoDAOInterface
         ac.internado_int,
         pa.id_paciente,
         pa.nome_pac,
+        s.seguradora_seg,
         ho.id_hospital, 
         ho.nome_hosp
 
@@ -731,6 +732,9 @@ class internacaoDAO implements internacaoDAOInterface
 
         left join tb_paciente as pa on
         ac.fk_paciente_int = pa.id_paciente
+
+        left join tb_seguradora as s on
+        pa.fk_seguradora_pac = s.id_seguradora
 
         WHERE nome_hosp LIKE '$where' AND internado_int = '$ativo' LIMIT $inicio, $limite");
 
@@ -1296,6 +1300,9 @@ class internacaoDAO implements internacaoDAOInterface
     
             LEFT JOIN tb_paciente AS pa ON
             ac.fk_paciente_int = pa.id_paciente 
+
+            LEFT JOIN tb_seguradora AS s ON
+            pa.fk_seguradora_pac = s.id_seguradora
 
             LEFT join tb_visita as vi on
             ac.id_internacao = vi.fk_internacao_vis

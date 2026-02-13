@@ -586,6 +586,7 @@ if (typeof jQuery !== 'undefined') {
             'id_internacao'   => 'ac.id_internacao',
             'nome_hosp'       => 'ho.nome_hosp',
             'nome_pac'        => 'pa.nome_pac',
+            'seguradora_seg'  => 's.seguradora_seg',
             'data_intern_int' => 'ac.data_intern_int'
         ];
         if ($sortField && isset($sortableColumns[$sortField])) {
@@ -666,6 +667,7 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                                 'id_internacao'   => ['label' => 'Id-Int',   'style' => 'min-width: 50px;'],
                                 'nome_hosp'       => ['label' => 'Hospital', 'style' => 'min-width: 150px;'],
                                 'nome_pac'        => ['label' => 'Paciente', 'style' => 'min-width: 150px;'],
+                                'seguradora_seg'  => ['label' => 'Seguradora', 'style' => 'min-width: 150px;'],
                                 'data_intern_int' => ['label' => 'Data Int', 'style' => 'min-width: 100px;'],
                             ];
                             foreach ($sortableHeaders as $key => $meta):
@@ -722,6 +724,9 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                             </td>
                             <td scope="row">
                                 <?= htmlspecialchars($intern["nome_pac"], ENT_QUOTES, 'UTF-8') ?>
+                            </td>
+                            <td scope="row">
+                                <?= htmlspecialchars($intern["seguradora_seg"] ?? '--', ENT_QUOTES, 'UTF-8') ?>
                             </td>
                             <td scope="row">
                                 <?= date('d/m/Y', strtotime($intern["data_intern_int"])) ?>
@@ -953,7 +958,7 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
 
                         <?php if ($qtdIntItens == 0): ?>
                         <tr>
-                            <td colspan="13" scope="row" class="col-id" style="font-size:15px">
+                            <td colspan="14" scope="row" class="col-id" style="font-size:15px">
                                 Não foram encontrados registros
                             </td>
                         </tr>
