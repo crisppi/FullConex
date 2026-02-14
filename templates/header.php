@@ -22,7 +22,7 @@ $normAccess = function ($txt) {
     return preg_replace('/[^a-z]/', '', $txt);
 };
 $normCargoAccess = $normAccess($_SESSION['cargo'] ?? '');
-$isBiHubOnly = ($normCargoAccess === 'gestorseguradora');
+$isBiHubOnly = (strpos($normCargoAccess, 'gestorseguradora') === 0);
 $isSeguradoraRole = (strpos($normCargoAccess, 'seguradora') !== false);
 $canSeeFullMenu = ($sessionNivel > 0) && !$isBiHubOnly;
 $canSeeBiMenu = ($sessionNivel >= 3) || $isBiHubOnly;

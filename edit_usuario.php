@@ -19,7 +19,7 @@ $cargoAtualRaw = (string)($usuario->cargo_user ?? '');
 $cargoAtualNorm = mb_strtolower(trim($cargoAtualRaw), 'UTF-8');
 $cargoAtualNorm = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $cargoAtualNorm) ?: $cargoAtualNorm;
 $cargoAtualNorm = preg_replace('/[^a-z]/', '', $cargoAtualNorm);
-$isGestorSeguradoraUser = ($cargoAtualNorm === 'gestorseguradora');
+$isGestorSeguradoraUser = (strpos($cargoAtualNorm, 'gestorseguradora') === 0);
 
 // Receber id do usuário
 $id_usuario = filter_input(INPUT_GET, "id_usuario");
