@@ -38,6 +38,17 @@
             error_log('[LIST_PAC][SEGURADORA] ' . $e->getMessage());
         }
     }
+    $seguradoraUserNome = '';
+    if ($isGestorSeguradora && $seguradoraUserId > 0) {
+        try {
+            $stmtSegNome = $conn->prepare("SELECT seguradora_seg FROM tb_seguradora WHERE id_seguradora = :id LIMIT 1");
+            $stmtSegNome->bindValue(':id', $seguradoraUserId, PDO::PARAM_INT);
+            $stmtSegNome->execute();
+            $seguradoraUserNome = (string)($stmtSegNome->fetchColumn() ?: '');
+        } catch (Throwable $e) {
+            $seguradoraUserNome = '';
+        }
+    }
 
     if (!function_exists('paciente_escape')) {
         function paciente_escape($valor)
@@ -69,6 +80,9 @@
     // METODO DE BUSCA DE PAGINACAO
     $busca = trim((string) filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS));
     $buscaSeguradora = filter_input(INPUT_GET, 'pesquisa_seguradora', FILTER_SANITIZE_SPECIAL_CHARS);
+    if ($isGestorSeguradora) {
+        $buscaSeguradora = $seguradoraUserNome !== '' ? $seguradoraUserNome : $buscaSeguradora;
+    }
 
     $pesquisa_nome = filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS);
     $buscaAtivo = filter_input(INPUT_GET, 'ativo_pac', FILTER_SANITIZE_SPECIAL_CHARS);
@@ -181,6 +195,11 @@
         <hr style="margin-top: 1px; margin-bottom: 10px;">
 
         <div class="complete-table">
+            <?php if ($isGestorSeguradora): ?>
+                <div style="display:inline-flex;align-items:center;gap:8px;margin:0 0 8px 16px;padding:6px 12px;border-radius:999px;font-size:.82rem;font-weight:700;background:#f3edff;border:1px solid #d6c5f7;color:#5e2363;">
+                    Escopo: Seguradora <?= paciente_escape($seguradoraUserNome !== '' ? $seguradoraUserNome : ('#' . $seguradoraUserId)) ?>
+                </div>
+            <?php endif; ?>
             <div id="navbarToggleExternalContent" class="table-filters">
                 <form id="form_pesquisa" method="GET">
                     <div class="row">
@@ -201,9 +220,16 @@
                             </datalist>
                         </div>
                         <div class="form-group col-sm-2" style="padding:2px !important;">
-                            <input class="form-control form-control-sm" style="margin-top:7px" type="text"
-                                value="<?= $buscaSeguradora ?>" name="pesquisa_seguradora" id="pesquisa_seguradora"
-                                placeholder="Pesquisa por seguradora">
+                            <?php if ($isGestorSeguradora): ?>
+                                <input type="hidden" name="pesquisa_seguradora" id="pesquisa_seguradora"
+                                    value="<?= paciente_escape($seguradoraUserNome !== '' ? $seguradoraUserNome : $buscaSeguradora) ?>">
+                                <input class="form-control form-control-sm" style="margin-top:7px;background:#f3edff;color:#6b5b8b" type="text"
+                                    value="<?= paciente_escape($seguradoraUserNome !== '' ? $seguradoraUserNome : '-') ?>" readonly>
+                            <?php else: ?>
+                                <input class="form-control form-control-sm" style="margin-top:7px" type="text"
+                                    value="<?= paciente_escape((string)$buscaSeguradora) ?>" name="pesquisa_seguradora" id="pesquisa_seguradora"
+                                    placeholder="Pesquisa por seguradora">
+                            <?php endif; ?>
                         </div>
                         <div class="col-sm-1" style="padding:2px !important">
                             <select class="form-control mb-3 form-control-sm" style="margin-top:7px;" id="limite"
@@ -238,6 +264,11 @@
                                     search
                                 </span></button>
                         </div>
+                        <div class="form-group col-sm-2" style="padding:2px !important">
+                            <a href="<?= htmlspecialchars($BASE_URL . 'pacientes', ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-secondary btn-sm" style="margin-top:7px;">
+                                Limpar filtros
+                            </a>
+                        </div>
 
 
                     </div>
@@ -258,6 +289,11 @@
                             </tr>
                         </thead>
                         <tbody>
+                            <?php if (empty($query)): ?>
+                            <tr>
+                                <td colspan="7" class="text-center text-muted">Sem registros para os filtros aplicados.</td>
+                            </tr>
+                            <?php endif; ?>
                             <?php
 
                             foreach ($query as $paciente):

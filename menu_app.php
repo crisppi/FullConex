@@ -32,6 +32,9 @@ require_once __DIR__ . '/app/services/PermanenciaForecastService.php';
 // ENTRADAS E SESSÃO
 // -----------------------------
 $hospital_selecionado = isset($_POST['hospital_id']) ? (int)$_POST['hospital_id'] : 0;
+if (isset($_POST['clear_hospital']) && (int)$_POST['clear_hospital'] === 1) {
+    $hospital_selecionado = 0;
+}
 $id_usuario_sessao    = isset($_SESSION['id_usuario']) ? (int)$_SESSION['id_usuario'] : 0;
 $nivel_sessao         = isset($_SESSION['nivel']) ? (int)$_SESSION['nivel'] : 99;
 
@@ -61,6 +64,17 @@ if ($isSeguradoraRole && $seguradoraUserId <= 0) {
         }
     } catch (Throwable $e) {
         error_log('[DASH_MENU][SEGURADORA] ' . $e->getMessage());
+    }
+}
+$seguradoraUserNome = '';
+if ($isSeguradoraRole && $seguradoraUserId > 0) {
+    try {
+        $stmtSegNome = $conn->prepare("SELECT seguradora_seg FROM tb_seguradora WHERE id_seguradora = :id LIMIT 1");
+        $stmtSegNome->bindValue(':id', $seguradoraUserId, PDO::PARAM_INT);
+        $stmtSegNome->execute();
+        $seguradoraUserNome = (string)($stmtSegNome->fetchColumn() ?: '');
+    } catch (Throwable $e) {
+        $seguradoraUserNome = '';
     }
 }
 
@@ -731,12 +745,31 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
     font-weight: 600;
     letter-spacing: 0.02em;
 }
+
+.scope-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    background: #f3edff;
+    border: 1px solid #d6c5f7;
+    color: #5e2363;
+}
 </style>
 
 <script src="js/timeout.js"></script>
 
 <div id='main-container'>
     <div class="container-fluid" style="margin-top:6px">
+        <?php if ($isSeguradoraRole): ?>
+            <div class="scope-badge">
+                Escopo: Seguradora <?= htmlspecialchars($seguradoraUserNome !== '' ? $seguradoraUserNome : ('#' . $seguradoraUserId), ENT_QUOTES, 'UTF-8') ?>
+            </div>
+        <?php endif; ?>
         <div class="grid-container">
             <div class="grid-item">
                 <div class="title-item"><i class="fa-solid fa-hospital"></i> Filtrar Hospital</div>
@@ -760,6 +793,9 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
                                 <span class="select-chevron"><i class="fa-solid fa-chevron-down"></i></span>
                                 <button type="submit" class="btn button-item">
                                     <span class="material-icons">search</span>
+                                </button>
+                                <button type="submit" name="clear_hospital" value="1" class="btn button-item" title="Limpar filtro hospital">
+                                    <span class="material-icons">close</span>
                                 </button>
                             </div>
                         </div>
@@ -951,8 +987,8 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
                         <?php if (count($forecastRows) === 0): ?>
                         <tr>
                             <td colspan="7" class="text-center" style="font-size:15px;">
-                                Nenhuma previsão disponível ainda. Assim que tivermos histórico suficiente,
-                                exibiremos os casos prioritários aqui.
+                                Sem registros para os filtros aplicados.
+                                <?= $isSeguradoraRole ? ' Você está visualizando somente dados da sua seguradora.' : '' ?>
                             </td>
                         </tr>
                         <?php endif; ?>

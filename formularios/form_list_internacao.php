@@ -53,6 +53,17 @@ if ($isGestorSeguradora && $seguradoraUserId <= 0) {
         error_log('[LIST_INT][SEGURADORA] ' . $e->getMessage());
     }
 }
+$seguradoraUserNome = '';
+if ($isGestorSeguradora && $seguradoraUserId > 0) {
+    try {
+        $stmtSegNome = $conn->prepare("SELECT seguradora_seg FROM tb_seguradora WHERE id_seguradora = :id LIMIT 1");
+        $stmtSegNome->bindValue(':id', $seguradoraUserId, PDO::PARAM_INT);
+        $stmtSegNome->execute();
+        $seguradoraUserNome = (string)($stmtSegNome->fetchColumn() ?: '');
+    } catch (Throwable $e) {
+        $seguradoraUserNome = '';
+    }
+}
 
 // inicializacao de variaveis
 $data_intern_int      = null;
@@ -300,6 +311,20 @@ try {
     border: 1px solid #f3bccb;
 }
 
+.scope-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px 16px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    background: #f3edff;
+    border: 1px solid #d6c5f7;
+    color: #5e2363;
+}
+
 .filter-intel-grid input[type="text"] {
     flex: 1;
 }
@@ -467,6 +492,11 @@ if (typeof jQuery !== 'undefined') {
     <hr style="margin-top: 1px; margin-bottom: 10px;">
 
     <div class="complete-table">
+        <?php if ($isGestorSeguradora): ?>
+            <div class="scope-badge">
+                Escopo: Seguradora <?= htmlspecialchars($seguradoraUserNome !== '' ? $seguradoraUserNome : ('#' . $seguradoraUserId), ENT_QUOTES, 'UTF-8') ?>
+            </div>
+        <?php endif; ?>
         <div id="navbarToggleExternalContent" class="table-filters">
             <form action="" id="select-internacao-form" method="GET">
                 <?php
@@ -476,10 +506,13 @@ if (typeof jQuery !== 'undefined') {
                 $pesquisa_pac        = filter_input(INPUT_GET, 'pesquisa_pac');
                 $pesquisa_seguradora = filter_input(INPUT_GET, 'pesquisa_seguradora');
                 $pesquisa_matricula  = filter_input(INPUT_GET, 'pesquisa_matricula');
-        $ordenar             = filter_input(INPUT_GET, 'ordenar');
+                $ordenar             = filter_input(INPUT_GET, 'ordenar');
                 $data_intern_int     = filter_input(INPUT_GET, 'data_intern_int') ?: null;
                 $data_intern_int_max = filter_input(INPUT_GET, 'data_intern_int_max') ?: null;
                 $senha_int           = filter_input(INPUT_GET, 'senha_int') ?: null;
+                if ($isGestorSeguradora) {
+                    $pesquisa_seguradora = $seguradoraUserNome !== '' ? $seguradoraUserNome : $pesquisa_seguradora;
+                }
                 ?>
                 <div class="filter-intel-wrapper">
                     <h6>Memória de filtros e busca inteligente</h6>
@@ -524,9 +557,15 @@ if (typeof jQuery !== 'undefined') {
                     </div>
 
                     <div class="form-group col-sm-2 filter-inline-field filter-inline--wide" style="padding:2px;">
-                        <input class="form-control form-control-sm" type="text" style="color:#878787;margin-top:0;"
-                            name="pesquisa_seguradora" placeholder="Seguradora"
-                            value="<?= htmlspecialchars((string)($pesquisa_seguradora ?? '')) ?>">
+                        <?php if ($isGestorSeguradora): ?>
+                            <input type="hidden" name="pesquisa_seguradora" value="<?= htmlspecialchars((string)($seguradoraUserNome !== '' ? $seguradoraUserNome : ($pesquisa_seguradora ?? '')), ENT_QUOTES, 'UTF-8') ?>">
+                            <input class="form-control form-control-sm" type="text" style="color:#6b5b8b;margin-top:0;background:#f3edff;"
+                                value="<?= htmlspecialchars((string)($seguradoraUserNome !== '' ? $seguradoraUserNome : '-'), ENT_QUOTES, 'UTF-8') ?>" readonly>
+                        <?php else: ?>
+                            <input class="form-control form-control-sm" type="text" style="color:#878787;margin-top:0;"
+                                name="pesquisa_seguradora" placeholder="Seguradora"
+                                value="<?= htmlspecialchars((string)($pesquisa_seguradora ?? '')) ?>">
+                        <?php endif; ?>
                     </div>
 
                     <div class="form-group col-sm-2 filter-inline-field" style="padding:2px;">
@@ -606,6 +645,9 @@ if (typeof jQuery !== 'undefined') {
         }
 
         $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : 1;
+        if ($isGestorSeguradora) {
+            $pesquisa_seguradora = $seguradoraUserNome !== '' ? $seguradoraUserNome : $pesquisa_seguradora;
+        }
 
         $condicoes = [
             strlen($pesquisa_nome)       ? 'ho.nome_hosp LIKE "%' . $pesquisa_nome . '%"'                  : null,
@@ -1003,7 +1045,7 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                         <?php if ($qtdIntItens == 0): ?>
                         <tr>
                             <td colspan="14" scope="row" class="col-id" style="font-size:15px">
-                                Não foram encontrados registros
+                                Sem registros para os filtros aplicados.<?= $isGestorSeguradora ? ' Você está visualizando somente dados da sua seguradora.' : '' ?>
                             </td>
                         </tr>
                         <?php endif; ?>
@@ -1519,6 +1561,8 @@ if (typeof window.paginateInternacao !== 'function') {
     const smartInput = document.getElementById('smartSearchPhrase');
     const btnSmart = document.getElementById('btnApplySmartSearch');
     const smartFeedback = document.getElementById('smartSearchFeedback');
+    const isSeguradoraRole = <?= $isGestorSeguradora ? 'true' : 'false' ?>;
+    const seguradoraNomeEscopo = <?= json_encode((string)$seguradoraUserNome, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 
     const fieldNames = [
         'pesquisa_nome',
@@ -1679,10 +1723,14 @@ if (typeof window.paginateInternacao !== 'function') {
     function handleApplyLast() {
         const last = getLastFilter();
         if (!last) {
-            alert('Nenhum filtro anterior encontrado.');
+            showSmartError('Nenhum filtro anterior encontrado.');
             return;
         }
         fillFormValues(last);
+        if (isSeguradoraRole && seguradoraNomeEscopo) {
+            const segField = form.elements.namedItem('pesquisa_seguradora');
+            if (segField) segField.value = seguradoraNomeEscopo;
+        }
         form.submit();
     }
 
@@ -1705,6 +1753,10 @@ if (typeof window.paginateInternacao !== 'function') {
             const field = form.elements.namedItem(name);
             if (field) field.value = hiddenDefaults[name];
         });
+        if (isSeguradoraRole && seguradoraNomeEscopo) {
+            const segField = form.elements.namedItem('pesquisa_seguradora');
+            if (segField) segField.value = seguradoraNomeEscopo;
+        }
         if (storageAvailable) {
             localStorage.removeItem(storageKeys.last);
         }
@@ -1798,6 +1850,10 @@ if (typeof window.paginateInternacao !== 'function') {
             }
         }
 
+        if (isSeguradoraRole && seguradoraNomeEscopo) {
+            result.pesquisa_seguradora = seguradoraNomeEscopo;
+        }
+
         if (Object.keys(result).length === 0) {
             return null;
         }
@@ -1823,7 +1879,11 @@ if (typeof window.paginateInternacao !== 'function') {
             showSmartError('Não foi possível interpretar esta frase. Tente informar hospital, paciente, seguradora ou mês.');
             return;
         }
-        clearSmartError();
+        if (isSeguradoraRole && seguradoraNomeEscopo && /\b(seguradora|operadora|conv[êe]nio|convenio)\b/i.test(phrase || '')) {
+            showSmartError('No seu perfil, a seguradora é fixa em ' + seguradoraNomeEscopo + '.');
+        } else {
+            clearSmartError();
+        }
         fillFormValues(parsed);
         form.submit();
     }
