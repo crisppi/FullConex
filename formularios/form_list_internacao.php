@@ -611,7 +611,7 @@ if (typeof jQuery !== 'undefined') {
 
                     <div class="form-group col-sm-1 filter-inline-field filter-inline--icon" style="padding:2px;">
                         <div class="filter-inline-actions">
-                            <button type="submit" class="btn btn-primary"
+                            <button type="submit" class="btn btn-primary btn-filtro-buscar btn-filtro-limpar-icon"
                                 style="background-color:#5e2363;width:42px;height:32px;border-color:#5e2363;margin-top:0;">
                                 <span class="material-icons" style="margin-left:-3px;margin-top:-2px;">
                                     search

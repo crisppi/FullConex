@@ -370,7 +370,7 @@ th.th-acoes {
             </div>
             <div class="col-sm-1 d-flex align-items-end gap-2">
                 <button type="submit"
-                    class="btn btn-primary btn-sm d-inline-flex align-items-center justify-content-center btn-filtro-limpar-icon"
+                    class="btn btn-primary btn-sm btn-filtro-buscar d-inline-flex align-items-center justify-content-center btn-filtro-limpar-icon"
                     style="height:32px;background-color:#5e2363;border-color:#5e2363;">
                     <span class="material-icons" style="font-size:18px;line-height:1;">search</span>
                 </button>

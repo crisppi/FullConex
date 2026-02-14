@@ -258,7 +258,7 @@
                         </div>
 
                         <div class="form-group col-sm-1" style="padding:2px !important" style="margin:0px 0px 20px 0px">
-                            <button type="submit" class="btn btn-primary"
+                            <button type="submit" class="btn btn-primary btn-filtro-buscar btn-filtro-limpar-icon"
                                 style="background-color:#5e2363;width:42px;height:32px;margin-top:7px;border-color:#5e2363"><span
                                     class="material-icons" style="margin-left:-3px;margin-top:-2px;">
                                     search

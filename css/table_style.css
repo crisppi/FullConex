@@ -94,3 +94,38 @@
 .btn-filtro-limpar:focus i {
     color: #ffffff !important;
 }
+
+.btn-filtro-limpar-icon {
+    width: 42px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+/* Botao de buscar (filtro): inversao no hover */
+.btn-filtro-buscar {
+    color: #ffffff !important;
+    background-color: #5e2363 !important;
+    border-color: #5e2363 !important;
+}
+
+.btn-filtro-buscar i,
+.btn-filtro-buscar .material-icons {
+    color: #ffffff !important;
+}
+
+.btn-filtro-buscar:hover,
+.btn-filtro-buscar:focus {
+    color: #5e2363 !important;
+    background-color: #ffffff !important;
+    border-color: #5e2363 !important;
+}
+
+.btn-filtro-buscar:hover i,
+.btn-filtro-buscar:focus i,
+.btn-filtro-buscar:hover .material-icons,
+.btn-filtro-buscar:focus .material-icons {
+    color: #5e2363 !important;
+}
