@@ -8,6 +8,38 @@ require_once("dao/usuarioDao.php");
 $message = new Message($BASE_URL);
 $userDao = new UserDAO($conn, $BASE_URL);
 
+function normalizeCargoLabel(?string $cargo): string
+{
+    $cargo = mb_strtolower(trim((string)$cargo), 'UTF-8');
+    $ascii = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $cargo);
+    $cargo = $ascii !== false ? $ascii : $cargo;
+    return preg_replace('/[^a-z]/', '', $cargo);
+}
+
+function isGestorSeguradoraCargo(?string $cargo): bool
+{
+    $norm = normalizeCargoLabel($cargo);
+    return strpos($norm, 'gestorseguradora') === 0;
+}
+
+function getSeguradoraNomeById(PDO $conn, ?int $seguradoraId): ?string
+{
+    $id = (int)($seguradoraId ?? 0);
+    if ($id <= 0) {
+        return null;
+    }
+
+    try {
+        $stmt = $conn->prepare("SELECT seguradora_seg FROM tb_seguradora WHERE id_seguradora = :id LIMIT 1");
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        $nome = trim((string)($stmt->fetchColumn() ?: ''));
+        return $nome !== '' ? $nome : null;
+    } catch (Throwable $e) {
+        return null;
+    }
+}
+
 // Resgata o tipo do formulário
 $type = filter_input(INPUT_POST, "type");
 
@@ -86,7 +118,15 @@ if ($type === "create") {
         $obs_user = filter_input(INPUT_POST, "obs_user");
         $senha_default_user = filter_input(INPUT_POST, "senha_default_user");
         $fk_seguradora_user = filter_input(INPUT_POST, "fk_seguradora_user", FILTER_VALIDATE_INT);
-        if ($cargo_user !== 'Gestor Seguradora') {
+        if (isGestorSeguradoraCargo($cargo_user)) {
+            $segNome = getSeguradoraNomeById($conn, $fk_seguradora_user);
+            if ($segNome) {
+                $cargo_user = 'Gestor Seguradora - ' . $segNome;
+            } else {
+                $cargo_user = 'Gestor Seguradora';
+                $fk_seguradora_user = null;
+            }
+        } else {
             $fk_seguradora_user = null;
         }
 
@@ -214,7 +254,15 @@ if ($type === "create") {
         $vinculo_user = filter_input(INPUT_POST, "vinculo_user");
         $nivel_user = filter_input(INPUT_POST, "nivel_user");
         $fk_seguradora_user = filter_input(INPUT_POST, "fk_seguradora_user", FILTER_VALIDATE_INT);
-        if ($cargo_user !== 'Gestor Seguradora') {
+        if (isGestorSeguradoraCargo($cargo_user)) {
+            $segNome = getSeguradoraNomeById($conn, $fk_seguradora_user);
+            if ($segNome) {
+                $cargo_user = 'Gestor Seguradora - ' . $segNome;
+            } else {
+                $cargo_user = 'Gestor Seguradora';
+                $fk_seguradora_user = null;
+            }
+        } else {
             $fk_seguradora_user = null;
         }
 

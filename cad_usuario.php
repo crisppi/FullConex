@@ -297,7 +297,7 @@ function toggleSeguradoraField() {
     var segSel = document.getElementById('fk_seguradora_user');
     if (!cargoSel || !wrap || !segSel) return;
     var cargoNorm = cargoSel.value.toString().trim().toLowerCase().replace(/[^a-z]/g, '');
-    var isGestor = (cargoNorm === 'gestorseguradora');
+    var isGestor = cargoNorm.indexOf('gestorseguradora') === 0;
     wrap.style.display = isGestor ? '' : 'none';
     segSel.required = isGestor;
     if (!isGestor) segSel.value = '';
