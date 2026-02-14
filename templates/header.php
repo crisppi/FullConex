@@ -809,6 +809,10 @@ if (!empty($sessionIdUsuario)) {
                                         Lista
                                     </a>
                                     <ul class="dropdown-menu" aria-labelledby="navbarGestorListas">
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>menu_app.php">
+                                                <i class="bi bi-grid-1x2-fill"
+                                                    style="font-size: 1rem;margin-right:5px; color:#5e2363;"></i>
+                                                Dashboard Operacional</a></li>
                                         <li><a class="dropdown-item" href="<?= $BASE_URL ?>internacoes/lista">
                                                 <i class="bi bi-clipboard-data"
                                                     style="font-size: 1rem;margin-right:5px; color:#5e2363;"></i>

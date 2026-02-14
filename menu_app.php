@@ -39,6 +39,43 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
+$normCargoAccess = static function ($txt): string {
+    $txt = mb_strtolower(trim((string)$txt), 'UTF-8');
+    $ascii = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $txt);
+    $txt = $ascii !== false ? $ascii : $txt;
+    return preg_replace('/[^a-z]/', '', $txt);
+};
+$isSeguradoraRole = (strpos($normCargoAccess($_SESSION['cargo'] ?? ''), 'seguradora') !== false);
+$seguradoraUserId = (int)($_SESSION['fk_seguradora_user'] ?? 0);
+if ($isSeguradoraRole && $seguradoraUserId <= 0) {
+    try {
+        $uid = (int)($_SESSION['id_usuario'] ?? 0);
+        if ($uid > 0) {
+            $stmtSeg = $conn->prepare("SELECT fk_seguradora_user FROM tb_user WHERE id_usuario = :id LIMIT 1");
+            $stmtSeg->bindValue(':id', $uid, PDO::PARAM_INT);
+            $stmtSeg->execute();
+            $seguradoraUserId = (int)($stmtSeg->fetchColumn() ?: 0);
+            if ($seguradoraUserId > 0) {
+                $_SESSION['fk_seguradora_user'] = $seguradoraUserId;
+            }
+        }
+    } catch (Throwable $e) {
+        error_log('[DASH_MENU][SEGURADORA] ' . $e->getMessage());
+    }
+}
+
+$seguradoraCondAc = null;
+$seguradoraCondI  = null;
+if ($isSeguradoraRole) {
+    if ($seguradoraUserId > 0) {
+        $seguradoraCondAc = "EXISTS (SELECT 1 FROM tb_paciente pa_s WHERE pa_s.id_paciente = ac.fk_paciente_int AND pa_s.fk_seguradora_pac = {$seguradoraUserId})";
+        $seguradoraCondI  = "EXISTS (SELECT 1 FROM tb_paciente pa_s WHERE pa_s.id_paciente = i.fk_paciente_int AND pa_s.fk_seguradora_pac = {$seguradoraUserId})";
+    } else {
+        $seguradoraCondAc = "1=0";
+        $seguradoraCondI  = "1=0";
+    }
+}
+
 function dashCacheGet(string $key, int $ttl)
 {
     $cache = $_SESSION['dash_menu_cache'] ?? [];
@@ -58,43 +95,51 @@ function dashCacheSet(string $key, $data): void
     ];
 }
 
-$cacheBase = 'dash_menu_' . $hospital_selecionado . '_' . $id_usuario_sessao . '_' . $nivel_sessao;
+$cacheBase = 'dash_menu_' . $hospital_selecionado . '_' . $id_usuario_sessao . '_' . $nivel_sessao . '_' . ($isSeguradoraRole ? 'seg' : 'geral') . '_' . $seguradoraUserId;
 
 // -----------------------------
 // CONDIÇÕES / WHEREs
 // -----------------------------
 $condicoes = [
     $hospital_selecionado ? "ac.fk_hospital_int = {$hospital_selecionado}" : null,
-    ($id_usuario_sessao && $nivel_sessao <= 3) ? "hos.fk_usuario_hosp = {$id_usuario_sessao}" : null
+    (!$isSeguradoraRole && $id_usuario_sessao && $nivel_sessao <= 3) ? "hos.fk_usuario_hosp = {$id_usuario_sessao}" : null,
+    $seguradoraCondAc
 ];
 
 $condicoes_vis = [
     $hospital_selecionado ? "ac.fk_hospital_int = {$hospital_selecionado}" : null,
     "ac.internado_int = 's'",
-    "(vi.id_visita = (SELECT MAX(vi2.id_visita) FROM tb_visita vi2 WHERE vi2.fk_internacao_vis = ac.id_internacao) OR vi.id_visita IS NULL)"
+    "(vi.id_visita = (SELECT MAX(vi2.id_visita) FROM tb_visita vi2 WHERE vi2.fk_internacao_vis = ac.id_internacao) OR vi.id_visita IS NULL)",
+    $seguradoraCondAc
 ];
 
 $condicoes_hospital = [
-    "DATEDIFF(CURRENT_DATE(), data_intern_int) > longa_permanencia_seg",
+    "DATEDIFF(CURRENT_DATE(), i.data_intern_int) > COALESCE(s.longa_permanencia_seg, 0)",
     $hospital_selecionado ? "i.fk_hospital_int = {$hospital_selecionado}" : null,
-    ($id_usuario_sessao && $nivel_sessao <= 3) ? "hos.fk_usuario_hosp = {$id_usuario_sessao}" : null,
+    (!$isSeguradoraRole && $id_usuario_sessao && $nivel_sessao <= 3) ? "hos.fk_usuario_hosp = {$id_usuario_sessao}" : null,
     "i.internado_int = 's'",
-    ($id_usuario_sessao && $nivel_sessao <= 3) ? "i.fk_hospital_int IN (SELECT hos.fk_hospital_user FROM tb_hospitalUser hos WHERE hos.fk_usuario_hosp = {$id_usuario_sessao})" : null
+    (!$isSeguradoraRole && $id_usuario_sessao && $nivel_sessao <= 3) ? "i.fk_hospital_int IN (SELECT hu.fk_hospital_user FROM tb_hospitalUser hu WHERE hu.fk_usuario_hosp = {$id_usuario_sessao})" : null,
+    $seguradoraCondI
 ];
 
 $condicoes_contas = [
     "c.conta_parada_cap = 's'",
     $hospital_selecionado ? "i.fk_hospital_int = {$hospital_selecionado}" : null,
-    ($id_usuario_sessao && $nivel_sessao <= 3) ? "i.fk_hospital_int IN (SELECT hos.fk_hospital_user FROM tb_hospitalUser hos WHERE hos.fk_usuario_hosp = {$id_usuario_sessao})" : null
+    (!$isSeguradoraRole && $id_usuario_sessao && $nivel_sessao <= 3) ? "i.fk_hospital_int IN (SELECT hu.fk_hospital_user FROM tb_hospitalUser hu WHERE hu.fk_usuario_hosp = {$id_usuario_sessao})" : null,
+    $seguradoraCondI
 ];
 
 $condicoes_gerais = [
     $hospital_selecionado ? "i.fk_hospital_int = {$hospital_selecionado}" : null,
-    ($id_usuario_sessao && $nivel_sessao <= 3) ? "i.fk_hospital_int IN (SELECT hos.fk_hospital_user FROM tb_hospitalUser hos WHERE hos.fk_usuario_hosp = {$id_usuario_sessao})" : null
+    (!$isSeguradoraRole && $id_usuario_sessao && $nivel_sessao <= 3) ? "i.fk_hospital_int IN (SELECT hu.fk_hospital_user FROM tb_hospitalUser hu WHERE hu.fk_usuario_hosp = {$id_usuario_sessao})" : null,
+    $seguradoraCondI
 ];
 
 $condicoes_gerais_reint = [
-    $hospital_selecionado ? "ac.fk_hospital_int = {$hospital_selecionado}" : null
+    $hospital_selecionado ? "ac.fk_hospital_int = {$hospital_selecionado}" : null,
+    ($isSeguradoraRole
+        ? ($seguradoraUserId > 0 ? "pa.fk_seguradora_pac = {$seguradoraUserId}" : "1=0")
+        : null)
 ];
 
 $condicoes               = array_filter($condicoes);
@@ -141,7 +186,8 @@ try {
         $forecastRows = $forecastService->fetchDashboardRows(
             $hospital_selecionado ?: null,
             $id_usuario_sessao ?: null,
-            $nivel_sessao ?? null
+            $isSeguradoraRole ? null : ($nivel_sessao ?? null),
+            ($isSeguradoraRole && $seguradoraUserId > 0) ? $seguradoraUserId : null
         );
         dashCacheSet($cacheBase . '_forecast_rows', $forecastRows);
     }
@@ -152,7 +198,7 @@ try {
 // -----------------------------
 // LISTA DE HOSPITAIS POR PERFIL
 // -----------------------------
-if ($nivel_sessao > 3) {
+if ($isSeguradoraRole || $nivel_sessao > 3) {
     $dados_hospital = $hospital->findGeral();
 } else {
     $dados_hospital = $hospitalUser->joinHospitalUser($id_usuario_sessao);
@@ -226,7 +272,10 @@ if (!is_array($dados_internacoes_geral)) {
 
 $dados_internacoes_uti = dashCacheGet($cacheBase . '_internacoes_uti', 60);
 if (!is_array($dados_internacoes_uti)) {
-    $dados_internacoes_uti = $Internacao_geral->QtdInternacao("ac.internado_int = 's' AND ut.id_uti IS NOT NULL");
+    $utiWhereParts = ["ac.internado_int = 's'", "ut.id_uti IS NOT NULL"];
+    if ($hospital_selecionado) $utiWhereParts[] = "ac.fk_hospital_int = {$hospital_selecionado}";
+    if ($seguradoraCondAc) $utiWhereParts[] = $seguradoraCondAc;
+    $dados_internacoes_uti = $Internacao_geral->QtdInternacao(implode(' AND ', $utiWhereParts));
     dashCacheSet($cacheBase . '_internacoes_uti', $dados_internacoes_uti);
 }
 

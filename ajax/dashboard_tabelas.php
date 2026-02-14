@@ -21,9 +21,9 @@ $normCargoAccess = static function ($txt): string {
     $txt = $ascii !== false ? $ascii : $txt;
     return preg_replace('/[^a-z]/', '', $txt);
 };
-$isGestorSeguradora = ($normCargoAccess($_SESSION['cargo'] ?? '') === 'gestorseguradora');
+$isSeguradoraRole = (strpos($normCargoAccess($_SESSION['cargo'] ?? ''), 'seguradora') !== false);
 $seguradoraUserId = (int)($_SESSION['fk_seguradora_user'] ?? 0);
-if ($isGestorSeguradora && $seguradoraUserId <= 0) {
+if ($isSeguradoraRole && $seguradoraUserId <= 0) {
     try {
         $uid = (int)($_SESSION['id_usuario'] ?? 0);
         if ($uid > 0) {
@@ -49,11 +49,12 @@ $condicoes_vis = [
         : null
 ];
 $condicoes_hospital = [
+    "DATEDIFF(CURRENT_DATE(), i.data_intern_int) > COALESCE(s.longa_permanencia_seg, 0)",
     $hospital_selecionado ? "i.fk_hospital_int = {$hospital_selecionado}" : null,
-    ($id_usuario_sessao && $nivel_sessao <= 3) ? "hos.fk_usuario_hosp = {$id_usuario_sessao}" : null,
+    (!$isSeguradoraRole && $id_usuario_sessao && $nivel_sessao <= 3) ? "hos.fk_usuario_hosp = {$id_usuario_sessao}" : null,
     "i.internado_int = 's'",
-    ($id_usuario_sessao && $nivel_sessao <= 3) ? "i.fk_hospital_int IN (SELECT hos.fk_hospital_user FROM tb_hospitalUser hos WHERE hos.fk_usuario_hosp = {$id_usuario_sessao})" : null,
-    $isGestorSeguradora
+    (!$isSeguradoraRole && $id_usuario_sessao && $nivel_sessao <= 3) ? "i.fk_hospital_int IN (SELECT hu.fk_hospital_user FROM tb_hospitalUser hu WHERE hu.fk_usuario_hosp = {$id_usuario_sessao})" : null,
+    $isSeguradoraRole
         ? ($seguradoraUserId > 0 ? "p.fk_seguradora_pac = {$seguradoraUserId}" : '1=0')
         : null
 ];

@@ -43,18 +43,22 @@ class PermanenciaForecastService
         ];
     }
 
-    public function fetchDashboardRows(?int $hospitalId, ?int $usuarioId, ?int $nivelPerfil, int $limit = 8): array
+    public function fetchDashboardRows(?int $hospitalId, ?int $usuarioId, ?int $nivelPerfil, int $limit = 8, ?int $seguradoraId = null): array
     {
         $conditions = [
             "ac.internado_int = 's'",
-            "ac.data_intern_int IS NOT NULL",
-            "ac.forecast_total_days IS NOT NULL"
+            "ac.data_intern_int IS NOT NULL"
         ];
         $params = [];
 
         if ($hospitalId) {
             $conditions[] = "ac.fk_hospital_int = :dhosp";
             $params[':dhosp'] = $hospitalId;
+        }
+
+        if ($seguradoraId) {
+            $conditions[] = "pa.fk_seguradora_pac = :dseg";
+            $params[':dseg'] = $seguradoraId;
         }
 
         if ($usuarioId && $nivelPerfil !== null && $nivelPerfil <= 3) {
@@ -82,7 +86,13 @@ class PermanenciaForecastService
             JOIN tb_paciente pa ON pa.id_paciente = ac.fk_paciente_int
             JOIN tb_hospital hos ON hos.id_hospital = ac.fk_hospital_int
             WHERE " . implode(' AND ', $conditions) . "
-            ORDER BY (ac.forecast_total_days - GREATEST(DATEDIFF(CURRENT_DATE(), ac.data_intern_int), 0)) ASC
+            ORDER BY 
+                CASE WHEN ac.forecast_total_days IS NULL THEN 1 ELSE 0 END ASC,
+                COALESCE(
+                    ac.forecast_total_days - GREATEST(DATEDIFF(CURRENT_DATE(), ac.data_intern_int), 0),
+                    99999
+                ) ASC,
+                GREATEST(DATEDIFF(CURRENT_DATE(), ac.data_intern_int), 0) DESC
             LIMIT " . (int) max(1, $limit);
 
         $stmt = $this->conn->prepare($sql);
