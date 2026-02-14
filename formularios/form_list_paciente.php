@@ -265,7 +265,7 @@
                                 </span></button>
                         </div>
                         <div class="form-group col-sm-2" style="padding:2px !important">
-                            <a href="<?= htmlspecialchars($BASE_URL . 'pacientes', ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-secondary btn-sm" style="margin-top:7px;">
+                            <a href="<?= htmlspecialchars($BASE_URL . 'pacientes', ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-secondary btn-sm btn-filtro-limpar" style="margin-top:7px;">
                                 Limpar filtros
                             </a>
                         </div>

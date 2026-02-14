@@ -28,6 +28,42 @@ include_once("models/pagination.php");
 
 $somenteListaAltas = isset($somenteListaAltas) ? (bool)$somenteListaAltas : false;
 
+$normCargoAccess = static function ($txt): string {
+    $txt = mb_strtolower(trim((string)$txt), 'UTF-8');
+    $ascii = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $txt);
+    $txt = $ascii !== false ? $ascii : $txt;
+    return preg_replace('/[^a-z]/', '', $txt);
+};
+$isSeguradoraRole = (strpos($normCargoAccess($_SESSION['cargo'] ?? ''), 'seguradora') !== false);
+$seguradoraUserId = (int)($_SESSION['fk_seguradora_user'] ?? 0);
+if ($isSeguradoraRole && $seguradoraUserId <= 0) {
+    try {
+        $uid = (int)($_SESSION['id_usuario'] ?? 0);
+        if ($uid > 0) {
+            $stmtSeg = $conn->prepare("SELECT fk_seguradora_user FROM tb_user WHERE id_usuario = :id LIMIT 1");
+            $stmtSeg->bindValue(':id', $uid, PDO::PARAM_INT);
+            $stmtSeg->execute();
+            $seguradoraUserId = (int)($stmtSeg->fetchColumn() ?: 0);
+            if ($seguradoraUserId > 0) {
+                $_SESSION['fk_seguradora_user'] = $seguradoraUserId;
+            }
+        }
+    } catch (Throwable $e) {
+        error_log('[LIST_ALTA][SEGURADORA] ' . $e->getMessage());
+    }
+}
+$seguradoraUserNome = '';
+if ($isSeguradoraRole && $seguradoraUserId > 0) {
+    try {
+        $stmtSegNome = $conn->prepare("SELECT seguradora_seg FROM tb_seguradora WHERE id_seguradora = :id LIMIT 1");
+        $stmtSegNome->bindValue(':id', $seguradoraUserId, PDO::PARAM_INT);
+        $stmtSegNome->execute();
+        $seguradoraUserNome = (string)($stmtSegNome->fetchColumn() ?: '');
+    } catch (Throwable $e) {
+        $seguradoraUserNome = '';
+    }
+}
+
 $altaDao    = new altaDAO($conn, $BASE_URL);
 $internacao = new internacaoDAO($conn, $BASE_URL);
 
@@ -68,6 +104,9 @@ if (strlen(trim((string)$data_alta)) > 0) {
     $ini = $data_alta;
     $fim = $data_alta_max ?: $data_alta;
     $condicoes[] = 'alta.data_alta_alt BETWEEN "' . $ini . '" AND "' . $fim . '"';
+}
+if ($isSeguradoraRole) {
+    $condicoes[] = $seguradoraUserId > 0 ? ('pa.fk_seguradora_pac = ' . $seguradoraUserId) : '1=0';
 }
 
 $condicoes = array_filter($condicoes);
@@ -187,6 +226,19 @@ $buildListaAltaLink = function($pagina, $bloco) use ($paginationParams, $BASE_UR
         font-size: 0.82rem;
         vertical-align: middle;
     }
+    .scope-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 8px 16px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: .82rem;
+        font-weight: 700;
+        background: #f3edff;
+        border: 1px solid #d6c5f7;
+        color: #5e2363;
+    }
 </style>
 
 <div class="container-fluid form_container" id="main-container" style="margin-top:-25px;">
@@ -204,6 +256,11 @@ $buildListaAltaLink = function($pagina, $bloco) use ($paginationParams, $BASE_UR
     <hr>
 
     <div class="complete-table">
+        <?php if ($isSeguradoraRole): ?>
+            <div class="scope-badge">
+                Escopo: Seguradora <?= htmlspecialchars($seguradoraUserNome !== '' ? $seguradoraUserNome : ('#' . $seguradoraUserId), ENT_QUOTES, 'UTF-8') ?>
+            </div>
+        <?php endif; ?>
         <div id="navbarToggleExternalContent" class="table-filters">
             <div>
                 <form action="" id="select-internacao-form" method="GET">
@@ -266,11 +323,15 @@ $buildListaAltaLink = function($pagina, $bloco) use ($paginationParams, $BASE_UR
                                 value="<?= htmlspecialchars((string)$data_alta_max) ?>">
                         </div>
 
-                        <div class="col-sm-1" style="padding:2px !important">
+                        <div class="col-sm-1 d-flex align-items-start gap-2" style="padding:2px !important">
                             <button type="submit" class="btn btn-primary"
                                 style="background-color:#5e2363;width:42px;height:32px;margin-top:7px;border-color:#5e2363">
                                 <span class="material-icons" style="margin-left:-3px;margin-top:-2px;">search</span>
                             </button>
+                            <a class="btn btn-light btn-sm btn-filtro-limpar btn-filtro-limpar-icon" style="margin-top:7px;"
+                                href="<?= htmlspecialchars(rtrim($BASE_URL, '/') . '/' . ($somenteListaAltas ? 'listas/altas' : 'internacoes/reverter-alta'), ENT_QUOTES, 'UTF-8') ?>">
+                                <i class="bi bi-x-lg"></i>
+                            </a>
                         </div>
                     </div>
                 </form>
@@ -327,7 +388,7 @@ $buildListaAltaLink = function($pagina, $bloco) use ($paginationParams, $BASE_UR
                         <?php if ($qtdIntItens == 0): ?>
                             <tr>
                                 <td colspan="7" scope="row" class="col-id" style="font-size:15px">
-                                    Não foram encontrados registros
+                                    Sem registros para os filtros aplicados.<?= $isSeguradoraRole ? ' Você está visualizando somente dados da sua seguradora.' : '' ?>
                                 </td>
                             </tr>
                         <?php endif ?>

@@ -284,7 +284,7 @@ try {
             <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
         </div>
         <div class="col-sm-1 d-grid">
-            <a class="btn btn-outline-secondary btn-sm" href="list_fila_tarefas.php">Limpar</a>
+            <a class="btn btn-outline-secondary btn-sm btn-filtro-limpar" href="list_fila_tarefas.php">Limpar</a>
         </div>
     </form>
 

@@ -418,7 +418,7 @@ $fieldIcons = [
             <label class="form-label fw-semibold m-0 fs-5">Campos a exibir</label>
             <div class="d-flex gap-2">
                 <button type="button" class="btn btn-light btn-sm" id="btn-contas-check-all"><i class="bi bi-check2-all me-1"></i>Selecionar todos</button>
-                <button type="button" class="btn btn-light btn-sm" id="btn-contas-uncheck-all"><i class="bi bi-x-lg me-1"></i>Limpar</button>
+                <button type="button" class="btn btn-light btn-sm btn-filtro-limpar" id="btn-contas-uncheck-all"><i class="bi bi-x-lg me-1"></i>Limpar</button>
             </div>
         </div>
         <div class="field-chips d-flex flex-wrap gap-2 mb-3">

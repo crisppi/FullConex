@@ -368,13 +368,17 @@ th.th-acoes {
                     <option value="n" <?= $faturada === 'n' ? 'selected' : '' ?>>Somente não faturadas</option>
                 </select>
             </div>
-            <div class="col-sm-1">
-                <label class="form-label mb-0 small text-muted">&nbsp;</label>
+            <div class="col-sm-1 d-flex align-items-end gap-2">
                 <button type="submit"
-                    class="btn btn-primary btn-sm d-inline-flex align-items-center justify-content-center w-100"
+                    class="btn btn-primary btn-sm d-inline-flex align-items-center justify-content-center btn-filtro-limpar-icon"
                     style="height:32px;background-color:#5e2363;border-color:#5e2363;">
                     <span class="material-icons" style="font-size:18px;line-height:1;">search</span>
                 </button>
+                <a href="<?= htmlspecialchars(rtrim($BASE_URL, '/') . '/list_internacao_cap_jornada.php', ENT_QUOTES, 'UTF-8') ?>"
+                    class="btn btn-light btn-sm btn-filtro-limpar btn-filtro-limpar-icon"
+                    title="Limpar filtros" aria-label="Limpar filtros">
+                    <i class="bi bi-x-lg"></i>
+                </a>
             </div>
         </div>
     </form>

@@ -745,7 +745,7 @@ $fieldIcons = [
             <div class="d-flex gap-2">
                 <button type="button" class="btn btn-light btn-sm" id="btn-check-all"><i
                         class="bi bi-check2-all me-1"></i>Selecionar todos</button>
-                <button type="button" class="btn btn-light btn-sm" id="btn-uncheck-all"><i
+                <button type="button" class="btn btn-light btn-sm btn-filtro-limpar" id="btn-uncheck-all"><i
                         class="bi bi-x-lg me-1"></i>Limpar</button>
             </div>
         </div>

@@ -360,7 +360,7 @@ include_once("templates/header.php");
                 </div>
                 <div class="col-12">
                     <button class="btn btn-primary" type="submit">Aplicar filtros</button>
-                    <a class="btn btn-outline-secondary" href="<?= htmlspecialchars($BASE_URL . 'inteligencia_operadora.php', ENT_QUOTES, 'UTF-8') ?>">Limpar filtros</a>
+                    <a class="btn btn-outline-secondary btn-filtro-limpar" href="<?= htmlspecialchars($BASE_URL . 'inteligencia_operadora.php', ENT_QUOTES, 'UTF-8') ?>">Limpar filtros</a>
                 </div>
             </div>
         </form>

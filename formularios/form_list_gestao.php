@@ -19,6 +19,45 @@ include_once("dao/gestaoDao.php");
 
 include_once("models/pagination.php");
 
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
+$normCargoAccess = static function ($txt): string {
+    $txt = mb_strtolower(trim((string)$txt), 'UTF-8');
+    $ascii = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $txt);
+    $txt = $ascii !== false ? $ascii : $txt;
+    return preg_replace('/[^a-z]/', '', $txt);
+};
+$isSeguradoraRole = (strpos($normCargoAccess($_SESSION['cargo'] ?? ''), 'seguradora') !== false);
+$seguradoraUserId = (int)($_SESSION['fk_seguradora_user'] ?? 0);
+if ($isSeguradoraRole && $seguradoraUserId <= 0) {
+    try {
+        $uid = (int)($_SESSION['id_usuario'] ?? 0);
+        if ($uid > 0) {
+            $stmtSeg = $conn->prepare("SELECT fk_seguradora_user FROM tb_user WHERE id_usuario = :id LIMIT 1");
+            $stmtSeg->bindValue(':id', $uid, PDO::PARAM_INT);
+            $stmtSeg->execute();
+            $seguradoraUserId = (int)($stmtSeg->fetchColumn() ?: 0);
+            if ($seguradoraUserId > 0) {
+                $_SESSION['fk_seguradora_user'] = $seguradoraUserId;
+            }
+        }
+    } catch (Throwable $e) {
+        error_log('[LIST_GESTAO][SEGURADORA] ' . $e->getMessage());
+    }
+}
+$seguradoraUserNome = '';
+if ($isSeguradoraRole && $seguradoraUserId > 0) {
+    try {
+        $stmtSegNome = $conn->prepare("SELECT seguradora_seg FROM tb_seguradora WHERE id_seguradora = :id LIMIT 1");
+        $stmtSegNome->bindValue(':id', $seguradoraUserId, PDO::PARAM_INT);
+        $stmtSegNome->execute();
+        $seguradoraUserNome = (string)($stmtSegNome->fetchColumn() ?: '');
+    } catch (Throwable $e) {
+        $seguradoraUserNome = '';
+    }
+}
+
 //inicializacao de variaveis
 
 $order = null;
@@ -80,8 +119,26 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar
             flex-wrap: wrap;
         }
     }
+    .scope-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 8px 0;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: .82rem;
+        font-weight: 700;
+        background: #f3edff;
+        border: 1px solid #d6c5f7;
+        color: #5e2363;
+    }
     </style>
     <div class="complete-table">
+        <?php if ($isSeguradoraRole): ?>
+            <div class="scope-badge">
+                Escopo: Seguradora <?= htmlspecialchars($seguradoraUserNome !== '' ? $seguradoraUserNome : ('#' . $seguradoraUserId), ENT_QUOTES, 'UTF-8') ?>
+            </div>
+        <?php endif; ?>
         <div id="navbarToggleExternalContent" class="table-filters">
 
             <form action="" id="select-internacao-form" method="GET">
@@ -174,6 +231,10 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar
                             <span class="material-icons" style="font-size:1rem;vertical-align:middle;">search</span>
                         </button>
                     </div>
+                    <div class="filter-item compact" style="min-width:130px">
+                        <a href="<?= htmlspecialchars($BASE_URL . 'list_gestao.php', ENT_QUOTES, 'UTF-8') ?>"
+                            class="btn btn-outline-secondary w-100 btn-filtro-limpar" style="margin-top:7px;">Limpar filtros</a>
+                    </div>
                 </div>
             </form>
 
@@ -253,6 +314,9 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar
                 strlen($gestaoHome) ? 'home_care_ges = "' . $gestaoHome . '"' : NULL,
                 strlen($auditor) ? 'hos.fk_usuario_hosp = "' . $auditor . '"' : NULL,
                 strlen($data_intern_int) ? 'data_intern_int BETWEEN "' . $data_intern_int . '" AND "' . $data_intern_int_max . '"' : NULL,
+                $isSeguradoraRole
+                    ? ($seguradoraUserId > 0 ? 'pa.fk_seguradora_pac = ' . $seguradoraUserId : '1=0')
+                    : null,
 
 
             ];
@@ -420,7 +484,7 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar
                             <?php if ($qtdIntItens == 0): ?>
                             <tr>
                                 <td colspan="12" scope="row" class="col-id" style='font-size:15px'>
-                                    Não foram encontrados registros
+                                    Sem registros para os filtros aplicados.<?= $isSeguradoraRole ? ' Você está visualizando somente dados da sua seguradora.' : '' ?>
                                 </td>
                             </tr>
 

@@ -159,12 +159,17 @@ $data_intern_int_max = filter_input(INPUT_GET, 'data_intern_int_max') ?: null;
                         name="data_intern_int_max" placeholder="Data Internação Max"
                         value="<?= $data_intern_int_max ?>">
                 </div>
-                <div class="form-group col-sm-1" style="padding:2px !important" style="margin:0px 0px 20px 0px">
+                <div class="form-group col-sm-1 d-flex align-items-start gap-2" style="padding:2px !important">
                     <button type="submit" class="btn btn-primary"
                         style="background-color:#5e2363;width:42px;height:32px;border-color:#5e2363"><span
                             class="material-icons" style="margin-left:-3px;margin-top:-2px;">
                             search
                         </span></button>
+                    <a href="<?= htmlspecialchars(rtrim($BASE_URL, '/') . '/list_internacao_cap_par.php', ENT_QUOTES, 'UTF-8') ?>"
+                        class="btn btn-light btn-sm btn-filtro-limpar btn-filtro-limpar-icon"
+                        title="Limpar filtros" aria-label="Limpar filtros">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
                 </div>
         </form>
     </div>

@@ -149,6 +149,12 @@ if ($qtdIntItens > $limite) {
                                 search
                             </span></button>
                     </div>
+                    <div class="col-sm-2" style="padding:2px !important">
+                        <a href="<?= htmlspecialchars(rtrim($BASE_URL, '/') . '/estipulantes', ENT_QUOTES, 'UTF-8') ?>"
+                            class="btn btn-outline-secondary btn-sm btn-filtro-limpar" style="margin-top:7px;">
+                            Limpar filtros
+                        </a>
+                    </div>
                 </div>
             </form>
 

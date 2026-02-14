@@ -392,6 +392,13 @@ try {
 
 .filter-inline--icon {
     min-width: 48px;
+    flex: 0 0 auto !important;
+}
+
+.filter-inline-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 
 @media (max-width: 1199.98px) {
@@ -532,7 +539,7 @@ if (typeof jQuery !== 'undefined') {
                         <div class="filter-memory-actions">
                             <button type="button" id="btnApplyLastFilter">Aplicar último filtro</button>
                             <button type="button" id="btnSaveFavFilter">Salvar como favorito</button>
-                            <button type="button" id="btnClearFilters">Limpar filtros</button>
+                            <button type="button" id="btnClearFilters" class="btn-filtro-limpar">Limpar filtros</button>
                         </div>
                     </div>
                     <div class="filter-favorites" id="filterFavorites"></div>
@@ -603,12 +610,19 @@ if (typeof jQuery !== 'undefined') {
                     </div>
 
                     <div class="form-group col-sm-1 filter-inline-field filter-inline--icon" style="padding:2px;">
-                        <button type="submit" class="btn btn-primary"
-                            style="background-color:#5e2363;width:42px;height:32px;border-color:#5e2363;margin-top:0;">
-                            <span class="material-icons" style="margin-left:-3px;margin-top:-2px;">
-                                search
-                            </span>
-                        </button>
+                        <div class="filter-inline-actions">
+                            <button type="submit" class="btn btn-primary"
+                                style="background-color:#5e2363;width:42px;height:32px;border-color:#5e2363;margin-top:0;">
+                                <span class="material-icons" style="margin-left:-3px;margin-top:-2px;">
+                                    search
+                                </span>
+                            </button>
+                            <a href="<?= htmlspecialchars(rtrim($BASE_URL, '/') . '/internacoes/lista', ENT_QUOTES, 'UTF-8') ?>"
+                                class="btn btn-light btn-sm btn-filtro-limpar btn-filtro-limpar-icon"
+                                style="margin-top:0;" title="Limpar filtros" aria-label="Limpar filtros">
+                                <i class="bi bi-x-lg"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
 

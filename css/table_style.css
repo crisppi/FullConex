@@ -73,3 +73,24 @@
 .table tbody tr:hover {
     background-color: #e6eefc;
 }
+
+/* Botao/link de limpar filtros: borda mais visivel e sombra suave */
+.btn-filtro-limpar {
+    color: #5e2363;
+    background-color: #f3f5f7;
+    border: 1px solid #aeb7c2;
+    box-shadow: 0 2px 6px rgba(30, 41, 59, 0.2);
+}
+
+.btn-filtro-limpar:hover,
+.btn-filtro-limpar:focus {
+    color: #ffffff !important;
+    background-color: #5e2363 !important;
+    border-color: #5e2363 !important;
+    box-shadow: 0 3px 8px rgba(30, 41, 59, 0.28);
+}
+
+.btn-filtro-limpar:hover i,
+.btn-filtro-limpar:focus i {
+    color: #ffffff !important;
+}

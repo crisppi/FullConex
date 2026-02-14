@@ -158,19 +158,16 @@ if ($qtdIntItens > $limite) {
 
                             </select>
                         </div>
-                        <div class="col-sm-1" style="padding:2px !important" style="margin:0px 0px 20px 0px">
-                            <button type="submit" class="btn btn-primary"
-                                style="background-color:#5e2363;width:42px;height:32px;margin-top:7px;border-color:#5e2363"><span
-                                    class="material-icons" style="margin-left:-3px;margin-top:-2px;">
-                                    search
-                                </span></button>
-                        </div>
-                        <div class="col-sm-1" style="padding:2px !important">
-                            <button type="button" id="btnLimparFiltro" class="btn btn-secondary"
-                                style="background-color:#888;width:42px;height:32px;margin-top:7px;border-color:#888"
-                                title="Limpar filtros">
-                                <span class="material-icons" style="margin-left:-3px;margin-top:-2px;">close</span>
-                            </button>
+                        <div class="col-sm-2" style="padding:2px !important">
+                            <div class="filtro-acoes">
+                                <button type="submit" class="btn btn-primary btn-filtro-buscar" title="Buscar">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                                <button type="button" id="btnLimparFiltro" class="btn btn-light btn-filtro-limpar"
+                                    title="Limpar filtros" aria-label="Limpar filtros">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -488,6 +485,45 @@ function resetSenha(id_user, evt) {
 
 .complete-table {
     width: 100%;
+}
+
+.filtro-acoes {
+    margin-top: 7px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-filtro-buscar,
+.btn-filtro-limpar {
+    width: 42px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-filtro-buscar {
+    background-color: #5e2363;
+    border-color: #5e2363;
+}
+
+.btn-filtro-limpar {
+    color: #5e2363;
+    border: 1px solid #aeb7c2;
+    background-color: #f3f5f7;
+    box-shadow: 0 2px 6px rgba(30, 41, 59, 0.2);
+}
+
+.btn-filtro-limpar:hover {
+    color: #ffffff !important;
+    border-color: #5e2363 !important;
+    background-color: #5e2363 !important;
+    box-shadow: 0 3px 8px rgba(30, 41, 59, 0.28);
+}
+
+.btn-filtro-limpar:hover i {
+    color: #ffffff !important;
 }
 </style>
 <script src="./js/input-estilo.js"></script>
