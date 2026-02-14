@@ -234,6 +234,8 @@ if (!in_array($currentPage, $flatPages, true) && !$matchedByHref) {
     text-decoration: none;
     text-transform: uppercase;
     letter-spacing: 0.04em;
+    text-align: center;
+    line-height: 1.2;
 }
 
 .bi-section-tab:hover {

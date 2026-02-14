@@ -431,7 +431,7 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     grid-template-rows: repeat(2, 1fr);
-    gap: 10px;
+    gap: 12px;
     width: 100%;
 }
 
@@ -441,23 +441,25 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    color: #3c2750;
+    color: #3f2a59;
     font-size: 1.4em;
-    border-radius: 16px;
-    background: linear-gradient(150deg, #fbf8ff, #efe7ff);
+    border-radius: 18px;
+    background:
+        radial-gradient(circle at 12% 110%, rgba(90, 197, 255, 0.16), transparent 55%),
+        linear-gradient(145deg, #f5f0ff, #ece6f7);
     height: 120px;
-    box-shadow: 0 12px 20px rgba(53, 25, 64, 0.12);
-    border: 1px solid rgba(64, 38, 84, 0.08);
+    box-shadow: 0 10px 20px rgba(39, 24, 58, 0.12);
+    border: 1px solid rgba(134, 155, 204, 0.22);
     overflow: hidden;
-    padding: 6px 0;
+    padding: 8px 0;
 }
 
 .grid-item::before {
     content: "";
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at top left, rgba(111, 68, 138, 0.18), transparent 55%);
-    opacity: 0.7;
+    background: radial-gradient(circle at top left, rgba(122, 89, 170, 0.16), transparent 58%);
+    opacity: 0.65;
     pointer-events: none;
 }
 
@@ -467,20 +469,35 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
     top: 0;
     left: 0;
     right: 0;
-    height: 5px;
-    background: linear-gradient(90deg, #8a5ab0, #5ad1f0);
-    opacity: 0.7;
+    height: 4px;
+    background: linear-gradient(90deg, rgba(150, 129, 214, 0.95), rgba(120, 210, 245, 0.95));
+    opacity: 0.9;
 }
 
 .title-item {
     position: absolute;
-    top: 14px;
-    left: 18px;
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 40px;
+    width: calc(100% - 24px);
+    text-align: center;
+    line-height: 1.2;
     font-size: 0.8em;
-    color: #311b49;
-    font-weight: 700;
+    color: #34204f;
+    font-weight: 800;
     text-transform: uppercase;
     letter-spacing: .04em;
+    white-space: normal;
+    text-shadow: none;
+}
+
+.title-item i {
+    flex: 0 0 auto;
 }
 
 .icon-item {
@@ -488,54 +505,95 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
     bottom: 12px;
     left: 18px;
     font-size: 1.1em;
-    color: #fff;
-    background: linear-gradient(145deg, #784c9d, #52336e);
+    color: #ffffff;
+    background: linear-gradient(145deg, #8354ba, #5e3a8a);
     border-radius: 50%;
     width: 38px;
     height: 38px;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 8px 14px rgba(61, 32, 88, 0.25);
+    box-shadow: 0 8px 14px rgba(46, 28, 70, 0.24);
 }
 
 .badge-item {
     position: absolute;
     bottom: 14px;
     right: 16px;
-    min-width: 110px;
-    color: #432654 !important;
-    background-color: #ffffff !important;
-    padding: 6px 12px;
+    min-width: clamp(88px, 20vw, 118px);
+    max-width: calc(100% - 84px);
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    font-weight: 700;
+    color: #452b63 !important;
+    background: linear-gradient(140deg, rgba(255, 255, 255, 0.9), rgba(248, 249, 255, 0.78)) !important;
+    padding: 6px clamp(10px, 1.6vw, 14px);
     border-radius: 999px;
-    font-size: 0.92em;
+    font-size: clamp(0.95rem, 1.2vw, 1.22rem);
     text-align: center;
-    border: 1px solid rgba(64, 38, 84, 0.15);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+    border: 1px solid rgba(142, 161, 199, 0.28);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@media (max-width: 1400px) {
+    .title-item {
+        font-size: 0.75em;
+    }
+}
+
+@media (max-width: 980px) {
+    .badge-item {
+        min-width: clamp(82px, 24vw, 102px);
+        min-height: 42px;
+        font-size: clamp(0.9rem, 2.8vw, 1.08rem);
+    }
+}
+
+/* Forca alinhamento dos cards do topo, mesmo com CSS global carregado depois */
+.grid-container .grid-item .title-item {
+    left: 12px !important;
+    right: 12px !important;
+    width: calc(100% - 24px) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    line-height: 1.2 !important;
+    white-space: normal !important;
+}
+
+.grid-container .grid-item .badge-item {
+    min-height: 46px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    line-height: 1 !important;
 }
 
 .badge-item.badge-neutral {
-    background-color: #f4edf8 !important;
-    color: #432654 !important;
-    border-color: rgba(77, 33, 109, 0.2);
+    color: #452b63 !important;
 }
 
 .badge-item.badge-info {
-    background-color: #e4f3fb !important;
-    color: #125f85 !important;
-    border-color: rgba(17, 95, 133, 0.2);
+    color: #0d6695 !important;
+    border-color: rgba(78, 169, 218, 0.35);
 }
 
 .badge-item.badge-warning {
-    background-color: #fff4d7 !important;
-    color: #9b6500 !important;
-    border-color: rgba(201, 145, 40, 0.35);
+    color: #996200 !important;
+    border-color: rgba(216, 172, 93, 0.45);
 }
 
 .badge-item.badge-critical {
-    background-color: #ffe6eb !important;
-    color: #a2203b !important;
-    border-color: rgba(185, 64, 95, 0.35);
+    color: #ad2944 !important;
+    border-color: rgba(200, 92, 116, 0.42);
 }
 
 .select-item {
@@ -552,7 +610,7 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
 .select-shell {
     display: flex;
     align-items: center;
-    background: #fff;
+    background: rgba(255, 255, 255, 0.93);
     border-radius: 18px;
     border: 1px solid rgba(118, 77, 150, 0.35);
     box-shadow: 0 8px 18px rgba(27, 10, 36, 0.12), inset 0 2px 0 rgba(255, 255, 255, 0.9);
@@ -570,8 +628,8 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
     width: 44px;
     height: 44px;
     border-radius: 14px;
-    background: linear-gradient(135deg, #6b3d7d, #50245f);
-    box-shadow: 0 8px 12px rgba(38, 17, 49, 0.25);
+    background: linear-gradient(135deg, #6f40bc, #2f4fcb);
+    box-shadow: 0 8px 14px rgba(14, 24, 74, 0.36);
     display: flex;
     align-items: center;
     justify-content: center;
