@@ -8,6 +8,34 @@ include_once("dao/pacienteDao.php");
 require_once("app/services/ReadmissionRiskService.php");
 include_once("templates/header.php");
 
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
+$normCargoAccess = static function ($txt): string {
+    $txt = mb_strtolower(trim((string)$txt), 'UTF-8');
+    $ascii = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $txt);
+    $txt = $ascii !== false ? $ascii : $txt;
+    return preg_replace('/[^a-z]/', '', $txt);
+};
+$isSeguradoraRole = (strpos($normCargoAccess($_SESSION['cargo'] ?? ''), 'seguradora') !== false);
+$seguradoraUserId = (int)($_SESSION['fk_seguradora_user'] ?? 0);
+if ($isSeguradoraRole && $seguradoraUserId <= 0) {
+    try {
+        $uid = (int)($_SESSION['id_usuario'] ?? 0);
+        if ($uid > 0) {
+            $stmtSeg = $conn->prepare("SELECT fk_seguradora_user FROM tb_user WHERE id_usuario = :id LIMIT 1");
+            $stmtSeg->bindValue(':id', $uid, PDO::PARAM_INT);
+            $stmtSeg->execute();
+            $seguradoraUserId = (int)($stmtSeg->fetchColumn() ?: 0);
+            if ($seguradoraUserId > 0) {
+                $_SESSION['fk_seguradora_user'] = $seguradoraUserId;
+            }
+        }
+    } catch (Throwable $e) {
+        error_log('[SHOW_PAC][SEGURADORA] ' . $e->getMessage());
+    }
+}
+
 function calcularIdadeAnos(?string $dataNasc): int
 {
     if (!$dataNasc || $dataNasc === '0000-00-00') return 0;
@@ -146,6 +174,19 @@ $pacienteDao = new PacienteDAO($conn, $BASE_URL);
 
 //Instanciar o metodo paciente   
 $paciente = $pacienteDao->findById($id_paciente);
+if (!$paciente || !isset($paciente[0])) {
+    echo "<div class='container mt-4'><div class='alert alert-warning'>Paciente não encontrado.</div></div>";
+    include_once("templates/footer.php");
+    exit;
+}
+if ($isSeguradoraRole) {
+    $segPacId = (int)($paciente[0]['fk_seguradora_pac'] ?? 0);
+    if (!$seguradoraUserId || $seguradoraUserId !== $segPacId) {
+        echo "<div class='container mt-4'><div class='alert alert-danger'>Acesso negado para este paciente.</div></div>";
+        include_once("templates/footer.php");
+        exit;
+    }
+}
 extract($paciente);
 $telefone01_format = $telefone02_format = $cnpj_format = null;
 

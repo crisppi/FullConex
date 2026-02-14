@@ -23,14 +23,19 @@ $clearUrl = $clearUrl ?? 'bi/rede-comparativa';
     </div>
     <div class="bi-filter">
         <label>Seguradora</label>
-        <select name="seguradora_id">
-            <option value="">Todas</option>
-            <?php foreach ($seguradoras as $s): ?>
-                <option value="<?= (int)$s['id_seguradora'] ?>" <?= $seguradoraId == $s['id_seguradora'] ? 'selected' : '' ?>>
-                    <?= e($s['seguradora_seg']) ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
+        <?php if (!empty($isSeguradoraRole)): ?>
+            <input type="hidden" name="seguradora_id" value="<?= (int)$seguradoraId ?>">
+            <input type="text" value="<?= e($seguradoras[0]['seguradora_seg'] ?? 'Minha seguradora') ?>" readonly>
+        <?php else: ?>
+            <select name="seguradora_id">
+                <option value="">Todas</option>
+                <?php foreach ($seguradoras as $s): ?>
+                    <option value="<?= (int)$s['id_seguradora'] ?>" <?= $seguradoraId == $s['id_seguradora'] ? 'selected' : '' ?>>
+                        <?= e($s['seguradora_seg']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        <?php endif; ?>
     </div>
     <div class="bi-filter">
         <label>Regiao</label>

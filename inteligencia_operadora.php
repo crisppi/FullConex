@@ -18,10 +18,41 @@ $dataFim = filter_input(INPUT_GET, 'data_fim') ?: $hoje;
 $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: null;
 $seguradoraId = filter_input(INPUT_GET, 'seguradora_id', FILTER_VALIDATE_INT) ?: null;
 
+$normCargoAccess = static function ($txt): string {
+    $txt = mb_strtolower(trim((string)$txt), 'UTF-8');
+    $ascii = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $txt);
+    $txt = $ascii !== false ? $ascii : $txt;
+    return preg_replace('/[^a-z]/', '', $txt);
+};
+$isSeguradoraRole = (strpos($normCargoAccess($_SESSION['cargo'] ?? ''), 'seguradora') !== false);
+$seguradoraUserId = (int)($_SESSION['fk_seguradora_user'] ?? 0);
+if ($isSeguradoraRole && $seguradoraUserId <= 0) {
+    try {
+        $uid = (int)($_SESSION['id_usuario'] ?? 0);
+        if ($uid > 0) {
+            $stmtSeg = $conn->prepare("SELECT fk_seguradora_user FROM tb_user WHERE id_usuario = :id LIMIT 1");
+            $stmtSeg->bindValue(':id', $uid, PDO::PARAM_INT);
+            $stmtSeg->execute();
+            $seguradoraUserId = (int)($stmtSeg->fetchColumn() ?: 0);
+            if ($seguradoraUserId > 0) {
+                $_SESSION['fk_seguradora_user'] = $seguradoraUserId;
+            }
+        }
+    } catch (Throwable $e) {
+        error_log('[INTEL_OPERADORA][SEGURADORA] ' . $e->getMessage());
+    }
+}
+
 $hospitais = $conn->query("SELECT id_hospital, nome_hosp FROM tb_hospital ORDER BY nome_hosp")
     ->fetchAll(PDO::FETCH_ASSOC);
 $seguradoras = $conn->query("SELECT id_seguradora, seguradora_seg FROM tb_seguradora ORDER BY seguradora_seg")
     ->fetchAll(PDO::FETCH_ASSOC);
+if ($isSeguradoraRole) {
+    $seguradoraId = $seguradoraUserId > 0 ? $seguradoraUserId : -1;
+    $seguradoras = array_values(array_filter($seguradoras, static function ($s) use ($seguradoraUserId) {
+        return (int)($s['id_seguradora'] ?? 0) === (int)$seguradoraUserId;
+    }));
+}
 
 $where = "i.data_intern_int BETWEEN :data_ini AND :data_fim";
 $params = [
@@ -294,14 +325,19 @@ include_once("templates/header.php");
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Operadora</label>
-                    <select class="form-select" name="seguradora_id">
-                        <option value="">Todas</option>
-                        <?php foreach ($seguradoras as $s): ?>
-                            <option value="<?= (int)$s['id_seguradora'] ?>" <?= $seguradoraId == $s['id_seguradora'] ? 'selected' : '' ?>>
-                                <?= e($s['seguradora_seg']) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
+                    <?php if ($isSeguradoraRole): ?>
+                        <input type="hidden" name="seguradora_id" value="<?= (int)$seguradoraId ?>">
+                        <input type="text" class="form-control" readonly value="<?= e($seguradoras[0]['seguradora_seg'] ?? 'Minha operadora') ?>">
+                    <?php else: ?>
+                        <select class="form-select" name="seguradora_id">
+                            <option value="">Todas</option>
+                            <?php foreach ($seguradoras as $s): ?>
+                                <option value="<?= (int)$s['id_seguradora'] ?>" <?= $seguradoraId == $s['id_seguradora'] ? 'selected' : '' ?>>
+                                    <?= e($s['seguradora_seg']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    <?php endif; ?>
                 </div>
                 <div class="col-12">
                     <button class="btn btn-primary" type="submit">Aplicar filtros</button>

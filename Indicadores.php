@@ -20,6 +20,34 @@ $tipoInternação = trim((string)(filter_input(INPUT_GET, 'tipo_internacao') ?? 
 $modoAdmissão = trim((string)(filter_input(INPUT_GET, 'modo_admissao') ?? ''));
 $uti = trim((string)(filter_input(INPUT_GET, 'uti') ?? ''));
 
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
+$normCargoAccess = static function ($txt): string {
+    $txt = mb_strtolower(trim((string)$txt), 'UTF-8');
+    $ascii = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $txt);
+    $txt = $ascii !== false ? $ascii : $txt;
+    return preg_replace('/[^a-z]/', '', $txt);
+};
+$isSeguradoraRole = (strpos($normCargoAccess($_SESSION['cargo'] ?? ''), 'seguradora') !== false);
+$seguradoraUserId = (int)($_SESSION['fk_seguradora_user'] ?? 0);
+if ($isSeguradoraRole && $seguradoraUserId <= 0) {
+    try {
+        $uid = (int)($_SESSION['id_usuario'] ?? 0);
+        if ($uid > 0) {
+            $stmtSeg = $conn->prepare("SELECT fk_seguradora_user FROM tb_user WHERE id_usuario = :id LIMIT 1");
+            $stmtSeg->bindValue(':id', $uid, PDO::PARAM_INT);
+            $stmtSeg->execute();
+            $seguradoraUserId = (int)($stmtSeg->fetchColumn() ?: 0);
+            if ($seguradoraUserId > 0) {
+                $_SESSION['fk_seguradora_user'] = $seguradoraUserId;
+            }
+        }
+    } catch (Throwable $e) {
+        error_log('[INDICADORES][SEGURADORA] ' . $e->getMessage());
+    }
+}
+
 $hospitais = $conn->query("SELECT id_hospital, nome_hosp FROM tb_hospital ORDER BY nome_hosp")
     ->fetchAll(PDO::FETCH_ASSOC);
 $tiposInt = $conn->query("SELECT DISTINCT tipo_admissao_int FROM tb_internacao WHERE tipo_admissao_int IS NOT NULL AND tipo_admissao_int <> '' ORDER BY tipo_admissao_int")
@@ -48,6 +76,10 @@ if ($modoAdmissão !== '') {
     $where .= " AND i.modo_internacao_int = :modo";
     $params[':modo'] = $modoAdmissão;
 }
+if ($isSeguradoraRole) {
+    $where .= " AND pa.fk_seguradora_pac = :seguradora_id";
+    $params[':seguradora_id'] = $seguradoraUserId > 0 ? $seguradoraUserId : -1;
+}
 
 $utiJoin = "LEFT JOIN (SELECT DISTINCT fk_internacao_uti FROM tb_uti) ut ON ut.fk_internacao_uti = i.id_internacao";
 if ($uti === 's') {
@@ -59,6 +91,7 @@ if ($uti === 'n') {
 
 $sqlBase = "
     FROM tb_internacao i
+    LEFT JOIN tb_paciente pa ON pa.id_paciente = i.fk_paciente_int
     {$utiJoin}
     LEFT JOIN (
         SELECT fk_id_int_alt, MAX(data_alta_alt) AS data_alta_alt
@@ -94,6 +127,7 @@ $sqlFlags = "
         SUM(CASE WHEN g.alto_custo_ges = 's' THEN 1 ELSE 0 END) AS alto_custo
     FROM tb_gestao g
     JOIN tb_internacao i ON i.id_internacao = g.fk_internacao_ges
+    LEFT JOIN tb_paciente pa ON pa.id_paciente = i.fk_paciente_int
     {$utiJoin}
     WHERE {$where}
 ";

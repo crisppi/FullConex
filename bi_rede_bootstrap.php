@@ -18,6 +18,31 @@ $pageSubtitle = $pageSubtitle ?? 'Custo, qualidade e eficiencia por hospital';
 $clearUrl = $clearUrl ?? 'bi/rede-comparativa';
 $redeCurrent = $redeCurrent ?? 'comparativa';
 
+$normCargoAccess = static function ($txt): string {
+    $txt = mb_strtolower(trim((string)$txt), 'UTF-8');
+    $ascii = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $txt);
+    $txt = $ascii !== false ? $ascii : $txt;
+    return preg_replace('/[^a-z]/', '', $txt);
+};
+$isSeguradoraRole = (strpos($normCargoAccess($_SESSION['cargo'] ?? ''), 'seguradora') !== false);
+$seguradoraUserId = (int)($_SESSION['fk_seguradora_user'] ?? 0);
+if ($isSeguradoraRole && $seguradoraUserId <= 0) {
+    try {
+        $uid = (int)($_SESSION['id_usuario'] ?? 0);
+        if ($uid > 0) {
+            $stmtSeg = $conn->prepare("SELECT fk_seguradora_user FROM tb_user WHERE id_usuario = :id LIMIT 1");
+            $stmtSeg->bindValue(':id', $uid, PDO::PARAM_INT);
+            $stmtSeg->execute();
+            $seguradoraUserId = (int)($stmtSeg->fetchColumn() ?: 0);
+            if ($seguradoraUserId > 0) {
+                $_SESSION['fk_seguradora_user'] = $seguradoraUserId;
+            }
+        }
+    } catch (Throwable $e) {
+        error_log('[BI_REDE][SEGURADORA] ' . $e->getMessage());
+    }
+}
+
 $hoje = date('Y-m-d');
 $dataIni = filter_input(INPUT_GET, 'data_ini') ?: date('Y-m-d', strtotime('-180 days'));
 $dataFim = filter_input(INPUT_GET, 'data_fim') ?: $hoje;
@@ -32,6 +57,12 @@ $hospitais = $conn->query("SELECT id_hospital, nome_hosp FROM tb_hospital ORDER 
     ->fetchAll(PDO::FETCH_ASSOC);
 $seguradoras = $conn->query("SELECT id_seguradora, seguradora_seg FROM tb_seguradora ORDER BY seguradora_seg")
     ->fetchAll(PDO::FETCH_ASSOC);
+if ($isSeguradoraRole) {
+    $seguradoraId = $seguradoraUserId > 0 ? $seguradoraUserId : -1;
+    $seguradoras = array_values(array_filter($seguradoras, static function ($s) use ($seguradoraUserId) {
+        return (int)($s['id_seguradora'] ?? 0) === (int)$seguradoraUserId;
+    }));
+}
 $regioes = $conn->query("SELECT DISTINCT estado_hosp FROM tb_hospital WHERE estado_hosp IS NOT NULL AND estado_hosp <> '' ORDER BY estado_hosp")
     ->fetchAll(PDO::FETCH_COLUMN);
 $tiposAdm = $conn->query("SELECT DISTINCT tipo_admissao_int FROM tb_internacao WHERE tipo_admissao_int IS NOT NULL AND tipo_admissao_int <> '' ORDER BY tipo_admissao_int")

@@ -44,7 +44,7 @@ $condicoes_vis = [
     $hospital_selecionado ? "ac.fk_hospital_int = {$hospital_selecionado}" : null,
     "ac.internado_int = 's'",
     "(vi.id_visita = (SELECT MAX(vi2.id_visita) FROM tb_visita vi2 WHERE vi2.fk_internacao_vis = ac.id_internacao) OR vi.id_visita IS NULL)",
-    $isGestorSeguradora
+    $isSeguradoraRole
         ? ($seguradoraUserId > 0 ? "pa.fk_seguradora_pac = {$seguradoraUserId}" : '1=0')
         : null
 ];

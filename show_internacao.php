@@ -47,7 +47,7 @@ $normCargoAccess = function ($txt) {
     $txt = $c !== false ? $c : $txt;
     return preg_replace('/[^a-z]/', '', $txt);
 };
-$isGestorSeguradora = ($normCargoAccess($_SESSION['cargo'] ?? '') === 'gestorseguradora');
+$isGestorSeguradora = (strpos($normCargoAccess($_SESSION['cargo'] ?? ''), 'seguradora') !== false);
 
 include_once("models/tuss.php");
 include_once("dao/tussDao.php");

@@ -35,8 +35,24 @@ $normCargoAccess = function ($txt) {
     $txt = $c !== false ? $c : $txt;
     return preg_replace('/[^a-z]/', '', $txt);
 };
-$isGestorSeguradora = ($normCargoAccess($_SESSION['cargo'] ?? '') === 'gestorseguradora');
+$isGestorSeguradora = (strpos($normCargoAccess($_SESSION['cargo'] ?? ''), 'seguradora') !== false);
 $seguradoraUserId = isset($_SESSION['fk_seguradora_user']) ? (int)$_SESSION['fk_seguradora_user'] : 0;
+if ($isGestorSeguradora && $seguradoraUserId <= 0) {
+    try {
+        $uid = (int)($_SESSION['id_usuario'] ?? 0);
+        if ($uid > 0) {
+            $stmtSeg = $conn->prepare("SELECT fk_seguradora_user FROM tb_user WHERE id_usuario = :id LIMIT 1");
+            $stmtSeg->bindValue(':id', $uid, PDO::PARAM_INT);
+            $stmtSeg->execute();
+            $seguradoraUserId = (int)($stmtSeg->fetchColumn() ?: 0);
+            if ($seguradoraUserId > 0) {
+                $_SESSION['fk_seguradora_user'] = $seguradoraUserId;
+            }
+        }
+    } catch (Throwable $e) {
+        error_log('[LIST_INT][SEGURADORA] ' . $e->getMessage());
+    }
+}
 
 // inicializacao de variaveis
 $data_intern_int      = null;

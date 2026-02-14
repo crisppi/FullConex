@@ -27,7 +27,7 @@ $normCargoAccess = static function ($txt): string {
     $txt = $ascii !== false ? $ascii : $txt;
     return preg_replace('/[^a-z]/', '', $txt);
 };
-$isGestorSeguradora = ($normCargoAccess($_SESSION['cargo'] ?? '') === 'gestorseguradora');
+$isGestorSeguradora = (strpos($normCargoAccess($_SESSION['cargo'] ?? ''), 'seguradora') !== false);
 $seguradoraUserId = (int)($_SESSION['fk_seguradora_user'] ?? 0);
 if ($isGestorSeguradora && $seguradoraUserId <= 0) {
     try {
