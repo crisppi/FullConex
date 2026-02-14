@@ -268,6 +268,22 @@ try {
     gap: 6px;
 }
 
+.smart-search-feedback {
+    display: none;
+    margin-top: 6px;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: .78rem;
+    font-weight: 600;
+}
+
+.smart-search-feedback.is-error {
+    display: block;
+    color: #9c1d3d;
+    background: #ffeef3;
+    border: 1px solid #f3bccb;
+}
+
 .filter-intel-grid input[type="text"] {
     flex: 1;
 }
@@ -414,6 +430,7 @@ if (typeof jQuery !== 'undefined') {
         $senha_int           = $senha_int           ?? '';
         $data_intern_int     = $data_intern_int     ?? '';
         $data_intern_int_max = $data_intern_int_max ?? '';
+        $pesquisa_seguradora = $pesquisa_seguradora ?? '';
         ?>
 
         <div class="d-flex">
@@ -441,6 +458,7 @@ if (typeof jQuery !== 'undefined') {
                 $pesqInternado       = filter_input(INPUT_GET, 'pesqInternado') ? filter_input(INPUT_GET, 'pesqInternado') : 's';
                 $limite              = filter_input(INPUT_GET, 'limite_pag');
                 $pesquisa_pac        = filter_input(INPUT_GET, 'pesquisa_pac');
+                $pesquisa_seguradora = filter_input(INPUT_GET, 'pesquisa_seguradora');
                 $pesquisa_matricula  = filter_input(INPUT_GET, 'pesquisa_matricula');
         $ordenar             = filter_input(INPUT_GET, 'ordenar');
                 $data_intern_int     = filter_input(INPUT_GET, 'data_intern_int') ?: null;
@@ -459,7 +477,8 @@ if (typeof jQuery !== 'undefined') {
                                     Aplicar frase
                                 </button>
                             </div>
-                            <small>Tente combinar hospital, paciente, mês/ano ou senha em uma frase única.</small>
+                            <div id="smartSearchFeedback" class="smart-search-feedback" role="alert" aria-live="polite"></div>
+                            <small>Tente combinar hospital, paciente, seguradora, mês/ano ou senha em uma frase única.</small>
                         </div>
                         <div class="filter-memory-actions">
                             <button type="button" id="btnApplyLastFilter">Aplicar último filtro</button>
@@ -486,6 +505,12 @@ if (typeof jQuery !== 'undefined') {
                         <input class="form-control form-control-sm" type="text" style="color:#878787;margin-top:0;"
                             name="pesquisa_pac" placeholder="Selecione o Paciente"
                             value="<?= htmlspecialchars((string)$pesquisa_pac) ?>">
+                    </div>
+
+                    <div class="form-group col-sm-2 filter-inline-field filter-inline--wide" style="padding:2px;">
+                        <input class="form-control form-control-sm" type="text" style="color:#878787;margin-top:0;"
+                            name="pesquisa_seguradora" placeholder="Seguradora"
+                            value="<?= htmlspecialchars((string)($pesquisa_seguradora ?? '')) ?>">
                     </div>
 
                     <div class="form-group col-sm-2 filter-inline-field" style="padding:2px;">
@@ -554,6 +579,7 @@ if (typeof jQuery !== 'undefined') {
         $pesqInternado       = filter_input(INPUT_GET, 'pesqInternado', FILTER_SANITIZE_SPECIAL_CHARS) ?: "s";
         $limite              = filter_input(INPUT_GET, 'limite_pag') ? filter_input(INPUT_GET, 'limite_pag') : 10;
         $pesquisa_pac        = filter_input(INPUT_GET, 'pesquisa_pac', FILTER_SANITIZE_SPECIAL_CHARS);
+        $pesquisa_seguradora = filter_input(INPUT_GET, 'pesquisa_seguradora', FILTER_SANITIZE_SPECIAL_CHARS);
         $pesquisa_matricula  = filter_input(INPUT_GET, 'pesquisa_matricula', FILTER_SANITIZE_SPECIAL_CHARS);
         $senha_int           = filter_input(INPUT_GET, 'senha_int', FILTER_SANITIZE_SPECIAL_CHARS);
         $data_intern_int     = filter_input(INPUT_GET, 'data_intern_int');
@@ -568,6 +594,7 @@ if (typeof jQuery !== 'undefined') {
         $condicoes = [
             strlen($pesquisa_nome)       ? 'ho.nome_hosp LIKE "%' . $pesquisa_nome . '%"'                  : null,
             strlen($pesquisa_pac)        ? 'pa.nome_pac LIKE "%' . $pesquisa_pac . '%"'                    : null,
+            strlen($pesquisa_seguradora) ? 's.seguradora_seg LIKE "%' . $pesquisa_seguradora . '%"'        : null,
             strlen($pesquisa_matricula)  ? 'pa.matricula_pac LIKE "%' . $pesquisa_matricula . '%"'         : null,
             strlen($pesqInternado)       ? 'internado_int = "' . $pesqInternado . '"'                      : null,
             strlen($data_intern_int)     ? 'data_intern_int BETWEEN "' . $data_intern_int . '" AND "' . $data_intern_int_max . '"' : null,
@@ -628,6 +655,7 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
         $paginationBaseParams = [
             'pesquisa_nome'       => $pesquisa_nome,
             'pesquisa_pac'        => $pesquisa_pac,
+            'pesquisa_seguradora' => $pesquisa_seguradora,
             'pesquisa_matricula'  => $pesquisa_matricula,
             'senha_int'           => $senha_int,
             'data_intern_int'     => $data_intern_int,
@@ -1474,10 +1502,12 @@ if (typeof window.paginateInternacao !== 'function') {
     const favoritesHint = document.getElementById('filterFavoritesHint');
     const smartInput = document.getElementById('smartSearchPhrase');
     const btnSmart = document.getElementById('btnApplySmartSearch');
+    const smartFeedback = document.getElementById('smartSearchFeedback');
 
     const fieldNames = [
         'pesquisa_nome',
         'pesquisa_pac',
+        'pesquisa_seguradora',
         'pesquisa_matricula',
         'senha_int',
         'limite_pag',
@@ -1613,7 +1643,7 @@ if (typeof window.paginateInternacao !== 'function') {
 
     function handleSaveFavorite() {
         const current = readFormValues();
-        const labelDefault = current.pesquisa_nome || current.pesquisa_pac || current.pesquisa_matricula ||
+        const labelDefault = current.pesquisa_nome || current.pesquisa_pac || current.pesquisa_seguradora || current.pesquisa_matricula ||
             'Novo favorito';
         const label = prompt('Nome do favorito:', labelDefault);
         if (!label) return;
@@ -1641,12 +1671,14 @@ if (typeof window.paginateInternacao !== 'function') {
     }
 
     function handleClearFilters() {
-        ['pesquisa_nome', 'pesquisa_pac', 'pesquisa_matricula', 'senha_int', 'data_intern_int',
+        ['pesquisa_nome', 'pesquisa_pac', 'pesquisa_seguradora', 'pesquisa_matricula', 'senha_int', 'data_intern_int',
             'data_intern_int_max'
         ].forEach((name) => {
             const field = form.elements.namedItem(name);
             if (field) field.value = '';
         });
+        if (smartInput) smartInput.value = '';
+        clearSmartError();
         ['limite_pag'].forEach((name) => {
             const field = form.elements.namedItem(name);
             if (field && field.tagName === 'SELECT') {
@@ -1657,6 +1689,10 @@ if (typeof window.paginateInternacao !== 'function') {
             const field = form.elements.namedItem(name);
             if (field) field.value = hiddenDefaults[name];
         });
+        if (storageAvailable) {
+            localStorage.removeItem(storageKeys.last);
+        }
+        form.submit();
     }
 
     function parseSmartPhrase(phrase) {
@@ -1721,6 +1757,13 @@ if (typeof window.paginateInternacao !== 'function') {
             result.pesquisa_pac = pacMatch[1].trim();
         }
 
+        const segRegex =
+            /(?:seguradora|operadora|convenio|conv[êe]nio)\s+([^0-9]+?)(?=(?:paciente|contas|hospital|hosp|janeiro|fevereiro|mar[cç]o|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro|senha|matr[íi]cula|\d{4}|$))/i;
+        const segMatch = cleaned.match(segRegex);
+        if (segMatch) {
+            result.pesquisa_seguradora = segMatch[1].trim();
+        }
+
         const senhaMatch = cleaned.match(/senha\s+([\w-]+)/i);
         if (senhaMatch) {
             result.senha_int = senhaMatch[1];
@@ -1731,19 +1774,40 @@ if (typeof window.paginateInternacao !== 'function') {
             result.pesquisa_matricula = matriculaMatch[1];
         }
 
+        // Fallback: texto simples sem chave vira seguradora (ex.: "Bradesco")
+        if (Object.keys(result).length === 0) {
+            const plainTerm = cleaned.replace(/\s+/g, ' ').trim();
+            if (plainTerm.length >= 3) {
+                result.pesquisa_seguradora = plainTerm;
+            }
+        }
+
         if (Object.keys(result).length === 0) {
             return null;
         }
         return result;
     }
 
+    function showSmartError(message) {
+        if (!smartFeedback) return;
+        smartFeedback.textContent = message;
+        smartFeedback.classList.add('is-error');
+    }
+
+    function clearSmartError() {
+        if (!smartFeedback) return;
+        smartFeedback.textContent = '';
+        smartFeedback.classList.remove('is-error');
+    }
+
     function handleSmartSearch() {
         const phrase = smartInput.value;
         const parsed = parseSmartPhrase(phrase);
         if (!parsed) {
-            alert('Não foi possível interpretar esta frase. Tente informar hospital, paciente ou mês.');
+            showSmartError('Não foi possível interpretar esta frase. Tente informar hospital, paciente, seguradora ou mês.');
             return;
         }
+        clearSmartError();
         fillFormValues(parsed);
         form.submit();
     }
@@ -1772,6 +1836,7 @@ if (typeof window.paginateInternacao !== 'function') {
     if (btnClear) btnClear.addEventListener('click', handleClearFilters);
     if (btnSmart) btnSmart.addEventListener('click', handleSmartSearch);
     if (smartInput) {
+        smartInput.addEventListener('input', clearSmartError);
         smartInput.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
                 event.preventDefault();

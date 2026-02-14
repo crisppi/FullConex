@@ -1254,6 +1254,7 @@ class internacaoDAO implements internacaoDAOInterface
         ac.senha_int,
         pa.id_paciente,
         pa.nome_pac,
+        s.seguradora_seg,
         ho.id_hospital, 
         ut.fk_internacao_uti,
         ut.internacao_uti,
