@@ -245,21 +245,37 @@
     =============================== */
     .error-message {
         position: fixed;
-        bottom: 20px;
+        bottom: 24px;
         left: 50%;
         transform: translateX(-50%);
-        width: 80%;
-        max-width: 450px;
-        padding: 15px;
-        background: rgba(53, 186, 225, .8);
-        border-left: 5px solid red;
-        border-radius: 5px;
-        text-align: center;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, .1);
+        width: min(92vw, 560px);
+        padding: 12px 14px;
+        background: rgba(156, 28, 28, 0.92);
+        border: 1px solid rgba(255, 255, 255, .18);
+        border-left: 5px solid #ffb3b3;
+        border-radius: 10px;
+        text-align: left;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, .22);
         color: #fff;
-        font-size: 17px;
-        animation: fadeIn .5s ease-in-out;
+        font-size: 15px;
+        line-height: 1.4;
+        animation: fadeIn .3s ease-in-out;
         z-index: 1000;
+    }
+
+    .error-message strong {
+        display: block;
+        font-size: 13px;
+        letter-spacing: .03em;
+        margin-bottom: 2px;
+        opacity: .9;
+        text-transform: uppercase;
+    }
+
+    .error-message.hide {
+        opacity: 0;
+        transform: translate(-50%, 12px);
+        transition: opacity .35s ease, transform .35s ease;
     }
 
     /* ===============================
@@ -414,10 +430,12 @@
                 </form>
 
                 <!-- Error message -->
-                <?php if (isset($_SESSION['mensagem']) && $_SESSION['mensagem'] != "") { ?>
+                <?php if (isset($_SESSION['login_error']) && $_SESSION['login_error'] !== "") { ?>
                 <div class="error-message">
-                    <p><?php echo $_SESSION['mensagem']; ?></p>
+                    <strong>Falha no login</strong>
+                    <div><?= htmlspecialchars((string)$_SESSION['login_error'], ENT_QUOTES, 'UTF-8') ?></div>
                 </div>
+                <?php unset($_SESSION['login_error']); ?>
                 <?php } ?>
             </div>
         </div>
@@ -456,6 +474,15 @@
             this.reset();
         }, 100);
     });
+
+    // fechar alerta automaticamente em ~6 segundos
+    const loginError = document.querySelector(".error-message");
+    if (loginError) {
+        setTimeout(() => {
+            loginError.classList.add("hide");
+            setTimeout(() => loginError.remove(), 400);
+        }, 6000);
+    }
     </script>
 </body>
 

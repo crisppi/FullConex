@@ -1,126 +1,117 @@
 <?php
 
 include_once("globals.php");
-include_once("db.php");
-require_once("models/usuario.php");
-require_once("dao/usuarioDao.php");
 
-$where = null;
-$order = null;
-$obLimite = null;
+$redirectLogin = $BASE_URL . 'index.php';
 
-//Instanciando a classe
-$usuario = new UserDAO($conn, $BASE_URL);
-$QtdTotalUser = new UserDAO($conn, $BASE_URL);
-$query = $usuario->selectAllUsuario($where, $order, $obLimite);
+$failLogin = static function (string $mensagem) use ($redirectLogin): void {
+    $_SESSION['login_error'] = $mensagem;
 
-// METODO DE BUSCA DE LOGIN
-$email_login = filter_input(INPUT_POST, 'email_login');
-$senha_login = filter_input(INPUT_POST, 'senha_login');
-$login = filter_input(INPUT_POST, 'login');
-$condicoes = [
-    strlen($email_login) ? 'email_user LIKE "%' . $email_login . '%"' : null
+    // Limpa dados de sessão de autenticação para não permitir entrada parcial.
+    unset(
+        $_SESSION['id_usuario'],
+        $_SESSION['foto_usuario'],
+        $_SESSION['email_user'],
+        $_SESSION['senha_user'],
+        $_SESSION['login_user'],
+        $_SESSION['usuario_user'],
+        $_SESSION['ativo'],
+        $_SESSION['nivel'],
+        $_SESSION['cargo'],
+        $_SESSION['fk_seguradora_user']
+    );
 
-];
-
-$condicoes = array_filter($condicoes);
-// REMOVE POSICOES VAZIAS DO FILTRO
-$where = implode(' AND ', $condicoes);
-// QUANTIDADE USUARIOS
-
-$query = $usuario->selectAllUsuario($where, $order, $obLimite);
-
-$senha_user = $query['0']['senha_user'];
-
-$senha_log = $senha_login;
-
-if ($query[0]['ativo_user'] == "s") {
-
-    $nivel = $query[0]['nivel_user'];
-    $usuario_user = $query[0]['usuario_user'];
-    $login_user = $query[0]['email_user'];
-    $email_user = $query[0]['email_user'];
-    $ativo = $query[0]['ativo_user'];
-    $cargo = $query[0]['cargo_user'];
-    $id_user = $query[0]['id_usuario'];
-    $senha_user = $query[0]['senha_user'];
-    $foto_usuario = $query[0]['foto_usuario'];
-    $fk_seguradora_user = $query[0]['fk_seguradora_user'] ?? null;
-
-    $_SESSION['id_usuario'] = $id_user;
-    $_SESSION['foto_usuario'] = $foto_usuario;;
-    $_SESSION['email_user'] = $email_user;
-    $_SESSION['senha_user'] = "";
-    $_SESSION['login_user'] = $login_user;
-    $_SESSION['usuario_user'] = $usuario_user;
-    $_SESSION['ativo'] = $ativo;
-    $_SESSION['id_usuario'] = $id_user;
-    $_SESSION['nivel'] = $nivel;
-    $_SESSION['cargo'] = $cargo;
-    $_SESSION['fk_seguradora_user'] = $fk_seguradora_user;
-    $_SESSION['mensagem'] = "";
-    $_SESSION['msg'] = "";
-
-    if ($_SESSION['nivel'] == -1) {
-        (header('location: list_internacao_cap_fin.php'));
-    } else header('Location: ' . $BASE_URL . 'dashboard');
-
-
-    if ($query[0]['senha_default_user'] == "s") {
-        header("location:nova_senha.php");
-    } else {
-        // navegar para dados de conferencia de senha
-        if (password_verify($senha_log, $senha_user)) {
-
-            $nivel_user = $query[0]['nivel_user'];
-            $usuario_user = $query[0]['usuario_user'];
-            $login_user = $query[0]['email_user'];
-            $email_user = $query[0]['email_user'];
-            $ativo = $query[0]['ativo_user'];
-            $cargo = $query[0]['cargo_user'];
-            $id_user = $query[0]['id_usuario'];
-            $senha_user = $query[0]['senha_user'];
-            $fk_seguradora_user = $query[0]['fk_seguradora_user'] ?? null;
-
-            $_SESSION['id_usuario'] = $id_user;
-            $_SESSION['email_user'] = $email_user;
-            $_SESSION['senha_user'] = $senha_user;
-            $_SESSION['login_user'] = $login_user;
-            $_SESSION['ativo'] = $ativo;
-            $_SESSION['id_usuario'] = $id_user;
-            $_SESSION['nivel'] = $nivel;
-            $_SESSION['cargo'] = $cargo;
-            $_SESSION['fk_seguradora_user'] = $fk_seguradora_user;
-            $_SESSION['mensagem'] = "";
-            $_SESSION['msg'] = "";
-
-            if ($_SESSION['nivel'] == -1) {
-                (header('location: list_internacao_cap_fin.php'));
-            } else header('Location: ' . $BASE_URL . 'dashboard');
-        } else {
-            $erro_login = "Usuário ou senha inválidos";
-            $_SESSION['mensagem'] = $erro_login;
-            header('Location: ' . $BASE_URL . 'inicio');
-        }
-    };
-} else {
-
-    $erro_login = "Usuário Inativo!!";
-    $_SESSION['mensagem'] = $erro_login;
-    header('Location: ' . $BASE_URL . 'inicio');
-
-
-    //verifica o cargo do usuario logado para ver se é enfermeiro ou auditor, caso contrario o cargo ficara nulo 
-    // teste para filtro de hospitais
-    $medico = "Med_auditor";
-    $enfermagem = "Enf_Auditor";
-    $medico2 = "Med_Auditor";
-    $enfermagem2 = "Enf_auditor";
-
-    $cargo = $_SESSION['cargo'];
-    if (($cargo == $medico) || ($cargo == $enfermagem)  || ($cargo == $medico2) || ($cargo == $enfermagem2)) {
-        $cargo;
-    } else {
-        $cargo = null;
-    };
+    header('Location: ' . $redirectLogin);
+    exit;
 };
+
+if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+    header('Location: ' . $redirectLogin);
+    exit;
+}
+
+$email_login = trim((string)filter_input(INPUT_POST, 'email_login', FILTER_SANITIZE_EMAIL));
+$senha_login = (string)filter_input(INPUT_POST, 'senha_login');
+
+if ($email_login === '' || $senha_login === '') {
+    unset($_SESSION['login_error']);
+    header('Location: ' . $redirectLogin);
+    exit;
+}
+
+try {
+    $stmt = $conn->prepare("
+        SELECT
+            id_usuario,
+            usuario_user,
+            email_user,
+            senha_user,
+            senha_default_user,
+            ativo_user,
+            nivel_user,
+            cargo_user,
+            foto_usuario,
+            fk_seguradora_user
+        FROM tb_user
+        WHERE email_user = :email
+        LIMIT 1
+    ");
+    $stmt->bindValue(':email', $email_login, PDO::PARAM_STR);
+    $stmt->execute();
+    $user = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+} catch (Throwable $e) {
+    error_log('[LOGIN] ' . $e->getMessage());
+    $failLogin('Não foi possível realizar o login agora. Tente novamente.');
+}
+
+if (!is_array($user)) {
+    $user = [];
+}
+
+if (count($user) === 0) {
+    $failLogin('E-mail ou senha inválidos. Verifique os dados e tente novamente.');
+}
+
+if (($user['ativo_user'] ?? 'n') !== 's') {
+    $failLogin('Seu usuário está inativo. Entre em contato com o administrador.');
+}
+
+$senhaUser = (string)($user['senha_user'] ?? '');
+$senhaValida = $senhaUser !== '' && (
+    password_verify($senha_login, $senhaUser) ||
+    hash_equals($senhaUser, $senha_login)
+);
+
+if (!$senhaValida) {
+    $failLogin('E-mail ou senha inválidos. Verifique os dados e tente novamente.');
+}
+
+session_regenerate_id(true);
+
+$_SESSION['id_usuario'] = (int)($user['id_usuario'] ?? 0);
+$_SESSION['foto_usuario'] = (string)($user['foto_usuario'] ?? '');
+$_SESSION['email_user'] = (string)($user['email_user'] ?? '');
+$_SESSION['senha_user'] = '';
+$_SESSION['login_user'] = (string)($user['email_user'] ?? '');
+$_SESSION['usuario_user'] = (string)($user['usuario_user'] ?? '');
+$_SESSION['ativo'] = (string)($user['ativo_user'] ?? '');
+$_SESSION['nivel'] = (int)($user['nivel_user'] ?? 99);
+$_SESSION['cargo'] = (string)($user['cargo_user'] ?? '');
+$_SESSION['fk_seguradora_user'] = isset($user['fk_seguradora_user'])
+    ? (int)$user['fk_seguradora_user']
+    : null;
+unset($_SESSION['login_error']);
+$_SESSION['msg'] = '';
+
+if (($user['senha_default_user'] ?? 'n') === 's') {
+    header('Location: ' . $BASE_URL . 'nova_senha.php');
+    exit;
+}
+
+if ((int)$_SESSION['nivel'] === -1) {
+    header('Location: ' . $BASE_URL . 'list_internacao_cap_fin.php');
+    exit;
+}
+
+header('Location: ' . $BASE_URL . 'dashboard');
+exit;

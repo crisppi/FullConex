@@ -118,12 +118,20 @@ if (in_array($__method, ['POST', 'PUT', 'PATCH', 'DELETE'], true) && !in_array($
     Gate::autoEnforce($conn, $BASE_URL);
 }
 
-require_once __DIR__ . '/app/schemaEnsurer.php';
-ensure_visita_timer_column($conn);
-ensure_internacao_timer_column($conn);
-ensure_internacao_forecast_columns($conn);
-ensure_schema_version_table($conn);
-ensure_password_reset_table($conn);
+// Em páginas públicas de login, evita checagens/DDL de schema para acelerar carregamento.
+$__schemaSkip = [
+    'index.php',
+    'index_novo.php',
+    'check_login.php',
+];
+if (!in_array($__scriptBase, $__schemaSkip, true)) {
+    require_once __DIR__ . '/app/schemaEnsurer.php';
+    ensure_visita_timer_column($conn);
+    ensure_internacao_timer_column($conn);
+    ensure_internacao_forecast_columns($conn);
+    ensure_schema_version_table($conn);
+    ensure_password_reset_table($conn);
+}
 require_once __DIR__ . '/app/version.php';
 
 // ------------------ 7) Helpers globais (opcional) ----------
