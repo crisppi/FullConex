@@ -203,7 +203,13 @@ try {
             $isSeguradoraRole ? null : ($nivel_sessao ?? null),
             ($isSeguradoraRole && $seguradoraUserId > 0) ? $seguradoraUserId : null
         );
+        if (!is_array($forecastRows)) {
+            $forecastRows = [];
+        }
         dashCacheSet($cacheBase . '_forecast_rows', $forecastRows);
+    }
+    if (!is_array($forecastRows)) {
+        $forecastRows = [];
     }
 } catch (Throwable $e) {
     error_log('[ForecastService] ' . $e->getMessage());
@@ -907,7 +913,7 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($forecastRows as $prev): ?>
+                        <?php foreach ((array)$forecastRows as $prev): ?>
                         <?php
                             $diasAtuais = (int)($prev['dias_internado'] ?? 0);
                             $prevTotal = isset($prev['forecast_total_days']) ? (float)$prev['forecast_total_days'] : null;
@@ -984,7 +990,7 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
                             <td><?= $confTexto ?></td>
                         </tr>
                         <?php endforeach; ?>
-                        <?php if (count($forecastRows) === 0): ?>
+                        <?php if (count((array)$forecastRows) === 0): ?>
                         <tr>
                             <td colspan="7" class="text-center" style="font-size:15px;">
                                 Sem registros para os filtros aplicados.
