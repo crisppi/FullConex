@@ -239,7 +239,7 @@
         <div class="internacao-page__content">
             <div class="internacao-card internacao-card--general">
                 <div class="internacao-card__body">
-                    <form class="visible" action="process_internacao_editar.php" id="myForm" method="POST"
+                    <form class="visible" action="<?= htmlspecialchars(rtrim($BASE_URL, '/') . '/process_internacao_editar.php', ENT_QUOTES, 'UTF-8') ?>" id="myForm" method="POST"
                         enctype="multipart/form-data">
                 <!-- ID da internação (necessário no update) -->
                 <input type="hidden" id="id_internacao" name="id_internacao" value="<?= $intern['id_internacao'] ?>">
@@ -1298,7 +1298,8 @@
             }
         });
 
-        document.querySelector("form").addEventListener("submit", function(event) {
+        const formPrincipal = document.getElementById("myForm");
+        formPrincipal?.addEventListener("submit", function(event) {
             generateNegotiationsJSON(); // Gera o JSON antes do envio
 
             // Remove os campos individuais antes de enviar o formulário

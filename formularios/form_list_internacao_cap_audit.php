@@ -388,6 +388,7 @@ if ($qtdIntItens > $limite) {
                             <th scope="col" style="width:4%;">Adm</th>
                             <th scope="col" style="width:4%;">Parcial</th>
                             <th scope="col" style="width:3%;">Final</th>
+                            <th scope="col" style="width:3%;">EA</th>
                             <th scope="col" style="width:3%;">Aberto</th>
                             <th scope="col" style="width:6%;">Cap Encer</th>
                             <th scope="col" style="width:6%;">Em Audit</th>
@@ -427,6 +428,14 @@ if ($qtdIntItens > $limite) {
                                 <?php if (($intern["senha_finalizada"] ?? 'n') === "s") { ?>
                                 <a class="legenda-finalizada"><span class="bi bi-briefcase"
                                         style="font-size:1.1rem;font-weight:800;color:rgb(255,25,55);"></span></a>
+                                <?php } ?>
+                            </td>
+                            <td scope="row">
+                                <?php if ((int)($intern["alerta_evento_adverso_cap"] ?? 0) === 1) { ?>
+                                <a title="Conta com evento adverso">
+                                    <span class="bi bi-exclamation-triangle-fill"
+                                        style="font-size:1.1rem;font-weight:800;color:#c62828;"></span>
+                                </a>
                                 <?php } ?>
                             </td>
                             <td scope="row">
@@ -484,7 +493,7 @@ if ($qtdIntItens > $limite) {
 
                         <?php if ($qtdIntItens == 0): ?>
                         <tr>
-                            <td colspan="15" scope="row" class="col-id" style='font-size:15px'>
+                            <td colspan="16" scope="row" class="col-id" style='font-size:15px'>
                                 Não foram encontrados registros
                             </td>
                         </tr>

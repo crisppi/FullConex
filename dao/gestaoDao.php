@@ -21,6 +21,12 @@ class gestaoDAO implements gestaoDAOInterface
         $this->message = new Message($url);
     }
 
+    private function appendCreateDebug(string $message): void
+    {
+        $line = '[' . date('Y-m-d H:i:s') . '] [gestaoDAO] ' . $message . PHP_EOL;
+        @file_put_contents(__DIR__ . '/../logs/process_internacao_create.debug.log', $line, FILE_APPEND);
+    }
+
     public function buildgestao($data)
     {
         $gestao = new gestao();
@@ -166,72 +172,7 @@ class gestaoDAO implements gestaoDAOInterface
     }
     public function create(gestao $gestao)
     {
-        $query = "INSERT INTO tb_gestao (
-            fk_internacao_ges, 
-            fk_visita_ges, 
-            alto_custo_ges, 
-            rel_alto_custo_ges, 
-            evento_adverso_ges, 
-            rel_evento_adverso_ges, 
-            tipo_evento_adverso_gest, 
-            evento_valor_negoc_ges,
-            evento_sinalizado_ges,
-            evento_discutido_ges,
-            evento_negociado_ges,
-            evento_prorrogar_ges,
-            evento_fech_ges,
-            opme_ges, 
-            rel_opme_ges, 
-            home_care_ges, 
-            rel_home_care_ges,
-            desospitalizacao_ges,
-            rel_desospitalizacao_ges,
-            fk_user_ges,
-            evento_retorno_qual_hosp_ges,
-            evento_classificado_hospital_ges,
-            evento_data_ges,
-            evento_encerrar_ges,
-            evento_impacto_financ_ges,
-            evento_prolongou_internacao_ges,
-            evento_concluido_ges,
-            evento_classificacao_ges
-
-        ) VALUES (
-            :fk_internacao_ges, 
-            :fk_visita_ges, 
-            :alto_custo_ges, 
-            :rel_alto_custo_ges, 
-            :evento_adverso_ges, 
-            :rel_evento_adverso_ges, 
-            :tipo_evento_adverso_gest,
-            :evento_valor_negoc_ges,
-            :evento_sinalizado_ges,
-            :evento_discutido_ges,
-            :evento_negociado_ges,
-            :evento_prorrogar_ges,
-            :evento_fech_ges,
-            :opme_ges, 
-            :rel_opme_ges, 
-            :home_care_ges, 
-            :rel_home_care_ges,
-            :desospitalizacao_ges,
-            :rel_desospitalizacao_ges,
-            :fk_user_ges,
-            :evento_retorno_qual_hosp_ges,
-            :evento_classificado_hospital_ges,
-            :evento_data_ges,
-            :evento_encerrar_ges,
-            :evento_impacto_financ_ges,
-            :evento_prolongou_internacao_ges,
-            :evento_concluido_ges,
-            :evento_classificacao_ges
-
-        )";
-
-        $stmt = $this->conn->prepare($query);
-
-        // Bind parameters
-        $params = [
+        $allParams = [
             "fk_internacao_ges" => $gestao->fk_internacao_ges,
             "fk_visita_ges" => $gestao->fk_visita_ges,
             "alto_custo_ges" => $gestao->alto_custo_ges,
@@ -263,9 +204,66 @@ class gestaoDAO implements gestaoDAOInterface
 
         ];
 
+        $existingColumns = [];
+        try {
+            $colsStmt = $this->conn->query("SHOW COLUMNS FROM tb_gestao");
+            $cols = $colsStmt ? $colsStmt->fetchAll(PDO::FETCH_ASSOC) : [];
+            foreach ($cols as $c) {
+                if (!empty($c["Field"])) {
+                    $existingColumns[$c["Field"]] = true;
+                }
+            }
+        } catch (Throwable $e) {
+            error_log("[gestaoDAO::create] SHOW COLUMNS falhou: " . $e->getMessage());
+            return false;
+        }
+
+        if (empty($existingColumns["fk_internacao_ges"])) {
+            error_log("[gestaoDAO::create] Coluna fk_internacao_ges nao existe em tb_gestao.");
+            return false;
+        }
+
+        $params = [];
+        foreach ($allParams as $key => $value) {
+            if (!isset($existingColumns[$key])) {
+                continue;
+            }
+            $params[$key] = $value;
+        }
+
+        if (!array_key_exists("fk_internacao_ges", $params)) {
+            $params["fk_internacao_ges"] = $gestao->fk_internacao_ges;
+        }
+
+        $columns = array_keys($params);
+        if (count($columns) === 0) {
+            error_log("[gestaoDAO::create] Nenhuma coluna valida para INSERT em tb_gestao.");
+            return false;
+        }
+
+        $placeholders = array_map(static function ($col) {
+            return ":" . $col;
+        }, $columns);
+
+        $query = "INSERT INTO tb_gestao (" . implode(", ", $columns) . ")
+                  VALUES (" . implode(", ", $placeholders) . ")";
+
+        $stmt = $this->conn->prepare($query);
+        $this->appendCreateDebug('create query cols=' . implode(',', $columns));
+
         foreach ($params as $key => $value) {
-            // Convert empty strings to null
-            $stmt->bindValue(":$key", $value === '' ? null : $value, $value === '' ? PDO::PARAM_NULL : PDO::PARAM_STR);
+            $isNull = ($value === '' || $value === null);
+            if ($isNull) {
+                $stmt->bindValue(":$key", null, PDO::PARAM_NULL);
+                continue;
+            }
+
+            if (in_array($key, ["fk_internacao_ges", "fk_visita_ges", "fk_user_ges"], true)) {
+                $stmt->bindValue(":$key", (int)$value, PDO::PARAM_INT);
+                continue;
+            }
+
+            $stmt->bindValue(":$key", (string)$value, PDO::PARAM_STR);
         }
 
 
@@ -274,12 +272,22 @@ class gestaoDAO implements gestaoDAOInterface
         //     $escapedValue = is_numeric($value) ? $value : "'" . addslashes($value) . "'";
         //     $query = str_replace(":$key", $escapedValue, $query);
         // }
-        if (!$stmt->execute()) {
-            $errorInfo = $stmt->errorInfo();
-            die("SQL Error: " . $errorInfo[2]);
+        try {
+            if (!$stmt->execute()) {
+                $errorInfo = $stmt->errorInfo();
+                error_log("[gestaoDAO::create] SQL Error ({$errorInfo[1]}): {$errorInfo[2]}");
+                $this->appendCreateDebug("create FAIL sqlstate={$errorInfo[0]} code={$errorInfo[1]} msg={$errorInfo[2]}");
+                return false;
+            }
+        } catch (Throwable $e) {
+            error_log("[gestaoDAO::create] Exception: " . $e->getMessage());
+            $this->appendCreateDebug("create EXCEPTION msg=" . $e->getMessage());
+            return false;
         }
 
+        $this->appendCreateDebug('create OK fk_internacao_ges=' . (string)$gestao->fk_internacao_ges);
         $this->message->setMessage("Gestão adicionada com sucesso!", "success", "internacoes/lista");
+        return true;
     }
 
     public function update(gestao $gestao)

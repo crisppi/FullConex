@@ -1,0 +1,37 @@
+[2026-02-16 03:53:42] START type=create select_gestao=s evento_adverso_ges= tipo_evento=
+[2026-02-16 03:53:43] CREATE internacao ok id=637
+[2026-02-16 03:53:43] START type=create select_gestao=s evento_adverso_ges= tipo_evento=
+[2026-02-16 04:00:33] START type=create select_gestao=s evento_adverso_ges= tipo_evento=
+[2026-02-16 04:00:33] CREATE internacao ok id=638
+[2026-02-16 04:00:34] START type=create select_gestao=s evento_adverso_ges= tipo_evento=
+[2026-02-16 04:07:00] START type=create select_gestao=s evento_adverso_ges= tipo_evento=
+[2026-02-16 04:07:00] CREATE internacao ok id=639
+[2026-02-16 04:07:00] VISITA create ok id_int=639 id_visita=678
+[2026-02-16 04:07:01] START type=create select_gestao=s evento_adverso_ges= tipo_evento=
+[2026-02-16 04:10:59] START type=create select_gestao=s evento_adverso_ges= tipo_evento=
+[2026-02-16 04:10:59] CREATE internacao ok id=640
+[2026-02-16 04:10:59] VISITA create ok id_int=640 id_visita=679
+[2026-02-16 04:10:59] GESTAO create try id_int=640 fk_visita=679 fk_user=6 select=s evento=n
+[2026-02-16 04:10:59] [gestaoDAO] create query cols=fk_internacao_ges,fk_visita_ges,alto_custo_ges,rel_alto_custo_ges,evento_adverso_ges,rel_evento_adverso_ges,tipo_evento_adverso_gest,evento_valor_negoc_ges,evento_sinalizado_ges,evento_discutido_ges,evento_negociado_ges,evento_prorrogar_ges,evento_fech_ges,opme_ges,rel_opme_ges,home_care_ges,rel_home_care_ges,desospitalizacao_ges,rel_desospitalizacao_ges,fk_user_ges,evento_retorno_qual_hosp_ges,evento_classificado_hospital_ges,evento_data_ges,evento_encerrar_ges,evento_impacto_financ_ges,evento_prolongou_internacao_ges,evento_concluido_ges,evento_classificacao_ges
+[2026-02-16 04:10:59] [gestaoDAO] create OK fk_internacao_ges=640
+[2026-02-16 04:10:59] GESTAO create ok id_int=640 evento=n tipo=
+[2026-02-16 04:10:59] END ok id=640
+[2026-02-16 04:11:00] START type=create select_gestao=s evento_adverso_ges= tipo_evento=
+[2026-02-16 04:18:02] START type=create select_gestao=s evento_adverso_ges= tipo_evento=
+[2026-02-16 04:18:02] CREATE internacao ok id=641
+[2026-02-16 04:18:02] VISITA create ok id_int=641 id_visita=680
+[2026-02-16 04:18:02] GESTAO create try id_int=641 fk_visita=680 fk_user=6 select=s evento=n
+[2026-02-16 04:18:02] [gestaoDAO] create query cols=fk_internacao_ges,fk_visita_ges,alto_custo_ges,rel_alto_custo_ges,evento_adverso_ges,rel_evento_adverso_ges,tipo_evento_adverso_gest,evento_valor_negoc_ges,evento_sinalizado_ges,evento_discutido_ges,evento_negociado_ges,evento_prorrogar_ges,evento_fech_ges,opme_ges,rel_opme_ges,home_care_ges,rel_home_care_ges,desospitalizacao_ges,rel_desospitalizacao_ges,fk_user_ges,evento_retorno_qual_hosp_ges,evento_classificado_hospital_ges,evento_data_ges,evento_encerrar_ges,evento_impacto_financ_ges,evento_prolongou_internacao_ges,evento_concluido_ges,evento_classificacao_ges
+[2026-02-16 04:18:02] [gestaoDAO] create OK fk_internacao_ges=641
+[2026-02-16 04:18:02] GESTAO create ok id_int=641 evento=n tipo=
+[2026-02-16 04:18:02] END ok id=641
+[2026-02-16 04:18:03] START type=create select_gestao=s evento_adverso_ges=s tipo_evento=Complicação pós operatória
+[2026-02-16 04:21:59] START type=create select_gestao=s evento_adverso_ges=s tipo_evento=Complicação pós operatória
+[2026-02-16 04:21:59] CREATE internacao ok id=642
+[2026-02-16 04:21:59] VISITA create ok id_int=642 id_visita=681
+[2026-02-16 04:21:59] GESTAO create try id_int=642 fk_visita=681 fk_user=6 select=s evento=s
+[2026-02-16 04:21:59] [gestaoDAO] create query cols=fk_internacao_ges,fk_visita_ges,alto_custo_ges,rel_alto_custo_ges,evento_adverso_ges,rel_evento_adverso_ges,tipo_evento_adverso_gest,evento_valor_negoc_ges,evento_sinalizado_ges,evento_discutido_ges,evento_negociado_ges,evento_prorrogar_ges,evento_fech_ges,opme_ges,rel_opme_ges,home_care_ges,rel_home_care_ges,desospitalizacao_ges,rel_desospitalizacao_ges,fk_user_ges,evento_retorno_qual_hosp_ges,evento_classificado_hospital_ges,evento_data_ges,evento_encerrar_ges,evento_impacto_financ_ges,evento_prolongou_internacao_ges,evento_concluido_ges,evento_classificacao_ges
+[2026-02-16 04:21:59] [gestaoDAO] create OK fk_internacao_ges=642
+[2026-02-16 04:21:59] GESTAO create ok id_int=642 evento=s tipo=Complicação pós operatória
+[2026-02-16 04:21:59] END ok id=642
+[2026-02-16 04:22:00] START type=create select_gestao=s evento_adverso_ges= tipo_evento=

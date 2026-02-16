@@ -144,6 +144,7 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar
             <form action="" id="select-internacao-form" method="GET">
                 <?php $pesquisa_nome = filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS);
                 $pesqGestao = filter_input(INPUT_GET, 'pesqGestao');
+                $pesqInternado = filter_input(INPUT_GET, 'pesqInternado', FILTER_SANITIZE_SPECIAL_CHARS) ?: '';
                 $limite_pag = filter_input(INPUT_GET, 'limite_pag') ?? 10;
                 $pesquisa_pac = filter_input(INPUT_GET, 'pesquisa_pac', FILTER_SANITIZE_SPECIAL_CHARS);
                 $pesquisa_matricula = filter_input(INPUT_GET, 'pesquisa_matricula', FILTER_SANITIZE_SPECIAL_CHARS);
@@ -159,8 +160,8 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar
                             <option value="">Selecione a Gestão</option>
                             <option value="home_care" <?= $pesqGestao == 'home_care' ? 'selected' : null ?>>Home care
                             </option>
-                            <option value="desospitalizacao" <?= $pesqGestao == 'n' ? 'selected' : null ?>>
-                                Desospitalização</option>0fdr2bnt
+                            <option value="desospitalizacao" <?= $pesqGestao == 'desospitalizacao' ? 'selected' : null ?>>
+                                Desospitalização</option>
                             <option value="opme" <?= $pesqGestao == 'opme' ? 'selected' : null ?>>Opme</option>
                             <option value="alto" <?= $pesqGestao == 'alto' ? 'selected' : null ?>>Alto custo</option>
                         </select>
@@ -385,6 +386,10 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar
                         </thead>
                         <tbody>
                             <?php
+                            $isYesFlag = static function ($value): bool {
+                                $v = mb_strtolower(trim((string)$value), 'UTF-8');
+                                return in_array($v, ['s', 'sim', '1', 'true', 'y', 'yes'], true);
+                            };
                             foreach ($query as $intern):
                                 extract($query);
                             ?>
@@ -412,9 +417,9 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar
                                     <?= date('d/m/Y', strtotime($intern["data_intern_int"])) ?>
                                 </td>
                                 <td scope="row">
-                                    <?php if ($intern["home_care_ges"] == "s") { ?>
+                                    <?php if ($isYesFlag($intern["home_care_ges"] ?? null)) { ?>
                                     <a
-                                        href="<?= $BASE_URL ?>show_gestao.php?id_gestao=<?= $gestaos['0']["id_gestao"] ?>"><i
+                                        href="<?= $BASE_URL ?>show_gestao.php?id_gestao=<?= (int)$intern["id_gestao"] ?>"><i
                                             style="color:red; font-size:1.4em" class="bi bi-house-door">
                                         </i></a>
                                     <?php } else {
@@ -422,9 +427,9 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar
                                         }; ?>
                                 </td>
                                 <td scope="row">
-                                    <?php if ($intern["desospitalizacao_ges"] == "s") { ?>
+                                    <?php if ($isYesFlag($intern["desospitalizacao_ges"] ?? null)) { ?>
                                     <a
-                                        href="<?= $BASE_URL ?>show_gestao.php?id_gestao=<?= $gestaos['0']["id_gestao"] ?>"><i
+                                        href="<?= $BASE_URL ?>show_gestao.php?id_gestao=<?= (int)$intern["id_gestao"] ?>"><i
                                             style="color:orange; font-size:1.5em" class="bi bi-house-up">
                                         </i></a>
                                     <?php } else {
@@ -432,9 +437,9 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar
                                         }; ?>
                                 </td>
                                 <td scope="row">
-                                    <?php if ($intern["opme_ges"] == "s") { ?>
+                                    <?php if ($isYesFlag($intern["opme_ges"] ?? null)) { ?>
                                     <a
-                                        href="<?= $BASE_URL ?>show_gestao.php?id_gestao=<?= $gestaos['0']["id_gestao"] ?>"><i
+                                        href="<?= $BASE_URL ?>show_gestao.php?id_gestao=<?= (int)$intern["id_gestao"] ?>"><i
                                             style="color:gray; font-size:1.4em" class="fas fa-procedures">
                                         </i></a>
                                     <?php } else {
@@ -442,9 +447,9 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar
                                         }; ?>
                                 </td>
                                 <td scope="row">
-                                    <?php if ($intern["alto_custo_ges"] == "s") { ?>
+                                    <?php if ($isYesFlag($intern["alto_custo_ges"] ?? null)) { ?>
                                     <a
-                                        href="<?= $BASE_URL ?>show_gestao.php?id_gestao=<?= $gestaos['0']["id_gestao"] ?>"><i
+                                        href="<?= $BASE_URL ?>show_gestao.php?id_gestao=<?= (int)$intern["id_gestao"] ?>"><i
                                             style="color:green; font-size:1.4em" class="fas fa-dollar-sign">
                                         </i></a>
                                     <?php } else {
@@ -452,9 +457,9 @@ $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar
                                         }; ?>
                                 </td>
                                 <td scope="row">
-                                    <?php if ($intern["evento_adverso_ges"] == "s") { ?>
+                                    <?php if ($isYesFlag($intern["evento_adverso_ges"] ?? null)) { ?>
                                     <a
-                                        href="<?= $BASE_URL ?>show_gestao.php?id_gestao=<?= $gestaos['0']["id_gestao"] ?>"><i
+                                        href="<?= $BASE_URL ?>show_gestao.php?id_gestao=<?= (int)$intern["id_gestao"] ?>"><i
                                             style="color:blue; font-size:1.4em" class="bi bi-shield-exclamation">
                                         </i></a>
                                     <?php

@@ -1832,7 +1832,8 @@ class internacaoDAO implements internacaoDAOInterface
         ca.parada_motivo_cap,
         ca.lote_cap,
         ca.data_fech_capeante,
-        ca.data_digit_capeante
+        ca.data_digit_capeante,
+        MAX(CASE WHEN LOWER(COALESCE(ge.evento_adverso_ges, \'\')) = \'s\' THEN 1 ELSE 0 END) AS alerta_evento_adverso_cap
 
         FROM tb_internacao ac 
 
@@ -1853,6 +1854,9 @@ class internacaoDAO implements internacaoDAOInterface
 
             left join tb_capeante as ca on
             ac.id_internacao = ca.fk_int_capeante 
+            
+            LEFT JOIN tb_gestao AS ge ON
+            ge.fk_internacao_ges = ac.id_internacao
 
             
 

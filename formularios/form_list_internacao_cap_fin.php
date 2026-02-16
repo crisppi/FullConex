@@ -281,6 +281,7 @@ if ($qtdIntItens > $limite) {
                     <th scope="col" style="width:23%">Senha</th>
                     <th scope="col" style="width:12%">Data internação</th>
                     <th scope="col" style="width:4%">Final</th>
+                    <th scope="col" style="width:4%">EA</th>
                     <th scope="col" style="width:13%">Ações</th>
                 </tr>
             </thead>
@@ -316,6 +317,13 @@ if ($qtdIntItens > $limite) {
                             style="font-size: 1.1rem; font-weight:800; color: rgb(255, 25, 55);"></span>
                         <?php }; ?>
                     </td>
+                    <td scope="row">
+                        <?php if ((int)($intern["alerta_evento_adverso_cap"] ?? 0) === 1) { ?>
+                        <span class="bi bi-exclamation-triangle-fill"
+                            style="font-size: 1.1rem; font-weight:800; color:#c62828;"
+                            title="Conta com evento adverso"></span>
+                        <?php } ?>
+                    </td>
                     <td class="action">
                         <div class="dropdown">
                             <button class="btn btn-default dropdown-toggle" id="navbarScrollingDropdown" role="button"
@@ -350,7 +358,7 @@ if ($qtdIntItens > $limite) {
                 <?php endforeach; ?>
                 <?php if ($qtdIntItens == 0) : ?>
                 <tr>
-                    <td colspan="11" scope="row" class="col-id" style='font-size:15px'>
+                    <td colspan="12" scope="row" class="col-id" style='font-size:15px'>
                         Não foram encontrados registros
                     </td>
                 </tr>

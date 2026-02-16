@@ -1000,7 +1000,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
         <span class="internacao-page__tag">Campos obrigatórios em destaque</span>
     </div>
     <div class="internacao-page__content">
-        <form class="visible" action="<?= $BASE_URL ?>process_internacao.php" id="myForm" method="POST"
+        <form class="visible" action="<?= htmlspecialchars(rtrim($BASE_URL, '/') . '/process_internacao.php', ENT_QUOTES, 'UTF-8') ?>" id="myForm" method="POST"
             enctype="multipart/form-data">
             <div class="internacao-card internacao-card--general">
                 <div class="internacao-card__header">
@@ -2388,6 +2388,42 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
         let post_url = $(this).attr("action"); // Obtém a URL de ação do formulário
         let request_method = $(this).attr("method"); // Obtém o método do formulário (GET/POST)
         let form_data = new FormData(this); // Cria um objeto FormData com os dados do formulário
+
+        // Garante envio dos campos de gestão mesmo quando o container é manipulado via DOM.
+        (function ensureGestaoFields(fd) {
+            const defaults = {
+                alto_custo_ges: 'n',
+                home_care_ges: 'n',
+                opme_ges: 'n',
+                desospitalizacao_ges: 'n',
+                evento_adverso_ges: 'n',
+                evento_sinalizado_ges: 'n',
+                evento_discutido_ges: 'n',
+                evento_negociado_ges: 'n',
+                evento_retorno_qual_hosp_ges: 'n',
+                evento_encerrar_ges: 'n',
+                evento_impacto_financ_ges: 'n',
+                evento_prolongou_internacao_ges: 'n',
+                evento_fech_ges: 'n',
+                evento_prorrogar_ges: 'n',
+                rel_alto_custo_ges: '',
+                rel_home_care_ges: '',
+                rel_opme_ges: '',
+                rel_desospitalizacao_ges: '',
+                tipo_evento_adverso_gest: '',
+                rel_evento_adverso_ges: '',
+                evento_data_ges: '',
+                evento_classificacao_ges: '',
+                evento_valor_negoc_ges: '',
+                fk_internacao_ges: ''
+            };
+
+            Object.keys(defaults).forEach(function(name) {
+                const el = document.querySelector('[name="' + name + '"]');
+                const value = el ? (el.value ?? '') : defaults[name];
+                fd.set(name, value === null || value === undefined ? defaults[name] : String(value));
+            });
+        })(form_data);
 
 
         // 1. Salva o valor selecionado do select de hospitais

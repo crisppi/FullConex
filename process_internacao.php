@@ -85,6 +85,14 @@ if (!function_exists('limitInputLength')) {
     }
 }
 
+if (!function_exists('internacaoCreateDebugLog')) {
+    function internacaoCreateDebugLog(string $message): void
+    {
+        $line = '[' . date('Y-m-d H:i:s') . '] ' . $message . PHP_EOL;
+        @file_put_contents(__DIR__ . '/logs/process_internacao_create.debug.log', $line, FILE_APPEND);
+    }
+}
+
 // Depurar dados enviados via POST
 error_log("Dados recebidos para salvar internação:");
 error_log(print_r($_POST, true));
@@ -111,6 +119,12 @@ $typeGes = filter_input(INPUT_POST, "typeGes");
 
 // CREATE
 if ($type === "create") {
+    internacaoCreateDebugLog(
+        'START type=create'
+        . ' select_gestao=' . (string)($_POST['select_gestao'] ?? '')
+        . ' evento_adverso_ges=' . (string)($_POST['evento_adverso_ges'] ?? '')
+        . ' tipo_evento=' . (string)($_POST['tipo_evento_adverso_gest'] ?? '')
+    );
 
     // Receber os dados dos inputs
     $fk_hospital_int = filter_input(INPUT_POST, "fk_hospital_int");
@@ -224,35 +238,35 @@ if ($type === "create") {
     $select_gestao = filter_input(INPUT_POST, "select_gestao");
     $fk_internacao_ges = filter_input(INPUT_POST, "fk_internacao_ges");
     $fk_visita_ges = filter_input(INPUT_POST, "fk_visita_ges");
-    $alto_custo_ges = filter_input(INPUT_POST, "alto_custo_ges");
+    $alto_custo_ges = filter_input(INPUT_POST, "alto_custo_ges") ?: 'n';
     $rel_alto_custo_ges = filter_input(INPUT_POST, "rel_alto_custo_ges");
     $rel_alto_custo_ges = str_replace(['*', '#', 'drop', 'select', 'delete'], '', $rel_alto_custo_ges);
     $rel_alto_custo_ges = str_replace(['*', '#'], '', $rel_alto_custo_ges);
     $rel_alto_custo_ges = limitInputLength($rel_alto_custo_ges, 5000);
-    $opme_ges = filter_input(INPUT_POST, "opme_ges");
+    $opme_ges = filter_input(INPUT_POST, "opme_ges") ?: 'n';
     $rel_opme_ges = filter_input(INPUT_POST, "rel_opme_ges");
-    $home_care_ges = filter_input(INPUT_POST, "home_care_ges");
+    $home_care_ges = filter_input(INPUT_POST, "home_care_ges") ?: 'n';
     $rel_home_care_ges = filter_input(INPUT_POST, "rel_home_care_ges");
-    $desospitalizacao_ges = filter_input(INPUT_POST, "desospitalizacao_ges");
+    $desospitalizacao_ges = filter_input(INPUT_POST, "desospitalizacao_ges") ?: 'n';
     $rel_desospitalizacao_ges = filter_input(INPUT_POST, "rel_desospitalizacao_ges");
     $fk_user_ges = filter_input(INPUT_POST, "fk_user_ges");
-    $evento_adverso_ges = filter_input(INPUT_POST, "evento_adverso_ges");
+    $evento_adverso_ges = filter_input(INPUT_POST, "evento_adverso_ges") ?: 'n';
     $rel_evento_adverso_ges = filter_input(INPUT_POST, "rel_evento_adverso_ges");
     $tipo_evento_adverso_gest = filter_input(INPUT_POST, "tipo_evento_adverso_gest");
-    $evento_sinalizado_ges = filter_input(INPUT_POST, "evento_sinalizado_ges");
-    $evento_discutido_ges = filter_input(INPUT_POST, "evento_discutido_ges");
+    $evento_sinalizado_ges = filter_input(INPUT_POST, "evento_sinalizado_ges") ?: 'n';
+    $evento_discutido_ges = filter_input(INPUT_POST, "evento_discutido_ges") ?: 'n';
     $evento_retorno_qual_hosp_ges = filter_input(INPUT_POST, "evento_retorno_qual_hosp_ges");
     $evento_classificado_hospital_ges = filter_input(INPUT_POST, "evento_classificado_hospital_ges");
-    $evento_negociado_ges = filter_input(INPUT_POST, "evento_negociado_ges");
+    $evento_negociado_ges = filter_input(INPUT_POST, "evento_negociado_ges") ?: 'n';
     $evento_valor_negoc_ges = filter_input(INPUT_POST, "evento_valor_negoc_ges");
     $evento_data_ges = filter_input(INPUT_POST, "evento_data_ges");
-    $evento_encerrar_ges = filter_input(INPUT_POST, "evento_encerrar_ges");
-    $evento_prorrogar_ges = filter_input(INPUT_POST, "evento_prorrogar_ges");
-    $evento_impacto_financ_ges = filter_input(INPUT_POST, "evento_impacto_financ_ges");
-    $evento_prolongou_internacao_ges = filter_input(INPUT_POST, "evento_prolongou_internacao_ges");
-    $evento_concluido_ges = filter_input(INPUT_POST, "evento_concluido_ges");
+    $evento_encerrar_ges = filter_input(INPUT_POST, "evento_encerrar_ges") ?: 'n';
+    $evento_prorrogar_ges = filter_input(INPUT_POST, "evento_prorrogar_ges") ?: 'n';
+    $evento_impacto_financ_ges = filter_input(INPUT_POST, "evento_impacto_financ_ges") ?: 'n';
+    $evento_prolongou_internacao_ges = filter_input(INPUT_POST, "evento_prolongou_internacao_ges") ?: 'n';
+    $evento_concluido_ges = filter_input(INPUT_POST, "evento_concluido_ges") ?: 'n';
     $evento_classificacao_ges = filter_input(INPUT_POST, "evento_classificacao_ges");
-    $evento_fech_ges = filter_input(INPUT_POST, "evento_fech_ges");
+    $evento_fech_ges = filter_input(INPUT_POST, "evento_fech_ges") ?: 'n';
 
     $select_uti = filter_input(INPUT_POST, "select_uti");
     $fk_internacao_uti = filter_input(INPUT_POST, "fk_internacao_uti");
@@ -378,8 +392,12 @@ if ($type === "create") {
         error_log("Erro ao salvar internação.");
     }
 
-    // SEMPRE usar o $lastId para os filhos
-    $lastId = $internacaoDao->findLastId()['0']['id_intern']; // <— base para todas as FKs
+    // Usa o último ID da própria conexão para evitar erro de concorrência.
+    $lastId = (int)$conn->lastInsertId();
+    if ($lastId <= 0) {
+        $lastId = (int)($internacaoDao->findLastId()['0']['id_intern'] ?? 0);
+    }
+    internacaoCreateDebugLog('CREATE internacao ok id=' . $lastId);
 
     // Alta automática se internado = 'n'
     if ($internado_int === 'n') {
@@ -437,7 +455,8 @@ if ($type === "create") {
         $visita->oportunidades_enf = '';
         $visita->exames_enf = 'Sem exames relevantes no período';
         $visita->programacao_enf = $programacao_int ?: '';
-        $visitaDao->create($visita);
+        $visitaCriadaId = (int)$visitaDao->create($visita);
+        internacaoCreateDebugLog('VISITA create ok id_int=' . $lastId . ' id_visita=' . $visitaCriadaId);
 
         // Antecedentes (se existirem)
         if (!empty($jsonAntec)) {
@@ -494,11 +513,27 @@ if ($type === "create") {
         }
 
         // GESTÃO
-        if ($select_gestao == "s") {
+        $selectGestaoPost = (string)($_POST['select_gestao'] ?? $select_gestao ?? '');
+        $eventoAdversoPost = strtolower(trim((string)($_POST['evento_adverso_ges'] ?? $evento_adverso_ges ?? 'n')));
+        $tipoEventoAdversoPost = trim((string)($_POST['tipo_evento_adverso_gest'] ?? $tipo_evento_adverso_gest ?? ''));
+        $relEventoAdversoPost = trim((string)($_POST['rel_evento_adverso_ges'] ?? $rel_evento_adverso_ges ?? ''));
+        $deveSalvarGestao = (
+            $selectGestaoPost === "s"
+            || $eventoAdversoPost === "s"
+            || $tipoEventoAdversoPost !== ''
+            || $relEventoAdversoPost !== ''
+        );
+        if ($deveSalvarGestao) {
             $gestao = new gestao();
+            $fkVisitaGestao = null;
+            if (!empty($fk_visita_ges)) {
+                $fkVisitaGestao = (int)$fk_visita_ges;
+            } elseif (!empty($visitaCriadaId)) {
+                $fkVisitaGestao = (int)$visitaCriadaId;
+            }
             $gestao->fk_internacao_ges = $lastId; // [FK:$lastId]
             $gestao->alto_custo_ges = $alto_custo_ges;
-            $gestao->fk_visita_ges = $fk_visita_ges;
+            $gestao->fk_visita_ges = $fkVisitaGestao;
             $gestao->rel_alto_custo_ges = $rel_alto_custo_ges;
             $gestao->opme_ges = $opme_ges;
             $gestao->rel_opme_ges = $rel_opme_ges;
@@ -506,9 +541,14 @@ if ($type === "create") {
             $gestao->rel_home_care_ges = $rel_home_care_ges;
             $gestao->desospitalizacao_ges = $desospitalizacao_ges;
             $gestao->rel_desospitalizacao_ges = $rel_desospitalizacao_ges;
-            $gestao->evento_adverso_ges = $evento_adverso_ges;
-            $gestao->rel_evento_adverso_ges = $rel_evento_adverso_ges;
-            $gestao->tipo_evento_adverso_gest = $tipo_evento_adverso_gest;
+            $gestao->evento_adverso_ges = $eventoAdversoPost;
+            $gestao->rel_evento_adverso_ges = $relEventoAdversoPost;
+            $gestao->tipo_evento_adverso_gest = $tipoEventoAdversoPost;
+            $gestao->evento_sinalizado_ges = $evento_sinalizado_ges ?: 'n';
+            $gestao->evento_discutido_ges = $evento_discutido_ges ?: 'n';
+            $gestao->evento_negociado_ges = $evento_negociado_ges ?: 'n';
+            $gestao->evento_valor_negoc_ges = $evento_valor_negoc_ges;
+            $gestao->evento_prorrogar_ges = $evento_prorrogar_ges ?: 'n';
             $gestao->evento_retorno_qual_hosp_ges = $evento_retorno_qual_hosp_ges;
             $gestao->evento_classificado_hospital_ges = $evento_classificado_hospital_ges;
             $gestao->evento_data_ges = $evento_data_ges;
@@ -518,8 +558,38 @@ if ($type === "create") {
             $gestao->evento_concluido_ges = $evento_concluido_ges;
             $gestao->evento_classificacao_ges = $evento_classificacao_ges;
             $gestao->evento_fech_ges = $evento_fech_ges;
-            $gestao->fk_user_ges = $fk_user_ges;
-            $gestaoDao->create($gestao);
+            $gestao->fk_user_ges = $fk_user_ges ?: $fk_usuario_int;
+            internacaoCreateDebugLog(
+                'GESTAO create try id_int=' . $lastId
+                . ' fk_visita=' . (string)$gestao->fk_visita_ges
+                . ' fk_user=' . (string)$gestao->fk_user_ges
+                . ' select=' . $selectGestaoPost
+                . ' evento=' . $eventoAdversoPost
+            );
+            $gestaoCriada = $gestaoDao->create($gestao);
+            if ($gestaoCriada) {
+                internacaoCreateDebugLog(
+                    'GESTAO create ok id_int=' . $lastId
+                    . ' evento=' . (string)$gestao->evento_adverso_ges
+                    . ' tipo=' . (string)$gestao->tipo_evento_adverso_gest
+                );
+            } else {
+                internacaoCreateDebugLog(
+                    'GESTAO create FAIL id_int=' . $lastId
+                    . ' select=' . $selectGestaoPost
+                    . ' evento=' . $eventoAdversoPost
+                    . ' tipo=' . $tipoEventoAdversoPost
+                    . ' fk_visita=' . (string)$gestao->fk_visita_ges
+                    . ' fk_user=' . (string)$gestao->fk_user_ges
+                );
+            }
+        } else {
+            internacaoCreateDebugLog(
+                'GESTAO skip id_int=' . $lastId
+                . ' select=' . $selectGestaoPost
+                . ' evento=' . $eventoAdversoPost
+                . ' tipo=' . $tipoEventoAdversoPost
+            );
         }
 
         // UTI
@@ -640,6 +710,7 @@ if ($type === "create") {
             }
         }
 
+        internacaoCreateDebugLog('END ok id=' . $lastId);
         echo "lancado internacao";
     }
 

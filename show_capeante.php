@@ -50,6 +50,25 @@
 
     //Instanciar o metodo internacao   
     $internacao = $capeanteDao->selectAllcapeante($where, $order, $obLimite);
+
+    $alertaEventoAdverso = null;
+    $idInternacaoEvento = isset($internacao[0]['id_internacao']) ? (int)$internacao[0]['id_internacao'] : 0;
+    if ($idInternacaoEvento > 0) {
+        $stmtEvento = $conn->prepare("
+            SELECT
+                ge.tipo_evento_adverso_gest,
+                ge.rel_evento_adverso_ges,
+                ge.evento_data_ges
+            FROM tb_gestao ge
+            WHERE ge.fk_internacao_ges = :id_internacao
+              AND LOWER(COALESCE(ge.evento_adverso_ges, '')) = 's'
+            ORDER BY ge.id_gestao DESC
+            LIMIT 1
+        ");
+        $stmtEvento->bindValue(':id_internacao', $idInternacaoEvento, PDO::PARAM_INT);
+        $stmtEvento->execute();
+        $alertaEventoAdverso = $stmtEvento->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
     ?>
     <div id='main-container' style="margin:15px">
         <span>
@@ -78,6 +97,18 @@
             <br>
         </div>
         <div class="card-body">
+            <?php if ($alertaEventoAdverso): ?>
+                <div style="margin-bottom:12px;padding:10px 12px;border:1px solid #f3a7a7;background:#fff3f3;border-radius:8px;">
+                    <strong style="color:#b71c1c;">Alerta de evento adverso nesta conta</strong><br>
+                    <span style="font-size:13px;">
+                        Tipo:
+                        <?= htmlspecialchars((string)($alertaEventoAdverso['tipo_evento_adverso_gest'] ?? 'Não informado'), ENT_QUOTES, 'UTF-8') ?>
+                        <?php if (!empty($alertaEventoAdverso['evento_data_ges'])): ?>
+                            | Data: <?= date("d/m/Y", strtotime((string)$alertaEventoAdverso['evento_data_ges'])) ?>
+                        <?php endif; ?>
+                    </span>
+                </div>
+            <?php endif; ?>
 
             <span style="font-weight: 500;" class=" card-text bold">
                 Hospital: </span>
