@@ -222,6 +222,8 @@ try {
 .action .dropdown-menu {
     padding: 8px 0;
     min-width: 190px;
+    left: auto;
+    right: 0;
 }
 
 .action .dropdown-menu li {
@@ -250,6 +252,18 @@ try {
     margin: 0;
     min-width: 18px;
     font-weight: 700;
+}
+
+/* Desktop: abrir menu de acoes ao passar o mouse */
+@media (min-width: 992px) {
+    .action .dropdown:hover > .dropdown-menu {
+        display: block;
+        margin-top: 0;
+    }
+
+    .action .dropdown:hover > .dropdown-toggle {
+        color: #3a184f !important;
+    }
 }
 
 .filter-intel-wrapper {
