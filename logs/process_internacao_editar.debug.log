@@ -1,0 +1,3 @@
+[2026-02-16 12:30:02] START id_int=642 type=edit_negociacao select_gestao=s evento_adverso_ges=s id_gestao=8
+[2026-02-16 12:30:03] GESTAO update ok id_int=642 id_gestao=8 evento=s
+[2026-02-16 12:30:03] COMMIT ok id_int=642

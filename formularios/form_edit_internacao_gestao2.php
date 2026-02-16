@@ -67,7 +67,7 @@ function showIf(?string $cur): string
             <label for="rel_alto_custo_ges">Relatório alto custo</label>
             <textarea rows="2" class="form-control" id="rel_alto_custo_ges" name="rel_alto_custo_ges"
                 onfocus="this.rows=6"
-                onblur="this.rows=2"><?= htmlspecialchars($int_gestao->rel_alto_custo_ges) ?></textarea>
+                onblur="this.rows=2"><?= htmlspecialchars((string)($int_gestao->rel_alto_custo_ges ?? ''), ENT_QUOTES, 'UTF-8') ?></textarea>
         </div>
     </div>
 
@@ -86,7 +86,7 @@ function showIf(?string $cur): string
             <label for="rel_home_care_ges">Relatório Home care</label>
             <textarea rows="2" class="form-control" id="rel_home_care_ges" name="rel_home_care_ges"
                 onfocus="this.rows=6"
-                onblur="this.rows=2"><?= htmlspecialchars($int_gestao->rel_home_care_ges) ?></textarea>
+                onblur="this.rows=2"><?= htmlspecialchars((string)($int_gestao->rel_home_care_ges ?? ''), ENT_QUOTES, 'UTF-8') ?></textarea>
         </div>
     </div>
 
@@ -103,7 +103,7 @@ function showIf(?string $cur): string
         <div class="form-group col-sm-10" id="div_rel_opme" style="display:<?= showIf($int_gestao->opme_ges) ?>">
             <label for="rel_opme_ges">Relatório OPME</label>
             <textarea rows="2" class="form-control" id="rel_opme_ges" name="rel_opme_ges" onfocus="this.rows=6"
-                onblur="this.rows=2"><?= htmlspecialchars($int_gestao->rel_opme_ges) ?></textarea>
+                onblur="this.rows=2"><?= htmlspecialchars((string)($int_gestao->rel_opme_ges ?? ''), ENT_QUOTES, 'UTF-8') ?></textarea>
         </div>
     </div>
 
@@ -122,7 +122,7 @@ function showIf(?string $cur): string
             <label for="rel_desospitalizacao_ges">Relatório Desospitalização</label>
             <textarea rows="2" class="form-control" id="rel_desospitalizacao_ges" name="rel_desospitalizacao_ges"
                 onfocus="this.rows=6"
-                onblur="this.rows=2"><?= htmlspecialchars($int_gestao->rel_desospitalizacao_ges) ?></textarea>
+                onblur="this.rows=2"><?= htmlspecialchars((string)($int_gestao->rel_desospitalizacao_ges ?? ''), ENT_QUOTES, 'UTF-8') ?></textarea>
         </div>
     </div>
     <hr>

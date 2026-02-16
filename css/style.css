@@ -813,3 +813,34 @@ input:invalid {
     font-size: 0.9rem;
     border-radius: 6px;
 }
+
+/* Padrao para botoes principais de acao (Cadastrar/Atualizar) */
+.btn-submit-standard {
+    min-width: 180px;
+    min-height: 56px;
+    padding: 12px 22px;
+    font-size: 1.08rem;
+    font-weight: 700;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+    color: #fff !important;
+}
+
+.btn-submit-standard:hover,
+.btn-submit-standard:focus {
+    background-color: #0b5ed7 !important;
+    border-color: #0a58ca !important;
+    color: #fff !important;
+}
+
+@media (max-width: 576px) {
+    .btn-submit-standard {
+        width: 100%;
+        min-width: 0;
+    }
+}

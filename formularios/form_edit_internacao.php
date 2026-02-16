@@ -950,7 +950,7 @@
 
 
                 <br>
-                <button type="submit" class="btn btn-success"><i style="font-size: 1rem;margin-right:5px;" value="edit"
+                <button type="submit" class="btn btn-success btn-submit-standard"><i style="font-size: 1rem;margin-right:5px;" value="edit"
                         class="fa-solid fa-check edit-icon"></i>Atualizar</button>
 
                     </form>

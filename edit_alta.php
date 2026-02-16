@@ -262,6 +262,29 @@ if ($internStartTs && $internEndTs && $internEndTs > $internStartTs) {
         gap: 16px;
         padding: 4px 6px 0;
     }
+
+    .alta-actions #cadastrar_alta {
+        min-width: 180px;
+        min-height: 56px;
+        padding: 12px 22px;
+        font-size: 1.08rem;
+        font-weight: 700;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background-color: #0d6efd !important;
+        border-color: #0d6efd !important;
+        color: #fff !important;
+    }
+
+    @media (max-width: 576px) {
+        .alta-actions #cadastrar_alta {
+            width: 100%;
+            min-width: 0;
+        }
+    }
 </style>
 
 <!-- formulario alta -->
@@ -408,11 +431,10 @@ if ($internStartTs && $internEndTs && $internEndTs > $internStartTs) {
             <?php } ?>
 
             <div class="alta-actions">
-                <button id="cadastrar_alta" type="submit" class="btn btn-primary">
+                <button id="cadastrar_alta" type="submit" class="btn btn-primary btn-submit-standard">
                     <i style="font-size: 1rem;" name="type" value="edite" class="fa-solid fa-check edit-icon"></i>
                     Alta
                 </button>
-                <?php include_once("diversos/backbtn_internacao.php"); ?>
             </div>
         </form>
     </div>
@@ -441,7 +463,6 @@ if ($internStartTs && $internEndTs && $internEndTs > $internStartTs) {
 </script>
 
 <?php
-include_once("templates/footer.php");
 ?>
 <script src="js/scriptDataAltaHospitalar.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>

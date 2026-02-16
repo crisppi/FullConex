@@ -430,7 +430,7 @@ $contarVis = $queryVis[0]['numero_de_id_visita'];
             </script>
 
             <div class="visita-actions">
-                <button type="submit" class="btn btn-success">
+                <button type="submit" class="btn btn-success btn-submit-standard">
                     <i class="fas fa-check"></i> Cadastrar
                 </button>
                 <div class="alert" id="alert" role="alert"></div>

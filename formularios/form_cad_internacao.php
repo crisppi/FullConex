@@ -1602,7 +1602,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
         <hr>
         <!-- ... dentro do <form id="myForm"> ... -->
 
-        <button type="submit" class="btn btn-success btn-lg fixed-submit">
+        <button type="submit" class="btn btn-success btn-lg fixed-submit btn-submit-standard">
             <i class="fa-solid fa-check edit-icon" style="font-size:1rem;margin-right:8px;"></i>
             Cadastrar
         </button>
