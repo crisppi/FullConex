@@ -260,26 +260,43 @@ if ($internStartTs && $internEndTs && $internEndTs > $internStartTs) {
 }
 
 .prorrog-pendente-badge {
-    background: #ffe3e3;
-    color: #8a1c1c;
-    border: 1px solid #dc3545;
+    background: #ffe7ef;
+    color: #b42346;
+    border: 1px solid #e55353;
     border-radius: 999px;
-    padding: 4px 12px;
+    padding: 6px 14px;
     font-weight: 600;
     font-size: 0.85rem;
     white-space: nowrap;
+    margin-left: auto;
 }
 .prorrog-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
+    position: relative;
+    min-height: 34px;
+    margin-bottom: 12px;
+}
+.prorrog-head h4 {
+    margin: 0;
+}
+.prorrog-head .prorrog-pendente-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+@media (max-width: 991.98px) {
+    .prorrog-head {
+        min-height: 0;
+    }
+    .prorrog-head .prorrog-pendente-badge {
+        position: static;
+        display: inline-flex;
+        margin-top: 8px;
+    }
 }
 </style>
 
 <div>
-    <div class="prorrog-head mb-3">
+    <div class="prorrog-head">
         <h4 class="mb-0">Editar Prorrogação</h4>
         <?php if (!empty($pr_pendente_label)): ?>
             <span class="prorrog-pendente-badge">Período em aberto: <?= htmlspecialchars($pr_pendente_label) ?></span>

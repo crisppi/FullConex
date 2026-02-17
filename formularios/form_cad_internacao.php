@@ -261,6 +261,49 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
         margin-bottom: 4px;
     }
 
+    /* Padroniza altura dos campos da linha CID/Grupo/Origem/Senha/Atendimento */
+    #grupo_patologia_int,
+    #origem_int,
+    #senha_int,
+    #num_atendimento_int {
+        min-height: 42px;
+        height: 42px;
+    }
+
+    .bootstrap-select>.dropdown-toggle[data-id="fk_cid_int"] {
+        min-height: 42px !important;
+        height: 42px !important;
+        padding-top: 8px !important;
+        padding-bottom: 8px !important;
+    }
+
+    .bootstrap-select>.dropdown-toggle[data-id="fk_cid_int"] .filter-option-inner-inner {
+        line-height: 24px !important;
+    }
+
+    /* Padroniza altura da faixa de Dados Essenciais */
+    #matricula_paciente_display,
+    #data_intern_int_dt,
+    #data_lancamento_int,
+    #data_visita_int,
+    #internado_int {
+        min-height: 42px;
+        height: 42px;
+    }
+
+    .bootstrap-select>.dropdown-toggle[data-id="hospital_selected"],
+    .bootstrap-select>.dropdown-toggle[data-id="fk_paciente_int"] {
+        min-height: 42px !important;
+        height: 42px !important;
+        padding-top: 8px !important;
+        padding-bottom: 8px !important;
+    }
+
+    .bootstrap-select>.dropdown-toggle[data-id="hospital_selected"] .filter-option-inner-inner,
+    .bootstrap-select>.dropdown-toggle[data-id="fk_paciente_int"] .filter-option-inner-inner {
+        line-height: 24px !important;
+    }
+
     .hospital-col label {
         margin-bottom: 0px;
     }

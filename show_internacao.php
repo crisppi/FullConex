@@ -1130,7 +1130,7 @@ usort($neg_filtered, function ($a, $b) {
                             <div class="card-body">
                                 <div class="ov-head ov-head-space">
                                     <h6 class="ov-title mb-0">TUSS</h6>
-                                    <a class="btn btn-sm btn-outline-secondary"
+                                    <a class="btn btn-sm btn-outline-secondary ms-auto"
                                         href="<?= e($BASE_URL) ?>edit_internacao.php?id_internacao=<?= (int)$id_internacao ?>&section=tuss#collapseTuss">
                                         <i class="bi bi-pencil-square me-1"></i>Editar TUSS
                                     </a>
@@ -1209,7 +1209,7 @@ usort($neg_filtered, function ($a, $b) {
                             <div class="card-body">
                                 <div class="ov-head ov-head-space">
                                     <h6 class="ov-title mb-0">Negociações</h6>
-                                    <a class="btn btn-sm btn-outline-secondary"
+                                    <a class="btn btn-sm btn-outline-secondary ms-auto"
                                         href="<?= e($BASE_URL) ?>edit_internacao.php?id_internacao=<?= (int)$id_internacao ?>&section=negoc#collapseNegoc">
                                         <i class="bi bi-pencil-square me-1"></i>Editar Negociações
                                     </a>
@@ -1500,15 +1500,19 @@ usort($neg_filtered, function ($a, $b) {
         margin-bottom: .5rem
     }
     .ov-head-space {
+        display: flex;
+        align-items: center;
         justify-content: space-between;
+        width: 100%;
     }
 
     .prorrog-pendente-badge {
-        background: #ffe3e3;
-        color: #8a1c1c;
-        border: 1px solid #dc3545;
+        margin-left: auto;
+        background: #ffe7ef;
+        color: #b42346;
+        border: 1px solid #e55353;
         border-radius: 999px;
-        padding: 4px 12px;
+        padding: 6px 14px;
         font-weight: 600;
         font-size: 0.85rem;
         white-space: nowrap;
@@ -1517,8 +1521,17 @@ usort($neg_filtered, function ($a, $b) {
         align-items: center;
     }
     .prorrog-pendente-badge:hover {
-        background: #ffd6d6;
-        color: #7a1414;
+        background: #ffd9e6;
+        color: #8f1f3b;
+    }
+    @media (max-width: 991.98px) {
+        .ov-head-space {
+            flex-wrap: wrap;
+        }
+        .prorrog-pendente-badge {
+            margin-left: 0;
+            margin-top: 8px;
+        }
     }
 
     .ov-card .ov-icon {

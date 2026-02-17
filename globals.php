@@ -131,6 +131,7 @@ if (!in_array($__scriptBase, $__schemaSkip, true)) {
     ensure_internacao_forecast_columns($conn);
     ensure_schema_version_table($conn);
     ensure_password_reset_table($conn);
+    ensure_operational_list_indexes($conn);
 }
 require_once __DIR__ . '/app/version.php';
 

@@ -174,3 +174,151 @@ if (!function_exists('ensure_password_reset_table')) {
         }
     }
 }
+
+if (!function_exists('schema_table_exists')) {
+    function schema_table_exists(PDO $conn, string $table): bool
+    {
+        static $tableMap = null;
+        if ($tableMap === null) {
+            $tableMap = [];
+            $stmt = $conn->query("
+                SELECT TABLE_NAME
+                  FROM information_schema.TABLES
+                 WHERE TABLE_SCHEMA = DATABASE()
+            ");
+            foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $tableName) {
+                $tableMap[(string)$tableName] = true;
+            }
+        }
+        return !empty($tableMap[$table]);
+    }
+}
+
+if (!function_exists('schema_columns_exist')) {
+    function schema_columns_exist(PDO $conn, string $table, array $columns): bool
+    {
+        if (!$columns) {
+            return false;
+        }
+        static $columnsByTable = null;
+        if ($columnsByTable === null) {
+            $columnsByTable = [];
+            $stmt = $conn->query("
+                SELECT TABLE_NAME, COLUMN_NAME
+                  FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE()
+            ");
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $t = (string)($row['TABLE_NAME'] ?? '');
+                $c = (string)($row['COLUMN_NAME'] ?? '');
+                if ($t === '' || $c === '') {
+                    continue;
+                }
+                if (!isset($columnsByTable[$t])) {
+                    $columnsByTable[$t] = [];
+                }
+                $columnsByTable[$t][$c] = true;
+            }
+        }
+
+        $current = $columnsByTable[$table] ?? [];
+        foreach ($columns as $col) {
+            if (empty($current[(string)$col])) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+
+if (!function_exists('schema_index_exists')) {
+    function schema_index_exists(PDO $conn, string $table, string $indexName, array $columns): bool
+    {
+        static $indexNamesByTable = null;
+        static $indexColsByTable = null;
+        if ($indexNamesByTable === null || $indexColsByTable === null) {
+            $indexNamesByTable = [];
+            $indexColsByTable = [];
+            $stmt = $conn->query("
+                SELECT TABLE_NAME, INDEX_NAME, GROUP_CONCAT(COLUMN_NAME ORDER BY SEQ_IN_INDEX SEPARATOR ',') AS cols
+                  FROM information_schema.STATISTICS
+                 WHERE TABLE_SCHEMA = DATABASE()
+                 GROUP BY TABLE_NAME, INDEX_NAME
+            ");
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $t = (string)($row['TABLE_NAME'] ?? '');
+                $i = (string)($row['INDEX_NAME'] ?? '');
+                $c = (string)($row['cols'] ?? '');
+                if ($t === '' || $i === '') {
+                    continue;
+                }
+                if (!isset($indexNamesByTable[$t])) {
+                    $indexNamesByTable[$t] = [];
+                }
+                if (!isset($indexColsByTable[$t])) {
+                    $indexColsByTable[$t] = [];
+                }
+                $indexNamesByTable[$t][$i] = true;
+                if ($c !== '') {
+                    $indexColsByTable[$t][$c] = true;
+                }
+            }
+        }
+
+        if (!empty($indexNamesByTable[$table][$indexName])) {
+            return true;
+        }
+
+        $target = implode(',', $columns);
+        return !empty($indexColsByTable[$table][$target]);
+    }
+}
+
+if (!function_exists('ensure_index_if_missing')) {
+    function ensure_index_if_missing(PDO $conn, string $table, string $indexName, array $columns): void
+    {
+        try {
+            if (!schema_table_exists($conn, $table)) {
+                return;
+            }
+            if (!schema_columns_exist($conn, $table, $columns)) {
+                return;
+            }
+            if (schema_index_exists($conn, $table, $indexName, $columns)) {
+                return;
+            }
+            $colSql = implode(', ', array_map(static fn($c) => "`{$c}`", $columns));
+            $conn->exec("ALTER TABLE `{$table}` ADD INDEX `{$indexName}` ({$colSql})");
+        } catch (Throwable $e) {
+            error_log('[SCHEMA][INDEX][' . $table . '][' . $indexName . '] ' . $e->getMessage());
+        }
+    }
+}
+
+if (!function_exists('ensure_operational_list_indexes')) {
+    function ensure_operational_list_indexes(PDO $conn): void
+    {
+        static $checked = false;
+        if ($checked) {
+            return;
+        }
+        $checked = true;
+
+        $indexes = [
+            ['tb_internacao', 'idx_int_internado_data', ['internado_int', 'data_intern_int']],
+            ['tb_internacao', 'idx_int_hospital_data', ['fk_hospital_int', 'data_intern_int']],
+            ['tb_internacao', 'idx_int_paciente_data', ['fk_paciente_int', 'data_intern_int']],
+            ['tb_visita', 'idx_vis_internacao_data', ['fk_internacao_vis', 'data_visita_vis']],
+            ['tb_prorrogacao', 'idx_pror_internacao_periodo', ['fk_internacao_pror', 'prorrog1_ini_pror', 'prorrog1_fim_pror']],
+            ['tb_gestao', 'idx_ges_internacao_evento', ['fk_internacao_ges', 'evento_adverso_ges', 'evento_encerrar_ges']],
+            ['tb_alta', 'idx_alta_internacao_data', ['fk_id_int_alt', 'data_alta_alt']],
+            ['tb_uti', 'idx_uti_internacao_data', ['fk_internacao_uti', 'data_internacao_uti', 'data_alta_uti']],
+            ['tb_negociacao', 'idx_neg_internacao_datas', ['fk_id_int', 'data_inicio_neg', 'data_fim_neg']],
+            ['tb_capeante', 'idx_cap_internacao_status', ['fk_int_capeante', 'encerrado_cap', 'data_inicial_capeante', 'data_final_capeante']],
+        ];
+
+        foreach ($indexes as [$table, $indexName, $columns]) {
+            ensure_index_if_missing($conn, $table, $indexName, $columns);
+        }
+    }
+}
