@@ -1058,6 +1058,7 @@ usort($neg_filtered, function ($a, $b) {
                                     <h6 class="ov-title mb-0">Prorrogações</h6>
                                     <?php if (!empty($pr_pendente_label)): ?>
                                         <a class="prorrog-pendente-badge"
+                                            style="margin-left:auto !important;background:#ffe7ef !important;color:#b42346 !important;border:1px solid #e55353 !important;border-radius:999px !important;padding:6px 14px !important;display:inline-flex !important;align-items:center !important;text-decoration:none !important;box-shadow:0 1px 4px rgba(181,35,70,.12) !important;"
                                             href="<?= e($BASE_URL) ?>edit_internacao.php?id_internacao=<?= (int)$id_internacao ?>&section=prorrog#collapseProrrog">
                                             Período em aberto: <?= e($pr_pendente_label) ?>
                                         </a>
@@ -1508,21 +1509,29 @@ usort($neg_filtered, function ($a, $b) {
 
     .prorrog-pendente-badge {
         margin-left: auto;
-        background: #ffe7ef;
-        color: #b42346;
-        border: 1px solid #e55353;
+        background: #ffe7ef !important;
+        color: #b42346 !important;
+        border: 1px solid #e55353 !important;
         border-radius: 999px;
         padding: 6px 14px;
         font-weight: 600;
         font-size: 0.85rem;
         white-space: nowrap;
-        text-decoration: none;
-        display: inline-flex;
+        text-decoration: none !important;
+        display: inline-flex !important;
         align-items: center;
+        box-shadow: 0 1px 4px rgba(181, 35, 70, 0.12);
+    }
+    a.prorrog-pendente-badge,
+    a.prorrog-pendente-badge:visited,
+    a.prorrog-pendente-badge:active,
+    a.prorrog-pendente-badge:focus {
+        color: #b42346 !important;
+        text-decoration: none !important;
     }
     .prorrog-pendente-badge:hover {
-        background: #ffd9e6;
-        color: #8f1f3b;
+        background: #ffd9e6 !important;
+        color: #8f1f3b !important;
     }
     @media (max-width: 991.98px) {
         .ov-head-space {
