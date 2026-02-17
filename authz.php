@@ -3,6 +3,52 @@ require_once __DIR__ . '/dao/permissionDao.php';
 
 final class Gate
 {
+    private static function normText($s): string
+    {
+        $s = mb_strtolower(trim((string)$s), 'UTF-8');
+        $c = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $s);
+        $s = $c !== false ? $c : $s;
+        return preg_replace('/[^a-z]/', '', $s);
+    }
+
+    private static function isDiretoriaSession(string $cargo, string $nivel): bool
+    {
+        $normCargo = self::normText($cargo);
+        $normNivel = self::normText($nivel);
+        return in_array($normCargo, ['diretoria', 'diretor', 'administrador', 'admin', 'board'], true)
+            || (strpos($normCargo, 'diretor') !== false)
+            || (strpos($normCargo, 'diretoria') !== false)
+            || in_array($normNivel, ['diretoria', 'diretor', 'administrador', 'admin', 'board'], true)
+            || ((int)$nivel === -1);
+    }
+
+    public static function currentUserCan(PDO $conn, string $action): bool
+    {
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
+        $idUser = (int)($_SESSION['id_usuario'] ?? 0);
+        $cargo  = (string)($_SESSION['cargo'] ?? '');
+        $nivel  = (string)($_SESSION['nivel'] ?? '');
+        $ativo  = strtolower((string)($_SESSION['ativo'] ?? ''));
+        if (!$idUser || $ativo !== 's') {
+            return false;
+        }
+        if (self::isDiretoriaSession($cargo, $nivel)) {
+            return true;
+        }
+        $permDao = new PermissionDAO($conn, '');
+        return $permDao->userCan($idUser, $action);
+    }
+
+    public static function enforceAction(PDO $conn, string $BASE_URL, string $action, string $message): void
+    {
+        if (self::currentUserCan($conn, $action)) {
+            return;
+        }
+        self::flashAndGo($BASE_URL, $message, self::guessListUrl($BASE_URL, $_SERVER['SCRIPT_NAME'] ?? '', $_SERVER['HTTP_REFERER'] ?? ''));
+    }
+
     /** Detecta a ação: create | edit | delete */
     private static function detectAction(string $script): ?string
     {
@@ -54,15 +100,7 @@ final class Gate
         $ativo  = strtolower((string)($_SESSION['ativo'] ?? ''));
 
         // diretoria/admin tem passe livre
-        $norm = function ($s) {
-            $s = mb_strtolower(trim((string)$s), 'UTF-8');
-            $c = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $s);
-            $s = $c !== false ? $c : $s;
-            return preg_replace('/[^a-z]/', '', $s);
-        };
-        $isDiretoria = in_array($norm($cargo), ['diretoria', 'diretor', 'administrador', 'admin', 'board'], true)
-            || in_array($norm($nivel), ['diretoria', 'diretor', 'administrador', 'admin', 'board'], true)
-            || ((int)$nivel === -1);
+        $isDiretoria = self::isDiretoriaSession($cargo, $nivel);
 
         if (!$idUser || $ativo !== 's') {
             self::flashAndGo($BASE_URL, 'Não autenticado.', self::guessListUrl($BASE_URL, $script, $_SERVER['HTTP_REFERER'] ?? ''));
@@ -101,6 +139,12 @@ final class Gate
 
         // redireciona direto para a lista (sem ecoar nada)
         $target = $to ?: ($BASE_URL . 'dashboard');
+        if (headers_sent()) {
+            $safeMsg = htmlspecialchars($message, ENT_QUOTES, 'UTF-8');
+            $safeTarget = htmlspecialchars($target, ENT_QUOTES, 'UTF-8');
+            echo "<script>alert('{$safeMsg}');window.location.href='{$safeTarget}';</script>";
+            exit;
+        }
         header('Location: ' . $target, true, 303); // 303 evita re-post
         exit;
     }

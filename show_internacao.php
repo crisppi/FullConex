@@ -21,6 +21,7 @@
 <?php
 include_once("check_logado.php");
 include_once("globals.php");
+Gate::enforceAction($conn, $BASE_URL, 'view', 'Você não tem permissão para visualizar este registro.');
 include_once("templates/header.php");
 
 // Models / DAOs

@@ -81,6 +81,16 @@ $csrf = $_SESSION['csrf'];
 $permDao = new PermissionDAO($conn, $BASE_URL);
 $rows    = $permDao->findAllWithUsers();
 
+$isDiretoriaRole = static function ($cargoTxt): bool {
+    $txt = mb_strtolower(trim((string)$cargoTxt), 'UTF-8');
+    $c   = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $txt);
+    $txt = $c !== false ? $c : $txt;
+    $txt = preg_replace('/[^a-z]/', '', $txt);
+    return in_array($txt, ['diretoria', 'diretor', 'administrador', 'admin', 'board'], true)
+        || (strpos($txt, 'diretor') !== false)
+        || (strpos($txt, 'diretoria') !== false);
+};
+
 /* UI */
 include_once __DIR__ . '/templates/header.php';
 ?>
@@ -210,11 +220,11 @@ td.text-center .perm-wrapper:hover {
 }
 
 /* laranja */
-.perm-checkbox[data-field="delete"] {
-    color: #ef4444;
-}
-
-/* vermelho */
+.perm-checkbox[data-field="delete"] { color: #ef4444; }
+.perm-checkbox[data-field="view"] { color: #2563eb; }
+.perm-checkbox[data-field="discharge"] { color: #0ea5a3; }
+.perm-checkbox[data-field="close_management"] { color: #9333ea; }
+.perm-checkbox[data-field="generate_pdf"] { color: #0284c7; }
 
 /* Linha alterada (feedback sutil) */
 tr.table-warning td {
@@ -224,15 +234,20 @@ tr.table-warning td {
 
 <div class="container-fluid mt-3 px-4">
     <h3 class="mb-3">Permissões por Usuário</h3>
-    <p class="text-muted mb-3">Habilite as funções <strong>Criar</strong>, <strong>Editar</strong> e
-        <strong>Deletar</strong> para cada usuário.
+    <p class="text-muted mb-3">Matriz por ação: <strong>Visualizar</strong>, <strong>Criar</strong>,
+        <strong>Editar</strong>, <strong>Deletar</strong>, <strong>Dar Alta</strong>,
+        <strong>Fechar Gestão</strong> e <strong>Gerar PDF</strong>.
     </p>
 
     <div class="mb-2 d-flex gap-2 flex-wrap">
         <button id="btnSaveAll" class="btn btn-primary">Salvar alterações</button>
+        <button id="btnSelectAllView" class="btn btn-outline-secondary btn-sm">Marcar Visualizar (todos)</button>
         <button id="btnSelectAllCreate" class="btn btn-outline-secondary btn-sm">Marcar Criar (todos)</button>
         <button id="btnSelectAllEdit" class="btn btn-outline-secondary btn-sm">Marcar Editar (todos)</button>
         <button id="btnSelectAllDelete" class="btn btn-outline-secondary btn-sm">Marcar Deletar (todos)</button>
+        <button id="btnSelectAllDischarge" class="btn btn-outline-secondary btn-sm">Marcar Dar Alta (todos)</button>
+        <button id="btnSelectAllCloseMgmt" class="btn btn-outline-secondary btn-sm">Marcar Fechar Gestão (todos)</button>
+        <button id="btnSelectAllPdf" class="btn btn-outline-secondary btn-sm">Marcar Gerar PDF (todos)</button>
         <button id="btnClearAll" class="btn btn-outline-danger btn-sm">Limpar todos</button>
     </div>
 
@@ -243,37 +258,73 @@ tr.table-warning td {
                     <th>#</th>
                     <th>Usuário</th>
                     <th>E-mail</th>
+                    <th class="text-center">Visualizar</th>
                     <th class="text-center">Criar</th>
                     <th class="text-center">Editar</th>
                     <th class="text-center">Deletar</th>
+                    <th class="text-center">Dar Alta</th>
+                    <th class="text-center">Fechar Gestão</th>
+                    <th class="text-center">Gerar PDF</th>
                     <th>Atualizado em</th>
                 </tr>
             </thead>
             <tbody id="tbodyPerms">
                 <?php foreach ($rows as $i => $r): ?>
+                <?php $rowIsDiretoria = $isDiretoriaRole($r['cargo'] ?? ''); ?>
                 <tr data-user-id="<?= (int)$r['id_user'] ?>">
                     <td><?= $i + 1 ?></td>
                     <td><?= htmlspecialchars($r['nome'] ?? '') ?></td>
                     <td><?= htmlspecialchars($r['email'] ?? '') ?></td>
+                    <td class="text-center">
+                        <label class="perm-wrapper" title="Visualizar">
+                            <input type="checkbox" class="perm-checkbox" data-field="view"
+                                <?= (((int)($r['can_view'] ?? 1) === 1 || $rowIsDiretoria) ? 'checked' : '') ?>
+                                <?= $rowIsDiretoria ? 'disabled' : '' ?>>
+                        </label>
+                    </td>
 
                     <td class="text-center">
                         <label class="perm-wrapper" title="Criar">
                             <input type="checkbox" class="perm-checkbox" data-field="create"
-                                <?= ((int)$r['can_create'] === 1 ? 'checked' : '') ?>>
+                                <?= (((int)$r['can_create'] === 1) || $rowIsDiretoria ? 'checked' : '') ?>
+                                <?= $rowIsDiretoria ? 'disabled' : '' ?>>
                         </label>
                     </td>
 
                     <td class="text-center">
                         <label class="perm-wrapper" title="Editar">
                             <input type="checkbox" class="perm-checkbox" data-field="edit"
-                                <?= ((int)$r['can_edit'] === 1 ? 'checked' : '') ?>>
+                                <?= (((int)$r['can_edit'] === 1) || $rowIsDiretoria ? 'checked' : '') ?>
+                                <?= $rowIsDiretoria ? 'disabled' : '' ?>>
                         </label>
                     </td>
 
                     <td class="text-center">
                         <label class="perm-wrapper" title="Deletar">
                             <input type="checkbox" class="perm-checkbox" data-field="delete"
-                                <?= ((int)$r['can_delete'] === 1 ? 'checked' : '') ?>>
+                                <?= (((int)$r['can_delete'] === 1) || $rowIsDiretoria ? 'checked' : '') ?>
+                                <?= $rowIsDiretoria ? 'disabled' : '' ?>>
+                        </label>
+                    </td>
+                    <td class="text-center">
+                        <label class="perm-wrapper" title="Dar Alta">
+                            <input type="checkbox" class="perm-checkbox" data-field="discharge"
+                                <?= (((int)($r['can_discharge'] ?? 0) === 1) || $rowIsDiretoria ? 'checked' : '') ?>
+                                <?= $rowIsDiretoria ? 'disabled' : '' ?>>
+                        </label>
+                    </td>
+                    <td class="text-center">
+                        <label class="perm-wrapper" title="Fechar Gestão">
+                            <input type="checkbox" class="perm-checkbox" data-field="close_management"
+                                <?= (((int)($r['can_close_management'] ?? 0) === 1) || $rowIsDiretoria ? 'checked' : '') ?>
+                                <?= $rowIsDiretoria ? 'disabled' : '' ?>>
+                        </label>
+                    </td>
+                    <td class="text-center">
+                        <label class="perm-wrapper" title="Gerar PDF">
+                            <input type="checkbox" class="perm-checkbox" data-field="generate_pdf"
+                                <?= (((int)($r['can_generate_pdf'] ?? 0) === 1) || $rowIsDiretoria ? 'checked' : '') ?>
+                                <?= $rowIsDiretoria ? 'disabled' : '' ?>>
                         </label>
                     </td>
 
@@ -297,7 +348,7 @@ tr.table-warning td {
 
                 <?php if (empty($rows)): ?>
                 <tr>
-                    <td colspan="7" class="text-muted">Nenhum usuário encontrado.</td>
+                    <td colspan="11" class="text-muted">Nenhum usuário encontrado.</td>
                 </tr>
                 <?php endif; ?>
             </tbody>
@@ -323,6 +374,7 @@ tr.table-warning td {
 
     const setAll = (field, value) => {
         document.querySelectorAll(`.perm-checkbox[data-field="${field}"]`).forEach(cb => {
+            if (cb.disabled) return;
             if (cb.checked !== value) {
                 cb.checked = value;
                 const tr = cb.closest('tr');
@@ -334,11 +386,16 @@ tr.table-warning td {
         });
     };
 
+    document.getElementById('btnSelectAllView')?.addEventListener('click', () => setAll('view', true));
     document.getElementById('btnSelectAllCreate')?.addEventListener('click', () => setAll('create', true));
     document.getElementById('btnSelectAllEdit')?.addEventListener('click', () => setAll('edit', true));
     document.getElementById('btnSelectAllDelete')?.addEventListener('click', () => setAll('delete', true));
+    document.getElementById('btnSelectAllDischarge')?.addEventListener('click', () => setAll('discharge', true));
+    document.getElementById('btnSelectAllCloseMgmt')?.addEventListener('click', () => setAll('close_management', true));
+    document.getElementById('btnSelectAllPdf')?.addEventListener('click', () => setAll('generate_pdf', true));
     document.getElementById('btnClearAll')?.addEventListener('click', () => {
         document.querySelectorAll('.perm-checkbox').forEach(cb => {
+            if (cb.disabled) return;
             if (cb.checked) {
                 cb.checked = false;
                 const tr = cb.closest('tr');
@@ -362,9 +419,13 @@ tr.table-warning td {
             const get = f => tr.querySelector(`.perm-checkbox[data-field="${f}"]`)?.checked ?
                 '1' : '0';
             payload.perm[uid] = {
+                view: get('view'),
                 create: get('create'),
                 edit: get('edit'),
-                delete: get('delete')
+                delete: get('delete'),
+                discharge: get('discharge'),
+                close_management: get('close_management'),
+                generate_pdf: get('generate_pdf')
             };
         });
 

@@ -45,6 +45,8 @@ $internacaoDao = new internacaoDAO($conn, $BASE_URL);
 $utiDao = new utiDao($conn, $BASE_URL);
 $altaDao = new altaDAO($conn, $BASE_URL);
 
+Gate::enforceAction($conn, $BASE_URL, 'discharge', 'Você não tem permissão para dar alta.');
+
 // Resgata o tipo do formulário
 $type = filter_input(INPUT_POST, "type");
 

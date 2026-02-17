@@ -32,6 +32,8 @@ require_once("db.php");
 require_once("dao/capeanteDAO.php");
 require_once("vendor/autoload.php");
 
+Gate::enforceAction($conn, $BASE_URL, 'generate_pdf', 'Você não tem permissão para gerar PDF.');
+
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 

@@ -293,6 +293,9 @@ if ($type === "create") {
     $evento_concluido_ges = filter_input(INPUT_POST, "evento_concluido_ges") ?: 'n';
     $evento_classificacao_ges = filter_input(INPUT_POST, "evento_classificacao_ges");
     $evento_fech_ges = filter_input(INPUT_POST, "evento_fech_ges") ?: 'n';
+    if ($evento_encerrar_ges === 's' || $evento_fech_ges === 's') {
+        Gate::enforceAction($conn, $BASE_URL, 'close_management', 'Você não tem permissão para fechar gestão.');
+    }
 
     $select_uti = filter_input(INPUT_POST, "select_uti");
     $fk_internacao_uti = filter_input(INPUT_POST, "fk_internacao_uti");

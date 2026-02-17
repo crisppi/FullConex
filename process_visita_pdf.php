@@ -30,6 +30,8 @@ require_once("dao/visitaDao.php");
 require_once("dao/internacaoDao.php");
 require_once('vendor/autoload.php');
 
+Gate::enforceAction($conn, $BASE_URL, 'generate_pdf', 'Você não tem permissão para gerar PDF.');
+
 $signatureFont = 'times';
 $signatureFontPath = __DIR__ . '/fonts/Allura-Regular.ttf';
 if (file_exists($signatureFontPath)) {

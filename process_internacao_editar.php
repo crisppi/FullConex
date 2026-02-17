@@ -342,6 +342,10 @@ try {
         $gestao->fk_user_ges                    = filter_input(INPUT_POST, 'fk_user_ges', FILTER_VALIDATE_INT)
             ?? ($_SESSION['id_usuario'] ?? null);
 
+        if ($gestao->evento_encerrar_ges === 's' || $gestao->evento_fech_ges === 's') {
+            Gate::enforceAction($conn, $BASE_URL, 'close_management', 'Você não tem permissão para fechar gestão.');
+        }
+
         if ($idGestao) {
             $gestaoDao->update($gestao);
             internacaoEditarDebugLog('GESTAO update ok id_int=' . (int)$idInt . ' id_gestao=' . (int)$idGestao . ' evento=' . (string)$gestao->evento_adverso_ges);

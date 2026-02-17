@@ -16,13 +16,19 @@ final class PermissionDAO
     private const COL_UID      = 'id_usuario';
     private const COL_NAME     = 'usuario_user';
     private const COL_EMAIL    = 'email_user';
+    private const COL_CARGO    = 'cargo_user';
 
     private const T_PERMS      = 'tb_user_permission';
     private const COL_P_UID    = 'user_id';
+    private const COL_VIEW     = 'can_view';
     private const COL_CREATE   = 'can_create';
     private const COL_EDIT     = 'can_edit';
     private const COL_DELETE   = 'can_delete';
+    private const COL_DISCHARGE = 'can_discharge';
+    private const COL_CLOSE_MANAGEMENT = 'can_close_management';
+    private const COL_GENERATE_PDF = 'can_generate_pdf';
     private const COL_UPDATED  = 'updated_at';
+    private static bool $schemaEnsured = false;
 
     public function __construct(PDO $conn, string $baseUrl)
     {
@@ -32,6 +38,10 @@ final class PermissionDAO
         // PDO em modo seguro (caso não esteja no bootstrap)
         $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $this->conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+        if (!self::$schemaEnsured) {
+            $this->ensurePermissionColumns();
+            self::$schemaEnsured = true;
+        }
     }
 
     /* ========== READS ========== */
@@ -44,9 +54,14 @@ final class PermissionDAO
                 u." . self::COL_UID . "      AS id_user,
                 u." . self::COL_NAME . "     AS nome,
                 u." . self::COL_EMAIL . "    AS email,
+                u." . self::COL_CARGO . "    AS cargo,
+                IFNULL(p." . self::COL_VIEW . ",   1) AS " . self::COL_VIEW . ",
                 IFNULL(p." . self::COL_CREATE . ", 0) AS " . self::COL_CREATE . ",
                 IFNULL(p." . self::COL_EDIT . ",   0) AS " . self::COL_EDIT . ",
                 IFNULL(p." . self::COL_DELETE . ", 0) AS " . self::COL_DELETE . ",
+                IFNULL(p." . self::COL_DISCHARGE . ", 0) AS " . self::COL_DISCHARGE . ",
+                IFNULL(p." . self::COL_CLOSE_MANAGEMENT . ", 0) AS " . self::COL_CLOSE_MANAGEMENT . ",
+                IFNULL(p." . self::COL_GENERATE_PDF . ", 0) AS " . self::COL_GENERATE_PDF . ",
                 p." . self::COL_UPDATED . "        AS " . self::COL_UPDATED . "
             FROM " . self::T_USERS . " u
             LEFT JOIN " . self::T_PERMS . " p
@@ -60,7 +75,9 @@ final class PermissionDAO
     /** Retorna Permission de 1 usuário (ou zeros se não houver linha) */
     public function getByUser(int $userId): Permission
     {
-        $sql = "SELECT " . self::COL_CREATE . ", " . self::COL_EDIT . ", " . self::COL_DELETE . ", " . self::COL_UPDATED . "
+        $sql = "SELECT " . self::COL_VIEW . ", " . self::COL_CREATE . ", " . self::COL_EDIT . ", " . self::COL_DELETE . ",
+                       " . self::COL_DISCHARGE . ", " . self::COL_CLOSE_MANAGEMENT . ", " . self::COL_GENERATE_PDF . ",
+                       " . self::COL_UPDATED . "
                 FROM " . self::T_PERMS . "
                 WHERE " . self::COL_P_UID . " = :uid";
         $st  = $this->conn->prepare($sql);
@@ -69,9 +86,13 @@ final class PermissionDAO
 
         $p = new Permission();
         $p->user_id    = $userId;
+        $p->can_view   = isset($row[self::COL_VIEW])   ? (int)$row[self::COL_VIEW]   : 1;
         $p->can_create = isset($row[self::COL_CREATE]) ? (int)$row[self::COL_CREATE] : 0;
         $p->can_edit   = isset($row[self::COL_EDIT])   ? (int)$row[self::COL_EDIT]   : 0;
         $p->can_delete = isset($row[self::COL_DELETE]) ? (int)$row[self::COL_DELETE] : 0;
+        $p->can_discharge = isset($row[self::COL_DISCHARGE]) ? (int)$row[self::COL_DISCHARGE] : 0;
+        $p->can_close_management = isset($row[self::COL_CLOSE_MANAGEMENT]) ? (int)$row[self::COL_CLOSE_MANAGEMENT] : 0;
+        $p->can_generate_pdf = isset($row[self::COL_GENERATE_PDF]) ? (int)$row[self::COL_GENERATE_PDF] : 0;
         $p->updated_at = $row[self::COL_UPDATED] ?? null;
         return $p;
     }
@@ -122,25 +143,38 @@ final class PermissionDAO
         $this->conn->beginTransaction();
         try {
             $sql = "INSERT INTO " . self::T_PERMS . "
-                        (" . self::COL_P_UID . ", " . self::COL_CREATE . ", " . self::COL_EDIT . ", " . self::COL_DELETE . ")
-                    VALUES (:uid,:c,:e,:d)
+                        (" . self::COL_P_UID . ", " . self::COL_VIEW . ", " . self::COL_CREATE . ", " . self::COL_EDIT . ", " . self::COL_DELETE . ",
+                         " . self::COL_DISCHARGE . ", " . self::COL_CLOSE_MANAGEMENT . ", " . self::COL_GENERATE_PDF . ")
+                    VALUES (:uid,:v,:c,:e,:d,:dis,:cm,:pdf)
                     ON DUPLICATE KEY UPDATE
+                        " . self::COL_VIEW . "   = VALUES(" . self::COL_VIEW . "),
                         " . self::COL_CREATE . " = VALUES(" . self::COL_CREATE . "),
                         " . self::COL_EDIT . "   = VALUES(" . self::COL_EDIT . "),
-                        " . self::COL_DELETE . " = VALUES(" . self::COL_DELETE . ")";
+                        " . self::COL_DELETE . " = VALUES(" . self::COL_DELETE . "),
+                        " . self::COL_DISCHARGE . " = VALUES(" . self::COL_DISCHARGE . "),
+                        " . self::COL_CLOSE_MANAGEMENT . " = VALUES(" . self::COL_CLOSE_MANAGEMENT . "),
+                        " . self::COL_GENERATE_PDF . " = VALUES(" . self::COL_GENERATE_PDF . ")";
             $up = $this->conn->prepare($sql);
 
             foreach ($valid as $uid) {
                 $flags = isset($permMatrix[$uid]) && is_array($permMatrix[$uid]) ? $permMatrix[$uid] : array();
+                $v = !empty($flags['view'])         && (string)$flags['view']         === '1';
                 $c = !empty($flags['create']) && (string)$flags['create'] === '1';
                 $e = !empty($flags['edit'])   && (string)$flags['edit']   === '1';
                 $d = !empty($flags['delete']) && (string)$flags['delete'] === '1';
+                $dis = !empty($flags['discharge']) && (string)$flags['discharge'] === '1';
+                $cm  = !empty($flags['close_management']) && (string)$flags['close_management'] === '1';
+                $pdf = !empty($flags['generate_pdf']) && (string)$flags['generate_pdf'] === '1';
 
                 $up->execute(array(
                     ':uid' => (int)$uid,
+                    ':v'   => $v ? 1 : 0,
                     ':c'   => $c ? 1 : 0,
                     ':e'   => $e ? 1 : 0,
                     ':d'   => $d ? 1 : 0,
+                    ':dis' => $dis ? 1 : 0,
+                    ':cm'  => $cm ? 1 : 0,
+                    ':pdf' => $pdf ? 1 : 0,
                 ));
             }
             $this->conn->commit();
@@ -156,10 +190,18 @@ final class PermissionDAO
         $a = strtolower($action);
         if ($a === 'create') {
             $col = self::COL_CREATE;
+        } elseif ($a === 'view' || $a === 'visualizar') {
+            $col = self::COL_VIEW;
         } elseif ($a === 'edit') {
             $col = self::COL_EDIT;
         } elseif ($a === 'delete') {
             $col = self::COL_DELETE;
+        } elseif (in_array($a, ['discharge', 'dar_alta', 'alta'], true)) {
+            $col = self::COL_DISCHARGE;
+        } elseif (in_array($a, ['close_management', 'fechar_gestao', 'close_gestao'], true)) {
+            $col = self::COL_CLOSE_MANAGEMENT;
+        } elseif (in_array($a, ['generate_pdf', 'gerar_pdf', 'pdf'], true)) {
+            $col = self::COL_GENERATE_PDF;
         } else {
             return false;
         }
@@ -211,5 +253,33 @@ final class PermissionDAO
         $st->execute();
         $cols = $st->fetchAll(PDO::FETCH_COLUMN);
         return $cols ? array_map('intval', $cols) : array();
+    }
+
+    private function ensurePermissionColumns(): void
+    {
+        try {
+            $st = $this->conn->query("SHOW COLUMNS FROM " . self::T_PERMS);
+            $cols = $st ? $st->fetchAll(PDO::FETCH_COLUMN) : [];
+            $has = array_fill_keys(array_map('strtolower', $cols ?: []), true);
+
+            $toAdd = [];
+            if (!isset($has[self::COL_VIEW])) {
+                $toAdd[] = "ADD COLUMN " . self::COL_VIEW . " TINYINT(1) NOT NULL DEFAULT 1 AFTER " . self::COL_P_UID;
+            }
+            if (!isset($has[self::COL_DISCHARGE])) {
+                $toAdd[] = "ADD COLUMN " . self::COL_DISCHARGE . " TINYINT(1) NOT NULL DEFAULT 0 AFTER " . self::COL_DELETE;
+            }
+            if (!isset($has[self::COL_CLOSE_MANAGEMENT])) {
+                $toAdd[] = "ADD COLUMN " . self::COL_CLOSE_MANAGEMENT . " TINYINT(1) NOT NULL DEFAULT 0 AFTER " . self::COL_DISCHARGE;
+            }
+            if (!isset($has[self::COL_GENERATE_PDF])) {
+                $toAdd[] = "ADD COLUMN " . self::COL_GENERATE_PDF . " TINYINT(1) NOT NULL DEFAULT 0 AFTER " . self::COL_CLOSE_MANAGEMENT;
+            }
+            if ($toAdd) {
+                $this->conn->exec("ALTER TABLE " . self::T_PERMS . " " . implode(", ", $toAdd));
+            }
+        } catch (Throwable $e) {
+            error_log('[PERMISSION_DAO][SCHEMA] ' . $e->getMessage());
+        }
     }
 }

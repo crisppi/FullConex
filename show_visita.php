@@ -1,7 +1,8 @@
 <?php
 include_once("check_logado.php");
-include_once("templates/header.php");
 include_once("globals.php"); // $conn, $BASE_URL
+Gate::enforceAction($conn, $BASE_URL, 'view', 'Você não tem permissão para visualizar este registro.');
+include_once("templates/header.php");
 
 include_once("models/message.php");
 include_once("models/visita.php");
