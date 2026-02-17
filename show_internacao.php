@@ -493,6 +493,29 @@ usort($neg_filtered, function ($a, $b) {
     $db = strtotime((string)($b['data_fim_neg'] ?? ($b['data_inicio_neg'] ?? '')));
     return $db <=> $da;
 });
+
+$internacaoEncerrada = !empty($altaDate) && (string)$altaDate !== '0000-00-00';
+$statusInternacao = $internacaoEncerrada ? 'Alta' : 'Internado';
+$statusInternacaoDetalhe = $internacaoEncerrada ? ('em ' . fmtDateAny($altaDate)) : 'em curso';
+
+$diasInternado = null;
+if ($internStartTs && $internEndTs && $internEndTs >= $internStartTs) {
+    $diasInternado = (int)floor(($internEndTs - $internStartTs) / 86400) + 1;
+}
+
+$pendencias = [];
+if (!empty($pr_pendente_label)) {
+    $pendencias[] = 'Período de prorrogação em aberto';
+}
+if (empty($visitas_norm)) {
+    $pendencias[] = 'Nenhuma visita registrada';
+}
+$pendenciasCount = count($pendencias);
+$pendenciasTitle = $pendencias ? implode(' • ', $pendencias) : 'Sem pendências operacionais detectadas';
+
+$novaVisitaUrl = $BASE_URL . 'cad_visita.php?id_internacao=' . (int)$id_internacao;
+$editarInternacaoUrl = $BASE_URL . 'edit_internacao.php?id_internacao=' . (int)$id_internacao;
+$gerarAltaUrl = $BASE_URL . 'edit_alta.php?type=alta&id_internacao=' . (int)$id_internacao;
 ?>
 
 <div id="main-container" class="container-fluid py-3">
@@ -511,6 +534,30 @@ usort($neg_filtered, function ($a, $b) {
                             <span>•</span>
                             <span><i class="fa-regular fa-calendar me-1"></i>Data da internação: <?= e($data_intern_format) ?></span>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-3">
+            <div class="card-body py-2 px-3">
+                <div class="ux-summary-strip">
+                    <div class="ux-summary-chip">
+                        <span class="ux-chip-label">Status</span>
+                        <strong class="ux-chip-value"><?= e($statusInternacao) ?></strong>
+                        <span class="ux-chip-sub"><?= e($statusInternacaoDetalhe) ?></span>
+                    </div>
+                    <div class="ux-summary-chip">
+                        <span class="ux-chip-label">Dias internado</span>
+                        <strong class="ux-chip-value"><?= $diasInternado !== null ? (int)$diasInternado : '-' ?></strong>
+                    </div>
+                    <div class="ux-summary-chip">
+                        <span class="ux-chip-label">Prorrogação</span>
+                        <strong class="ux-chip-value"><?= !empty($pr_pendente_label) ? 'Em aberto' : 'Coberta' ?></strong>
+                    </div>
+                    <div class="ux-summary-chip" title="<?= e($pendenciasTitle) ?>">
+                        <span class="ux-chip-label">Pendências</span>
+                        <strong class="ux-chip-value"><?= (int)$pendenciasCount ?></strong>
                     </div>
                 </div>
             </div>
@@ -574,19 +621,25 @@ usort($neg_filtered, function ($a, $b) {
                         </li>
                     </ul>
 
-                    <div class="d-flex gap-2">
-                        <?php if (!$isGestorSeguradora) { ?>
-                            <button type="button"
-                                class="btn btn-sm rounded-pill text-white shadow-sm d-inline-flex align-items-center"
-                                style="background-color: #5e2363; border-color: #5e2363;"
-                                onclick="window.location.href='<?= $BASE_URL ?>cad_visita.php?id_internacao=<?= (int)$id_internacao ?>'">
-                                <i class="fa-solid fa-plus me-2"></i>Nova Visita
-                            </button>
-                        <?php } ?>
+                </div>
 
+                <div class="ux-actions-sticky mb-3">
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        <?php if (!$isGestorSeguradora): ?>
+                            <a href="<?= e($novaVisitaUrl) ?>" class="btn btn-sm text-white shadow-sm"
+                                style="background-color:#5e2363;border-color:#5e2363;">
+                                <i class="fa-solid fa-plus me-1"></i>Nova Visita
+                            </a>
+                            <a href="<?= e($editarInternacaoUrl) ?>" class="btn btn-sm btn-outline-secondary shadow-sm">
+                                <i class="fa-solid fa-pen-to-square me-1"></i>Editar internação
+                            </a>
+                            <a href="<?= e($gerarAltaUrl) ?>" class="btn btn-sm btn-outline-danger shadow-sm">
+                                <i class="fa-solid fa-file-medical me-1"></i>Gerar alta
+                            </a>
+                        <?php endif; ?>
                         <a href="<?= !empty($_SERVER['HTTP_REFERER']) ? 'javascript:history.back()' : $BASE_URL . 'list_intenacao.php' ?>"
-                            class="btn btn-ghost-brand btn-sm rounded-pill shadow-sm d-inline-flex align-items-center">
-                            <i class="fa-solid fa-arrow-left me-2"></i>Voltar
+                            class="btn btn-ghost-brand btn-sm shadow-sm">
+                            <i class="fa-solid fa-arrow-left me-1"></i>Voltar
                         </a>
                     </div>
                 </div>
@@ -1064,8 +1117,9 @@ usort($neg_filtered, function ($a, $b) {
                                         </a>
                                     <?php endif; ?>
                                 </div>
-                                <form method="get" action="<?= e($_SERVER['PHP_SELF']) ?>#prorrog" class="row g-2 align-items-end mb-3">
+                                <form method="get" action="<?= e($_SERVER['PHP_SELF']) ?>#prorrog" class="row g-2 align-items-end mb-3 js-period-form" data-start-field="pr_ini" data-end-field="pr_fim">
                                     <input type="hidden" name="id_internacao" value="<?= e($id_internacao) ?>">
+                                    <input type="hidden" name="aba" value="prorrog">
                                     <div class="col-sm-4 col-md-3">
                                         <label class="form-label small text-muted">Início</label>
                                         <input type="date" name="pr_ini" value="<?= e($pr_ini ?? $pr_ini_raw) ?>" class="form-control form-control-sm">
@@ -1074,17 +1128,24 @@ usort($neg_filtered, function ($a, $b) {
                                         <label class="form-label small text-muted">Fim</label>
                                         <input type="date" name="pr_fim" value="<?= e($pr_fim ?? $pr_fim_raw) ?>" class="form-control form-control-sm">
                                     </div>
+                                    <div class="col-12 col-md-auto">
+                                        <div class="btn-group btn-group-sm" role="group" aria-label="Presets de período">
+                                            <button type="button" class="btn btn-outline-secondary" data-period="today">Hoje</button>
+                                            <button type="button" class="btn btn-outline-secondary" data-period="7d">7 dias</button>
+                                            <button type="button" class="btn btn-outline-secondary" data-period="30d">30 dias</button>
+                                        </div>
+                                    </div>
                                     <div class="col-auto">
                                         <button class="btn btn-sm btn-primary" style="background:#5e2363;border-color:#5e2363;">Filtrar</button>
                                     </div>
                                     <div class="col-auto">
-                                        <a class="btn btn-sm btn-outline-secondary" href="<?= e($_SERVER['PHP_SELF']) . '?id_internacao=' . urlencode((string)$id_internacao) ?>#prorrog">Limpar</a>
+                                        <a class="btn btn-sm btn-outline-secondary" href="<?= e($_SERVER['PHP_SELF']) . '?id_internacao=' . urlencode((string)$id_internacao) . '&aba=prorrog' ?>#prorrog">Limpar</a>
                                     </div>
                                 </form>
 
                                 <?php if (!empty($pr_filtered)): ?>
-                                    <div class="table-responsive">
-                                        <table class="table table-sm align-middle mb-2">
+                                    <div class="table-responsive ux-table-wrap">
+                                        <table class="table table-sm align-middle mb-2 ux-data-table">
                                             <tbody>
                                                 <tr class="table-light text-uppercase small fw-semibold">
                                                     <td>Acomodação</td>
@@ -1137,8 +1198,9 @@ usort($neg_filtered, function ($a, $b) {
                                     </a>
                                 </div>
 
-                                <form method="get" action="<?= e($_SERVER['PHP_SELF']) ?>#tuss" class="row g-2 align-items-end mb-3">
+                                <form method="get" action="<?= e($_SERVER['PHP_SELF']) ?>#tuss" class="row g-2 align-items-end mb-3 js-period-form" data-start-field="tuss_ini" data-end-field="tuss_fim">
                                     <input type="hidden" name="id_internacao" value="<?= e($id_internacao) ?>">
+                                    <input type="hidden" name="aba" value="tuss">
                                     <div class="col-sm-4 col-md-3">
                                         <label class="form-label small text-muted">Realização - Início</label>
                                         <input type="date" name="tuss_ini" value="<?= e($tuss_ini ?? $tuss_ini_raw) ?>" class="form-control form-control-sm">
@@ -1147,17 +1209,24 @@ usort($neg_filtered, function ($a, $b) {
                                         <label class="form-label small text-muted">Realização - Fim</label>
                                         <input type="date" name="tuss_fim" value="<?= e($tuss_fim ?? $tuss_fim_raw) ?>" class="form-control form-control-sm">
                                     </div>
+                                    <div class="col-12 col-md-auto">
+                                        <div class="btn-group btn-group-sm" role="group" aria-label="Presets de período">
+                                            <button type="button" class="btn btn-outline-secondary" data-period="today">Hoje</button>
+                                            <button type="button" class="btn btn-outline-secondary" data-period="7d">7 dias</button>
+                                            <button type="button" class="btn btn-outline-secondary" data-period="30d">30 dias</button>
+                                        </div>
+                                    </div>
                                     <div class="col-auto">
                                         <button class="btn btn-sm btn-primary" style="background:#5e2363;border-color:#5e2363;">Filtrar</button>
                                     </div>
                                     <div class="col-auto">
-                                        <a class="btn btn-sm btn-outline-secondary" href="<?= e($_SERVER['PHP_SELF']) . '?id_internacao=' . urlencode((string)$id_internacao) ?>#tuss">Limpar</a>
+                                        <a class="btn btn-sm btn-outline-secondary" href="<?= e($_SERVER['PHP_SELF']) . '?id_internacao=' . urlencode((string)$id_internacao) . '&aba=tuss' ?>#tuss">Limpar</a>
                                     </div>
                                 </form>
 
                                 <?php if (!empty($tuss_filtered)): ?>
-                                    <div class="table-responsive">
-                                        <table class="table table-sm align-middle mb-2">
+                                    <div class="table-responsive ux-table-wrap">
+                                        <table class="table table-sm align-middle mb-2 ux-data-table">
                                             <tbody>
                                                 <tr class="table-light text-uppercase small fw-semibold">
                                                     <td style="min-width:110px;">Código</td>
@@ -1216,8 +1285,9 @@ usort($neg_filtered, function ($a, $b) {
                                     </a>
                                 </div>
 
-                                <form method="get" action="<?= e($_SERVER['PHP_SELF']) ?>#neg" class="row g-2 align-items-end mb-3">
+                                <form method="get" action="<?= e($_SERVER['PHP_SELF']) ?>#neg" class="row g-2 align-items-end mb-3 js-period-form" data-start-field="neg_ini" data-end-field="neg_fim">
                                     <input type="hidden" name="id_internacao" value="<?= e($id_internacao) ?>">
+                                    <input type="hidden" name="aba" value="neg">
                                     <div class="col-sm-4 col-md-3">
                                         <label class="form-label small text-muted">Início</label>
                                         <input type="date" name="neg_ini" value="<?= e($neg_ini ?? $neg_ini_raw) ?>" class="form-control form-control-sm">
@@ -1226,17 +1296,24 @@ usort($neg_filtered, function ($a, $b) {
                                         <label class="form-label small text-muted">Fim</label>
                                         <input type="date" name="neg_fim" value="<?= e($neg_fim ?? $neg_fim_raw) ?>" class="form-control form-control-sm">
                                     </div>
+                                    <div class="col-12 col-md-auto">
+                                        <div class="btn-group btn-group-sm" role="group" aria-label="Presets de período">
+                                            <button type="button" class="btn btn-outline-secondary" data-period="today">Hoje</button>
+                                            <button type="button" class="btn btn-outline-secondary" data-period="7d">7 dias</button>
+                                            <button type="button" class="btn btn-outline-secondary" data-period="30d">30 dias</button>
+                                        </div>
+                                    </div>
                                     <div class="col-auto">
                                         <button class="btn btn-sm btn-primary" style="background:#5e2363;border-color:#5e2363;">Filtrar</button>
                                     </div>
                                     <div class="col-auto">
-                                        <a class="btn btn-sm btn-outline-secondary" href="<?= e($_SERVER['PHP_SELF']) . '?id_internacao=' . urlencode((string)$id_internacao) ?>#neg">Limpar</a>
+                                        <a class="btn btn-sm btn-outline-secondary" href="<?= e($_SERVER['PHP_SELF']) . '?id_internacao=' . urlencode((string)$id_internacao) . '&aba=neg' ?>#neg">Limpar</a>
                                     </div>
                                 </form>
 
                                 <?php if (!empty($neg_filtered)): ?>
-                                    <div class="table-responsive">
-                                        <table class="table table-sm align-middle mb-2">
+                                    <div class="table-responsive ux-table-wrap">
+                                        <table class="table table-sm align-middle mb-2 ux-data-table">
                                             <tbody>
                                                 <tr class="table-light text-uppercase small fw-semibold">
                                                     <td style="min-width:140px;">Tipo</td>
@@ -1288,6 +1365,77 @@ usort($neg_filtered, function ($a, $b) {
 
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var tabMap = {
+            resumo: 'resumo',
+            visitas: 'visitas',
+            prorrog: 'prorrog',
+            tuss: 'tuss',
+            neg: 'neg'
+        };
+        document.querySelectorAll('#internTabs button[data-bs-toggle="pill"]').forEach(function(tabBtn) {
+            tabBtn.addEventListener('shown.bs.tab', function(ev) {
+                var target = (ev.target.getAttribute('data-bs-target') || '').replace('#', '');
+                var aba = tabMap[target] || target;
+                if (!aba) return;
+                var y = window.scrollY || window.pageYOffset || 0;
+                var params = new URLSearchParams(window.location.search);
+                params.set('aba', aba);
+                var query = params.toString();
+                var nextUrl = window.location.pathname + (query ? ('?' + query) : '') + '#' + target;
+                history.replaceState(null, '', nextUrl);
+                window.scrollTo(0, y);
+            });
+        });
+
+        function formatYmd(dateObj) {
+            var y = dateObj.getFullYear();
+            var m = String(dateObj.getMonth() + 1).padStart(2, '0');
+            var d = String(dateObj.getDate()).padStart(2, '0');
+            return y + '-' + m + '-' + d;
+        }
+
+        document.querySelectorAll('.js-period-form').forEach(function(form) {
+            form.addEventListener('click', function(ev) {
+                var btn = ev.target.closest('button[data-period]');
+                if (!btn) return;
+                ev.preventDefault();
+                var startField = form.getAttribute('data-start-field');
+                var endField = form.getAttribute('data-end-field');
+                if (!startField || !endField) return;
+
+                var ini = form.querySelector('input[name="' + startField + '"]');
+                var fim = form.querySelector('input[name="' + endField + '"]');
+                if (!ini || !fim) return;
+
+                var now = new Date();
+                now.setHours(0, 0, 0, 0);
+                var start = new Date(now.getTime());
+                var period = btn.getAttribute('data-period');
+
+                if (period === 'today') {
+                    // mantém start = hoje
+                } else if (period === '7d') {
+                    start.setDate(start.getDate() - 6);
+                } else if (period === '30d') {
+                    start.setDate(start.getDate() - 29);
+                } else {
+                    return;
+                }
+
+                ini.value = formatYmd(start);
+                fim.value = formatYmd(now);
+                if (typeof form.requestSubmit === 'function') {
+                    form.requestSubmit();
+                } else {
+                    form.submit();
+                }
+            });
+        });
+    });
+</script>
 
 <?php if (!empty($_GET['recent_limit']) || !empty($_GET['recent_order'])): ?>
     <script>
@@ -1494,11 +1642,118 @@ usort($neg_filtered, function ($a, $b) {
         color: #5e2363
     }
 
+    .ux-summary-strip {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(180px, 1fr));
+        gap: 10px;
+    }
+
+    .ux-summary-chip {
+        border: 1px solid #eadcf3;
+        background: #fbf7fe;
+        border-radius: 12px;
+        padding: 8px 10px;
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .ux-chip-label {
+        font-size: .75rem;
+        letter-spacing: .02em;
+        color: #6b7280;
+        text-transform: uppercase;
+    }
+
+    .ux-chip-value {
+        color: #5e2363;
+        font-size: .95rem;
+        font-weight: 700;
+    }
+
+    .ux-chip-sub {
+        color: #6b7280;
+        font-size: .8rem;
+    }
+
+    .ux-actions-sticky {
+        position: sticky;
+        top: 68px;
+        z-index: 10;
+        background: #fff;
+        border: 1px solid #ece7f1;
+        border-radius: 12px;
+        padding: 10px;
+    }
+
     .ov-card .ov-head {
         display: flex;
         align-items: center;
         gap: .5rem;
         margin-bottom: .5rem
+    }
+
+    #main-container .ov-card {
+        border: 1px solid #ede7f3;
+        border-radius: 14px;
+    }
+
+    #main-container .ov-card .card-body {
+        padding: 1rem 1.1rem;
+    }
+
+    #main-container .ov-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #2b2f36;
+    }
+
+    #main-container .btn-sm {
+        min-height: 34px;
+        padding: 0.33rem 0.78rem;
+        font-weight: 600;
+        line-height: 1.2;
+    }
+
+    #main-container .form-label.small {
+        font-size: .78rem;
+        font-weight: 600;
+        color: #667085 !important;
+        margin-bottom: 0.25rem;
+    }
+
+    .ux-table-wrap {
+        border: 1px solid #ece7f1;
+        border-radius: 12px;
+        overflow: auto;
+        background: #fff;
+    }
+
+    .ux-data-table {
+        margin-bottom: 0 !important;
+    }
+
+    .ux-data-table tbody tr.table-light td {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background: #f6f2fa;
+        border-bottom: 1px solid #e7dff0;
+    }
+
+    .ux-data-table tbody tr:not(.table-light):nth-child(odd) td {
+        background: #fcfbfe;
+    }
+
+    .ux-data-table tbody tr:not(.table-light):hover td {
+        background: #f4effa;
+    }
+
+    .ux-data-table td {
+        padding-top: 0.58rem;
+        padding-bottom: 0.58rem;
+        vertical-align: middle;
     }
     .ov-head-space {
         display: flex;
@@ -1653,8 +1908,20 @@ usort($neg_filtered, function ($a, $b) {
     }
 
     @media (max-width: 992px) {
+        .ux-summary-strip {
+            grid-template-columns: repeat(2, minmax(140px, 1fr));
+        }
         .modal-ultimas-visitas .ult-vis-header {
             display: none
+        }
+    }
+
+    @media (max-width: 576px) {
+        .ux-summary-strip {
+            grid-template-columns: 1fr;
+        }
+        .ux-actions-sticky {
+            top: 58px;
         }
     }
 
