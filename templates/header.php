@@ -600,10 +600,6 @@ if (!empty($sessionIdUsuario)) {
                                                     class="bi bi-clipboard-check"
                                                     style="font-size: 1rem;margin-right:5px; color: rgb(9,132,227);"></i>
                                                 Lista de altas</a></li>
-                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>list_prorrogacao_pendente.php"><i
-                                                    class="bi bi-hourglass-split"
-                                                    style="font-size: 1rem;margin-right:5px; color: rgb(180, 120, 20);"></i>
-                                                Prorrogações pendentes</a></li>
                                         <li><a class="dropdown-item" href="<?= $BASE_URL ?>censo/lista"><i class="bi bi-book"
                                                     style="font-size: 1rem;margin-right:5px; color: rgb(222, 156, 55);"></i>
                                                 Censo</a></li>
@@ -631,6 +627,10 @@ if (!empty($sessionIdUsuario)) {
                                                     class="bi bi-shield-exclamation"
                                                     style="font-size:  1rem;margin-right:5px; color:#d63384;"></i>
                                                 Internações sem senha</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>list_pendencias_operacionais.php"><i
+                                                    class="bi bi-exclamation-diamond"
+                                                    style="font-size:  1rem;margin-right:5px; color:#fd7e14;"></i>
+                                                Pendências operacionais</a></li>
                                         <li><a class="dropdown-item" href="<?= $BASE_URL ?>negociacoes"><i
                                                     class="bi bi-currency-dollar"
                                                     style="font-size: 1rem;margin-right:5px; color:#0d6efd;"></i>

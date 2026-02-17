@@ -218,54 +218,6 @@ try {
     background: #35bae1;
 }
 
-/* Lista de ações da internação com alinhamento à esquerda */
-.action .dropdown-menu {
-    padding: 8px 0;
-    min-width: 190px;
-    left: auto;
-    right: 0;
-}
-
-.action .dropdown-menu li {
-    margin: 0;
-}
-
-.action .dropdown-menu .btn-default {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    border: none;
-    background: transparent;
-    font-size: 0.95rem;
-    color: #3a3a3a;
-    justify-content: flex-start;
-    text-align: left;
-    padding: 6px 16px;
-}
-
-.action .dropdown-menu .btn-default:hover {
-    background-color: #f4f4f4;
-}
-
-.action .dropdown-menu .btn-default i {
-    margin: 0;
-    min-width: 18px;
-    font-weight: 700;
-}
-
-/* Desktop: abrir menu de acoes ao passar o mouse */
-@media (min-width: 992px) {
-    .action .dropdown:hover > .dropdown-menu {
-        display: block;
-        margin-top: 0;
-    }
-
-    .action .dropdown:hover > .dropdown-toggle {
-        color: #3a184f !important;
-    }
-}
-
 .filter-intel-wrapper {
     border: 1px solid #ebe2f3;
     border-radius: 14px;
@@ -969,7 +921,7 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                                     ?>
                             </td>
 
-                            <td class="action">
+                            <td class="fc-list-action">
                                 <div class="dropdown">
                                     <button class="btn btn-default dropdown-toggle" id="navbarScrollingDropdown"
                                         role="button" data-bs-toggle="dropdown" style="color:#5e2363"

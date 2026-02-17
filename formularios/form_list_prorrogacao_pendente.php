@@ -308,137 +308,40 @@ $baseParams = [
 
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 
-<style>
-.table-filters {
-    overflow-x: auto;
-}
-
-.prorrog-filters-line {
-    display: flex;
-    flex-wrap: nowrap;
-    align-items: center;
-    gap: 6px;
-}
-
-.prorrog-filters-line .filter-item {
-    padding: 2px !important;
-    margin: 0;
-}
-
-.prorrog-filters-line .w-hospital {
-    flex: 1 1 220px;
-    min-width: 180px;
-}
-
-.prorrog-filters-line .w-paciente {
-    flex: 1 1 220px;
-    min-width: 180px;
-}
-
-.prorrog-filters-line .w-seguradora {
-    flex: 1 1 220px;
-    min-width: 180px;
-}
-
-.prorrog-filters-line .w-short {
-    flex: 0 0 120px;
-    min-width: 110px;
-}
-
-.prorrog-filters-line .w-select {
-    flex: 0 0 140px;
-    min-width: 130px;
-}
-
-.prorrog-filters-line .w-limit {
-    flex: 0 0 90px;
-    min-width: 80px;
-}
-
-.prorrog-filters-line .w-date {
-    flex: 0 0 150px;
-    min-width: 140px;
-}
-
-.prorrog-filters-line .w-actions {
-    flex: 0 0 auto;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-@media (max-width: 1200px) {
-    .prorrog-filters-line {
-        flex-wrap: wrap;
-    }
-}
-
-.action .dropdown-menu {
-    padding: 8px 0;
-    min-width: 190px;
-    left: auto;
-    right: 0;
-}
-
-.action .dropdown-menu .btn-default {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    border: none;
-    background: transparent;
-    font-size: 0.95rem;
-    color: #3a3a3a;
-    justify-content: flex-start;
-    text-align: left;
-    padding: 6px 16px;
-}
-
-.action .dropdown-menu .btn-default:hover {
-    background-color: #f4f4f4;
-}
-
-@media (min-width: 992px) {
-    .action .dropdown:hover>.dropdown-menu {
-        display: block;
-    }
-}
-</style>
-
 <div class="container-fluid form_container" style="margin-top:15px;">
     <h4 class="page-title">Prorrogações Pendentes</h4>
     <hr style="margin-top: 5px; margin-bottom: 10px;">
 
     <div class="complete-table">
-        <div class="table-filters">
-            <form method="GET" class="prorrog-filters-line">
-                <div class="filter-item w-hospital">
+        <div class="table-filters fc-list-filters">
+            <form method="GET" class="fc-list-filters-line">
+                <div class="fc-filter-item w-hospital">
                     <input class="form-control form-control-sm" type="text" name="pesquisa_nome"
                         placeholder="Hospital" value="<?= e($pesquisa_nome) ?>">
                 </div>
-                <div class="filter-item w-paciente">
+                <div class="fc-filter-item w-paciente">
                     <input class="form-control form-control-sm" type="text" name="pesquisa_pac"
                         placeholder="Paciente" value="<?= e($pesquisa_pac) ?>">
                 </div>
-                <div class="filter-item w-seguradora">
+                <div class="fc-filter-item w-seguradora">
                     <input class="form-control form-control-sm" type="text" name="pesquisa_seguradora"
                         placeholder="Seguradora" value="<?= e($pesquisa_seguradora) ?>">
                 </div>
-                <div class="filter-item w-short">
+                <div class="fc-filter-item w-short">
                     <input class="form-control form-control-sm" type="text" name="pesquisa_matricula"
                         placeholder="Matrícula" value="<?= e($pesquisa_matricula) ?>">
                 </div>
-                <div class="filter-item w-short">
+                <div class="fc-filter-item w-short">
                     <input class="form-control form-control-sm" type="text" name="senha_int"
                         placeholder="Senha" value="<?= e($senha_int) ?>">
                 </div>
-                <div class="filter-item w-select">
+                <div class="fc-filter-item w-select">
                     <select class="form-control form-control-sm" name="pesqInternado">
                         <option value="s" <?= $pesqInternado === 's' ? 'selected' : '' ?>>Internados</option>
                         <option value="n" <?= $pesqInternado === 'n' ? 'selected' : '' ?>>Não internados</option>
                     </select>
                 </div>
-                <div class="filter-item w-limit">
+                <div class="fc-filter-item w-limit">
                     <select class="form-control form-control-sm" name="limite_pag">
                         <option value="5" <?= $limite == 5 ? 'selected' : '' ?>>5</option>
                         <option value="10" <?= $limite == 10 ? 'selected' : '' ?>>10</option>
@@ -446,15 +349,15 @@ $baseParams = [
                         <option value="50" <?= $limite == 50 ? 'selected' : '' ?>>50</option>
                     </select>
                 </div>
-                <div class="filter-item w-date">
+                <div class="fc-filter-item w-date">
                     <input class="form-control form-control-sm" type="date" name="data_intern_int"
                         value="<?= e($data_intern_int) ?>">
                 </div>
-                <div class="filter-item w-date">
+                <div class="fc-filter-item w-date">
                     <input class="form-control form-control-sm" type="date" name="data_intern_int_max"
                         value="<?= e($data_intern_int_max) ?>">
                 </div>
-                <div class="filter-item w-actions">
+                <div class="fc-filter-item w-actions">
                     <button type="submit" class="btn btn-primary"
                         style="background-color:#5e2363;width:42px;height:32px;border-color:#5e2363">
                         <span class="material-icons" style="margin-left:-3px;margin-top:-2px;">search</span>
@@ -499,7 +402,7 @@ $baseParams = [
                         <td><?= (int)$row['dias_int'] ?></td>
                         <td><?= !empty($row['ultima_visita']) ? e(date('d/m/Y', strtotime($row['ultima_visita']))) : '--' ?></td>
                         <td style="font-weight:600;color:#8a1538;"><?= e($row['periodo_aberto']) ?></td>
-                        <td class="action">
+                        <td class="fc-list-action">
                             <div class="dropdown">
                                 <button class="btn btn-default dropdown-toggle" id="navbarScrollingDropdown"
                                     role="button" data-bs-toggle="dropdown" style="color:#5e2363" aria-expanded="false">

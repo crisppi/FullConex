@@ -844,3 +844,105 @@ input:invalid {
         min-width: 0;
     }
 }
+
+/* Componentes padrao para listagens (filtros + dropdown de acoes) */
+.fc-list-filters {
+    overflow-x: auto;
+}
+
+.fc-list-filters-line {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.fc-list-filters-line .fc-filter-item {
+    padding: 2px !important;
+    margin: 0;
+}
+
+.fc-list-filters-line .w-hospital,
+.fc-list-filters-line .w-paciente,
+.fc-list-filters-line .w-seguradora {
+    flex: 1 1 220px;
+    min-width: 180px;
+}
+
+.fc-list-filters-line .w-short {
+    flex: 0 0 120px;
+    min-width: 110px;
+}
+
+.fc-list-filters-line .w-select {
+    flex: 0 0 140px;
+    min-width: 130px;
+}
+
+.fc-list-filters-line .w-limit {
+    flex: 0 0 90px;
+    min-width: 80px;
+}
+
+.fc-list-filters-line .w-date {
+    flex: 0 0 150px;
+    min-width: 140px;
+}
+
+.fc-list-filters-line .w-actions {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+@media (max-width: 1200px) {
+    .fc-list-filters-line {
+        flex-wrap: wrap;
+    }
+}
+
+.fc-list-action .dropdown-menu {
+    padding: 8px 0;
+    min-width: 190px;
+    left: auto;
+    right: 0;
+}
+
+.fc-list-action .dropdown-menu li {
+    margin: 0;
+}
+
+.fc-list-action .dropdown-menu .btn-default {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: none;
+    background: transparent;
+    font-size: 0.95rem;
+    color: #3a3a3a;
+    justify-content: flex-start;
+    text-align: left;
+    padding: 6px 16px;
+}
+
+.fc-list-action .dropdown-menu .btn-default:hover {
+    background-color: #f4f4f4;
+}
+
+.fc-list-action .dropdown-menu .btn-default i {
+    margin: 0;
+    min-width: 18px;
+    font-weight: 700;
+}
+
+@media (min-width: 992px) {
+    .fc-list-action .dropdown:hover > .dropdown-menu {
+        display: block;
+    }
+
+    .fc-list-action .dropdown:hover > .dropdown-toggle {
+        color: #401742 !important;
+    }
+}
