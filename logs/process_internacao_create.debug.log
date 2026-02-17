@@ -35,3 +35,9 @@
 [2026-02-16 04:21:59] GESTAO create ok id_int=642 evento=s tipo=Complicação pós operatória
 [2026-02-16 04:21:59] END ok id=642
 [2026-02-16 04:22:00] START type=create select_gestao=s evento_adverso_ges= tipo_evento=
+[2026-02-17 04:28:08] START type=create select_gestao= evento_adverso_ges=n tipo_evento=
+[2026-02-17 04:28:08] CREATE internacao ok id=643
+[2026-02-17 04:28:08] VISITA create ok id_int=643 id_visita=682
+[2026-02-17 04:28:08] GESTAO skip id_int=643 select= evento=n tipo=
+[2026-02-17 04:28:08] END ok id=643
+[2026-02-17 04:28:08] START type=create select_gestao= evento_adverso_ges=n tipo_evento=

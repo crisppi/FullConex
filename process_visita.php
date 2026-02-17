@@ -53,6 +53,7 @@ require_once("models/usuario.php");
 require_once("dao/usuarioDao.php");
 
 require_once("models/message.php");
+require_once("utils/flow_logger.php");
 
 $message                = new Message($BASE_URL);
 $userDao                = new UserDAO($conn, $BASE_URL);
@@ -369,8 +370,15 @@ function processProrrogacoesEntries(
 // Roteamento por tipo
 // ======================================================================
 $type = filter_input(INPUT_POST, "type"); // create | update | delete (delete pode vir por GET no seu fluxo)
+$flowCtx = flowLogStart('process_visita', [
+    'type' => $type,
+    'id_visita' => $_POST['id_visita'] ?? $_GET['id_visita'] ?? null,
+    'fk_internacao_vis' => $_POST['fk_internacao_vis'] ?? null,
+    'fk_usuario_vis' => $_POST['fk_usuario_vis'] ?? null
+]);
 
 if ($type === "delete") {
+    flowLog($flowCtx, 'delete.start', 'INFO');
     if (session_status() !== PHP_SESSION_ACTIVE) session_start();
     $idVisitaDelete = toIntOrNull($_POST['id_visita'] ?? $_GET['id_visita'] ?? null);
     $redirectRaw    = strOrNull($_POST['redirect'] ?? $_GET['redirect'] ?? '');
@@ -388,15 +396,18 @@ if ($type === "delete") {
     };
 
     if (!$idVisitaDelete) {
+        flowLog($flowCtx, 'delete.validation', 'WARN', ['error' => 'id_visita_invalido']);
         $respond(['success' => false, 'message' => 'Visita inválida.'], $isAjax);
     }
 
     $visitaAtualObj = $visitaDao->findById($idVisitaDelete);
     if (!$visitaAtualObj) {
+        flowLog($flowCtx, 'delete.validation', 'WARN', ['error' => 'visita_nao_localizada']);
         $respond(['success' => false, 'message' => 'Visita não localizada.'], $isAjax);
     }
     $visitaAtual = get_object_vars($visitaAtualObj);
     if (!empty($visitaAtual['retificado'])) {
+        flowLog($flowCtx, 'delete.validation', 'WARN', ['error' => 'visita_ja_retificada', 'id_visita' => $idVisitaDelete]);
         $respond(['success' => false, 'message' => 'Visita já está desativada.'], $isAjax);
     }
 
@@ -420,6 +431,7 @@ if ($type === "delete") {
             'message'  => 'Visita removida com sucesso.'
         ], $isAjax);
     } catch (Throwable $e) {
+        flowLog($flowCtx, 'delete.error', 'ERROR', ['error' => $e->getMessage(), 'id_visita' => $idVisitaDelete]);
         error_log("Erro ao remover visita {$idVisitaDelete}: " . $e->getMessage());
         $respond(['success' => false, 'message' => 'Não foi possível remover a visita.'], $isAjax);
     }
@@ -429,6 +441,7 @@ if ($type === "delete") {
 // CREATE
 // ----------------------------------------------------------------------
 if ($type === "create") {
+    flowLog($flowCtx, 'create.start', 'INFO');
 
     // ------------------- Campos principais da visita -------------------
     $fk_internacao_vis           = toIntOrNull($_POST['fk_internacao_vis'] ?? null);
@@ -477,6 +490,7 @@ if ($type === "create") {
 
     // ------------------- Sanidade mínima ------------------------------
     if (!$fk_internacao_vis) {
+        flowLog($flowCtx, 'create.validation', 'WARN', ['error' => 'fk_internacao_vis_invalido']);
         if ($__DEBUG) {
             dbg("ERRO: fk_internacao_vis ausente ou inválido");
             exit;
@@ -485,6 +499,7 @@ if ($type === "create") {
         exit;
     }
     if (!$data_visita_vis) {
+        flowLog($flowCtx, 'create.validation', 'WARN', ['error' => 'data_visita_vis_vazia']);
         if ($__DEBUG) {
             dbg("ERRO: data_visita_vis vazia");
             exit;
@@ -546,7 +561,12 @@ if ($type === "create") {
             processGestaoData($select_gestao ?? '', $gestaoPostData, $id_visita_edit, $fk_internacao_vis, $gestaoDao, true);
             processUtiData($select_uti ?? '', $utiPostData, $id_visita_edit, $fk_internacao_vis, $utiDao, true);
             processProrrogacoesEntries($select_prorrog ?? '', $prorrogacoesJsonRaw, $id_visita_edit, $fk_internacao_vis, $prorrogacaoDao, true);
+            flowLog($flowCtx, 'create.edit_mode.finish', 'INFO', [
+                'id_visita' => $id_visita_edit,
+                'fk_internacao_vis' => $fk_internacao_vis
+            ]);
         } catch (Throwable $e) {
+            flowLog($flowCtx, 'create.edit_mode.error', 'ERROR', ['error' => $e->getMessage(), 'id_visita' => $id_visita_edit]);
             error_log("Erro ao atualizar visita: " . $e->getMessage());
             if ($__DEBUG) {
                 dbg("ERRO update visita", $e->getMessage());
@@ -595,8 +615,13 @@ if ($type === "create") {
         processGestaoData($select_gestao ?? '', $gestaoPostData, $novoIdVisita, $fk_internacao_vis, $gestaoDao);
         processUtiData($select_uti ?? '', $utiPostData, $novoIdVisita, $fk_internacao_vis, $utiDao);
         processProrrogacoesEntries($select_prorrog ?? '', $prorrogacoesJsonRaw, $novoIdVisita, $fk_internacao_vis, $prorrogacaoDao);
+        flowLog($flowCtx, 'create.finish', 'INFO', [
+            'id_visita' => $novoIdVisita,
+            'fk_internacao_vis' => $fk_internacao_vis
+        ]);
         if ($__DEBUG) dbg("VISITA criada", $visita);
     } catch (Throwable $e) {
+        flowLog($flowCtx, 'create.error', 'ERROR', ['error' => $e->getMessage(), 'fk_internacao_vis' => $fk_internacao_vis]);
         error_log("Erro ao criar visita: " . $e->getMessage());
         if ($__DEBUG) {
             dbg("ERRO create visita", $e->getMessage());
@@ -639,6 +664,7 @@ if ($type === "create") {
 // UPDATE (ajuste simples como no seu original)
 // ----------------------------------------------------------------------
 if ($type === "update") {
+    flowLog($flowCtx, 'update.start', 'INFO');
 
     try {
         $id_visita    = toIntOrNull($_POST['id_visita'] ?? null);
@@ -673,6 +699,7 @@ if ($type === "update") {
         $visita['valor_diaria'] = $valor_diaria;
 
         $visitaDao->update($visita);
+        flowLog($flowCtx, 'update.finish', 'INFO', ['id_visita' => $id_visita]);
 
         if ($__DEBUG) {
             dbg("UPDATE ok", $visita);
@@ -682,6 +709,7 @@ if ($type === "update") {
         include_once('list_visita.php');
         exit;
     } catch (Throwable $e) {
+        flowLog($flowCtx, 'update.error', 'ERROR', ['error' => $e->getMessage()]);
         error_log("UPDATE visita erro: " . $e->getMessage());
         if ($__DEBUG) {
             dbg("UPDATE EXCEPTION", $e->getMessage());
@@ -696,6 +724,7 @@ if ($type === "update") {
 // DELETE (no seu fluxo vinha por GET id_visita)
 // ----------------------------------------------------------------------
 if ($type === "delete") {
+    flowLog($flowCtx, 'delete.legacy.start', 'INFO');
 
     try {
         $id_visita = toIntOrNull($_GET['id_visita'] ?? null);
@@ -712,6 +741,7 @@ if ($type === "delete") {
         $visita = $visitaDao->findById($id_visita);
         if ($visita) {
             $visitaDao->destroy($id_visita);
+            flowLog($flowCtx, 'delete.legacy.finish', 'INFO', ['id_visita' => $id_visita]);
 
             if ($__DEBUG) {
                 dbg("DELETE ok", $id_visita);
@@ -729,6 +759,7 @@ if ($type === "delete") {
             exit;
         }
     } catch (Throwable $e) {
+        flowLog($flowCtx, 'delete.legacy.error', 'ERROR', ['error' => $e->getMessage()]);
         error_log("DELETE visita erro: " . $e->getMessage());
         if ($__DEBUG) {
             dbg("DELETE EXCEPTION", $e->getMessage());

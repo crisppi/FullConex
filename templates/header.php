@@ -30,8 +30,11 @@ $canSeeInteligenciaMenu = ($sessionNivel > 0);
 $canSeeHubMenu = $isBiHubOnly;
 $canSeeInternadosMenu = $isBiHubOnly;
 $canSeeGestorListas = $isBiHubOnly;
-$isDiretoria = in_array($normAccess($_SESSION['cargo'] ?? ''), ['diretoria', 'diretor', 'administrador', 'admin', 'board'], true)
-    || in_array($normAccess($_SESSION['nivel'] ?? ''), ['diretoria', 'diretor', 'administrador', 'admin', 'board'], true)
+$normNivelAccess = $normAccess($_SESSION['nivel'] ?? '');
+$isDiretoria = in_array($normCargoAccess, ['diretoria', 'diretor', 'administrador', 'admin', 'board'], true)
+    || (strpos($normCargoAccess, 'diretor') !== false)
+    || (strpos($normCargoAccess, 'diretoria') !== false)
+    || in_array($normNivelAccess, ['diretoria', 'diretor', 'administrador', 'admin', 'board'], true)
     || ($sessionNivel === -1);
 $seguradoraHeaderLogoUrl = null;
 $seguradoraHeaderNome = null;
@@ -619,6 +622,12 @@ if (!empty($sessionIdUsuario)) {
                                                     class="bi bi-postcard-heart"
                                                     style="font-size: 1rem;margin-right:5px; color: rgb(144, 17, 194);"></i>
                                                 Gestão Assistencial</a></li>
+                                        <?php if ($isDiretoria) { ?>
+                                            <li><a class="dropdown-item" href="<?= $BASE_URL ?>inteligencia/logs-usuarios"><i
+                                                        class="bi bi-journal-code"
+                                                        style="font-size: 1rem;margin-right:5px; color:#0d6efd;"></i>
+                                                    Logs por Usuário</a></li>
+                                        <?php } ?>
                                         <li><a class="dropdown-item" href="<?= $BASE_URL ?>internacoes/ciclo"><i
                                                     class="bi bi-postcard-heart"
                                                     style="font-size:  1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
@@ -792,6 +801,12 @@ if (!empty($sessionIdUsuario)) {
                                                     class="bi bi-pencil-square"
                                                     style="font-size: 1rem;margin-right:5px; color:#fb923c;"></i>
                                                 Assistente de Textos</a></li>
+                                        <?php if ($isDiretoria) { ?>
+                                            <li><a class="dropdown-item" href="<?= $BASE_URL ?>inteligencia/logs-usuarios"><i
+                                                        class="bi bi-journal-code"
+                                                        style="font-size: 1rem;margin-right:5px; color:#0d6efd;"></i>
+                                                    Logs por Usuário</a></li>
+                                        <?php } ?>
                                     </ul>
                                 </li>
                             <?php } ?>

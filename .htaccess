@@ -103,6 +103,7 @@ RewriteRule ^inteligencia/insights-explicaveis/?$ explicabilidade_insights.php [
 RewriteRule ^inteligencia/oportunidade-glosa/?$ risco_glosa.php [L,QSA]
 RewriteRule ^inteligencia/clusterizacao-clinica/?$ clusterizacao_clinica.php [L,QSA]
 RewriteRule ^inteligencia/assistente-textos/?$ text_automation.php [L,QSA]
+RewriteRule ^inteligencia/logs-usuarios/?$ inteligencia_logs_usuario.php [L,QSA]
 
 RewriteRule ^pacientes/?$ list_paciente.php [L,QSA]
 RewriteRule ^hospitais/?$ list_hospital.php [L,QSA]

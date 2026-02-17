@@ -43,6 +43,7 @@ require_once("dao/internacaoAntecedenteDao.php");
 
 require_once("models/alta.php");
 require_once("dao/altaDao.php");
+require_once("utils/flow_logger.php");
 
 if (!function_exists('normalizeDateTimeInput')) {
 function normalizeDateTimeInput($value)
@@ -117,8 +118,24 @@ $id_internacao = filter_input(INPUT_POST, "id_internacao");
 $type = filter_input(INPUT_POST, "type");
 $typeGes = filter_input(INPUT_POST, "typeGes");
 
+$flowCtx = flowLogStart('process_internacao', [
+    'type' => $type,
+    'typeGes' => $typeGes,
+    'id_internacao' => $id_internacao,
+    'fk_hospital_int' => $_POST['fk_hospital_int'] ?? null,
+    'fk_paciente_int' => $_POST['fk_paciente_int'] ?? null,
+    'fk_usuario_int' => $_POST['fk_usuario_int'] ?? null
+]);
+
 // CREATE
 if ($type === "create") {
+    flowLog($flowCtx, 'create.start', 'INFO', [
+        'select_gestao' => $_POST['select_gestao'] ?? null,
+        'select_uti' => $_POST['select_uti'] ?? null,
+        'select_prorrog' => $_POST['select_prorrog'] ?? null,
+        'select_negoc' => $_POST['select_negoc'] ?? null
+    ]);
+
     internacaoCreateDebugLog(
         'START type=create'
         . ' select_gestao=' . (string)($_POST['select_gestao'] ?? '')
@@ -129,6 +146,7 @@ if ($type === "create") {
     // Receber os dados dos inputs
     $fk_hospital_int = filter_input(INPUT_POST, "fk_hospital_int");
     if (!$fk_hospital_int) {
+        flowLog($flowCtx, 'create.validation', 'WARN', ['error' => 'hospital_required']);
         echo "hospital_required";
         exit;
     }
@@ -144,11 +162,17 @@ if ($type === "create") {
         $antecedentes = json_decode($jsonAntec, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
             error_log("Erro na decodificação do JSON: " . json_last_error_msg());
+            flowLog($flowCtx, 'create.antecedentes', 'WARN', [
+                'error' => 'json_decode_error',
+                'json_error' => json_last_error_msg()
+            ]);
         } else {
             error_log("JSON recebido: " . $jsonAntec);
+            flowLog($flowCtx, 'create.antecedentes', 'INFO', ['json_status' => 'ok']);
         }
     } else {
         error_log("Nenhum JSON foi recebido.");
+        flowLog($flowCtx, 'create.antecedentes', 'INFO', ['json_status' => 'empty']);
     }
 
     $internado_int = filter_input(INPUT_POST, "internado_int");
@@ -177,10 +201,12 @@ if ($type === "create") {
 
     $senha_int = filter_input(INPUT_POST, "senha_int");
     if ($senha_int && $internacaoDao->senhaExists($senha_int, $id_internacao)) {
+        flowLog($flowCtx, 'create.validation', 'WARN', ['error' => 'senha_duplicada_edicao']);
         echo "senha_duplicada";
         exit;
     }
     if ($senha_int && $internacaoDao->senhaExists($senha_int)) {
+        flowLog($flowCtx, 'create.validation', 'WARN', ['error' => 'senha_duplicada']);
         echo "senha_duplicada";
         exit;
     }
@@ -376,10 +402,15 @@ if ($type === "create") {
 
     $idInternacaoAtiva = $internacaoDao->checkInternAtiva($internacao->fk_paciente_int);
     if ($idInternacaoAtiva && !$isRetroativa) {
+        flowLog($flowCtx, 'create.validation', 'WARN', [
+            'error' => 'paciente_internado',
+            'id_internacao_ativa' => $idInternacaoAtiva
+        ]);
         echo "paciente_internado";
         exit;
     }
     if ($isRetroativa && $internado_int !== 'n') {
+        flowLog($flowCtx, 'create.validation', 'WARN', ['error' => 'retroativa_sem_alta']);
         echo "retroativa_sem_alta";
         exit;
     }
@@ -388,8 +419,10 @@ if ($type === "create") {
     $lastIntern = $internacaoDao->create($internacao);
     if ($lastIntern) {
         error_log("Internação salva com sucesso. Último ID: " . $internacaoDao->findLastId()['0']['id_intern']);
+        flowLog($flowCtx, 'create.internacao.persist', 'INFO', ['status' => 'ok']);
     } else {
         error_log("Erro ao salvar internação.");
+        flowLog($flowCtx, 'create.internacao.persist', 'ERROR', ['status' => 'failed']);
     }
 
     // Usa o último ID da própria conexão para evitar erro de concorrência.
@@ -397,6 +430,7 @@ if ($type === "create") {
     if ($lastId <= 0) {
         $lastId = (int)($internacaoDao->findLastId()['0']['id_intern'] ?? 0);
     }
+    flowLog($flowCtx, 'create.internacao.id', 'INFO', ['id_internacao_novo' => $lastId]);
     internacaoCreateDebugLog('CREATE internacao ok id=' . $lastId);
 
     // Alta automática se internado = 'n'
@@ -710,15 +744,21 @@ if ($type === "create") {
             }
         }
 
+        flowLog($flowCtx, 'create.finish', 'INFO', [
+            'status' => 'ok',
+            'id_internacao' => $lastId
+        ]);
         internacaoCreateDebugLog('END ok id=' . $lastId);
         echo "lancado internacao";
     }
 
 // UPDATE
 if ($type == "update") {
+    flowLog($flowCtx, 'update.start', 'INFO');
     // Receber os dados dos inputs
     $fk_hospital_int = filter_input(INPUT_POST, "fk_hospital_int");
     if (!$fk_hospital_int) {
+        flowLog($flowCtx, 'update.validation', 'WARN', ['error' => 'hospital_required']);
         echo "hospital_required";
         exit;
     }
@@ -924,5 +964,11 @@ if ($type == "update") {
         $tussDao->create($tuss);
     }
 
+    flowLog($flowCtx, 'update.finish', 'INFO', [
+        'status' => 'redirect',
+        'location' => 'internacoes/lista',
+        'type' => 'update',
+        'id_internacao' => $id_internacao
+    ]);
     header("location:internacoes/lista");
 }

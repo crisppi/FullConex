@@ -1,6 +1,7 @@
 <?php
 
 include_once("globals.php");
+require_once(__DIR__ . "/utils/flow_logger.php");
 
 $redirectLogin = $BASE_URL . 'index.php';
 
@@ -102,6 +103,19 @@ $_SESSION['fk_seguradora_user'] = isset($user['fk_seguradora_user'])
     : null;
 unset($_SESSION['login_error']);
 $_SESSION['msg'] = '';
+
+if (function_exists('flowLogStart') && function_exists('flowLog')) {
+    $loginCtx = flowLogStart('auth_login', [
+        'session_user_id' => (int)($_SESSION['id_usuario'] ?? 0),
+        'session_user_name' => (string)($_SESSION['usuario_user'] ?? ''),
+        'email_user' => (string)($_SESSION['email_user'] ?? ''),
+        'nivel' => (int)($_SESSION['nivel'] ?? 0),
+        'cargo' => (string)($_SESSION['cargo'] ?? ''),
+    ]);
+    flowLog($loginCtx, 'login.success', 'INFO', [
+        'target' => ((int)($_SESSION['nivel'] ?? 0) === -1) ? 'list_internacao_cap_fin.php' : 'dashboard',
+    ]);
+}
 
 if (($user['senha_default_user'] ?? 'n') === 's') {
     header('Location: ' . $BASE_URL . 'nova_senha.php');

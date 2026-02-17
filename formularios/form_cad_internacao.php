@@ -1601,6 +1601,10 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
     <div>
         <hr>
         <!-- ... dentro do <form id="myForm"> ... -->
+        <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
+            <small id="autosave-status" class="text-muted">Rascunho automático: ativo</small>
+            <button type="button" id="btn-clear-draft" class="btn btn-sm btn-outline-secondary">Limpar rascunho</button>
+        </div>
 
         <button type="submit" class="btn btn-success btn-lg fixed-submit btn-submit-standard">
             <i class="fa-solid fa-check edit-icon" style="font-size:1rem;margin-right:8px;"></i>
@@ -2557,6 +2561,10 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
 
                 // Sucesso (resposta vazia ou texto padrão)
                 {
+                    if (typeof window.clearInternacaoDraft === 'function') {
+                        window.clearInternacaoDraft('Rascunho limpo após cadastro');
+                    }
+
                     // Increment the reg_int value
                     const regIntInput = $("#RegInt");
                     const currentRegInt = parseInt(regIntInput.val());
@@ -3086,6 +3094,135 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
         cargoSessao: <?= json_encode($cargoSessao ?? '') ?>,
         ultimoReg: <?= (int) $ultimoReg ?>
     });
+
+    (function setupInternacaoDraftAutosave() {
+        const form = document.getElementById('myForm');
+        if (!form || !window.localStorage) return;
+
+        const sessionId = String(window.formInternacaoConfig?.idSessao || 'anon');
+        const key = `fullconex:internacao:draft:v1:${sessionId}`;
+        const statusEl = document.getElementById('autosave-status');
+        const clearBtn = document.getElementById('btn-clear-draft');
+        const ignoredNames = new Set([
+            'type',
+            'timer_int',
+            'id_internacao',
+            'fk_int_tuss',
+            'fk_internacao_uti',
+            'fk_id_int',
+            'fk_internacao_pror',
+            'fk_internacao_ges',
+            'fk_int_det',
+            'fk_int_capeante',
+            'fk_hospital_int',
+            'proximoId_int',
+            'saving_show',
+            'saving'
+        ]);
+
+        let saveTimer = null;
+        let restored = false;
+
+        function setStatus(msg) {
+            if (!statusEl) return;
+            statusEl.textContent = msg;
+        }
+
+        function captureForm() {
+            const data = {};
+            form.querySelectorAll('input[name], select[name], textarea[name]').forEach((el) => {
+                if (!el.name || el.disabled || ignoredNames.has(el.name)) return;
+                if (el.type === 'file') return;
+                if (el.type === 'hidden') return;
+
+                if (el.type === 'checkbox' || el.type === 'radio') {
+                    data[el.name] = el.checked ? (el.value || 'on') : '';
+                    return;
+                }
+                data[el.name] = el.value ?? '';
+            });
+            data.__saved_at = new Date().toISOString();
+            return data;
+        }
+
+        function applyForm(data) {
+            if (!data || typeof data !== 'object') return;
+            Object.keys(data).forEach((name) => {
+                if (name === '__saved_at') return;
+                const nodes = form.querySelectorAll(`[name="${CSS.escape(name)}"]`);
+                if (!nodes.length) return;
+                const value = data[name];
+
+                nodes.forEach((el) => {
+                    if (el.type === 'checkbox' || el.type === 'radio') {
+                        el.checked = String(el.value) === String(value);
+                    } else if (el.type !== 'file') {
+                        el.value = value;
+                    }
+                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+            });
+
+            if (window.jQuery && $.fn.selectpicker) {
+                $(form).find('.selectpicker').selectpicker('refresh');
+            }
+        }
+
+        function saveNow() {
+            try {
+                localStorage.setItem(key, JSON.stringify(captureForm()));
+                setStatus('Rascunho salvo automaticamente');
+            } catch (e) {
+                console.error('Falha ao salvar rascunho:', e);
+                setStatus('Falha ao salvar rascunho');
+            }
+        }
+
+        function scheduleSave() {
+            clearTimeout(saveTimer);
+            saveTimer = setTimeout(saveNow, 400);
+        }
+
+        function clearDraft(customMsg) {
+            try {
+                localStorage.removeItem(key);
+                setStatus(customMsg || 'Rascunho limpo');
+            } catch (e) {
+                console.error('Falha ao limpar rascunho:', e);
+            }
+        }
+
+        form.addEventListener('input', scheduleSave);
+        form.addEventListener('change', scheduleSave);
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function() {
+                clearDraft('Rascunho removido');
+            });
+        }
+
+        const savedRaw = localStorage.getItem(key);
+        if (savedRaw) {
+            try {
+                const saved = JSON.parse(savedRaw);
+                applyForm(saved);
+                restored = true;
+                const ts = saved?.__saved_at ? new Date(saved.__saved_at) : null;
+                if (ts && !Number.isNaN(ts.getTime())) {
+                    const hh = String(ts.getHours()).padStart(2, '0');
+                    const mm = String(ts.getMinutes()).padStart(2, '0');
+                    setStatus(`Rascunho restaurado (${hh}:${mm})`);
+                } else {
+                    setStatus('Rascunho restaurado');
+                }
+            } catch (e) {
+                console.error('Falha ao restaurar rascunho:', e);
+            }
+        }
+
+        window.clearInternacaoDraft = clearDraft;
+        if (!restored) setStatus('Rascunho automático: ativo');
+    })();
 </script>
 <script src="<?= $BASE_URL ?>js/form_cad_internacao.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"

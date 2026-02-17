@@ -6,6 +6,7 @@ require_once("models/gestao.php");
 require_once("models/message.php");
 require_once("dao/usuarioDao.php");
 require_once("dao/gestaoDao.php");
+require_once("utils/flow_logger.php");
 
 $message = new Message($BASE_URL);
 $userDao = new UserDAO($conn, $BASE_URL);
@@ -13,10 +14,17 @@ $gestaoDao = new gestaoDAO($conn, $BASE_URL);
 
 // Resgata o tipo do formulário
 $type = filter_input(INPUT_POST, "type");
+$flowCtx = flowLogStart('process_gestao', [
+    'type' => $type,
+    'id_gestao' => $_POST['id_gestao'] ?? $_GET['id_gestao'] ?? null,
+    'fk_internacao_ges' => $_POST['fk_internacao_ges'] ?? null,
+    'fk_visita_ges' => $_POST['fk_visita_ges'] ?? null
+]);
 
 // Resgata dados do usuário
 
 if ($type === "create") {
+    flowLog($flowCtx, 'create.start', 'INFO');
 
     // Receber os dados dos inputs
     $fk_internacao_ges = filter_input(INPUT_POST, "fk_internacao_ges");
@@ -100,12 +108,17 @@ if ($type === "create") {
         $gestao->fk_user_ges = $fk_user_ges;
 
         $gestaoDao->create($gestao);
+        flowLog($flowCtx, 'create.finish', 'INFO', [
+            'fk_internacao_ges' => $fk_internacao_ges,
+            'fk_visita_ges' => $fk_visita_ges
+        ]);
         header("location:list_gestao.php");
     } else {
 
         // $message->setMessage("Você precisa adicionar pelo menos: gestao_aco do gestao!", "error", "back");
     }
 } else if ($type === "update") {
+    flowLog($flowCtx, 'update.start', 'INFO');
 
     $gestao = new gestao();
 
@@ -123,6 +136,7 @@ if ($type === "create") {
     $gestao['gestao_aco'] = $gestao_aco;
 
     $gestaoDao->update($gestao);
+    flowLog($flowCtx, 'update.finish', 'INFO', ['id_gestao' => $id_gestao]);
 
     header("location:list_gestao.php");
 }
@@ -130,6 +144,7 @@ if ($type === "create") {
 $type = filter_input(INPUT_GET, "type");
 
 if ($type === "delete") {
+    flowLog($flowCtx, 'delete.start', 'INFO');
     // Recebe os dados do form
     $id_gestao = filter_input(INPUT_GET, "id_gestao");
 
@@ -139,6 +154,7 @@ if ($type === "delete") {
     if ($gestao) {
 
         $gestaoDao->destroy($id_gestao);
+        flowLog($flowCtx, 'delete.finish', 'INFO', ['id_gestao' => $id_gestao]);
 
         header("location:list_gestao.php");
     } else {
