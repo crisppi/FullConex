@@ -29,6 +29,29 @@
     text-transform: uppercase;
 }
 
+.table thead th.js-sortable-header {
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+    padding-right: 20px;
+}
+
+.table thead th .js-sort-indicator {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.72rem;
+    line-height: 1;
+    opacity: 0.75;
+}
+
+.table thead th.js-sort-active-asc .js-sort-indicator,
+.table thead th.js-sort-active-desc .js-sort-indicator {
+    opacity: 1;
+    color: #ffe082;
+}
+
 
 .complete-table {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);

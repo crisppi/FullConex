@@ -494,6 +494,11 @@ usort($neg_filtered, function ($a, $b) {
     return $db <=> $da;
 });
 
+$visitasCount = count($visitas_norm);
+$prorrogCount = count($prorrogacoes);
+$tussCount = count($tussItens);
+$negCount = count($negociacoes);
+
 $internacaoEncerrada = !empty($altaDate) && (string)$altaDate !== '0000-00-00';
 $statusInternacao = $internacaoEncerrada ? 'Alta' : 'Internado';
 $statusInternacaoDetalhe = $internacaoEncerrada ? ('em ' . fmtDateAny($altaDate)) : 'em curso';
@@ -513,9 +518,25 @@ if (empty($visitas_norm)) {
 $pendenciasCount = count($pendencias);
 $pendenciasTitle = $pendencias ? implode(' • ', $pendencias) : 'Sem pendências operacionais detectadas';
 
+$priorityLevel = 'Normal';
+$priorityIcon = 'fa-solid fa-circle-check';
+$priorityClass = 'is-normal';
+if (!empty($pr_pendente_label) && empty($visitas_norm)) {
+    $priorityLevel = 'Crítico';
+    $priorityIcon = 'fa-solid fa-triangle-exclamation';
+    $priorityClass = 'is-critical';
+} elseif (!empty($pr_pendente_label) || !empty($pendenciasCount)) {
+    $priorityLevel = 'Atenção';
+    $priorityIcon = 'fa-solid fa-circle-exclamation';
+    $priorityClass = 'is-warning';
+}
+
 $novaVisitaUrl = $BASE_URL . 'cad_visita.php?id_internacao=' . (int)$id_internacao;
 $editarInternacaoUrl = $BASE_URL . 'edit_internacao.php?id_internacao=' . (int)$id_internacao;
 $gerarAltaUrl = $BASE_URL . 'edit_alta.php?type=alta&id_internacao=' . (int)$id_internacao;
+$editarProrrogUrl = $BASE_URL . 'edit_internacao.php?id_internacao=' . (int)$id_internacao . '&section=prorrog#collapseProrrog';
+$editarTussUrl = $BASE_URL . 'edit_internacao.php?id_internacao=' . (int)$id_internacao . '&section=tuss#collapseTuss';
+$editarNegocUrl = $BASE_URL . 'edit_internacao.php?id_internacao=' . (int)$id_internacao . '&section=negoc#collapseNegoc';
 ?>
 
 <div id="main-container" class="container-fluid py-3">
@@ -555,9 +576,10 @@ $gerarAltaUrl = $BASE_URL . 'edit_alta.php?type=alta&id_internacao=' . (int)$id_
                         <span class="ux-chip-label">Prorrogação</span>
                         <strong class="ux-chip-value"><?= !empty($pr_pendente_label) ? 'Em aberto' : 'Coberta' ?></strong>
                     </div>
-                    <div class="ux-summary-chip" title="<?= e($pendenciasTitle) ?>">
-                        <span class="ux-chip-label">Pendências</span>
-                        <strong class="ux-chip-value"><?= (int)$pendenciasCount ?></strong>
+                    <div class="ux-summary-chip ux-priority-chip <?= e($priorityClass) ?>" title="<?= e($pendenciasTitle) ?>">
+                        <span class="ux-chip-label">Prioridade</span>
+                        <strong class="ux-chip-value"><i class="<?= e($priorityIcon) ?> me-1"></i><?= e($priorityLevel) ?></strong>
+                        <span class="ux-chip-sub"><?= (int)$pendenciasCount ?> pendência(s)</span>
                     </div>
                 </div>
             </div>
@@ -587,6 +609,7 @@ $gerarAltaUrl = $BASE_URL . 'edit_alta.php?type=alta&id_internacao=' . (int)$id_
                                 type="button" role="tab" aria-controls="visitas"
                                 aria-selected="<?= $abaAtual === 'visitas' ? 'true' : 'false' ?>">
                                 <i class="fa-solid fa-stethoscope me-2"></i>Visitas
+                                <span class="ux-tab-count"><?= (int)$visitasCount ?></span>
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
@@ -597,6 +620,7 @@ $gerarAltaUrl = $BASE_URL . 'edit_alta.php?type=alta&id_internacao=' . (int)$id_
                                 type="button" role="tab" aria-controls="prorrog"
                                 aria-selected="<?= $abaAtual === 'prorrog' ? 'true' : 'false' ?>">
                                 <i class="fa-solid fa-clock-rotate-left me-2"></i>Prorrogações
+                                <span class="ux-tab-count"><?= (int)$prorrogCount ?></span>
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
@@ -607,6 +631,7 @@ $gerarAltaUrl = $BASE_URL . 'edit_alta.php?type=alta&id_internacao=' . (int)$id_
                                 type="button" role="tab" aria-controls="tuss"
                                 aria-selected="<?= $abaAtual === 'tuss' ? 'true' : 'false' ?>">
                                 <i class="fa-solid fa-list-check me-2"></i>TUSS
+                                <span class="ux-tab-count"><?= (int)$tussCount ?></span>
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
@@ -617,6 +642,7 @@ $gerarAltaUrl = $BASE_URL . 'edit_alta.php?type=alta&id_internacao=' . (int)$id_
                                 type="button" role="tab" aria-controls="neg"
                                 aria-selected="<?= $abaAtual === 'neg' ? 'true' : 'false' ?>">
                                 <i class="fa-solid fa-handshake me-2"></i>Negociações
+                                <span class="ux-tab-count"><?= (int)$negCount ?></span>
                             </button>
                         </li>
                     </ul>
@@ -712,7 +738,17 @@ $gerarAltaUrl = $BASE_URL . 'edit_alta.php?type=alta&id_internacao=' . (int)$id_
                         id="visitas" role="tabpanel" aria-labelledby="visitas-tab" tabindex="0">
 
                         <?php if (!$visitas_norm): ?>
-                            <p class="text-muted mb-0">Nenhuma visita registrada para esta internação.</p>
+                            <div class="ux-empty-state">
+                                <div class="ux-empty-title">Nenhuma visita registrada para esta internação</div>
+                                <div class="ux-empty-text">Cadastre a primeira visita para iniciar o histórico clínico e liberar relatórios por período.</div>
+                                <?php if (!$isGestorSeguradora): ?>
+                                    <div class="mt-2">
+                                        <a href="<?= e($novaVisitaUrl) ?>" class="btn btn-sm text-white" style="background:#5e2363;border-color:#5e2363;">
+                                            <i class="fa-solid fa-plus me-1"></i>Cadastrar visita
+                                        </a>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
                         <?php else: ?>
 
                             <div class="card ov-card ov-int"
@@ -828,6 +864,10 @@ $gerarAltaUrl = $BASE_URL . 'edit_alta.php?type=alta&id_internacao=' . (int)$id_
                                                     var iEl=document.getElementById('v-rel-id');
                                                     var audEl=document.getElementById('v-rel-auditor');
                                                     var audWrap=document.getElementById('v-rel-auditor-wrap');
+                                                    var focoDate=document.getElementById('foco-rel-date');
+                                                    var focoText=document.getElementById('foco-rel-text');
+                                                    var focoAud=document.getElementById('foco-rel-auditor');
+                                                    var focoAudWrap=document.getElementById('foco-rel-auditor-wrap');
 
                                                     if(dEl) dEl.textContent=d;
                                                     if(tWrap) tWrap.style.display = t ? '' : 'none';
@@ -838,6 +878,10 @@ $gerarAltaUrl = $BASE_URL . 'edit_alta.php?type=alta&id_internacao=' . (int)$id_
 
                                                     if(audEl) audEl.textContent = aud;
                                                     if(audWrap) audWrap.style.display = aud ? 'block' : 'none';
+                                                    if(focoDate) focoDate.textContent = d;
+                                                    if(focoText) focoText.textContent = x;
+                                                    if(focoAud) focoAud.textContent = aud;
+                                                    if(focoAudWrap) focoAudWrap.style.display = aud ? '' : 'none';
                                                     if(window.updateVisitaDeleteTarget){ window.updateVisitaDeleteTarget(i, m.dataset.retificado); }
 
                                                     var pdfBtn=document.getElementById('btn-visita-pdf');
@@ -936,9 +980,15 @@ $gerarAltaUrl = $BASE_URL . 'edit_alta.php?type=alta&id_internacao=' . (int)$id_
                                                 <h6 class="mb-0 text-secondary fw-semibold">Relatório da visita:
                                                     <span id="v-rel-date" class="text-dark"><?= e($initDateLabel) ?></span>
                                                 </h6>
-                                                <span id="v-rel-id-wrap" class="badge bg-secondary-subtle text-secondary-emphasis<?= $initId ? '' : ' d-none' ?>">
-                                                    ID <span id="v-rel-id"><?= e($initId ?: '') ?></span>
-                                                </span>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <button type="button" id="btn-foco-relatorio" class="btn btn-sm btn-outline-secondary"
+                                                        data-bs-toggle="modal" data-bs-target="#modalRelatorioFoco">
+                                                        <i class="fa-solid fa-expand me-1"></i>Modo foco
+                                                    </button>
+                                                    <span id="v-rel-id-wrap" class="badge bg-secondary-subtle text-secondary-emphasis<?= $initId ? '' : ' d-none' ?>">
+                                                        ID <span id="v-rel-id"><?= e($initId ?: '') ?></span>
+                                                    </span>
+                                                </div>
                                             </div>
 
                                             <div class="mt-3 p-3 rounded bg-white border" style="border-color:#e0e3ea;">
@@ -1098,6 +1148,31 @@ $gerarAltaUrl = $BASE_URL . 'edit_alta.php?type=alta&id_internacao=' . (int)$id_
                             </div>
                         <?php endif; ?>
 
+                        <?php if (!empty($visitas_norm)): ?>
+                            <div class="modal fade" id="modalRelatorioFoco" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-lg modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Relatório da visita em foco</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="small text-muted mb-2">
+                                                Data: <strong id="foco-rel-date"><?= e($initDateLabel) ?></strong>
+                                                <span id="foco-rel-auditor-wrap"<?= !empty($initAuditor) ? '' : ' style="display:none;"' ?>>
+                                                    • Auditor: <strong id="foco-rel-auditor"><?= e($initAuditor) ?></strong>
+                                                </span>
+                                            </div>
+                                            <div class="ux-focus-text" id="foco-rel-text"><?= e($initText) ?></div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
                     </div><!-- /#visitas -->
 
                     <!-- ================= PRORROG ================= -->
@@ -1142,10 +1217,14 @@ $gerarAltaUrl = $BASE_URL . 'edit_alta.php?type=alta&id_internacao=' . (int)$id_
                                         <a class="btn btn-sm btn-outline-secondary" href="<?= e($_SERVER['PHP_SELF']) . '?id_internacao=' . urlencode((string)$id_internacao) . '&aba=prorrog' ?>#prorrog">Limpar</a>
                                     </div>
                                 </form>
+                                <div class="mb-2">
+                                    <input type="search" class="form-control form-control-sm js-local-filter" data-target-table="table-prorrog"
+                                        placeholder="Buscar nesta aba (acomodação, período, isolamento...)">
+                                </div>
 
                                 <?php if (!empty($pr_filtered)): ?>
                                     <div class="table-responsive ux-table-wrap">
-                                        <table class="table table-sm align-middle mb-2 ux-data-table">
+                                        <table id="table-prorrog" class="table table-sm align-middle mb-2 ux-data-table">
                                             <tbody>
                                                 <tr class="table-light text-uppercase small fw-semibold">
                                                     <td>Acomodação</td>
@@ -1178,7 +1257,15 @@ $gerarAltaUrl = $BASE_URL . 'edit_alta.php?type=alta&id_internacao=' . (int)$id_
                                     </div>
                                     <div class="text-end fw-semibold">Total de diárias <?= (int)$pr_total_diarias ?></div>
                                 <?php else: ?>
-                                    <div class="text-muted">Nenhuma prorrogação<?= ($pr_ini || $pr_fim) ? ' no período selecionado.' : ' registrada para esta internação.' ?></div>
+                                    <div class="ux-empty-state">
+                                        <div class="ux-empty-title">Nenhuma prorrogação<?= ($pr_ini || $pr_fim) ? ' no período selecionado' : ' registrada para esta internação' ?></div>
+                                        <div class="ux-empty-text">Revise o período de filtro ou edite a internação para lançar prorrogações.</div>
+                                        <div class="mt-2">
+                                            <a class="btn btn-sm btn-outline-secondary" href="<?= e($editarProrrogUrl) ?>">
+                                                <i class="fa-solid fa-pen-to-square me-1"></i>Editar prorrogações
+                                            </a>
+                                        </div>
+                                    </div>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -1223,10 +1310,14 @@ $gerarAltaUrl = $BASE_URL . 'edit_alta.php?type=alta&id_internacao=' . (int)$id_
                                         <a class="btn btn-sm btn-outline-secondary" href="<?= e($_SERVER['PHP_SELF']) . '?id_internacao=' . urlencode((string)$id_internacao) . '&aba=tuss' ?>#tuss">Limpar</a>
                                     </div>
                                 </form>
+                                <div class="mb-2">
+                                    <input type="search" class="form-control form-control-sm js-local-filter" data-target-table="table-tuss"
+                                        placeholder="Buscar nesta aba (código, terminologia, status...)">
+                                </div>
 
                                 <?php if (!empty($tuss_filtered)): ?>
                                     <div class="table-responsive ux-table-wrap">
-                                        <table class="table table-sm align-middle mb-2 ux-data-table">
+                                        <table id="table-tuss" class="table table-sm align-middle mb-2 ux-data-table">
                                             <tbody>
                                                 <tr class="table-light text-uppercase small fw-semibold">
                                                     <td style="min-width:110px;">Código</td>
@@ -1264,7 +1355,15 @@ $gerarAltaUrl = $BASE_URL . 'edit_alta.php?type=alta&id_internacao=' . (int)$id_
                                         <div><span class="text-muted">Total liberado:</span> <strong><?= (int)$tuss_tot_lib ?></strong></div>
                                     </div>
                                 <?php else: ?>
-                                    <div class="text-muted">Nenhum item TUSS<?= ($tuss_ini || $tuss_fim) ? ' no período selecionado.' : ' para esta internação.' ?></div>
+                                    <div class="ux-empty-state">
+                                        <div class="ux-empty-title">Nenhum item TUSS<?= ($tuss_ini || $tuss_fim) ? ' no período selecionado' : ' para esta internação' ?></div>
+                                        <div class="ux-empty-text">Ajuste o período ou edite a internação para cadastrar itens TUSS.</div>
+                                        <div class="mt-2">
+                                            <a class="btn btn-sm btn-outline-secondary" href="<?= e($editarTussUrl) ?>">
+                                                <i class="fa-solid fa-pen-to-square me-1"></i>Editar TUSS
+                                            </a>
+                                        </div>
+                                    </div>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -1310,10 +1409,14 @@ $gerarAltaUrl = $BASE_URL . 'edit_alta.php?type=alta&id_internacao=' . (int)$id_
                                         <a class="btn btn-sm btn-outline-secondary" href="<?= e($_SERVER['PHP_SELF']) . '?id_internacao=' . urlencode((string)$id_internacao) . '&aba=neg' ?>#neg">Limpar</a>
                                     </div>
                                 </form>
+                                <div class="mb-2">
+                                    <input type="search" class="form-control form-control-sm js-local-filter" data-target-table="table-neg"
+                                        placeholder="Buscar nesta aba (tipo, troca, período, saving...)">
+                                </div>
 
                                 <?php if (!empty($neg_filtered)): ?>
                                     <div class="table-responsive ux-table-wrap">
-                                        <table class="table table-sm align-middle mb-2 ux-data-table">
+                                        <table id="table-neg" class="table table-sm align-middle mb-2 ux-data-table">
                                             <tbody>
                                                 <tr class="table-light text-uppercase small fw-semibold">
                                                     <td style="min-width:140px;">Tipo</td>
@@ -1348,7 +1451,15 @@ $gerarAltaUrl = $BASE_URL . 'edit_alta.php?type=alta&id_internacao=' . (int)$id_
                                         </table>
                                     </div>
                                 <?php else: ?>
-                                    <div class="text-muted">Nenhuma negociação<?= ($neg_ini || $neg_fim) ? ' no período selecionado.' : ' para esta internação.' ?></div>
+                                    <div class="ux-empty-state">
+                                        <div class="ux-empty-title">Nenhuma negociação<?= ($neg_ini || $neg_fim) ? ' no período selecionado' : ' para esta internação' ?></div>
+                                        <div class="ux-empty-text">Você pode ajustar o filtro ou lançar uma negociação na edição da internação.</div>
+                                        <div class="mt-2">
+                                            <a class="btn btn-sm btn-outline-secondary" href="<?= e($editarNegocUrl) ?>">
+                                                <i class="fa-solid fa-pen-to-square me-1"></i>Editar negociações
+                                            </a>
+                                        </div>
+                                    </div>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -1432,6 +1543,20 @@ $gerarAltaUrl = $BASE_URL . 'edit_alta.php?type=alta&id_internacao=' . (int)$id_
                 } else {
                     form.submit();
                 }
+            });
+        });
+
+        document.querySelectorAll('.js-local-filter').forEach(function(input) {
+            input.addEventListener('input', function() {
+                var tableId = input.getAttribute('data-target-table');
+                if (!tableId) return;
+                var table = document.getElementById(tableId);
+                if (!table) return;
+                var q = (input.value || '').toLowerCase().trim();
+                table.querySelectorAll('tbody tr:not(.table-light)').forEach(function(row) {
+                    var txt = (row.textContent || '').toLowerCase();
+                    row.style.display = (!q || txt.indexOf(q) !== -1) ? '' : 'none';
+                });
             });
         });
     });
@@ -1677,6 +1802,59 @@ $gerarAltaUrl = $BASE_URL . 'edit_alta.php?type=alta&id_internacao=' . (int)$id_
         font-size: .8rem;
     }
 
+    .ux-priority-chip .ux-chip-value {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .ux-priority-chip.is-normal {
+        background: #ecfdf3;
+        border-color: #b7ebcd;
+    }
+    .ux-priority-chip.is-normal .ux-chip-value {
+        color: #0f7a3e;
+    }
+
+    .ux-priority-chip.is-warning {
+        background: #fff8e8;
+        border-color: #f2d8a3;
+    }
+    .ux-priority-chip.is-warning .ux-chip-value {
+        color: #9a5a00;
+    }
+
+    .ux-priority-chip.is-critical {
+        background: #ffecef;
+        border-color: #f0b9c2;
+    }
+    .ux-priority-chip.is-critical .ux-chip-value {
+        color: #b42346;
+    }
+
+    .ux-tab-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 22px;
+        height: 20px;
+        border-radius: 999px;
+        padding: 0 6px;
+        margin-left: 8px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        border: 1px solid #ddcfe8;
+        background: #f5edf9;
+        color: #5e2363;
+        vertical-align: middle;
+    }
+
+    .nav-link.active .ux-tab-count {
+        background: rgba(255, 255, 255, 0.22);
+        border-color: rgba(255, 255, 255, 0.4);
+        color: #fff;
+    }
+
     .ux-actions-sticky {
         position: sticky;
         top: 68px;
@@ -1754,6 +1932,35 @@ $gerarAltaUrl = $BASE_URL . 'edit_alta.php?type=alta&id_internacao=' . (int)$id_
         padding-top: 0.58rem;
         padding-bottom: 0.58rem;
         vertical-align: middle;
+    }
+
+    .ux-empty-state {
+        border: 1px dashed #d9cbe7;
+        background: #faf7fd;
+        border-radius: 12px;
+        padding: 14px 16px;
+    }
+
+    .ux-empty-title {
+        font-weight: 700;
+        color: #43395b;
+        margin-bottom: 2px;
+    }
+
+    .ux-empty-text {
+        color: #6f6790;
+        font-size: .92rem;
+    }
+
+    .ux-focus-text {
+        border: 1px solid #e8e1f0;
+        background: #fcfbfe;
+        border-radius: 12px;
+        padding: 14px;
+        white-space: pre-wrap;
+        max-height: 60vh;
+        overflow: auto;
+        line-height: 1.45;
     }
     .ov-head-space {
         display: flex;

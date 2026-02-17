@@ -196,6 +196,7 @@ if (!empty($sessionIdUsuario)) {
     <link href="<?= $BASE_URL ?>css/styleMenu.css?v=<?= @filemtime(__DIR__ . '/../css/styleMenu.css') ?>" rel="stylesheet">
     <link href="<?= $BASE_URL ?>css/style_show_internacao.css" rel="stylesheet">
     <link href="<?= $BASE_URL ?>css/table_style.css" rel="stylesheet">
+    <script defer src="<?= $BASE_URL ?>js/lista_header_sort.js"></script>
 
     <!-- ======= APENAS DESIGN (logos alinhados e simétricos) ======= -->
     <style>
