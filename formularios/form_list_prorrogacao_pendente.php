@@ -2,7 +2,7 @@
 require_once("templates/header.php");
 require_once("models/message.php");
 
-function e($v)
+function e($v): string
 {
     return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 }
@@ -12,7 +12,7 @@ function dateToTs(?string $date): ?int
     if (!$date) {
         return null;
     }
-    $ts = strtotime($date);
+    $ts = strtotime(substr((string)$date, 0, 10));
     return $ts ? (int)$ts : null;
 }
 
@@ -24,15 +24,10 @@ function daysExclusive(int $startTs, int $endTs): int
     return (int)floor(($endTs - $startTs) / 86400);
 }
 
-function tsToDate(int $ts): string
-{
-    return date('d/m/Y', $ts);
-}
-
 function computeCoverageAndGaps(array $intervals, int $startTs, int $endTs): array
 {
     if (!$intervals) {
-        return [0, daysExclusive($startTs, $endTs), [[tsToDate($startTs), tsToDate($endTs)]]];
+        return [0, daysExclusive($startTs, $endTs), [[date('d/m/Y', $startTs), date('d/m/Y', $endTs)]]];
     }
 
     usort($intervals, fn($a, $b) => $a['s'] <=> $b['s']);
@@ -46,19 +41,22 @@ function computeCoverageAndGaps(array $intervals, int $startTs, int $endTs): arr
         if ($idx === 0) {
             continue;
         }
+
         if ($it['s'] <= $curE) {
             if ($it['e'] > $curE) {
                 $curE = $it['e'];
             }
             continue;
         }
+
         if ($curS > $startTs) {
             $gapStart = $startTs;
             $gapEnd = $curS;
             if ($gapEnd > $gapStart) {
-                $gaps[] = [tsToDate($gapStart), tsToDate($gapEnd)];
+                $gaps[] = [date('d/m/Y', $gapStart), date('d/m/Y', $gapEnd)];
             }
         }
+
         $coveredDays += daysExclusive($curS, $curE);
         $curS = $it['s'];
         $curE = $it['e'];
@@ -68,16 +66,17 @@ function computeCoverageAndGaps(array $intervals, int $startTs, int $endTs): arr
         $gapStart = $startTs;
         $gapEnd = $curS;
         if ($gapEnd > $gapStart) {
-            $gaps[] = [tsToDate($gapStart), tsToDate($gapEnd)];
+            $gaps[] = [date('d/m/Y', $gapStart), date('d/m/Y', $gapEnd)];
         }
     }
+
     $coveredDays += daysExclusive($curS, $curE);
 
     if ($curE < $endTs) {
         $gapStart = $curE;
         $gapEnd = $endTs;
         if ($gapEnd > $gapStart) {
-            $gaps[] = [tsToDate($gapStart), tsToDate($gapEnd)];
+            $gaps[] = [date('d/m/Y', $gapStart), date('d/m/Y', $gapEnd)];
         }
     }
 
@@ -87,199 +86,382 @@ function computeCoverageAndGaps(array $intervals, int $startTs, int $endTs): arr
     return [$coveredDays, $missingDays, $gaps];
 }
 
-$pesquisa_pac  = trim((string)filter_input(INPUT_GET, 'pesquisa_pac', FILTER_SANITIZE_SPECIAL_CHARS));
-$pesquisa_hosp = trim((string)filter_input(INPUT_GET, 'pesquisa_hosp', FILTER_SANITIZE_SPECIAL_CHARS));
-$data_ini      = filter_input(INPUT_GET, 'data_ini') ?: date('Y-m-d', strtotime('-90 days'));
-$data_fim      = filter_input(INPUT_GET, 'data_fim') ?: date('Y-m-d');
-$limite        = (int)(filter_input(INPUT_GET, 'limite') ?: 20);
-$paginaAtual   = (int)(filter_input(INPUT_GET, 'pag') ?: 1);
-$limite        = max(1, $limite);
+$pesquisa_nome       = trim((string)filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS));
+$pesquisa_pac        = trim((string)filter_input(INPUT_GET, 'pesquisa_pac', FILTER_SANITIZE_SPECIAL_CHARS));
+$pesquisa_seguradora = trim((string)filter_input(INPUT_GET, 'pesquisa_seguradora', FILTER_SANITIZE_SPECIAL_CHARS));
+$pesquisa_matricula  = trim((string)filter_input(INPUT_GET, 'pesquisa_matricula', FILTER_SANITIZE_SPECIAL_CHARS));
+$senha_int           = trim((string)filter_input(INPUT_GET, 'senha_int', FILTER_SANITIZE_SPECIAL_CHARS));
+$pesqInternado       = trim((string)filter_input(INPUT_GET, 'pesqInternado', FILTER_SANITIZE_SPECIAL_CHARS));
+$pesqInternado       = $pesqInternado !== '' ? $pesqInternado : 's';
 
-$where = "i.data_intern_int BETWEEN :data_ini AND :data_fim";
-$params = [
-    ':data_ini' => $data_ini,
-    ':data_fim' => $data_fim,
-];
+$data_intern_int     = filter_input(INPUT_GET, 'data_intern_int') ?: '';
+$data_intern_int_max = filter_input(INPUT_GET, 'data_intern_int_max') ?: date('Y-m-d');
+
+$limite              = (int)(filter_input(INPUT_GET, 'limite_pag') ?: 10);
+$limite              = max(1, $limite);
+$paginaAtual         = (int)(filter_input(INPUT_GET, 'pag') ?: 1);
+$paginaAtual         = max(1, $paginaAtual);
+
+$whereParts = [];
+$params = [];
+
+if ($pesquisa_nome !== '') {
+    $whereParts[] = 'ho.nome_hosp LIKE :hospital';
+    $params[':hospital'] = "%{$pesquisa_nome}%";
+}
 if ($pesquisa_pac !== '') {
-    $where .= " AND pa.nome_pac LIKE :pac";
-    $params[':pac'] = '%' . $pesquisa_pac . '%';
+    $whereParts[] = 'pa.nome_pac LIKE :paciente';
+    $params[':paciente'] = "%{$pesquisa_pac}%";
 }
-if ($pesquisa_hosp !== '') {
-    $where .= " AND ho.nome_hosp LIKE :hosp";
-    $params[':hosp'] = '%' . $pesquisa_hosp . '%';
+if ($pesquisa_seguradora !== '') {
+    $whereParts[] = 's.seguradora_seg LIKE :seguradora';
+    $params[':seguradora'] = "%{$pesquisa_seguradora}%";
+}
+if ($pesquisa_matricula !== '') {
+    $whereParts[] = 'pa.matricula_pac LIKE :matricula';
+    $params[':matricula'] = "%{$pesquisa_matricula}%";
+}
+if ($senha_int !== '') {
+    $whereParts[] = 'i.senha_int LIKE :senha';
+    $params[':senha'] = "%{$senha_int}%";
+}
+if ($pesqInternado !== '') {
+    $whereParts[] = 'i.internado_int = :internado';
+    $params[':internado'] = $pesqInternado;
+}
+if ($data_intern_int !== '') {
+    $whereParts[] = 'i.data_intern_int BETWEEN :data_ini AND :data_fim';
+    $params[':data_ini'] = $data_intern_int;
+    $params[':data_fim'] = $data_intern_int_max;
 }
 
-$sql = "
+$whereSql = $whereParts ? ('WHERE ' . implode(' AND ', $whereParts)) : '';
+
+$sqlInternacoes = "
     SELECT
         i.id_internacao,
         i.data_intern_int,
+        i.senha_int,
+        i.internado_int,
         pa.nome_pac,
+        pa.matricula_pac,
         ho.nome_hosp,
-        alt.data_alta_alt
+        s.seguradora_seg
     FROM tb_internacao i
     LEFT JOIN tb_paciente pa ON pa.id_paciente = i.fk_paciente_int
     LEFT JOIN tb_hospital ho ON ho.id_hospital = i.fk_hospital_int
-    LEFT JOIN (
-        SELECT fk_id_int_alt, MAX(data_alta_alt) AS data_alta_alt
-        FROM tb_alta
-        GROUP BY fk_id_int_alt
-    ) alt ON alt.fk_id_int_alt = i.id_internacao
-    WHERE {$where}
-    ORDER BY i.data_intern_int DESC
+    LEFT JOIN tb_seguradora s ON s.id_seguradora = pa.fk_seguradora_pac
+    {$whereSql}
+    ORDER BY i.id_internacao DESC
 ";
-$stmt = $conn->prepare($sql);
-$stmt->execute($params);
-$internacoes = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
-$ids = array_values(array_filter(array_map(fn($r) => (int)($r['id_internacao'] ?? 0), $internacoes)));
-$prorrogacoes = [];
+$stmtIntern = $conn->prepare($sqlInternacoes);
+$stmtIntern->execute($params);
+$internacoes = $stmtIntern->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+$ids = array_values(array_unique(array_filter(array_map(fn($r) => (int)($r['id_internacao'] ?? 0), $internacoes))));
+
+$prorrogacoesByInternacao = [];
+$altasByInternacao = [];
+$visitasByInternacao = [];
+
 if ($ids) {
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
-    $stmt = $conn->prepare("
-        SELECT fk_internacao_pror, prorrog1_ini_pror, prorrog1_fim_pror
-        FROM tb_prorrogacao
-        WHERE fk_internacao_pror IN ({$placeholders})
-        ORDER BY fk_internacao_pror, prorrog1_ini_pror
-    ");
-    $stmt->execute($ids);
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $id = (int)($row['fk_internacao_pror'] ?? 0);
-        if ($id) {
-            $prorrogacoes[$id][] = $row;
+
+    $stmtPr = $conn->prepare("\n        SELECT fk_internacao_pror, prorrog1_ini_pror, prorrog1_fim_pror\n        FROM tb_prorrogacao\n        WHERE fk_internacao_pror IN ({$placeholders})\n        ORDER BY fk_internacao_pror, prorrog1_ini_pror\n    ");
+    $stmtPr->execute($ids);
+    while ($row = $stmtPr->fetch(PDO::FETCH_ASSOC)) {
+        $fk = (int)($row['fk_internacao_pror'] ?? 0);
+        if ($fk > 0) {
+            $prorrogacoesByInternacao[$fk][] = $row;
+        }
+    }
+
+    $stmtAlta = $conn->prepare("\n        SELECT fk_id_int_alt, MAX(data_alta_alt) AS data_alta_alt\n        FROM tb_alta\n        WHERE fk_id_int_alt IN ({$placeholders})\n        GROUP BY fk_id_int_alt\n    ");
+    $stmtAlta->execute($ids);
+    while ($row = $stmtAlta->fetch(PDO::FETCH_ASSOC)) {
+        $fk = (int)($row['fk_id_int_alt'] ?? 0);
+        if ($fk > 0) {
+            $altasByInternacao[$fk] = $row['data_alta_alt'] ?? null;
+        }
+    }
+
+    $stmtVis = $conn->prepare("\n        SELECT fk_internacao_vis, data_visita_vis\n        FROM tb_visita\n        WHERE fk_internacao_vis IN ({$placeholders})\n        ORDER BY fk_internacao_vis, data_visita_vis\n    ");
+    $stmtVis->execute($ids);
+    while ($row = $stmtVis->fetch(PDO::FETCH_ASSOC)) {
+        $fk = (int)($row['fk_internacao_vis'] ?? 0);
+        if ($fk > 0) {
+            $visitasByInternacao[$fk][] = $row;
         }
     }
 }
 
+$hojeDate = date('Y-m-d');
+$todayTs = strtotime($hojeDate);
+$todayDateObj = new DateTime($hojeDate);
+
 $pendentes = [];
-$hoje = date('Y-m-d');
-foreach ($internacoes as $int) {
-    $id = (int)($int['id_internacao'] ?? 0);
-    if (!$id) {
+
+foreach ($internacoes as $intern) {
+    $idInternacao = (int)($intern['id_internacao'] ?? 0);
+    if ($idInternacao <= 0) {
         continue;
     }
-    $startTs = dateToTs($int['data_intern_int'] ?? null);
+
+    $startTs = dateToTs($intern['data_intern_int'] ?? null);
     if (!$startTs) {
         continue;
     }
-    $endStr = $int['data_alta_alt'] ?: $hoje;
-    $endTs = dateToTs($endStr);
-    if (!$endTs || $endTs < $startTs) {
+
+    $dataAlta = $altasByInternacao[$idInternacao] ?? null;
+    $endTs = dateToTs($dataAlta) ?: $todayTs;
+    if ($endTs <= $startTs) {
         continue;
     }
 
     $intervals = [];
-    $rows = $prorrogacoes[$id] ?? [];
-    $prStart = null;
-    $prEnd = null;
-    foreach ($rows as $p) {
+    foreach (($prorrogacoesByInternacao[$idInternacao] ?? []) as $p) {
         $iniTs = dateToTs($p['prorrog1_ini_pror'] ?? null);
         if (!$iniTs) {
             continue;
         }
-        $fimTs = dateToTs($p['prorrog1_fim_pror'] ?? null);
-        if (!$fimTs) {
-            $fimTs = $endTs;
-        }
-        if ($fimTs < $startTs || $iniTs > $endTs) {
+
+        $fimTs = dateToTs($p['prorrog1_fim_pror'] ?? null) ?: $endTs;
+        if ($fimTs <= $startTs || $iniTs >= $endTs) {
             continue;
         }
-        $iniTs = max($iniTs, $startTs);
-        $fimTs = min($fimTs, $endTs);
-        if ($prStart === null || $iniTs < $prStart) {
-            $prStart = $iniTs;
-        }
-        if ($prEnd === null || $fimTs > $prEnd) {
-            $prEnd = $fimTs;
-        }
-        $intervals[] = ['s' => $iniTs, 'e' => $fimTs];
+
+        $intervals[] = [
+            's' => max($startTs, $iniTs),
+            'e' => min($endTs, $fimTs),
+        ];
     }
 
     [$coveredDays, $missingDays, $gaps] = computeCoverageAndGaps($intervals, $startTs, $endTs);
-    if ($missingDays > 0) {
-        $pendentes[] = [
-            'id_internacao' => $id,
-            'nome_pac' => $int['nome_pac'] ?? '',
-            'nome_hosp' => $int['nome_hosp'] ?? '',
-            'data_ini' => $int['data_intern_int'] ?? null,
-            'data_fim' => $endStr,
-            'prorrog_count' => count($rows),
-            'missing_days' => $missingDays,
-            'total_days' => daysExclusive($startTs, $endTs),
-            'covered_days' => $coveredDays,
-            'gaps' => $gaps,
-            'prorrog_range_start' => $prStart ? tsToDate($prStart) : null,
-            'prorrog_range_end' => $prEnd ? tsToDate($prEnd) : null,
-            'data_alta' => $int['data_alta_alt'] ?? null,
-        ];
+    if ($missingDays <= 0) {
+        continue;
     }
+
+    $visitas = $visitasByInternacao[$idInternacao] ?? [];
+    $ultimaVisita = null;
+
+    foreach ($visitas as $vis) {
+        $dataVisita = $vis['data_visita_vis'] ?? null;
+        if ($dataVisita) {
+            if (!$ultimaVisita || strtotime($dataVisita) > strtotime($ultimaVisita)) {
+                $ultimaVisita = $dataVisita;
+            }
+        }
+    }
+
+    $diasInternado = (new DateTime(date('Y-m-d', $startTs)))->diff($todayDateObj)->days;
+
+    $parts = array_map(fn($g) => $g[0] . ' -> ' . $g[1], $gaps);
+    $periodoAberto = $missingDays . ' dias';
+    if ($parts) {
+        $periodoAberto .= ' | ' . implode(' | ', $parts);
+    }
+
+    $pendentes[] = [
+        'id_internacao' => $idInternacao,
+        'nome_hosp' => $intern['nome_hosp'] ?? '--',
+        'nome_pac' => $intern['nome_pac'] ?? '--',
+        'seguradora_seg' => $intern['seguradora_seg'] ?? '--',
+        'data_intern_int' => $intern['data_intern_int'] ?? null,
+        'senha_int' => $intern['senha_int'] ?? '',
+        'dias_int' => $diasInternado,
+        'ultima_visita' => $ultimaVisita,
+        'periodo_aberto' => $periodoAberto,
+        'covered_days' => $coveredDays,
+    ];
 }
 
 $total = count($pendentes);
 $totalPaginas = max(1, (int)ceil($total / $limite));
-$paginaAtual = max(1, min($paginaAtual, $totalPaginas));
+$paginaAtual = min($paginaAtual, $totalPaginas);
 $offset = ($paginaAtual - 1) * $limite;
 $paginaItens = array_slice($pendentes, $offset, $limite);
 
 $window = 5;
 $paginaInicio = max(1, $paginaAtual - $window);
 $paginaFim = min($totalPaginas, $paginaAtual + $window);
-if ($paginaFim - $paginaInicio < 2 * $window) {
-    if ($paginaInicio == 1) {
-        $paginaFim = min($totalPaginas, $paginaInicio + 2 * $window);
-    } elseif ($paginaFim == $totalPaginas) {
-        $paginaInicio = max(1, $paginaFim - 2 * $window);
-    }
+
+function buildListUrl(array $params): string
+{
+    $base = 'list_prorrogacao_pendente.php';
+    $query = http_build_query(array_filter($params, fn($v) => $v !== null && $v !== ''));
+    return $query ? ($base . '?' . $query) : $base;
 }
 
-function buildQuery(array $params): string
-{
-    return http_build_query(array_filter($params, fn($v) => $v !== null && $v !== ''));
-}
+$baseParams = [
+    'pesquisa_nome' => $pesquisa_nome,
+    'pesquisa_pac' => $pesquisa_pac,
+    'pesquisa_seguradora' => $pesquisa_seguradora,
+    'pesquisa_matricula' => $pesquisa_matricula,
+    'senha_int' => $senha_int,
+    'data_intern_int' => $data_intern_int,
+    'data_intern_int_max' => $data_intern_int_max,
+    'pesqInternado' => $pesqInternado,
+    'limite_pag' => $limite,
+];
 ?>
 
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+
 <style>
-    .prorrog-pendente-page {
-        padding-top: 30px;
+.table-filters {
+    overflow-x: auto;
+}
+
+.prorrog-filters-line {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.prorrog-filters-line .filter-item {
+    padding: 2px !important;
+    margin: 0;
+}
+
+.prorrog-filters-line .w-hospital {
+    flex: 1 1 220px;
+    min-width: 180px;
+}
+
+.prorrog-filters-line .w-paciente {
+    flex: 1 1 220px;
+    min-width: 180px;
+}
+
+.prorrog-filters-line .w-seguradora {
+    flex: 1 1 220px;
+    min-width: 180px;
+}
+
+.prorrog-filters-line .w-short {
+    flex: 0 0 120px;
+    min-width: 110px;
+}
+
+.prorrog-filters-line .w-select {
+    flex: 0 0 140px;
+    min-width: 130px;
+}
+
+.prorrog-filters-line .w-limit {
+    flex: 0 0 90px;
+    min-width: 80px;
+}
+
+.prorrog-filters-line .w-date {
+    flex: 0 0 150px;
+    min-width: 140px;
+}
+
+.prorrog-filters-line .w-actions {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+@media (max-width: 1200px) {
+    .prorrog-filters-line {
+        flex-wrap: wrap;
     }
+}
+
+.action .dropdown-menu {
+    padding: 8px 0;
+    min-width: 190px;
+    left: auto;
+    right: 0;
+}
+
+.action .dropdown-menu .btn-default {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: none;
+    background: transparent;
+    font-size: 0.95rem;
+    color: #3a3a3a;
+    justify-content: flex-start;
+    text-align: left;
+    padding: 6px 16px;
+}
+
+.action .dropdown-menu .btn-default:hover {
+    background-color: #f4f4f4;
+}
+
+@media (min-width: 992px) {
+    .action .dropdown:hover>.dropdown-menu {
+        display: block;
+    }
+}
 </style>
-<div class="container-fluid form_container prorrog-pendente-page" style="margin-top:15px;">
-    <div class="d-flex justify-content-between align-items-center" style="margin-bottom: 0;">
-        <h4 class="page-title" style="margin-top:-10px;">Prorrogação Pendente</h4>
-    </div>
+
+<div class="container-fluid form_container" style="margin-top:15px;">
+    <h4 class="page-title">Prorrogações Pendentes</h4>
     <hr style="margin-top: 5px; margin-bottom: 10px;">
 
     <div class="complete-table">
         <div class="table-filters">
-            <form method="GET" class="row g-2">
-                <div class="col-sm-3" style="padding:2px !important;padding-left:16px !important;">
+            <form method="GET" class="prorrog-filters-line">
+                <div class="filter-item w-hospital">
+                    <input class="form-control form-control-sm" type="text" name="pesquisa_nome"
+                        placeholder="Hospital" value="<?= e($pesquisa_nome) ?>">
+                </div>
+                <div class="filter-item w-paciente">
                     <input class="form-control form-control-sm" type="text" name="pesquisa_pac"
                         placeholder="Paciente" value="<?= e($pesquisa_pac) ?>">
                 </div>
-                <div class="col-sm-3" style="padding:2px !important;">
-                    <input class="form-control form-control-sm" type="text" name="pesquisa_hosp"
-                        placeholder="Hospital" value="<?= e($pesquisa_hosp) ?>">
+                <div class="filter-item w-seguradora">
+                    <input class="form-control form-control-sm" type="text" name="pesquisa_seguradora"
+                        placeholder="Seguradora" value="<?= e($pesquisa_seguradora) ?>">
                 </div>
-                <div class="col-sm-2" style="padding:2px !important;">
-                    <input class="form-control form-control-sm" type="date" name="data_ini"
-                        value="<?= e($data_ini) ?>">
+                <div class="filter-item w-short">
+                    <input class="form-control form-control-sm" type="text" name="pesquisa_matricula"
+                        placeholder="Matrícula" value="<?= e($pesquisa_matricula) ?>">
                 </div>
-                <div class="col-sm-2" style="padding:2px !important;">
-                    <input class="form-control form-control-sm" type="date" name="data_fim"
-                        value="<?= e($data_fim) ?>">
+                <div class="filter-item w-short">
+                    <input class="form-control form-control-sm" type="text" name="senha_int"
+                        placeholder="Senha" value="<?= e($senha_int) ?>">
                 </div>
-                <div class="col-sm-1" style="padding:2px !important;">
-                    <select class="form-control form-control-sm" name="limite">
+                <div class="filter-item w-select">
+                    <select class="form-control form-control-sm" name="pesqInternado">
+                        <option value="s" <?= $pesqInternado === 's' ? 'selected' : '' ?>>Internados</option>
+                        <option value="n" <?= $pesqInternado === 'n' ? 'selected' : '' ?>>Não internados</option>
+                    </select>
+                </div>
+                <div class="filter-item w-limit">
+                    <select class="form-control form-control-sm" name="limite_pag">
+                        <option value="5" <?= $limite == 5 ? 'selected' : '' ?>>5</option>
                         <option value="10" <?= $limite == 10 ? 'selected' : '' ?>>10</option>
                         <option value="20" <?= $limite == 20 ? 'selected' : '' ?>>20</option>
                         <option value="50" <?= $limite == 50 ? 'selected' : '' ?>>50</option>
-                        <option value="100" <?= $limite == 100 ? 'selected' : '' ?>>100</option>
                     </select>
                 </div>
-                <div class="col-sm-1" style="padding:2px !important;">
+                <div class="filter-item w-date">
+                    <input class="form-control form-control-sm" type="date" name="data_intern_int"
+                        value="<?= e($data_intern_int) ?>">
+                </div>
+                <div class="filter-item w-date">
+                    <input class="form-control form-control-sm" type="date" name="data_intern_int_max"
+                        value="<?= e($data_intern_int_max) ?>">
+                </div>
+                <div class="filter-item w-actions">
                     <button type="submit" class="btn btn-primary"
                         style="background-color:#5e2363;width:42px;height:32px;border-color:#5e2363">
                         <span class="material-icons" style="margin-left:-3px;margin-top:-2px;">search</span>
                     </button>
+                    <a href="<?= e(buildListUrl([])) ?>" class="btn btn-light btn-sm" title="Limpar filtros">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
                 </div>
             </form>
         </div>
@@ -288,71 +470,65 @@ function buildQuery(array $params): string
             <table class="table table-sm table-striped table-hover table-condensed">
                 <thead>
                     <tr>
-                        <th scope="col">Internação</th>
-                        <th scope="col">Paciente</th>
-                        <th scope="col">Hospital</th>
-                        <th scope="col">Período (internação)</th>
-                        <th scope="col">Alta</th>
-                        <th scope="col">Data da alta</th>
-                        <th scope="col">Nº de prorrogações</th>
-                        <th scope="col">Período prorrogado</th>
-                        <th scope="col">Período em aberto</th>
-                        <th scope="col">Período sem prorrogação</th>
-                        <th scope="col">Ações</th>
+                        <th scope="col" style="min-width: 60px;">Id-Int</th>
+                        <th scope="col" style="min-width: 150px;">Hospital</th>
+                        <th scope="col" style="min-width: 150px;">Paciente</th>
+                        <th scope="col" style="min-width: 150px;">Seguradora</th>
+                        <th scope="col" style="min-width: 100px;">Data Int</th>
+                        <th scope="col" style="min-width: 80px;">Senha</th>
+                        <th scope="col" style="min-width: 80px;">Dias Int</th>
+                        <th scope="col" style="min-width: 90px;">Últ Visita</th>
+                        <th scope="col" style="min-width: 240px;">Períodos em aberto para prorrogar</th>
+                        <th scope="col" style="min-width: 80px;">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (!$paginaItens): ?>
-                        <tr>
-                            <td colspan="11" class="text-muted">Nenhuma pendência encontrada.</td>
-                        </tr>
+                    <tr>
+                        <td colspan="10" class="text-muted">Sem registros para os filtros aplicados.</td>
+                    </tr>
                     <?php else: ?>
-                        <?php foreach ($paginaItens as $row): ?>
-                            <tr>
-                                <td>
-                                    <a href="<?= e($BASE_URL) ?>show_internacao.php?id_internacao=<?= (int)$row['id_internacao'] ?>">
-                                        <?= (int)$row['id_internacao'] ?>
-                                    </a>
-                                </td>
-                                <td><?= e($row['nome_pac']) ?></td>
-                                <td><?= e($row['nome_hosp']) ?></td>
-                                <td>
-                                    <?= e(date('d/m/Y', strtotime($row['data_ini']))) ?>
-                                    →
-                                    <?= e(date('d/m/Y', strtotime($row['data_fim']))) ?>
-                                </td>
-                                <td><?= !empty($row['data_alta']) ? 'Sim' : 'Não' ?></td>
-                                <td><?= !empty($row['data_alta']) ? e(date('d/m/Y', strtotime($row['data_alta']))) : '-' ?></td>
-                                <td><?= (int)$row['prorrog_count'] ?></td>
-                                <td>
-                                    <?php if (!empty($row['prorrog_range_start']) && !empty($row['prorrog_range_end'])): ?>
-                                        <?= (int)$row['covered_days'] ?> dias | <?= e($row['prorrog_range_start']) ?>
-                                        → <?= e($row['prorrog_range_end']) ?>
-                                    <?php else: ?>
-                                        -
-                                    <?php endif; ?>
-                                </td>
-                                <td><?= (int)$row['missing_days'] ?> dias</td>
-                                <td>
-                                    <?php
-                                    $gaps = $row['gaps'] ?? [];
-                                    if (!$gaps) {
-                                        echo '-';
-                                    } else {
-                                        $parts = array_map(fn($g) => $g[0] . ' → ' . $g[1], $gaps);
-                                        echo e(implode(' | ', $parts));
-                                    }
-                                    ?>
-                                </td>
-                                <td class="text-center">
-                                    <a class="btn btn-sm btn-outline-primary"
-                                        title="Editar prorrogação"
-                                        href="<?= e($BASE_URL) ?>edit_internacao.php?id_internacao=<?= (int)$row['id_internacao'] ?>&section=prorrog#collapseProrrog">
-                                        <i class="bi bi-pencil-square"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
+                    <?php foreach ($paginaItens as $row): ?>
+                    <tr style="font-size:13px;">
+                        <td><?= (int)$row['id_internacao'] ?></td>
+                        <td style="font-weight:bolder;"><?= e($row['nome_hosp']) ?></td>
+                        <td><?= e($row['nome_pac']) ?></td>
+                        <td><?= e($row['seguradora_seg']) ?></td>
+                        <td><?= !empty($row['data_intern_int']) ? e(date('d/m/Y', strtotime($row['data_intern_int']))) : '--' ?></td>
+                        <td style="font-weight:bolder;"><?= e($row['senha_int']) ?></td>
+                        <td><?= (int)$row['dias_int'] ?></td>
+                        <td><?= !empty($row['ultima_visita']) ? e(date('d/m/Y', strtotime($row['ultima_visita']))) : '--' ?></td>
+                        <td style="font-weight:600;color:#8a1538;"><?= e($row['periodo_aberto']) ?></td>
+                        <td class="action">
+                            <div class="dropdown">
+                                <button class="btn btn-default dropdown-toggle" id="navbarScrollingDropdown"
+                                    role="button" data-bs-toggle="dropdown" style="color:#5e2363" aria-expanded="false">
+                                    <i class="bi bi-stack"></i>
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
+                                    <li>
+                                        <button class="btn btn-default"
+                                            onclick="window.location.href='<?= e($BASE_URL) ?>show_internacao.php?id_internacao=<?= (int)$row['id_internacao'] ?>'"
+                                            style="font-size: .9rem;">
+                                            <i class="fas fa-eye"
+                                                style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i>
+                                            Visualização
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button class="btn btn-default"
+                                            onclick="window.location.href='<?= e($BASE_URL) ?>edit_internacao.php?id_internacao=<?= (int)$row['id_internacao'] ?>&section=prorrog#collapseProrrog'"
+                                            style="font-size: .9rem;">
+                                            <i class="bi bi-pencil-square"
+                                                style="font-size: 1rem; margin-right: 5px; color: rgba(113, 27, 156, 1);"></i>
+                                            Editar Prorrogação
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
                     <?php endif; ?>
                 </tbody>
             </table>
@@ -360,53 +536,46 @@ function buildQuery(array $params): string
             <div style="display:flex; align-items:center; margin-top:20px;">
                 <div class="pagination" style="margin: 0 auto;">
                     <?php if ($totalPaginas > 1): ?>
-                        <ul class="pagination">
-                            <?php
-                            $queryBase = [
-                                'pesquisa_pac' => $pesquisa_pac,
-                                'pesquisa_hosp' => $pesquisa_hosp,
-                                'data_ini' => $data_ini,
-                                'data_fim' => $data_fim,
-                                'limite' => $limite,
-                            ];
-                            ?>
-                            <?php if ($paginaAtual > 1): ?>
-                                <li class="page-item">
-                                    <a class="page-link" href="list_prorrogacao_pendente.php?<?= e(buildQuery($queryBase + ['pag' => 1])) ?>">
-                                        <i class="fa-solid fa-angles-left"></i>
-                                    </a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="list_prorrogacao_pendente.php?<?= e(buildQuery($queryBase + ['pag' => $paginaAtual - 1])) ?>">
-                                        <i class="fa-solid fa-angle-left"></i>
-                                    </a>
-                                </li>
-                            <?php endif; ?>
-                            <?php for ($i = $paginaInicio; $i <= $paginaFim; $i++): ?>
-                                <li class="page-item <?= $paginaAtual === $i ? 'active' : '' ?>">
-                                    <a class="page-link" href="list_prorrogacao_pendente.php?<?= e(buildQuery($queryBase + ['pag' => $i])) ?>">
-                                        <?= $i ?>
-                                    </a>
-                                </li>
-                            <?php endfor; ?>
-                            <?php if ($paginaAtual < $totalPaginas): ?>
-                                <li class="page-item">
-                                    <a class="page-link" href="list_prorrogacao_pendente.php?<?= e(buildQuery($queryBase + ['pag' => $paginaAtual + 1])) ?>">
-                                        <i class="fa-solid fa-angle-right"></i>
-                                    </a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="list_prorrogacao_pendente.php?<?= e(buildQuery($queryBase + ['pag' => $totalPaginas])) ?>">
-                                        <i class="fa-solid fa-angles-right"></i>
-                                    </a>
-                                </li>
-                            <?php endif; ?>
-                        </ul>
+                    <ul class="pagination">
+                        <?php if ($paginaAtual > 1): ?>
+                        <li class="page-item">
+                            <a class="page-link" href="<?= e(buildListUrl($baseParams + ['pag' => 1])) ?>">
+                                <i class="fa-solid fa-angles-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="<?= e(buildListUrl($baseParams + ['pag' => $paginaAtual - 1])) ?>">
+                                <i class="fa-solid fa-angle-left"></i>
+                            </a>
+                        </li>
+                        <?php endif; ?>
+
+                        <?php for ($i = $paginaInicio; $i <= $paginaFim; $i++): ?>
+                        <li class="page-item <?= $paginaAtual === $i ? 'active' : '' ?>">
+                            <a class="page-link" href="<?= e(buildListUrl($baseParams + ['pag' => $i])) ?>">
+                                <?= $i ?>
+                            </a>
+                        </li>
+                        <?php endfor; ?>
+
+                        <?php if ($paginaAtual < $totalPaginas): ?>
+                        <li class="page-item">
+                            <a class="page-link" href="<?= e(buildListUrl($baseParams + ['pag' => $paginaAtual + 1])) ?>">
+                                <i class="fa-solid fa-angle-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="<?= e(buildListUrl($baseParams + ['pag' => $totalPaginas])) ?>">
+                                <i class="fa-solid fa-angles-right"></i>
+                            </a>
+                        </li>
+                        <?php endif; ?>
+                    </ul>
                     <?php endif; ?>
                 </div>
                 <div class="table-counter">
                     <p style="margin-bottom:25px;font-size:1em; font-weight:600; font-family:var(--bs-font-sans-serif); text-align:right">
-                        <?php echo "Total: " . (int)$total ?>
+                        Total: <?= (int)$total ?>
                     </p>
                 </div>
             </div>

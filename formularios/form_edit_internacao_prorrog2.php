@@ -135,8 +135,8 @@ if ($internStartTs && $internEndTs && $internEndTs > $internStartTs) {
     .pror-row .form-grid {
         display: grid;
         grid-template-columns:
-            minmax(240px, 1fr)
-            /* Acomodação cresce */
+            clamp(180px, 24vw, 320px)
+            /* Acomodação com largura controlada */
             160px
             /* Data inicial */
             160px

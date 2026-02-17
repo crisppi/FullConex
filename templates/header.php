@@ -587,9 +587,6 @@ if (!empty($sessionIdUsuario)) {
                                     </a>
                                     <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
 
-                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>censo/lista"><i class="bi bi-book"
-                                                    style="font-size: 1rem;margin-right:5px; color: rgb(222, 156, 55);"></i>
-                                                Censo</a></li>
                                         <li><a class="dropdown-item" href="<?= $BASE_URL ?>internacoes/lista"> <i
                                                     class="bi bi-calendar2-date"
                                                     style="font-size: 1rem;margin-right:5px; color: rgb(255, 25, 55);"></i>
@@ -603,6 +600,13 @@ if (!empty($sessionIdUsuario)) {
                                                     class="bi bi-clipboard-check"
                                                     style="font-size: 1rem;margin-right:5px; color: rgb(9,132,227);"></i>
                                                 Lista de altas</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>list_prorrogacao_pendente.php"><i
+                                                    class="bi bi-hourglass-split"
+                                                    style="font-size: 1rem;margin-right:5px; color: rgb(180, 120, 20);"></i>
+                                                Prorrogações pendentes</a></li>
+                                        <li><a class="dropdown-item" href="<?= $BASE_URL ?>censo/lista"><i class="bi bi-book"
+                                                    style="font-size: 1rem;margin-right:5px; color: rgb(222, 156, 55);"></i>
+                                                Censo</a></li>
                                     </ul>
                                 </li>
                             <?php }; ?>
