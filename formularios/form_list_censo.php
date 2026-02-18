@@ -24,6 +24,58 @@ include_once("dao/capeanteDao.php");
 
 include_once("models/pagination.php");
 
+if (!function_exists('listaCensoGetParam')) {
+    function listaCensoGetParam(string $longKey, $default = null)
+    {
+        static $shortToLong = [
+            'hosp' => 'pesquisa_nome',
+            'pac'  => 'pesquisa_pac',
+            'it'   => 'pesqInternado',
+            'pp'   => 'limite',
+            'ord'  => 'ordenar',
+            'pg'   => 'pag',
+            'blc'  => 'bl',
+        ];
+        static $longToShort = null;
+        if ($longToShort === null) $longToShort = array_flip($shortToLong);
+        $value = $_GET[$longKey] ?? null;
+        if ($value === null && isset($longToShort[$longKey])) {
+            $value = $_GET[$longToShort[$longKey]] ?? null;
+        }
+        if ($value === null || $value === '') return $default;
+        return $value;
+    }
+}
+
+if (!function_exists('listaCensoCompactParams')) {
+    function listaCensoCompactParams(array $params): array
+    {
+        $defaults = ['pesqInternado' => 's', 'limite' => '10'];
+        $longToShort = [
+            'pesquisa_nome' => 'hosp',
+            'pesquisa_pac' => 'pac',
+            'pesqInternado' => 'it',
+            'limite' => 'pp',
+            'ordenar' => 'ord',
+            'pag' => 'pg',
+            'bl' => 'blc',
+        ];
+        $clean = [];
+        foreach ($params as $k => $v) {
+            if ($v === null || $v === '' || $v === false) continue;
+            $v = (string)$v;
+            if (isset($defaults[$k]) && $defaults[$k] === $v) continue;
+            $clean[$k] = $v;
+        }
+        unset($clean['bl']);
+        $compact = [];
+        foreach ($clean as $k => $v) {
+            $compact[$longToShort[$k] ?? $k] = $v;
+        }
+        return $compact;
+    }
+}
+
 $censo_geral = new censoDAO($conn, $BASE_URL);
 $censos = $censo_geral->findGeral();
 
@@ -68,11 +120,11 @@ $user = $_SESSION['id_usuario'];
             <div class="row">
                 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
                 <form action="" id="select-censo-form" method="GET">
-                    <?php $pesquisa_nome = filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS);
-                    $pesqInternado = filter_input(INPUT_GET, 'pesqInternado', FILTER_SANITIZE_SPECIAL_CHARS);
-                    $limite = filter_input(INPUT_GET, 'limite') ?? 10;
-                    $pesquisa_pac = filter_input(INPUT_GET, 'pesquisa_pac', FILTER_SANITIZE_SPECIAL_CHARS);
-                    $ordenar = filter_input(INPUT_GET, 'ordenar');
+                    <?php $pesquisa_nome = (string)listaCensoGetParam('pesquisa_nome', '');
+                    $pesqInternado = (string)listaCensoGetParam('pesqInternado', 's');
+                    $limite = (int)listaCensoGetParam('limite', 10);
+                    $pesquisa_pac = (string)listaCensoGetParam('pesquisa_pac', '');
+                    $ordenar = (string)listaCensoGetParam('ordenar', '');
                     ?>
                     <div class="row">
                         <div class="form-group col-sm-2" style="padding:2px !important;padding-left:16px !important;">
@@ -158,10 +210,10 @@ $user = $_SESSION['id_usuario'];
         //Instanciando a classe
         $QtdTotalInt = new censoDAO($conn, $BASE_URL);
         // METODO DE BUSCA DE PAGINACAO 
-        $pesquisa_nome = filter_input(INPUT_GET, 'pesquisa_nome');
-        $limite = filter_input(INPUT_GET, 'limite') ? filter_input(INPUT_GET, 'limite') : 10;
-        $pesquisa_pac = filter_input(INPUT_GET, 'pesquisa_pac');
-        $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : 1;
+        $pesquisa_nome = (string)listaCensoGetParam('pesquisa_nome', '');
+        $limite = (int)listaCensoGetParam('limite', 10);
+        $pesquisa_pac = (string)listaCensoGetParam('pesquisa_pac', '');
+        $ordenar = (string)listaCensoGetParam('ordenar', 1);
         $censo_internado = '1';
 
         // $buscaAtivo = in_array($buscaAtivo, ['s', 'n']) ?: "";
@@ -183,7 +235,11 @@ $user = $_SESSION['id_usuario'];
         // PAGINACAO
         $order = $ordenar;
 
-        $obPagination = new pagination($qtdIntItens, $_GET['pag'] ?? 1, $limite ?? 10);
+        $paginaAtualParam = (int)listaCensoGetParam('pag', 1);
+        if ($paginaAtualParam < 1) {
+            $paginaAtualParam = 1;
+        }
+        $obPagination = new pagination($qtdIntItens, $paginaAtualParam, $limite ?? 10);
 
         $obLimite = $obPagination->getLimit();
 
@@ -202,7 +258,7 @@ $user = $_SESSION['id_usuario'];
 
             function paginasAtuais($var)
             {
-                $blocoAtual = isset($_GET['bl']) ? $_GET['bl'] : 0;
+                $blocoAtual = (int)listaCensoGetParam('bl', (int)floor(($paginaAtualParam - 1) / 5) * 5);
                 return $var['bloco'] == (($blocoAtual) / 5) + 1;
             }
             $block_pages = array_filter($paginas, "paginasAtuais"); // REFERENCIA FUNCAO CRIADA ACIMA
@@ -211,6 +267,25 @@ $user = $_SESSION['id_usuario'];
             $first_block = reset($paginas)["bloco"];
             $last_block = end($paginas)["bloco"];
             $current_block = reset($block_pages)["bloco"];
+        }
+
+        $paginationBaseParams = [
+            'pesquisa_nome' => $pesquisa_nome,
+            'pesquisa_pac' => $pesquisa_pac,
+            'pesqInternado' => $pesqInternado,
+            'limite' => $limite,
+            'ordenar' => $ordenar,
+        ];
+        if (!function_exists('buildCensoPaginationUrl')) {
+            function buildCensoPaginationUrl(array $baseParams, array $override = []): string
+            {
+                $params = array_merge($baseParams, $override);
+                $compact = listaCensoCompactParams($params);
+                $query = http_build_query($compact);
+                global $BASE_URL;
+                $baseUrl = rtrim($BASE_URL, '/') . '/censo/lista';
+                return $query ? $baseUrl . '?' . $query : $baseUrl;
+            }
         }
         ?>
 
@@ -353,29 +428,25 @@ $user = $_SESSION['id_usuario'];
                         <?php if ($total_pages ?? 1 > 1): ?>
                         <ul class="pagination">
                             <?php
-                                $blocoAtual = isset($_GET['bl']) ? $_GET['bl'] : 0;
-                                $paginaAtual = isset($_GET['pag']) ? $_GET['pag'] : 1;
+                                $blocoAtual = (int)listaCensoGetParam('bl', (int)floor(($paginaAtualParam - 1) / 5) * 5);
+                                $paginaAtual = $paginaAtualParam;
                                 ?>
                             <?php if ($current_block > $first_block): ?>
                             <li class="page-item">
-                                <a class="page-link" id="blocoNovo" href="#"
-                                    onclick="loadContent('list_censo_adm.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&pesqInternado=<?php print $pesqInternado ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print 1 ?>&bl=<?php print 0 ?>')">
+                                <a class="page-link" id="blocoNovo" href="<?= htmlspecialchars(buildCensoPaginationUrl($paginationBaseParams, ['pag' => 1]), ENT_QUOTES, 'UTF-8') ?>">
                                     <i class="fa-solid fa-angles-left"></i></a>
                             </li>
                             <?php endif; ?>
                             <?php if ($current_block <= $last_block && $last_block > 1 && $current_block != 1): ?>
                             <li class="page-item">
-                                <a class="page-link" href="#"
-                                    onclick="loadContent('list_censo_adm.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&pesqInternado=<?php print $pesqInternado ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $paginaAtual - 1 ?>&bl=<?php print $blocoAtual - 5 ?>')">
+                                <a class="page-link" href="<?= htmlspecialchars(buildCensoPaginationUrl($paginationBaseParams, ['pag' => max(1, $paginaAtual - 1)]), ENT_QUOTES, 'UTF-8') ?>">
                                     <i class="fa-solid fa-angle-left"></i></a>
                             </li>
                             <?php endif; ?>
 
                             <?php for ($i = $first_page_in_block; $i <= $last_page_in_block; $i++): ?>
-                            <li class="page-item <?php print ($_GET['pag'] ?? 1) == $i ? "active" : "" ?>">
-
-                                <a class="page-link" href="#"
-                                    onclick="loadContent('list_censo_adm.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&pesqInternado=<?php print $pesqInternado ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $i ?>&bl=<?php print $blocoAtual ?>')">
+                            <li class="page-item <?php print $paginaAtualParam == $i ? "active" : "" ?>">
+                                <a class="page-link" href="<?= htmlspecialchars(buildCensoPaginationUrl($paginationBaseParams, ['pag' => $i]), ENT_QUOTES, 'UTF-8') ?>">
                                     <?php echo $i; ?>
                                 </a>
                             </li>
@@ -383,15 +454,13 @@ $user = $_SESSION['id_usuario'];
 
                             <?php if ($current_block < $last_block): ?>
                             <li class="page-item">
-                                <a class="page-link" id="blocoNovo" href="#"
-                                    onclick="loadContent('list_censo_adm.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&pesqInternado=<?php print $pesqInternado ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $paginaAtual + 1 ?>&bl=<?php print $blocoAtual + 5 ?>')"><i
+                                <a class="page-link" id="blocoNovo" href="<?= htmlspecialchars(buildCensoPaginationUrl($paginationBaseParams, ['pag' => min($total_pages, $paginaAtual + 1)]), ENT_QUOTES, 'UTF-8') ?>"><i
                                         class="fa-solid fa-angle-right"></i></a>
                             </li>
                             <?php endif; ?>
                             <?php if ($current_block < $last_block): ?>
                             <li class="page-item">
-                                <a class="page-link" id="blocoNovo" href="#"
-                                    onclick="loadContent('list_censo_adm.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&pesqInternado=<?php print $pesqInternado ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print count($paginas) ?>&bl=<?php print ($last_block - 1) * 5 ?>')"><i
+                                <a class="page-link" id="blocoNovo" href="<?= htmlspecialchars(buildCensoPaginationUrl($paginationBaseParams, ['pag' => count($paginas)]), ENT_QUOTES, 'UTF-8') ?>"><i
                                         class="fa-solid fa-angles-right"></i></a>
                             </li>
                             <?php endif; ?>
@@ -411,37 +480,87 @@ $user = $_SESSION['id_usuario'];
     </div>
 </div>
 <script>
-// ajax para submit do formulario de pesquisa
-$(document).ready(function() {
-    $('#select-censo-form').submit(function(e) {
-        e.preventDefault(); // Impede o comportamento padrão de enviar o formulário
+var censoAliasLongToShort = {
+    pesquisa_nome: 'hosp',
+    pesquisa_pac: 'pac',
+    pesqInternado: 'it',
+    limite: 'pp',
+    ordenar: 'ord',
+    pag: 'pg',
+    bl: 'blc'
+};
+var censoAliasShortToLong = {};
+Object.keys(censoAliasLongToShort).forEach(function(k) {
+    censoAliasShortToLong[censoAliasLongToShort[k]] = k;
+});
+function compactCensoQuery(input) {
+    var source = new URLSearchParams(typeof input === 'string' ? input : (input || ''));
+    var normalized = {};
+    source.forEach(function(v, k) {
+        normalized[censoAliasShortToLong[k] || k] = v;
+    });
+    delete normalized.bl;
+    var defaults = { pesqInternado: 's', limite: '10' };
+    var out = new URLSearchParams();
+    Object.keys(normalized).forEach(function(longKey) {
+        var value = String(normalized[longKey] || '').trim();
+        if (!value) return;
+        if (defaults[longKey] !== undefined && defaults[longKey] === value) return;
+        out.set(censoAliasLongToShort[longKey] || longKey, value);
+    });
+    return out.toString();
+}
 
-        var formData = $(this).serialize(); // Serializa os dados do formulário
+function renderCensoTable(responseHtml) {
+    var temp = document.createElement('div');
+    temp.innerHTML = responseHtml;
+    var tableContent = temp.querySelector('#table-content');
+    if (!tableContent) return false;
+    $('#table-content').html(tableContent.innerHTML);
+    return true;
+}
 
-        $.ajax({
-            url: $(this).attr('action'), // URL do formulário
-            type: $(this).attr('method'), // Método do formulário (POST)
-            data: formData, // Dados serializados do formulário
-            success: function(response) {
-                // Crie um elemento temporário para armazenar a resposta HTML
-                var tempElement = document.createElement('div');
-                tempElement.innerHTML = response;
-
-                // Encontre o elemento com o ID "table-content" dentro do elemento temporário
-                var tableContent = tempElement.querySelector('#table-content');
-                $('#table-content').html(tableContent);
-            },
-            error: function() {
-                $('#responseMessage').html('Ocorreu um erro ao enviar o formulário.');
+function loadCensoList(url, dataPayload) {
+    var requestUrl = url || ($('#select-censo-form').attr('action') || window.location.pathname);
+    $.ajax({
+        url: requestUrl,
+        type: 'GET',
+        data: dataPayload || null,
+        success: function(response) {
+            if (!renderCensoTable(response)) return;
+            if (dataPayload) {
+                var qs = typeof dataPayload === 'string' ? dataPayload : $.param(dataPayload);
+                var compactQs = compactCensoQuery(qs);
+                var targetUrl = requestUrl + (compactQs ? (requestUrl.indexOf('?') === -1 ? '?' : '&') + compactQs : '');
+                window.history.replaceState({}, '', targetUrl);
+            } else if (url) {
+                try {
+                    var parsed = new URL(url, window.location.origin);
+                    var compactFromUrl = compactCensoQuery(parsed.search);
+                    window.history.replaceState({}, '', parsed.pathname + (compactFromUrl ? '?' + compactFromUrl : ''));
+                } catch (e) {
+                    window.history.replaceState({}, '', url);
+                }
             }
-        });
+        },
+        error: function() {
+            $('#responseMessage').html('Ocorreu um erro ao atualizar a listagem.');
+        }
+    });
+}
+
+$(document).ready(function() {
+    $('#select-censo-form').on('submit', function(e) {
+        e.preventDefault();
+        loadCensoList($(this).attr('action') || window.location.pathname, $(this).serialize());
     });
 });
 
-$(document).ready(function() {
-    loadContent(
-        'censo/lista?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&pesqInternado=<?php print $pesqInternado ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print 1 ?>&bl=<?php print 0 ?>'
-    );
+$(document).on('click', '#table-content .pagination a.page-link', function(e) {
+    var href = $(this).attr('href');
+    if (!href || href === '#') return;
+    e.preventDefault();
+    loadCensoList(href, null);
 });
 </script>
 

@@ -201,6 +201,7 @@ try {
             $hospital_selecionado ?: null,
             $id_usuario_sessao ?: null,
             $isSeguradoraRole ? null : ($nivel_sessao ?? null),
+            8,
             ($isSeguradoraRole && $seguradoraUserId > 0) ? $seguradoraUserId : null
         );
         if (!is_array($forecastRows)) {

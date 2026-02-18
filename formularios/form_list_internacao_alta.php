@@ -26,6 +26,71 @@ include_once("dao/altaDao.php");
 
 include_once("models/pagination.php");
 
+if (!function_exists('listaAltaGetParam')) {
+    function listaAltaGetParam(string $longKey, $default = null)
+    {
+        static $shortToLong = [
+            'hosp' => 'pesquisa_nome',
+            'pac'  => 'pesquisa_pac',
+            'mat'  => 'pesquisa_matricula',
+            'it'   => 'pesqInternado',
+            'pp'   => 'limite',
+            'ord'  => 'ordenar',
+            'di'   => 'data_alta',
+            'df'   => 'data_alta_max',
+            'pg'   => 'pag',
+            'blc'  => 'bl',
+        ];
+        static $longToShort = null;
+        if ($longToShort === null) {
+            $longToShort = array_flip($shortToLong);
+        }
+        $value = $_GET[$longKey] ?? null;
+        if ($value === null && isset($longToShort[$longKey])) {
+            $value = $_GET[$longToShort[$longKey]] ?? null;
+        }
+        if ($value === null || $value === '') {
+            return $default;
+        }
+        return $value;
+    }
+}
+
+if (!function_exists('listaAltaCompactParams')) {
+    function listaAltaCompactParams(array $params): array
+    {
+        $defaults = ['pesqInternado' => 's', 'limite' => '10'];
+        $longToShort = [
+            'pesquisa_nome'      => 'hosp',
+            'pesquisa_pac'       => 'pac',
+            'pesquisa_matricula' => 'mat',
+            'pesqInternado'      => 'it',
+            'limite'             => 'pp',
+            'ordenar'            => 'ord',
+            'data_alta'          => 'di',
+            'data_alta_max'      => 'df',
+            'pag'                => 'pg',
+            'bl'                 => 'blc',
+        ];
+
+        $clean = [];
+        foreach ($params as $key => $value) {
+            if ($value === null || $value === '' || $value === false) continue;
+            $value = (string)$value;
+            if (isset($defaults[$key]) && $defaults[$key] === $value) continue;
+            $clean[$key] = $value;
+        }
+        if (empty($clean['data_alta'])) unset($clean['data_alta_max']);
+        unset($clean['bl']);
+
+        $compact = [];
+        foreach ($clean as $key => $value) {
+            $compact[$longToShort[$key] ?? $key] = $value;
+        }
+        return $compact;
+    }
+}
+
 $somenteListaAltas = isset($somenteListaAltas) ? (bool)$somenteListaAltas : false;
 
 $normCargoAccess = static function ($txt): string {
@@ -69,14 +134,14 @@ $internacao = new internacaoDAO($conn, $BASE_URL);
 
 /* ===================== FILTROS VIA GET ===================== */
 
-$pesquisa_nome   = filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS) ?: '';
-$pesquisa_pac    = filter_input(INPUT_GET, 'pesquisa_pac',   FILTER_SANITIZE_SPECIAL_CHARS) ?: '';
-$pesquisa_matricula = filter_input(INPUT_GET, 'pesquisa_matricula', FILTER_SANITIZE_SPECIAL_CHARS) ?: '';
-$pesqInternado   = filter_input(INPUT_GET, 'pesqInternado',  FILTER_SANITIZE_SPECIAL_CHARS) ?: 's';
-$limite          = filter_input(INPUT_GET, 'limite', FILTER_VALIDATE_INT) ?: 10;
-$ordenar         = filter_input(INPUT_GET, 'ordenar', FILTER_SANITIZE_SPECIAL_CHARS) ?: '';
-$data_alta       = filter_input(INPUT_GET, 'data_alta', FILTER_SANITIZE_SPECIAL_CHARS) ?: '';
-$data_alta_max   = filter_input(INPUT_GET, 'data_alta_max', FILTER_SANITIZE_SPECIAL_CHARS) ?: '';
+$pesquisa_nome   = (string)listaAltaGetParam('pesquisa_nome', '');
+$pesquisa_pac    = (string)listaAltaGetParam('pesquisa_pac', '');
+$pesquisa_matricula = (string)listaAltaGetParam('pesquisa_matricula', '');
+$pesqInternado   = (string)listaAltaGetParam('pesqInternado', 's');
+$limite          = (int)listaAltaGetParam('limite', 10);
+$ordenar         = (string)listaAltaGetParam('ordenar', '');
+$data_alta       = (string)listaAltaGetParam('data_alta', '');
+$data_alta_max   = (string)listaAltaGetParam('data_alta_max', '');
 
 if ($data_alta && !$data_alta_max) {
     $data_alta_max = date('Y-m-d');
@@ -118,7 +183,11 @@ $order = $ordenar ?: 'id_internacao DESC';
 $qtdIntItens1 = $altaDao->findAltaWhere($where, $order, null);
 $qtdIntItens  = is_countable($qtdIntItens1) ? count($qtdIntItens1) : 0;
 
-$obPagination = new pagination($qtdIntItens, $_GET['pag'] ?? 1, $limite ?? 10);
+$paginaAtualParam = (int)listaAltaGetParam('pag', 1);
+if ($paginaAtualParam < 1) {
+    $paginaAtualParam = 1;
+}
+$obPagination = new pagination($qtdIntItens, $paginaAtualParam, $limite ?? 10);
 $obLimite     = $obPagination->getLimit();
 
 $query = $altaDao->findAltaWhere($where, $order, $obLimite ?: null);
@@ -129,7 +198,7 @@ if ($qtdIntItens > $limite) {
 
     function paginasAtuais($var)
     {
-        $blocoAtual = isset($_GET['bl']) ? (int)$_GET['bl'] : 0;
+        $blocoAtual = (int)listaAltaGetParam('bl', (int)floor(($paginaAtualParam - 1) / 5) * 5);
         return $var['bloco'] == (($blocoAtual) / 5) + 1;
     }
 
@@ -159,11 +228,7 @@ $paginationParams = [
 
 $buildListaAltaLink = function($pagina, $bloco) use ($paginationParams, $BASE_URL, $somenteListaAltas) {
     $params = $paginationParams;
-    $params['bl'] = $bloco;
-
-    $params = array_filter($params, function($value) {
-        return $value !== null && $value !== '' && $value !== false;
-    });
+    $params = listaAltaCompactParams($params);
 
     $pathBase = $somenteListaAltas ? 'listas/altas' : 'internacoes/reverter-alta';
     $pagina = max(1, (int)$pagina);
@@ -405,8 +470,8 @@ $buildListaAltaLink = function($pagina, $bloco) use ($paginationParams, $BASE_UR
                         <?php if (($total_pages ?? 1) > 1): ?>
                             <ul class="pagination">
                                 <?php
-                                $blocoAtual  = isset($_GET['bl']) ? (int)$_GET['bl'] : 0;
-                                $paginaAtual = isset($_GET['pag']) ? (int)$_GET['pag'] : 1;
+                                $blocoAtual  = (int)listaAltaGetParam('bl', (int)floor(($paginaAtualParam - 1) / 5) * 5);
+                                $paginaAtual = $paginaAtualParam;
                                 ?>
                                 <?php if ($current_block > $first_block): ?>
                                     <li class="page-item">
@@ -422,7 +487,7 @@ $buildListaAltaLink = function($pagina, $bloco) use ($paginationParams, $BASE_UR
                                 <?php endif; ?>
 
                                 <?php for ($i = $first_page_in_block; $i <= $last_page_in_block; $i++): ?>
-                                    <li class="page-item <?= ($_GET['pag'] ?? 1) == $i ? "active" : "" ?>">
+                                    <li class="page-item <?= $paginaAtualParam == $i ? "active" : "" ?>">
                                         <a class="page-link" href="<?= $buildListaAltaLink($i, $blocoAtual) ?>">
                                             <?= $i ?>
                                         </a>
@@ -615,6 +680,48 @@ $buildListaAltaLink = function($pagina, $bloco) use ($paginationParams, $BASE_UR
 <script>
     const SOMENTE_LISTA_ALTAS = <?= $somenteListaAltas ? 'true' : 'false' ?>;
     (function($) {
+        var altaAliasLongToShort = {
+            pesquisa_nome: 'hosp',
+            pesquisa_pac: 'pac',
+            pesquisa_matricula: 'mat',
+            pesqInternado: 'it',
+            limite: 'pp',
+            ordenar: 'ord',
+            data_alta: 'di',
+            data_alta_max: 'df',
+            pag: 'pg',
+            bl: 'blc'
+        };
+        var altaAliasShortToLong = {};
+        Object.keys(altaAliasLongToShort).forEach(function(k) {
+            altaAliasShortToLong[altaAliasLongToShort[k]] = k;
+        });
+        var altaDefaults = {
+            pesqInternado: 's',
+            limite: '10'
+        };
+
+        function compactAltaQuery(input) {
+            var source = new URLSearchParams(typeof input === 'string' ? input : (input || ''));
+            var normalized = {};
+            source.forEach(function(v, k) {
+                normalized[altaAliasShortToLong[k] || k] = v;
+            });
+            if (!normalized.data_alta) {
+                delete normalized.data_alta_max;
+            }
+            delete normalized.bl;
+
+            var out = new URLSearchParams();
+            Object.keys(normalized).forEach(function(longKey) {
+                var value = String(normalized[longKey] || '').trim();
+                if (!value) return;
+                if (altaDefaults[longKey] !== undefined && altaDefaults[longKey] === value) return;
+                out.set(altaAliasLongToShort[longKey] || longKey, value);
+            });
+            return out.toString();
+        }
+
         function showMsg(title, body) {
             $('#modalMsgTitle').text(title || 'Aviso');
             $('#modalMsgBody').html(body || '');
@@ -645,10 +752,18 @@ $buildListaAltaLink = function($pagina, $bloco) use ($paginationParams, $BASE_UR
 
                     if (dataPayload) {
                         var qs = typeof dataPayload === 'string' ? dataPayload : $.param(dataPayload);
-                        var targetUrl = requestUrl + (qs ? (requestUrl.indexOf('?') === -1 ? '?' : '&') + qs : '');
+                        var compactQs = compactAltaQuery(qs);
+                        var targetUrl = requestUrl + (compactQs ? (requestUrl.indexOf('?') === -1 ? '?' : '&') + compactQs : '');
                         window.history.replaceState({}, '', targetUrl);
                     } else if (url) {
-                        window.history.replaceState({}, '', url);
+                        try {
+                            var parsed = new URL(url, window.location.origin);
+                            var compactFromUrl = compactAltaQuery(parsed.search);
+                            var compactUrl = parsed.pathname + (compactFromUrl ? '?' + compactFromUrl : '');
+                            window.history.replaceState({}, '', compactUrl);
+                        } catch (e) {
+                            window.history.replaceState({}, '', url);
+                        }
                     }
                 },
                 error: function() {
