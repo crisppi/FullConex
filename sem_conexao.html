@@ -1,29 +1,150 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Sem Conexao</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f6f8fb;
+            color: #233143;
+        }
+        .wrap {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .card {
+            width: 100%;
+            max-width: 720px;
+            background: #fff;
+            border: 1px solid #dde3ea;
+            border-radius: 12px;
+            padding: 28px;
+            box-shadow: 0 10px 24px rgba(35, 49, 67, 0.08);
+            text-align: center;
+        }
+        h1 {
+            margin: 0 0 10px;
+            font-size: 28px;
+            color: #2457a3;
+        }
+        p {
+            margin: 6px 0;
+            line-height: 1.45;
+        }
+        .status {
+            margin-top: 18px;
+            padding: 10px 14px;
+            background: #f1f6ff;
+            border: 1px solid #c9daf7;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        .actions {
+            margin-top: 16px;
+        }
+        .actions a {
+            color: #2457a3;
+            font-weight: 700;
+            text-decoration: none;
+        }
+        .actions a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
-
 <body>
-    <div>
-        <h1 style="text-align:center; margin-top:250px;color:blue">
-            Estamos com problema na conexão com o Servidor
-        </h1>
-    </div>
-    <div>
-        <h4 style="text-align:center">
-            Tente novamente mais tarde, ou entre em contato com o Administrador do sistema. </h4>
-    </div>
-    <div>
-        <h4 style="text-align:center">
-            <a href="index.php">Refresh !! </a>
-        </h4>
+    <div class="wrap">
+        <div class="card">
+            <h1>Problema de conexao com o servidor</h1>
+            <p>Tentaremos reconectar automaticamente em 20 segundos.</p>
+            <p>Faremos ate 3 tentativas. Se nao funcionar, contate o administrador do sistema.</p>
 
+            <div id="status" class="status">Aguardando 20s para a tentativa 1 de 3...</div>
+
+            <div class="actions">
+                <a href="index.php">Tentar agora</a>
+            </div>
+        </div>
     </div>
+
+    <script>
+        (function () {
+            var maxTentativas = 3;
+            var tentativas = 0;
+            var esperaSegundos = 20;
+            var segundosRestantes = esperaSegundos;
+            var statusEl = document.getElementById('status');
+            var timer = null;
+            var rotaTeste = 'index.php';
+
+            function setStatus(msg) {
+                statusEl.textContent = msg;
+            }
+
+            function finalizarFalha() {
+                setStatus('Nao foi possivel reconectar apos 3 tentativas. Tente novamente manualmente.');
+            }
+
+            function iniciarContagem() {
+                if (tentativas >= maxTentativas) {
+                    finalizarFalha();
+                    return;
+                }
+                segundosRestantes = esperaSegundos;
+                setStatus('Aguardando ' + segundosRestantes + 's para a tentativa ' + (tentativas + 1) + ' de ' + maxTentativas + '...');
+
+                timer = window.setInterval(function () {
+                    segundosRestantes -= 1;
+                    if (segundosRestantes <= 0) {
+                        window.clearInterval(timer);
+                        timer = null;
+                        tentarReconexao();
+                        return;
+                    }
+                    setStatus('Aguardando ' + segundosRestantes + 's para a tentativa ' + (tentativas + 1) + ' de ' + maxTentativas + '...');
+                }, 1000);
+            }
+
+            function tentarReconexao() {
+                tentativas += 1;
+                setStatus('Tentativa ' + tentativas + ' de ' + maxTentativas + ' em andamento...');
+
+                fetch(rotaTeste + '?retry=' + Date.now(), {
+                    method: 'GET',
+                    cache: 'no-store',
+                    credentials: 'same-origin'
+                })
+                .then(function (resp) {
+                    if (resp.ok) {
+                        setStatus('Conexao restabelecida. Redirecionando...');
+                        window.location.href = rotaTeste;
+                        return;
+                    }
+
+                    if (tentativas >= maxTentativas) {
+                        finalizarFalha();
+                    } else {
+                        iniciarContagem();
+                    }
+                })
+                .catch(function () {
+                    if (tentativas >= maxTentativas) {
+                        finalizarFalha();
+                    } else {
+                        iniciarContagem();
+                    }
+                });
+            }
+
+            iniciarContagem();
+        })();
+    </script>
 </body>
-
 </html>

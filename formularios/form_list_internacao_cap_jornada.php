@@ -26,8 +26,23 @@ $internacaoDAO = new internacaoDAO($conn, $BASE_URL);
 $pesquisa_nome = filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS) ?: '';
 $pesquisa_pac  = filter_input(INPUT_GET, 'pesquisa_pac',   FILTER_SANITIZE_SPECIAL_CHARS) ?: '';
 $limite        = (int)(filter_input(INPUT_GET, 'limite') ?: 10);
-$ordenar       = filter_input(INPUT_GET, 'ordenar') ?: 'id_internacao';
+$sortField     = filter_input(INPUT_GET, 'sort_field') ?: (filter_input(INPUT_GET, 'ordenar') ?: 'id_internacao');
+$sortDir       = strtolower((string)(filter_input(INPUT_GET, 'sort_dir') ?: 'desc'));
 $paginaAtual   = (int)(filter_input(INPUT_GET, 'pag') ?: 1);
+
+$ordenarPermitido = [
+  'id_internacao' => 'ac.id_internacao',
+  'nome_pac'      => 'pa.nome_pac',
+  'nome_hosp'     => 'ho.nome_hosp',
+  'data_intern_int' => 'ac.data_intern_int',
+];
+if (!isset($ordenarPermitido[$sortField])) {
+  $sortField = 'id_internacao';
+}
+if (!in_array($sortDir, ['asc', 'desc'], true)) {
+  $sortDir = 'desc';
+}
+$ordenarSql = $ordenarPermitido[$sortField] . ' ' . strtoupper($sortDir) . ', ac.id_internacao ' . strtoupper($sortDir);
 
 // tri-state: '', 's', 'n'
 $faturada  = filter_input(INPUT_GET, 'faturada',  FILTER_SANITIZE_SPECIAL_CHARS);
@@ -73,17 +88,65 @@ if ($auditoria === 's') {
 $where = implode(' AND ', $condicoes);
 
 // ---------------------
-// Busca tudo p/ deduplicar/agregar
+// Paginação por SQL (itens únicos) + busca apenas da página
 // ---------------------
-$todasAsLinhas = $internacaoDAO->selectAllInternacaoCap($where, $ordenar, null);
+$baseFromSql = '
+  FROM tb_internacao ac
+  LEFT JOIN tb_hospital AS ho ON ac.fk_hospital_int = ho.id_hospital
+  LEFT JOIN tb_hospitalUser AS hos ON hos.fk_hospital_user = ho.id_hospital
+  LEFT JOIN tb_user AS se ON se.id_usuario = hos.fk_usuario_hosp
+  LEFT JOIN tb_uti AS ut ON ac.id_internacao = ut.fk_internacao_uti
+  LEFT JOIN tb_paciente AS pa ON ac.fk_paciente_int = pa.id_paciente
+  LEFT JOIN tb_capeante AS ca ON ac.id_internacao = ca.fk_int_capeante
+';
+$whereSql = $where !== '' ? (' WHERE ' . $where) : '';
+
+$totalDeItensUnicos = 0;
+try {
+  $sqlCount = 'SELECT COUNT(DISTINCT ac.id_internacao) AS total ' . $baseFromSql . $whereSql;
+  $stmtCount = $conn->query($sqlCount);
+  $totalDeItensUnicos = (int)($stmtCount->fetchColumn() ?: 0);
+} catch (Throwable $e) {
+  error_log('[JORNADA][COUNT] ' . $e->getMessage());
+}
+
+$obPagination       = new pagination($totalDeItensUnicos, $paginaAtual, $limite);
+$limiteSql          = $obPagination->getLimit();
+list($offset, $qtde) = array_map('intval', explode(',', $limiteSql));
+
+// IDs da página atual
+$idsDaPagina = [];
+if ($totalDeItensUnicos > 0) {
+  try {
+    $sqlIds = 'SELECT DISTINCT ac.id_internacao ' . $baseFromSql . $whereSql .
+      ' ORDER BY ' . $ordenarSql . ' LIMIT ' . $offset . ',' . $qtde;
+    $stmtIds = $conn->query($sqlIds);
+    $idsDaPagina = array_map(
+      'intval',
+      array_column($stmtIds->fetchAll(PDO::FETCH_ASSOC), 'id_internacao')
+    );
+  } catch (Throwable $e) {
+    error_log('[JORNADA][IDS] ' . $e->getMessage());
+  }
+}
+
+// Busca apenas as linhas necessárias (com todos os capeantes dessas internações da página)
+$linhasFiltradas = [];
+if (!empty($idsDaPagina)) {
+  $wherePagina = $where;
+  $wherePagina .= ($wherePagina !== '' ? ' AND ' : '') . 'ac.id_internacao IN (' . implode(',', $idsDaPagina) . ')';
+  $linhasFiltradas = $internacaoDAO->selectAllInternacaoCap($wherePagina, $ordenarSql, null);
+}
 
 // agrega por id_internacao
-$linhasUnicas         = []; // primeira linha p/ exibir
-$internacoesAgregadas = []; // status consolidados
+$linhasUnicas         = [];
+$internacoesAgregadas = [];
 
-foreach ($todasAsLinhas as $linha) {
+foreach ($linhasFiltradas as $linha) {
   $id = (int)($linha['id_internacao'] ?? 0);
-  if (!$id) continue;
+  if (!$id) {
+    continue;
+  }
 
   if (!isset($linhasUnicas[$id])) {
     $linhasUnicas[$id] = $linha;
@@ -126,16 +189,13 @@ foreach ($todasAsLinhas as $linha) {
   }
 }
 
-// ---------------------
-// Paginação (itens únicos)
-// ---------------------
-$totalDeItensUnicos = count($linhasUnicas);
-$obPagination       = new pagination($totalDeItensUnicos, $paginaAtual, $limite);
-$limiteSql          = $obPagination->getLimit();        // "offset,qtde"
-list($offset, $qtde) = array_map('intval', explode(',', $limiteSql));
-
-$linhasDaPagina = array_slice(array_values($linhasUnicas), $offset, $qtde);
-$query          = $linhasDaPagina;
+// mantém exatamente a ordem dos IDs paginados
+$query = [];
+foreach ($idsDaPagina as $idPagina) {
+  if (isset($linhasUnicas[$idPagina])) {
+    $query[] = $linhasUnicas[$idPagina];
+  }
+}
 
 // preparar blocos de páginas
 $paginas       = $obPagination->getPages(); // array com ['pg'=>N,'bloco'=>B, ...]
@@ -171,13 +231,43 @@ $urlParams = http_build_query([
   'pesquisa_nome' => $pesquisa_nome,
   'pesquisa_pac'  => $pesquisa_pac,
   'limite'        => $limite,
-  'ordenar'       => $ordenar,
+  'sort_field'    => $sortField,
+  'sort_dir'      => $sortDir,
   'faturada'      => $faturada,
   'aberta'        => $aberta,
   'auditoria'     => $auditoria,
   'encerrada'     => $encerrada,
 ]);
 $urlBase = $self . '?' . $urlParams;
+
+$buildSortUrl = function (string $field, string $dir) use (
+  $self,
+  $pesquisa_nome,
+  $pesquisa_pac,
+  $limite,
+  $faturada,
+  $aberta,
+  $auditoria,
+  $encerrada
+) {
+  $params = [
+    'pesquisa_nome' => $pesquisa_nome,
+    'pesquisa_pac'  => $pesquisa_pac,
+    'limite'        => $limite,
+    'sort_field'    => $field,
+    'sort_dir'      => $dir,
+    'faturada'      => $faturada,
+    'aberta'        => $aberta,
+    'auditoria'     => $auditoria,
+    'encerrada'     => $encerrada,
+    'pag'           => 1,
+    'bl'            => 0,
+  ];
+  $params = array_filter($params, function ($value) {
+    return $value !== null && $value !== '';
+  });
+  return $self . '?' . http_build_query($params);
+};
 ?>
 
 <style>
@@ -299,6 +389,27 @@ th.th-acoes {
     font-weight: 600;
     color: #444;
 }
+
+.th-sortable {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.th-sortable .sort-icons a {
+    text-decoration: none;
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-left: 2px;
+    opacity: 0.9;
+    font-weight: 700;
+}
+
+.th-sortable .sort-icons a.active {
+    color: #5e2363;
+    opacity: 1;
+    font-weight: bold;
+}
 </style>
 
 <div class="container-fluid" style="margin-top:-5px;">
@@ -326,12 +437,15 @@ th.th-acoes {
             </div>
             <div class="col-sm-2">
                 <label class="form-label mb-0 small text-muted">Ordenar</label>
-                <select class="form-select form-select-sm" name="ordenar">
-                    <option value="id_internacao" <?= $ordenar === 'id_internacao' ? 'selected' : '' ?>>Internação
+                <select class="form-select form-select-sm" name="sort_field">
+                    <option value="id_internacao" <?= $sortField === 'id_internacao' ? 'selected' : '' ?>>Internação
                     </option>
-                    <option value="nome_pac" <?= $ordenar === 'nome_pac' ? 'selected' : '' ?>>Paciente</option>
-                    <option value="nome_hosp" <?= $ordenar === 'nome_hosp' ? 'selected' : '' ?>>Hospital</option>
+                    <option value="nome_pac" <?= $sortField === 'nome_pac' ? 'selected' : '' ?>>Paciente</option>
+                    <option value="nome_hosp" <?= $sortField === 'nome_hosp' ? 'selected' : '' ?>>Hospital</option>
+                    <option value="data_intern_int" <?= $sortField === 'data_intern_int' ? 'selected' : '' ?>>Data
+                    </option>
                 </select>
+                <input type="hidden" name="sort_dir" value="<?= htmlspecialchars($sortDir, ENT_QUOTES, 'UTF-8') ?>">
             </div>
         </div>
 
@@ -388,11 +502,59 @@ th.th-acoes {
             <table class="table table-sm table-striped table-hover align-middle">
                 <thead>
                     <tr>
-                        <th>Reg</th>
+                        <th>
+                            <div class="th-sortable">
+                                <span>Reg</span>
+                                <span class="sort-icons">
+                                    <a class="ajax-link <?= ($sortField === 'id_internacao' && $sortDir === 'asc') ? 'active' : '' ?>"
+                                        href="<?= htmlspecialchars($buildSortUrl('id_internacao', 'asc'), ENT_QUOTES, 'UTF-8') ?>"
+                                        title="Ordenar crescente">↑</a>
+                                    <a class="ajax-link <?= ($sortField === 'id_internacao' && $sortDir === 'desc') ? 'active' : '' ?>"
+                                        href="<?= htmlspecialchars($buildSortUrl('id_internacao', 'desc'), ENT_QUOTES, 'UTF-8') ?>"
+                                        title="Ordenar decrescente">↓</a>
+                                </span>
+                            </div>
+                        </th>
                         <th>Conta</th>
-                        <th>Hospital</th>
-                        <th>Paciente</th>
-                        <th>Data Inter.</th>
+                        <th>
+                            <div class="th-sortable">
+                                <span>Hospital</span>
+                                <span class="sort-icons">
+                                    <a class="ajax-link <?= ($sortField === 'nome_hosp' && $sortDir === 'asc') ? 'active' : '' ?>"
+                                        href="<?= htmlspecialchars($buildSortUrl('nome_hosp', 'asc'), ENT_QUOTES, 'UTF-8') ?>"
+                                        title="Ordenar crescente">↑</a>
+                                    <a class="ajax-link <?= ($sortField === 'nome_hosp' && $sortDir === 'desc') ? 'active' : '' ?>"
+                                        href="<?= htmlspecialchars($buildSortUrl('nome_hosp', 'desc'), ENT_QUOTES, 'UTF-8') ?>"
+                                        title="Ordenar decrescente">↓</a>
+                                </span>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="th-sortable">
+                                <span>Paciente</span>
+                                <span class="sort-icons">
+                                    <a class="ajax-link <?= ($sortField === 'nome_pac' && $sortDir === 'asc') ? 'active' : '' ?>"
+                                        href="<?= htmlspecialchars($buildSortUrl('nome_pac', 'asc'), ENT_QUOTES, 'UTF-8') ?>"
+                                        title="Ordenar crescente">↑</a>
+                                    <a class="ajax-link <?= ($sortField === 'nome_pac' && $sortDir === 'desc') ? 'active' : '' ?>"
+                                        href="<?= htmlspecialchars($buildSortUrl('nome_pac', 'desc'), ENT_QUOTES, 'UTF-8') ?>"
+                                        title="Ordenar decrescente">↓</a>
+                                </span>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="th-sortable">
+                                <span>Data Inter.</span>
+                                <span class="sort-icons">
+                                    <a class="ajax-link <?= ($sortField === 'data_intern_int' && $sortDir === 'asc') ? 'active' : '' ?>"
+                                        href="<?= htmlspecialchars($buildSortUrl('data_intern_int', 'asc'), ENT_QUOTES, 'UTF-8') ?>"
+                                        title="Ordenar crescente">↑</a>
+                                    <a class="ajax-link <?= ($sortField === 'data_intern_int' && $sortDir === 'desc') ? 'active' : '' ?>"
+                                        href="<?= htmlspecialchars($buildSortUrl('data_intern_int', 'desc'), ENT_QUOTES, 'UTF-8') ?>"
+                                        title="Ordenar decrescente">↓</a>
+                                </span>
+                            </div>
+                        </th>
                         <th style="width:40%">Jornada da Conta</th>
                         <th class="text-center th-acoes">
                             <div class="acoes-head">
@@ -532,9 +694,32 @@ th.th-acoes {
 <script>
 (function() {
     const $wrap = $('#table-container');
+    let loadingTimer = null;
+
+    function setLoading(active) {
+        if (active) {
+            if (loadingTimer) {
+                clearTimeout(loadingTimer);
+            }
+            // Evita flicker: mostra apenas se demorar mais que 180ms
+            loadingTimer = setTimeout(function() {
+                if (!$wrap.find('.ajax-loading-indicator').length) {
+                    $wrap.prepend(
+                        '<div class="ajax-loading-indicator alert alert-light py-2 px-3 mb-2 small">Carregando...</div>'
+                    );
+                }
+            }, 180);
+            return;
+        }
+        if (loadingTimer) {
+            clearTimeout(loadingTimer);
+            loadingTimer = null;
+        }
+        $wrap.find('.ajax-loading-indicator').remove();
+    }
 
     function loadContent(url) {
-        $wrap.html('<div class="text-center p-5">Carregando...</div>');
+        setLoading(true);
         $.ajax({
             url: url,
             type: 'GET',
@@ -554,6 +739,9 @@ th.th-acoes {
                 $wrap.html(
                     '<div class="text-center text-danger p-4"><b>Erro na requisição AJAX.</b> Status: ' +
                     xhr.status + ' ' + xhr.statusText + '</div>');
+            },
+            complete: function() {
+                setLoading(false);
             }
         });
     }

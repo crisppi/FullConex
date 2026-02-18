@@ -621,6 +621,42 @@ $buildListaAltaLink = function($pagina, $bloco) use ($paginationParams, $BASE_UR
             new bootstrap.Modal(document.getElementById('modalMsg')).show();
         }
 
+        function renderAltaTable(responseHtml) {
+            var temp = document.createElement('div');
+            temp.innerHTML = responseHtml;
+            var tableContent = temp.querySelector('#table-content');
+            if (!tableContent) {
+                return false;
+            }
+            $('#table-content').html(tableContent.innerHTML);
+            return true;
+        }
+
+        function loadAltaList(url, dataPayload) {
+            var requestUrl = url || window.location.pathname;
+            $.ajax({
+                url: requestUrl,
+                type: 'GET',
+                data: dataPayload || null,
+                success: function(response) {
+                    if (!renderAltaTable(response)) {
+                        return;
+                    }
+
+                    if (dataPayload) {
+                        var qs = typeof dataPayload === 'string' ? dataPayload : $.param(dataPayload);
+                        var targetUrl = requestUrl + (qs ? (requestUrl.indexOf('?') === -1 ? '?' : '&') + qs : '');
+                        window.history.replaceState({}, '', targetUrl);
+                    } else if (url) {
+                        window.history.replaceState({}, '', url);
+                    }
+                },
+                error: function() {
+                    showMsg('Erro', 'Ocorreu um erro ao atualizar a listagem.');
+                }
+            });
+        }
+
         // Abre modal de campos ao clicar em Exportar Excel
         $(document).on('click', '#btnExportExcelAlta', function(e) {
             e.preventDefault();
@@ -697,22 +733,18 @@ $buildListaAltaLink = function($pagina, $bloco) use ($paginationParams, $BASE_UR
             .on('submit.alta', '#select-internacao-form', function(e) {
                 e.preventDefault();
                 var $form = $(this);
-                $.ajax({
-                    url: $form.attr('action') || 'list_internacao_alta.php',
-                    type: $form.attr('method') || 'GET',
-                    data: $form.serialize(),
-                    success: function(response) {
-                        var temp = document.createElement('div');
-                        temp.innerHTML = response;
-                        var tableContent = temp.querySelector('#table-content');
-                        if (tableContent) {
-                            $('#table-content').html(tableContent.innerHTML);
-                        }
-                    },
-                    error: function() {
-                        showMsg('Erro', 'Ocorreu um erro ao enviar o formulário.');
-                    }
-                });
+                loadAltaList($form.attr('action') || window.location.pathname, $form.serialize());
+            });
+
+        $(document)
+            .off('click.alta', '#table-content .pagination a.page-link, #table-content .sort-icons a')
+            .on('click.alta', '#table-content .pagination a.page-link, #table-content .sort-icons a', function(e) {
+                var href = $(this).attr('href');
+                if (!href || href === '#') {
+                    return;
+                }
+                e.preventDefault();
+                loadAltaList(href, null);
             });
 
         if (!SOMENTE_LISTA_ALTAS) {

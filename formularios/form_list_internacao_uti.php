@@ -438,56 +438,60 @@ $sortDir = strtolower($_GET['sort_dir'] ?? 'desc');
 </div>
 
 <script>
-// ajax para submit do formulario de pesquisa
-$(document).ready(function() {
-    $('#select-internacao-form').submit(function(e) {
-        e.preventDefault(); // Impede o comportamento padrão de enviar o formulário
-        console.log("teste")
-        var formData = $(this).serialize(); // Serializa os dados do formulário
+function renderUtiTableContent(responseHtml) {
+    var tempElement = document.createElement('div');
+    tempElement.innerHTML = responseHtml;
+    var tableContent = tempElement.querySelector('#table-content');
+    if (!tableContent) {
+        return false;
+    }
+    $('#table-content').html(tableContent.innerHTML);
+    return true;
+}
 
-        $.ajax({
-            url: $(this).attr('action'), // URL do formulário
-            type: $(this).attr('method'), // Método do formulário (POST)
-            data: formData, // Dados serializados do formulário
-            success: function(response) {
-                // Crie um elemento temporário para armazenar a resposta HTML
-                var tempElement = document.createElement('div');
-                tempElement.innerHTML = response;
-
-                // Encontre o elemento com o ID "table-content" dentro do elemento temporário
-                var tableContent = tempElement.querySelector('#table-content');
-                $('#table-content').html(tableContent);
-            },
-            error: function() {
-                $('#responseMessage').html('Ocorreu um erro ao enviar o formulário.');
-            }
-        });
-    });
-});
-// ajax para navegacao 
-function loadContent(url) {
+// ajax para navegacao
+function loadContent(url, dataPayload) {
+    var requestUrl = url || ($('#select-internacao-form').attr('action') || window.location.pathname);
     $.ajax({
-        url: url,
+        url: requestUrl,
         type: 'GET',
+        data: dataPayload || null,
         dataType: 'html',
         success: function(data) {
-            // Crie um elemento temporário para armazenar a resposta HTML
-            var tempElement = document.createElement('div');
-            tempElement.innerHTML = data;
+            var updated = renderUtiTableContent(data);
+            if (!updated) {
+                return;
+            }
 
-            // Encontre o elemento com o ID "table-content" dentro do elemento temporário
-            var tableContent = tempElement.querySelector('#table-content');
-            $('#table-content').html(tableContent);
+            if (dataPayload) {
+                var qs = typeof dataPayload === 'string' ? dataPayload : $.param(dataPayload);
+                var targetUrl = requestUrl + (qs ? (requestUrl.indexOf('?') === -1 ? '?' : '&') + qs : '');
+                window.history.replaceState({}, '', targetUrl);
+            } else if (url) {
+                window.history.replaceState({}, '', requestUrl);
+            }
         },
         error: function() {
-            console.log('Error loading content');
+            $('#responseMessage').html('Ocorreu um erro ao atualizar a listagem.');
         }
     });
 }
+
+// ajax para submit do formulario de pesquisa
 $(document).ready(function() {
-    loadContent(
-        'list_internacao_uti.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&pesqInternado=<?php print $pesqInternado ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print 1 ?>&bl=<?php print 0 ?>'
-    );
+    $('#select-internacao-form').on('submit', function(e) {
+        e.preventDefault();
+        loadContent($(this).attr('action') || window.location.pathname, $(this).serialize());
+    });
+});
+
+$(document).on('click', '#table-content .sort-icons a', function(e) {
+    var href = $(this).attr('href');
+    if (!href || href === '#') {
+        return;
+    }
+    e.preventDefault();
+    loadContent(href);
 });
 </script>
 

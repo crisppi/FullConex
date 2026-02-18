@@ -318,35 +318,33 @@ $uti = new utiDAO($conn, $BASE_URL);
 <script>
 // ajax para submit do formulario de pesquisa
 $(document).ready(function() {
-    $('#select-internacao-form').submit(function(e) {
-        e.preventDefault(); // Impede o comportamento padrão de enviar o formulário
-
-        var formData = $(this).serialize(); // Serializa os dados do formulário
+    $('#select-internacao-form').on('submit', function(e) {
+        e.preventDefault();
+        var requestUrl = $(this).attr('action') || window.location.pathname;
+        var formData = $(this).serialize();
 
         $.ajax({
-            url: $(this).attr('action'), // URL do formulário
-            type: $(this).attr('method'), // Método do formulário (POST)
-            data: formData, // Dados serializados do formulário
+            url: requestUrl,
+            type: 'GET',
+            data: formData,
+            dataType: 'html',
             success: function(response) {
-                // Crie um elemento temporário para armazenar a resposta HTML
                 var tempElement = document.createElement('div');
                 tempElement.innerHTML = response;
-
-                // Encontre o elemento com o ID "table-content" dentro do elemento temporário
                 var tableContent = tempElement.querySelector('#table-content');
-                $('#table-content').html(tableContent);
+                if (!tableContent) {
+                    return;
+                }
+                $('#table-content').html(tableContent.innerHTML);
+                var targetUrl = requestUrl + (formData ? (requestUrl.indexOf('?') === -1 ? '?' : '&') +
+                    formData : '');
+                window.history.replaceState({}, '', targetUrl);
             },
             error: function() {
-                $('#responseMessage').html('Ocorreu um erro ao enviar o formulário.');
+                $('#responseMessage').html('Ocorreu um erro ao atualizar a listagem.');
             }
         });
     });
-});
-
-$(document).ready(function() {
-    loadContent(
-        'list_internacao_uti_alta.php?pesquisa_nome=<?php print $pesquisa_nome ?>&pesquisa_pac=<?php print $pesquisa_pac ?>&pesqInternado=<?php print $pesqInternado ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print 1 ?>&bl=<?php print 0 ?>'
-    );
 });
 </script>
 <script src="./js/input-estilo.js"></script>
