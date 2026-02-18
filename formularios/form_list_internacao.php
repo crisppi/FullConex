@@ -660,14 +660,85 @@ if (typeof jQuery !== 'undefined') {
             $order = 'ac.id_internacao DESC';
         }
 
-        $qtdIntItens1 = $QtdTotalInt->selectAllInternacaoList($where, $order, $obLimite);
-        $qtdIntItens  = count($qtdIntItens1);
-        $totalcasos   = ceil($qtdIntItens / $limite);
+        $qtdIntItens = 0;
+        try {
+            $whereCount = strlen($where) ? ('WHERE ' . $where) : '';
+            $sqlCount = "
+                SELECT COUNT(DISTINCT ac.id_internacao)
+                  FROM tb_internacao ac
+             LEFT JOIN tb_hospital AS ho ON ac.fk_hospital_int = ho.id_hospital
+             LEFT JOIN tb_hospitalUser AS hos ON hos.fk_hospital_user = ho.id_hospital
+             LEFT JOIN tb_user AS se ON se.id_usuario = hos.fk_usuario_hosp
+             LEFT JOIN tb_uti AS ut ON ac.id_internacao = ut.fk_internacao_uti
+             LEFT JOIN tb_paciente AS pa ON ac.fk_paciente_int = pa.id_paciente
+             LEFT JOIN tb_seguradora AS s ON pa.fk_seguradora_pac = s.id_seguradora
+             LEFT JOIN tb_visita AS vi ON ac.id_internacao = vi.fk_internacao_vis
+             LEFT JOIN tb_capeante AS ca ON ac.id_internacao = ca.fk_int_capeante
+             LEFT JOIN tb_intern_antec AS an ON ac.id_internacao = fk_internacao_ant_int
+                {$whereCount}
+            ";
+            $qtdIntItens = (int)$conn->query($sqlCount)->fetchColumn();
+        } catch (Throwable $th) {
+            $qtdIntItens = 0;
+            error_log('[LIST_INT][COUNT] ' . $th->getMessage());
+        }
+        $totalcasos = $limite > 0 ? ceil($qtdIntItens / $limite) : 0;
 
         $obPagination = new pagination($qtdIntItens, $_GET['pag'] ?? 1, $limite ?? 10);
         $obLimite     = $obPagination->getLimit();
 
-$query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
+        $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
+
+        $internIds = [];
+        foreach ($query as $internRow) {
+            $internIds[] = (int)($internRow['id_internacao'] ?? 0);
+        }
+        $internIds = array_values(array_unique(array_filter($internIds)));
+
+        $visitaResumoPorInternacao = [];
+        $gestaoPorInternacao = [];
+        if ($internIds) {
+            try {
+                $placeholders = implode(',', array_fill(0, count($internIds), '?'));
+
+                $sqlVisitasResumo = "
+                    SELECT
+                        fk_internacao_vis AS id_internacao,
+                        COUNT(*) AS total_visitas,
+                        MAX(data_visita_vis) AS ultima_visita,
+                        MAX(CASE WHEN LOWER(COALESCE(visita_med_vis, '')) = 's' THEN data_visita_vis END) AS ultima_med,
+                        MAX(CASE WHEN LOWER(COALESCE(visita_enf_vis, '')) = 's' THEN data_visita_vis END) AS ultima_enf
+                    FROM tb_visita
+                    WHERE fk_internacao_vis IN ({$placeholders})
+                      AND (retificado IS NULL OR retificado = 0)
+                    GROUP BY fk_internacao_vis
+                ";
+                $stmtVis = $conn->prepare($sqlVisitasResumo);
+                foreach ($internIds as $idx => $idIntern) {
+                    $stmtVis->bindValue($idx + 1, $idIntern, PDO::PARAM_INT);
+                }
+                $stmtVis->execute();
+                while ($rowVis = $stmtVis->fetch(PDO::FETCH_ASSOC)) {
+                    $visitaResumoPorInternacao[(int)$rowVis['id_internacao']] = $rowVis;
+                }
+
+                $sqlGestao = "
+                    SELECT DISTINCT fk_internacao_ges AS id_internacao
+                      FROM tb_gestao
+                     WHERE fk_internacao_ges IN ({$placeholders})
+                ";
+                $stmtGes = $conn->prepare($sqlGestao);
+                foreach ($internIds as $idx => $idIntern) {
+                    $stmtGes->bindValue($idx + 1, $idIntern, PDO::PARAM_INT);
+                }
+                $stmtGes->execute();
+                while ($rowGes = $stmtGes->fetch(PDO::FETCH_ASSOC)) {
+                    $gestaoPorInternacao[(int)$rowGes['id_internacao']] = true;
+                }
+            } catch (Throwable $th) {
+                error_log('[LIST_INT][BATCH] ' . $th->getMessage());
+            }
+        }
 
         $verificarVisitas = null;
 
@@ -768,17 +839,17 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
 
                     <tbody>
                         <?php
+                        $hoje  = date('Y-m-d');
+                        $atual = new DateTime($hoje);
                         foreach ($query as $intern):
-                            $visitas = $visitaDao->joinVisitaInternacao($intern["id_internacao"]);
-
-                            $hoje  = date('Y-m-d');
-                            $atual = new DateTime($hoje);
+                            $internId = (int)$intern["id_internacao"];
+                            $resumoVisita = $visitaResumoPorInternacao[$internId] ?? null;
 
                             $datainternacao = date("Y-m-d", strtotime($intern['data_intern_int']));
                             $dataIntern     = new DateTime($datainternacao);
 
                             $diasIntern     = $dataIntern->diff($atual);
-                            $countVisitas   = count($visitas);
+                            $countVisitas   = (int)($resumoVisita['total_visitas'] ?? 0);
                         ?>
                         <tr style="font-size:13px">
                             <td scope="row" class="col-id">
@@ -805,11 +876,8 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                             </td>
                             <td scope="row">
                                 <?php
-                                    usort($visitas, function ($a, $b) {
-                                        return strtotime($a['data_visita_vis']) - strtotime($b['data_visita_vis']);
-                                    });
-                                    if ($visitas) {
-                                        echo date('d/m/Y', strtotime(end($visitas)['data_visita_vis']));
+                                    if (!empty($resumoVisita['ultima_visita'])) {
+                                        echo date('d/m/Y', strtotime((string)$resumoVisita['ultima_visita']));
                                     }
                                     ?>
                             </td>
@@ -817,20 +885,7 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                             <!-- Visita Médica -->
                             <td scope="row">
                                 <?php
-                                    $ultimaMed = null;
-                                    foreach ($visitas as $vis) {
-                                        $flag = strtolower((string)($vis['visita_med_vis'] ?? ''));
-                                        if ($flag !== 's') {
-                                            continue;
-                                        }
-                                        $dataVis = $vis['data_visita_vis'] ?? $vis['data_visita_int'] ?? null;
-                                        if (!$dataVis) {
-                                            continue;
-                                        }
-                                        if (!$ultimaMed || strtotime($dataVis) > strtotime($ultimaMed)) {
-                                            $ultimaMed = $dataVis;
-                                        }
-                                    }
+                                    $ultimaMed = $resumoVisita['ultima_med'] ?? null;
 
                                     if ($ultimaMed) {
                                         $dias = (new DateTime($ultimaMed))->diff($atual)->days;
@@ -854,20 +909,7 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
                             <!-- Visita Enfermagem -->
                             <td scope="row">
                                 <?php
-                                    $ultimaEnf = null;
-                                    foreach ($visitas as $vis) {
-                                        $flag = strtolower((string)($vis['visita_enf_vis'] ?? ''));
-                                        if ($flag !== 's') {
-                                            continue;
-                                        }
-                                        $dataVis = $vis['data_visita_vis'] ?? $vis['data_visita_int'] ?? null;
-                                        if (!$dataVis) {
-                                            continue;
-                                        }
-                                        if (!$ultimaEnf || strtotime($dataVis) > strtotime($ultimaEnf)) {
-                                            $ultimaEnf = $dataVis;
-                                        }
-                                    }
+                                    $ultimaEnf = $resumoVisita['ultima_enf'] ?? null;
 
                                     if ($ultimaEnf) {
                                         $diasEnf = (new DateTime($ultimaEnf))->diff($atual)->days;
@@ -894,16 +936,7 @@ $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
 
                             <td scope="row">
                                 <?php
-                                    $id_internacao3 = $intern['id_internacao'];
-
-                                    $condicoesGes = [
-                                        strlen($id_internacao3) ? 'ge.fk_internacao_ges LIKE "%' . $id_internacao3 . '%"' : null,
-                                    ];
-                                    $condicoesGes = array_filter($condicoesGes);
-                                    $whereGes     = implode(' AND ', $condicoesGes);
-                                    $gestaos      = $gestaoDao->selectAllGestaoLis($whereGes);
-
-                                    if ($gestaos) {
+                                    if (!empty($gestaoPorInternacao[$internId])) {
                                         echo '<a href=""><i style="color:green; font-size:1.8em" class="bi bi-card-checklist fw-bold"></i></a>';
                                     } else {
                                         echo "--";
@@ -1373,31 +1406,85 @@ function callProcessPdf(id_internacao) {
 $(document).ready(function() {
     // campo "ordenar" removido (classificação agora nos headers)
 
+    function syncFilterFormFromUrl(url) {
+        var form = document.getElementById('select-internacao-form');
+        if (!form || !url) return;
+        try {
+            var parsed = new URL(url, window.location.origin);
+            var params = parsed.searchParams;
+            Array.from(form.elements || []).forEach(function(el) {
+                if (!el || !el.name) return;
+                if (!params.has(el.name)) return;
+                if (el.type === 'checkbox') {
+                    el.checked = ['1', 'true', 'on'].includes((params.get(el.name) || '').toLowerCase());
+                } else {
+                    el.value = params.get(el.name);
+                }
+            });
+        } catch (err) {
+            // Se URL inválida, mantém estado atual do formulário.
+        }
+    }
+
+    function renderTableContentFromResponse(responseHtml) {
+        var tempElement = document.createElement('div');
+        tempElement.innerHTML = responseHtml;
+        var tableContent = tempElement.querySelector('#table-content');
+        if (tableContent) {
+            $('#table-content').html(tableContent.innerHTML);
+            return true;
+        }
+        return false;
+    }
+
+    function loadInternacaoList(url, dataPayload) {
+        var requestUrl = url || ($('#select-internacao-form').attr('action') || 'internacoes/lista');
+        var requestData = dataPayload || null;
+
+        $.ajax({
+            url: requestUrl,
+            type: 'GET',
+            data: requestData,
+            success: function(response) {
+                var updated = renderTableContentFromResponse(response);
+                if (!updated) return;
+
+                if (requestData) {
+                    var qs = requestData;
+                    if (typeof qs !== 'string') {
+                        qs = $.param(requestData);
+                    }
+                    var targetUrl = requestUrl + (qs ? (requestUrl.indexOf('?') === -1 ? '?' : '&') + qs : '');
+                    window.history.replaceState({}, '', targetUrl);
+                    syncFilterFormFromUrl(targetUrl);
+                } else {
+                    window.history.replaceState({}, '', requestUrl);
+                    syncFilterFormFromUrl(requestUrl);
+                }
+            },
+            error: function() {
+                $('#responseMessage').html('Ocorreu um erro ao atualizar a listagem.');
+            }
+        });
+    }
+
     // ============================
     // 1) SUBMIT AJAX – FILTRO
     // ============================
     $('#select-internacao-form').on('submit', function(e) {
         e.preventDefault();
-
         var formData = $(this).serialize();
+        loadInternacaoList($(this).attr('action') || 'internacoes/lista', formData);
+    });
 
-        $.ajax({
-            url: $(this).attr('action') || 'internacoes/lista',
-            type: $(this).attr('method') || 'GET',
-            data: formData,
-            success: function(response) {
-                var tempElement = document.createElement('div');
-                tempElement.innerHTML = response;
-
-                var tableContent = tempElement.querySelector('#table-content');
-                if (tableContent) {
-                    $('#table-content').html(tableContent.innerHTML);
-                }
-            },
-            error: function() {
-                $('#responseMessage').html('Ocorreu um erro ao enviar o formulário.');
-            }
-        });
+    // =================================================
+    // 1.1) PAGINAÇÃO E ORDENAÇÃO DO HEADER VIA AJAX
+    // =================================================
+    $(document).on('click', '#table-content .pagination a.page-link, #table-content .sort-icons a', function(e) {
+        var href = $(this).attr('href');
+        if (!href || href === '#') return;
+        e.preventDefault();
+        loadInternacaoList(href, null);
     });
 
     // ==========================================
