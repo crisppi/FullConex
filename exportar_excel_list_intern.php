@@ -20,6 +20,19 @@ function getParam(string $name, $default = '')
     return $value !== null ? $value : $default;
 }
 
+function getParamAlias(string $longName, string $shortName, $default = '')
+{
+    $longValue = getParam($longName, null);
+    if ($longValue !== null && $longValue !== '') {
+        return $longValue;
+    }
+    $shortValue = getParam($shortName, null);
+    if ($shortValue !== null && $shortValue !== '') {
+        return $shortValue;
+    }
+    return $default;
+}
+
 /**
  * Pega campos selecionados (GET/POST) no formato:
  *  - campos[]=pac&campos[]=data_intern
@@ -89,14 +102,20 @@ $DEBUG = getParam('debug', '') === '1';
 // 1) Filtros (MESMOS da listagem)
 // -----------------------------------------------------
 
-$pesquisa_nome        = getParam('pesquisa_nome', '');
-$pesqInternado        = getParam('pesqInternado', 's');
-$limite_pag           = (int) getParam('limite_pag', 10);
-$pesquisa_pac         = getParam('pesquisa_pac', '');
+$pesquisa_nome        = getParamAlias('pesquisa_nome', 'hosp', '');
+$pesqInternado        = getParamAlias('pesqInternado', 'it', 's');
+$limite_pag           = (int) getParamAlias('limite_pag', 'pp', 10);
+$pesquisa_pac         = getParamAlias('pesquisa_pac', 'pac', '');
+$pesquisa_seguradora  = getParamAlias('pesquisa_seguradora', 'seg', '');
+$pesquisa_matricula   = getParamAlias('pesquisa_matricula', 'mat', '');
 $ordenar_param        = getParam('ordenar', '1');
-$senha_int            = getParam('senha_int', '');
-$data_intern_int      = getParam('data_intern_int', '');
-$data_intern_int_max  = getParam('data_intern_int_max', '');
+$sortField            = trim((string)getParamAlias('sort_field', 'sf', ''));
+$sortDir              = strtolower((string)getParamAlias('sort_dir', 'sd', 'desc'));
+$sortDir              = $sortDir === 'asc' ? 'asc' : 'desc';
+$senha_int            = getParamAlias('senha_int', 'sn', '');
+$data_intern_int      = getParamAlias('data_intern_int', 'di', '');
+$data_intern_int_max  = getParamAlias('data_intern_int_max', 'df', '');
+$sem_senha            = getParamAlias('sem_senha', 'ss', '0');
 // Campos selecionados no modal
 $camposSelecionados   = getCamposSelecionados();
 
@@ -109,10 +128,10 @@ $limiteExport = 1000000;
 
 $condicoes = [];
 
-// Nome do paciente (nome_pac)
+// Nome do hospital
 if (strlen(trim($pesquisa_nome)) > 0) {
     $buscaEsc = escLike($pesquisa_nome);
-    $condicoes[] = '(nome_pac LIKE "%' . $buscaEsc . '%")';
+    $condicoes[] = '(nome_hosp LIKE "%' . $buscaEsc . '%")';
 }
 
 // Senha de internação
@@ -125,6 +144,16 @@ if (strlen(trim($senha_int)) > 0) {
 if (strlen(trim($pesquisa_pac)) > 0) {
     $pacEsc = escLike($pesquisa_pac);
     $condicoes[] = '(nome_pac LIKE "%' . $pacEsc . '%")';
+}
+
+if (strlen(trim($pesquisa_matricula)) > 0) {
+    $matEsc = escLike($pesquisa_matricula);
+    $condicoes[] = '(matricula_pac LIKE "%' . $matEsc . '%")';
+}
+
+if (strlen(trim($pesquisa_seguradora)) > 0) {
+    $segEsc = escLike($pesquisa_seguradora);
+    $condicoes[] = '(seguradora_seg LIKE "%' . $segEsc . '%")';
 }
 
 // Só internados
@@ -143,25 +172,44 @@ if (!empty($data_intern_int_max)) {
     $condicoes[] = 'data_intern_int <= "' . $dataFimEsc . '"';
 }
 
+if (in_array((string)$sem_senha, ['1', 'true', 'on'], true)) {
+    $condicoes[] = "(senha_int IS NULL OR TRIM(senha_int) = '')";
+}
+
 $where = implode(' AND ', $condicoes);
 
 // -----------------------------------------------------
 // 3) Ordenação
 // -----------------------------------------------------
 
-switch ($ordenar_param) {
-    case '2':
-        $order = 'data_intern_int ASC';
-        break;
-    case '3':
-        $order = 'nome_pac ASC';
-        break;
-    case '4':
-        $order = 'nome_pac DESC';
-        break;
-    default:
+if ($sortField !== '') {
+    $sortableMap = [
+        'id_internacao'   => 'id_internacao',
+        'nome_hosp'       => 'nome_hosp',
+        'nome_pac'        => 'nome_pac',
+        'seguradora_seg'  => 'seguradora_seg',
+        'data_intern_int' => 'data_intern_int',
+    ];
+    if (isset($sortableMap[$sortField])) {
+        $order = $sortableMap[$sortField] . ' ' . strtoupper($sortDir);
+    } else {
         $order = 'data_intern_int DESC';
-        break;
+    }
+} else {
+    switch ($ordenar_param) {
+        case '2':
+            $order = 'data_intern_int ASC';
+            break;
+        case '3':
+            $order = 'nome_pac ASC';
+            break;
+        case '4':
+            $order = 'nome_pac DESC';
+            break;
+        default:
+            $order = 'data_intern_int DESC';
+            break;
+    }
 }
 
 // -----------------------------------------------------
@@ -390,13 +438,24 @@ $sheet       = $spreadsheet->getActiveSheet();
 $sheet->setShowGridlines(false);
 
 // Logo
-$logoPath = __DIR__ . '/img/LogoConexAud.png';
-if (file_exists($logoPath)) {
+$logoCandidates = [
+    __DIR__ . '/img/LogoFullCare.png',
+    __DIR__ . '/img/full-03.png',
+    __DIR__ . '/img/LogoConexAud.png',
+];
+$logoPath = null;
+foreach ($logoCandidates as $candidatePath) {
+    if (file_exists($candidatePath)) {
+        $logoPath = $candidatePath;
+        break;
+    }
+}
+if ($logoPath !== null) {
     $logo = new Drawing();
     $logo->setName('Logo');
-    $logo->setDescription('Logo da Empresa');
+    $logo->setDescription('Logo FullCare');
     $logo->setPath($logoPath);
-    $logo->setHeight(32);
+    $logo->setHeight(42);
     $logo->setCoordinates('A2');
     $logo->setWorksheet($sheet);
 }

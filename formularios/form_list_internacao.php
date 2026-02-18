@@ -29,6 +29,96 @@ include_once("models/pagination.php");
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
+
+if (!function_exists('internacaoGetParam')) {
+    function internacaoGetParam(string $longKey, $default = null)
+    {
+        static $shortToLong = [
+            'hosp' => 'pesquisa_nome',
+            'pac'  => 'pesquisa_pac',
+            'seg'  => 'pesquisa_seguradora',
+            'mat'  => 'pesquisa_matricula',
+            'sn'   => 'senha_int',
+            'pp'   => 'limite_pag',
+            'di'   => 'data_intern_int',
+            'df'   => 'data_intern_int_max',
+            'it'   => 'pesqInternado',
+            'ss'   => 'sem_senha',
+            'sf'   => 'sort_field',
+            'sd'   => 'sort_dir',
+            'pg'   => 'pag',
+            'blc'  => 'bl',
+        ];
+        static $longToShort = null;
+        if ($longToShort === null) {
+            $longToShort = array_flip($shortToLong);
+        }
+
+        $value = $_GET[$longKey] ?? null;
+        if ($value === null && isset($longToShort[$longKey])) {
+            $value = $_GET[$longToShort[$longKey]] ?? null;
+        }
+
+        if ($value === null || $value === '') {
+            return $default;
+        }
+        return $value;
+    }
+}
+
+if (!function_exists('internacaoCompactQueryParams')) {
+    function internacaoCompactQueryParams(array $params): array
+    {
+        $defaults = [
+            'pesqInternado' => 's',
+            'sem_senha'     => '0',
+            'sort_dir'      => 'desc',
+            'limite_pag'    => '10',
+        ];
+        $longToShort = [
+            'pesquisa_nome'       => 'hosp',
+            'pesquisa_pac'        => 'pac',
+            'pesquisa_seguradora' => 'seg',
+            'pesquisa_matricula'  => 'mat',
+            'senha_int'           => 'sn',
+            'limite_pag'          => 'pp',
+            'data_intern_int'     => 'di',
+            'data_intern_int_max' => 'df',
+            'pesqInternado'       => 'it',
+            'sem_senha'           => 'ss',
+            'sort_field'          => 'sf',
+            'sort_dir'            => 'sd',
+            'pag'                 => 'pg',
+            'bl'                  => 'blc',
+        ];
+
+        $clean = [];
+        foreach ($params as $key => $value) {
+            if ($value === null || $value === '' || $value === false) {
+                continue;
+            }
+            $value = (string)$value;
+            if (isset($defaults[$key]) && $defaults[$key] === $value) {
+                continue;
+            }
+            $clean[$key] = $value;
+        }
+
+        if (empty($clean['data_intern_int'])) {
+            unset($clean['data_intern_int_max']);
+        }
+        if (empty($clean['sort_field'])) {
+            unset($clean['sort_dir']);
+        }
+
+        $compact = [];
+        foreach ($clean as $key => $value) {
+            $compact[$longToShort[$key] ?? $key] = $value;
+        }
+
+        return $compact;
+    }
+}
 $normCargoAccess = function ($txt) {
     $txt = mb_strtolower(trim((string)$txt), 'UTF-8');
     $c = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $txt);
@@ -79,12 +169,12 @@ $Internacaos      = $Internacao_geral->findGeral();
 $pacienteDao = new pacienteDAO($conn, $BASE_URL);
 $gestaoDao   = new gestaoDAO($conn, $BASE_URL);
 
-$limite  = filter_input(INPUT_GET, 'limite_pag') ? filter_input(INPUT_GET, 'limite_pag') : 10;
-$ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : 1;
-$sortField = trim($_GET['sort_field'] ?? '');
-$sortDir   = strtolower($_GET['sort_dir'] ?? 'desc');
+$limite  = internacaoGetParam('limite_pag', 10);
+$ordenar = internacaoGetParam('ordenar', 1);
+$sortField = trim((string)internacaoGetParam('sort_field', ''));
+$sortDir   = strtolower((string)internacaoGetParam('sort_dir', 'desc'));
 $sortDir   = $sortDir === 'asc' ? 'asc' : 'desc';
-$onlySemSenhaParam = filter_input(INPUT_GET, 'sem_senha', FILTER_SANITIZE_SPECIAL_CHARS);
+$onlySemSenhaParam = (string)internacaoGetParam('sem_senha', '');
 $onlySemSenha = in_array($onlySemSenhaParam, ['1', 1, 'true', 'on'], true);
 
 $hospital_geral     = new HospitalDAO($conn, $BASE_URL);
@@ -473,16 +563,16 @@ if (typeof jQuery !== 'undefined') {
         <div id="navbarToggleExternalContent" class="table-filters">
             <form action="" id="select-internacao-form" method="GET">
                 <?php
-                $pesquisa_nome       = filter_input(INPUT_GET, 'pesquisa_nome');
-                $pesqInternado       = filter_input(INPUT_GET, 'pesqInternado') ? filter_input(INPUT_GET, 'pesqInternado') : 's';
-                $limite              = filter_input(INPUT_GET, 'limite_pag');
-                $pesquisa_pac        = filter_input(INPUT_GET, 'pesquisa_pac');
-                $pesquisa_seguradora = filter_input(INPUT_GET, 'pesquisa_seguradora');
-                $pesquisa_matricula  = filter_input(INPUT_GET, 'pesquisa_matricula');
-                $ordenar             = filter_input(INPUT_GET, 'ordenar');
-                $data_intern_int     = filter_input(INPUT_GET, 'data_intern_int') ?: null;
-                $data_intern_int_max = filter_input(INPUT_GET, 'data_intern_int_max') ?: null;
-                $senha_int           = filter_input(INPUT_GET, 'senha_int') ?: null;
+                $pesquisa_nome       = internacaoGetParam('pesquisa_nome', '');
+                $pesqInternado       = internacaoGetParam('pesqInternado', 's');
+                $limite              = internacaoGetParam('limite_pag', 10);
+                $pesquisa_pac        = internacaoGetParam('pesquisa_pac', '');
+                $pesquisa_seguradora = internacaoGetParam('pesquisa_seguradora', '');
+                $pesquisa_matricula  = internacaoGetParam('pesquisa_matricula', '');
+                $ordenar             = internacaoGetParam('ordenar', '');
+                $data_intern_int     = internacaoGetParam('data_intern_int') ?: null;
+                $data_intern_int_max = internacaoGetParam('data_intern_int_max') ?: null;
+                $senha_int           = internacaoGetParam('senha_int') ?: null;
                 if ($isGestorSeguradora) {
                     $pesquisa_seguradora = $seguradoraUserNome !== '' ? $seguradoraUserNome : $pesquisa_seguradora;
                 }
@@ -610,21 +700,21 @@ if (typeof jQuery !== 'undefined') {
         $QtdTotalInt = new internacaoDAO($conn, $BASE_URL);
 
         // METODO DE BUSCA DE PAGINACAO 
-        $pesquisa_nome       = filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS);
-        $pesqInternado       = filter_input(INPUT_GET, 'pesqInternado', FILTER_SANITIZE_SPECIAL_CHARS) ?: "s";
-        $limite              = filter_input(INPUT_GET, 'limite_pag') ? filter_input(INPUT_GET, 'limite_pag') : 10;
-        $pesquisa_pac        = filter_input(INPUT_GET, 'pesquisa_pac', FILTER_SANITIZE_SPECIAL_CHARS);
-        $pesquisa_seguradora = filter_input(INPUT_GET, 'pesquisa_seguradora', FILTER_SANITIZE_SPECIAL_CHARS);
-        $pesquisa_matricula  = filter_input(INPUT_GET, 'pesquisa_matricula', FILTER_SANITIZE_SPECIAL_CHARS);
-        $senha_int           = filter_input(INPUT_GET, 'senha_int', FILTER_SANITIZE_SPECIAL_CHARS);
-        $data_intern_int     = filter_input(INPUT_GET, 'data_intern_int');
-        $data_intern_int_max = filter_input(INPUT_GET, 'data_intern_int_max');
+        $pesquisa_nome       = (string)internacaoGetParam('pesquisa_nome', '');
+        $pesqInternado       = (string)internacaoGetParam('pesqInternado', 's');
+        $limite              = (int)internacaoGetParam('limite_pag', 10);
+        $pesquisa_pac        = (string)internacaoGetParam('pesquisa_pac', '');
+        $pesquisa_seguradora = (string)internacaoGetParam('pesquisa_seguradora', '');
+        $pesquisa_matricula  = (string)internacaoGetParam('pesquisa_matricula', '');
+        $senha_int           = (string)internacaoGetParam('senha_int', '');
+        $data_intern_int     = internacaoGetParam('data_intern_int');
+        $data_intern_int_max = internacaoGetParam('data_intern_int_max');
 
         if (empty($data_intern_int_max)) {
             $data_intern_int_max = date('Y-m-d');
         }
 
-        $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : 1;
+        $ordenar = internacaoGetParam('ordenar', 1);
         if ($isGestorSeguradora) {
             $pesquisa_seguradora = $seguradoraUserNome !== '' ? $seguradoraUserNome : $pesquisa_seguradora;
         }
@@ -684,7 +774,19 @@ if (typeof jQuery !== 'undefined') {
         }
         $totalcasos = $limite > 0 ? ceil($qtdIntItens / $limite) : 0;
 
-        $obPagination = new pagination($qtdIntItens, $_GET['pag'] ?? 1, $limite ?? 10);
+        $paginaAtualParam = (int)internacaoGetParam('pag', 1);
+        if ($paginaAtualParam < 1) {
+            $paginaAtualParam = 1;
+        }
+        $blocoAtualParam = internacaoGetParam('bl', null);
+        $blocoAtualParam = ($blocoAtualParam === null || $blocoAtualParam === '')
+            ? ((int)floor(($paginaAtualParam - 1) / 5) * 5)
+            : (int)$blocoAtualParam;
+        if ($blocoAtualParam < 0) {
+            $blocoAtualParam = 0;
+        }
+
+        $obPagination = new pagination($qtdIntItens, $paginaAtualParam, $limite ?? 10);
         $obLimite     = $obPagination->getLimit();
 
         $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
@@ -748,12 +850,10 @@ if (typeof jQuery !== 'undefined') {
             $pagina      = 1;
             $total_pages = count($paginas);
 
-            function paginasAtuais($var)
-            {
-                $blocoAtual = isset($_GET['bl']) ? $_GET['bl'] : 0;
-                return $var['bloco'] == (($blocoAtual) / 5) + 1;
-            }
-            $block_pages         = array_filter($paginas, "paginasAtuais");
+            $blocoCorrente       = (int)floor($blocoAtualParam / 5) + 1;
+            $block_pages         = array_filter($paginas, function ($var) use ($blocoCorrente) {
+                return (int)($var['bloco'] ?? 0) === $blocoCorrente;
+            });
             $first_page_in_block = reset($block_pages)["pg"];
             $last_page_in_block  = end($block_pages)["pg"];
             $first_block         = reset($paginas)["bloco"];
@@ -780,11 +880,8 @@ if (typeof jQuery !== 'undefined') {
             function buildInternacaoPaginationUrl(array $baseParams, array $override = []): string
             {
                 $params = array_merge($baseParams, $override);
-                $params = array_filter($params, function ($value) {
-                    return $value !== null && $value !== '';
-                });
-
-                $query = http_build_query($params);
+                $compactParams = internacaoCompactQueryParams($params);
+                $query = http_build_query($compactParams);
                 global $BASE_URL;
                 $baseUrl = rtrim($BASE_URL, '/') . '/internacoes/lista';
 
@@ -1093,14 +1190,13 @@ if (typeof jQuery !== 'undefined') {
                         <?php if ($total_pages ?? 1 > 1): ?>
                         <ul class="pagination">
                             <?php
-                                $blocoAtual  = isset($_GET['bl']) ? $_GET['bl'] : 0;
-                                $paginaAtual = isset($_GET['pag']) ? $_GET['pag'] : 1;
+                                $blocoAtual  = $blocoAtualParam;
+                                $paginaAtual = $paginaAtualParam;
                                 ?>
                             <?php if ($current_block > $first_block): ?>
                             <?php
                                     $firstPageUrl = buildInternacaoPaginationUrl($paginationBaseParams, [
-                                        'pag' => 1,
-                                        'bl'  => 0
+                                        'pag' => 1
                                     ]);
                                     ?>
                             <li class="page-item">
@@ -1113,10 +1209,8 @@ if (typeof jQuery !== 'undefined') {
                             <?php if ($current_block <= $last_block && $last_block > 1 && $current_block != 1): ?>
                             <?php
                                     $prevPage  = max(1, $paginaAtual - 1);
-                                    $prevBlock = max(0, $blocoAtual - 5);
                                     $prevUrl   = buildInternacaoPaginationUrl($paginationBaseParams, [
-                                        'pag' => $prevPage,
-                                        'bl'  => $prevBlock
+                                        'pag' => $prevPage
                                     ]);
                                     ?>
                             <li class="page-item">
@@ -1129,11 +1223,10 @@ if (typeof jQuery !== 'undefined') {
                             <?php for ($i = $first_page_in_block; $i <= $last_page_in_block; $i++): ?>
                             <?php
                                     $pageUrl = buildInternacaoPaginationUrl($paginationBaseParams, [
-                                        'pag' => $i,
-                                        'bl'  => $blocoAtual
+                                        'pag' => $i
                                     ]);
                                     ?>
-                            <li class="page-item <?= ($_GET['pag'] ?? 1) == $i ? "active" : "" ?>">
+                            <li class="page-item <?= $paginaAtualParam == $i ? "active" : "" ?>">
                                 <a class="page-link" href="<?= htmlspecialchars($pageUrl) ?>">
                                     <?= $i ?>
                                 </a>
@@ -1143,10 +1236,8 @@ if (typeof jQuery !== 'undefined') {
                             <?php if ($current_block < $last_block): ?>
                             <?php
                                     $nextPage  = min($total_pages, $paginaAtual + 1);
-                                    $nextBlock = $blocoAtual + 5;
                                     $nextUrl   = buildInternacaoPaginationUrl($paginationBaseParams, [
-                                        'pag' => $nextPage,
-                                        'bl'  => $nextBlock
+                                        'pag' => $nextPage
                                     ]);
                                     ?>
                             <li class="page-item">
@@ -1159,8 +1250,7 @@ if (typeof jQuery !== 'undefined') {
                             <?php if ($current_block < $last_block): ?>
                             <?php
                                     $lastUrl = buildInternacaoPaginationUrl($paginationBaseParams, [
-                                        'pag' => $total_pages,
-                                        'bl'  => ($last_block - 1) * 5
+                                        'pag' => $total_pages
                                     ]);
                                     ?>
                             <li class="page-item">
@@ -1405,6 +1495,64 @@ function callProcessPdf(id_internacao) {
 // ajax para submit do formulario de pesquisa + modal de exportação
 $(document).ready(function() {
     // campo "ordenar" removido (classificação agora nos headers)
+    var urlAliasLongToShort = {
+        pesquisa_nome: 'hosp',
+        pesquisa_pac: 'pac',
+        pesquisa_seguradora: 'seg',
+        pesquisa_matricula: 'mat',
+        senha_int: 'sn',
+        limite_pag: 'pp',
+        data_intern_int: 'di',
+        data_intern_int_max: 'df',
+        pesqInternado: 'it',
+        sem_senha: 'ss',
+        sort_field: 'sf',
+        sort_dir: 'sd',
+        pag: 'pg',
+        bl: 'blc'
+    };
+    var urlAliasShortToLong = {};
+    Object.keys(urlAliasLongToShort).forEach(function(longKey) {
+        urlAliasShortToLong[urlAliasLongToShort[longKey]] = longKey;
+    });
+
+    var compactDefaults = {
+        pesqInternado: 's',
+        sem_senha: '0',
+        sort_dir: 'desc',
+        limite_pag: '10'
+    };
+
+    function compactInternacaoQueryString(input) {
+        var sourceParams = new URLSearchParams(typeof input === 'string' ? input : (input || ''));
+        var normalized = {};
+
+        sourceParams.forEach(function(value, key) {
+            var longKey = urlAliasShortToLong[key] || key;
+            normalized[longKey] = value;
+        });
+
+        if (!normalized.data_intern_int) {
+            delete normalized.data_intern_int_max;
+        }
+        if (!normalized.sort_field) {
+            delete normalized.sort_dir;
+        }
+
+        var compact = new URLSearchParams();
+        Object.keys(normalized).forEach(function(longKey) {
+            var value = normalized[longKey];
+            if (value === null || value === undefined) return;
+            value = String(value).trim();
+            if (!value) return;
+            if (compactDefaults[longKey] !== undefined && value === compactDefaults[longKey]) return;
+
+            var shortKey = urlAliasLongToShort[longKey] || longKey;
+            compact.set(shortKey, value);
+        });
+
+        return compact.toString();
+    }
 
     function syncFilterFormFromUrl(url) {
         var form = document.getElementById('select-internacao-form');
@@ -1414,11 +1562,15 @@ $(document).ready(function() {
             var params = parsed.searchParams;
             Array.from(form.elements || []).forEach(function(el) {
                 if (!el || !el.name) return;
-                if (!params.has(el.name)) return;
+                var shortName = urlAliasLongToShort[el.name] || null;
+                var hasLong = params.has(el.name);
+                var hasShort = shortName ? params.has(shortName) : false;
+                if (!hasLong && !hasShort) return;
+                var rawValue = hasLong ? params.get(el.name) : params.get(shortName);
                 if (el.type === 'checkbox') {
-                    el.checked = ['1', 'true', 'on'].includes((params.get(el.name) || '').toLowerCase());
+                    el.checked = ['1', 'true', 'on'].includes((rawValue || '').toLowerCase());
                 } else {
-                    el.value = params.get(el.name);
+                    el.value = rawValue;
                 }
             });
         } catch (err) {
@@ -1454,12 +1606,19 @@ $(document).ready(function() {
                     if (typeof qs !== 'string') {
                         qs = $.param(requestData);
                     }
-                    var targetUrl = requestUrl + (qs ? (requestUrl.indexOf('?') === -1 ? '?' : '&') + qs : '');
+                    var compactQs = compactInternacaoQueryString(qs);
+                    var targetUrl = requestUrl + (compactQs ? (requestUrl.indexOf('?') === -1 ? '?' : '&') + compactQs : '');
                     window.history.replaceState({}, '', targetUrl);
                     syncFilterFormFromUrl(targetUrl);
                 } else {
-                    window.history.replaceState({}, '', requestUrl);
-                    syncFilterFormFromUrl(requestUrl);
+                    var compactUrl = requestUrl;
+                    try {
+                        var reqUrlObj = new URL(requestUrl, window.location.origin);
+                        var compactFromUrl = compactInternacaoQueryString(reqUrlObj.search);
+                        compactUrl = reqUrlObj.pathname + (compactFromUrl ? '?' + compactFromUrl : '');
+                    } catch (err) {}
+                    window.history.replaceState({}, '', compactUrl);
+                    syncFilterFormFromUrl(compactUrl);
                 }
             },
             error: function() {
