@@ -196,13 +196,12 @@ if ($qtdIntItens > $limite) {
     $paginas     = $obPagination->getPages();
     $total_pages = count($paginas);
 
-    function paginasAtuais($var)
-    {
+    $paginasAtuais = function ($var) use ($paginaAtualParam) {
         $blocoAtual = (int)listaAltaGetParam('bl', (int)floor(($paginaAtualParam - 1) / 5) * 5);
         return $var['bloco'] == (($blocoAtual) / 5) + 1;
-    }
+    };
 
-    $block_pages         = array_filter($paginas, "paginasAtuais");
+    $block_pages         = array_filter($paginas, $paginasAtuais);
     $first_page_in_block = $block_pages ? reset($block_pages)["pg"] : 1;
     $last_page_in_block  = $block_pages ? end($block_pages)["pg"]   : 1;
     $first_block         = $paginas ? reset($paginas)["bloco"]      : 1;
