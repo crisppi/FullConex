@@ -15,6 +15,13 @@ if ($nome === '') {
     echo json_encode(['success' => true, 'matches' => []]);
     exit;
 }
+$nome = preg_replace('/\s+/', ' ', $nome);
+$tokens = array_values(array_filter(explode(' ', $nome), function ($t) {
+    return mb_strlen(trim((string)$t), 'UTF-8') >= 3;
+}));
+if (count($tokens) > 4) {
+    $tokens = array_slice($tokens, 0, 4);
+}
 
 function onlyDigits($v)
 {
@@ -29,15 +36,34 @@ function formatCpf($cpf)
 }
 
 try {
+    $nomeLike = '%' . str_replace(' ', '%', $nome) . '%';
+    $tokenClause = '';
+    if (!empty($tokens)) {
+        $tokenParts = [];
+        foreach ($tokens as $idx => $tk) {
+            $tokenParts[] = "UPPER(pa.nome_pac) LIKE UPPER(:tk{$idx})";
+        }
+        $tokenClause = '(' . implode(' AND ', $tokenParts) . ')';
+    }
+
+    $whereNome = "(UPPER(TRIM(pa.nome_pac)) = UPPER(TRIM(:nome)) OR UPPER(pa.nome_pac) LIKE UPPER(:nome_like))";
+    if ($tokenClause !== '') {
+        $whereNome = '(' . $whereNome . ' OR ' . $tokenClause . ')';
+    }
+
     $sql = "SELECT pa.id_paciente, pa.nome_pac, pa.matricula_pac, pa.cpf_pac, pa.data_nasc_pac, se.seguradora_seg
               FROM tb_paciente pa
          LEFT JOIN tb_seguradora se ON se.id_seguradora = pa.fk_seguradora_pac
-             WHERE UPPER(TRIM(pa.nome_pac)) = UPPER(TRIM(:nome))
+             WHERE {$whereNome}
                AND IFNULL(pa.deletado_pac, 'n') <> 's'
           ORDER BY pa.id_paciente DESC
              LIMIT 15";
     $stmt = $conn->prepare($sql);
     $stmt->bindValue(':nome', $nome);
+    $stmt->bindValue(':nome_like', $nomeLike);
+    foreach ($tokens as $idx => $tk) {
+        $stmt->bindValue(":tk{$idx}", '%' . $tk . '%');
+    }
     $stmt->execute();
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
@@ -51,4 +77,3 @@ try {
     http_response_code(500);
     echo json_encode(['success' => false, 'error' => 'query_failed']);
 }
-

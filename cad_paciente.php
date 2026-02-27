@@ -20,18 +20,44 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
 
 <!-- Incluindo o Font Awesome para os ícones -->
 <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/form_cad_internacao.css">
+<style>
+    #main-container.internacao-page {
+        margin: 8px 0 0 !important;
+        padding-top: 0 !important;
+        width: auto !important;
+        max-width: 100% !important;
+        overflow-x: hidden;
+    }
 
-<div class="container-fluid" id="main-container">
-    <div class="progress mb-4">
-        <div class="progress-bar bg-success" role="progressbar" id="progressBar" style="width: 100%;"
-            aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">Dados do Paciente</div>
+    #main-container.internacao-page .internacao-page__hero {
+        margin: 0 0 6px !important;
+    }
+</style>
+
+<div class="internacao-page" id="main-container">
+    <div class="internacao-page__hero">
+        <div>
+            <h1>Cadastrar paciente</h1>
+        </div>
+        <span class="internacao-page__tag">Campos obrigatórios em destaque</span>
     </div>
-    <form action="<?= $BASE_URL ?>process_paciente.php" id="multi-step-form" method="POST" enctype="multipart/form-data"
-        class="needs-validation">
+    <div class="internacao-page__content">
+        <form action="<?= $BASE_URL ?>process_paciente.php" id="multi-step-form" method="POST" enctype="multipart/form-data"
+            class="needs-validation visible">
 
-        <input type="hidden" name="type" value="create">
-        <input type="hidden" name="deletado_pac" value="n">
-        <input type="hidden" name="confirmar_homonimo_pac" id="confirmar_homonimo_pac" value="0">
+            <div class="internacao-card internacao-card--general">
+                <div class="internacao-card__header">
+                    <div>
+                        <p class="internacao-card__eyebrow">Dados do paciente</p>
+                    </div>
+                </div>
+                <div class="internacao-card__body">
+
+                    <input type="hidden" name="type" value="create">
+                    <input type="hidden" name="deletado_pac" value="n">
+                    <input type="hidden" name="confirmar_homonimo_pac" id="confirmar_homonimo_pac" value="0">
 
         <!-- Step 1: Personal Information -->
         <div id="step-1" class="step">
@@ -159,25 +185,11 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
                     <input type="text" class="form-control" id="matricula_pac" name="matricula_pac">
                 </div> -->
             </div>
-            <div class="form-group mb-3">
-                <label for="obs_pac">Observações</label>
-                <textarea rows="5" class="form-control" id="obs_pac" name="obs_pac"></textarea>
-            </div>
             <hr>
-            <div class="d-flex gap-2">
-                <!-- <button type="button" class="btn btn-primary" id="next-1" onclick="nextStep(2)">
-                    Próximo <i class="fas fa-arrow-right"></i>
-                </button> -->
-                <button type="submit" class="btn btn-success" name="finalizar_etapa1" id="finalizar_etapa1">
-                    <i class="fas fa-check"></i> Finalizar Cadastro
-                </button>
-            </div>
-
-
         </div>
 
         <!-- Step 2: Address Information -->
-        <div id="step-2" class="step" style="display:none;">
+        <div id="step-2" class="step">
             <div class="row">
                 <div class="form-group col-md-3 mb-3">
                     <label for="cep_pac">CEP</label>
@@ -228,16 +240,10 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
                 <input type="text" class="form-control" id="complemento_pac" name="complemento_pac">
             </div>
             <hr>
-            <button type="button" class="btn btn-secondary" onclick="prevStep(1)">
-                <i class="fas fa-arrow-left"></i> Voltar
-            </button>
-            <button type="button" class="btn btn-primary" onclick="nextStep(3)">
-                Próximo <i class="fas fa-arrow-right"></i>
-            </button>
         </div>
 
         <!-- Step 3: Contact & Other Information -->
-        <div id="step-3" class="step" style="display:none;">
+        <div id="step-3" class="step">
             <div class="row">
                 <div class="form-group col-md-6 mb-3">
                     <label for="email01_pac">Email Principal</label>
@@ -269,18 +275,20 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
                     </div>
                 </div>
             </div>
+            <div class="form-group mb-3">
+                <label for="obs_pac">Observações</label>
+                <textarea rows="5" class="form-control" id="obs_pac" name="obs_pac"></textarea>
+            </div>
             <hr>
-            <button type="button" class="btn btn-secondary" onclick="prevStep(2)">
-                <i class="fas fa-arrow-left"></i> Voltar
-            </button>
-            <button type="submit" class="btn btn-success">
+            <button type="submit" class="btn btn-success" id="finalizar_etapa1" name="finalizar_etapa1">
                 <i class="fas fa-check"></i> Cadastrar
             </button>
-        </div>
-    </form>
-</div>
+                </div>
+            </div>
+        </form>
+    </div>
 
-<div class="modal fade" id="modalNomeDuplicadoPaciente" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="modalNomeDuplicadoPaciente" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
@@ -325,10 +333,10 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
             </div>
         </div>
     </div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"></script>
-<link rel="stylesheet" href="css/style.css">
 
 <?php
 require_once("templates/footer.php");

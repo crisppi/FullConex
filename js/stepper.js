@@ -264,11 +264,13 @@ function initPacienteHomonimoCheck(root = document) {
     const bodyEl = form.querySelector('#dupPacienteBody') || document.getElementById('dupPacienteBody');
     const confirmBtn = form.querySelector('#btnConfirmarHomonimo') || document.getElementById('btnConfirmarHomonimo');
     const modalEl = form.querySelector('#modalNomeDuplicadoPaciente') || document.getElementById('modalNomeDuplicadoPaciente');
-    if (!hiddenConfirm || !nomeInput || !bodyEl || !confirmBtn || !modalEl) return;
+    if (!hiddenConfirm || !nomeInput) return;
 
     form.dataset.homonimoBound = '1';
     const modal = (window.bootstrap && modalEl) ? new bootstrap.Modal(modalEl) : null;
     let pendingSubmit = false;
+    let ultimoNomeConsultado = '';
+    let ultimosMatches = [];
 
     function fmtDate(value) {
         if (!value) return '-';
@@ -278,6 +280,7 @@ function initPacienteHomonimoCheck(root = document) {
     }
 
     function renderRows(rows) {
+        if (!bodyEl) return;
         if (!Array.isArray(rows) || rows.length === 0) {
             bodyEl.innerHTML = '<tr><td colspan="6" class="text-muted text-center">Sem dados.</td></tr>';
             return;
@@ -294,7 +297,7 @@ function initPacienteHomonimoCheck(root = document) {
         }).join('');
     }
 
-    if (confirmBtn.dataset.homonimoBound !== '1') {
+    if (confirmBtn && confirmBtn.dataset.homonimoBound !== '1') {
         confirmBtn.dataset.homonimoBound = '1';
         confirmBtn.addEventListener('click', function () {
             hiddenConfirm.value = '1';
@@ -304,6 +307,19 @@ function initPacienteHomonimoCheck(root = document) {
         });
     }
 
+    function openDuplicatePopup(rows) {
+        if (modal && bodyEl && confirmBtn) {
+            renderRows(rows);
+            modal.show();
+            return Promise.resolve(false);
+        }
+        const preview = rows.slice(0, 3).map(function (r) {
+            return '#'+ (r.id_paciente || '-') + ' - ' + (r.nome_pac || '-') + ' / Mat: ' + (r.matricula_pac || '-');
+        }).join('\n');
+        const msg = "Já existe paciente com nome igual/parecido.\n\n" + preview + "\n\nÉ outro paciente (homônimo)?";
+        return Promise.resolve(window.confirm(msg));
+    }
+
     function buildBaseUrl() {
         if (typeof window.BASE_URL === 'string' && window.BASE_URL.length) {
             return window.BASE_URL;
@@ -311,6 +327,65 @@ function initPacienteHomonimoCheck(root = document) {
         const baseEl = document.querySelector('base[href]');
         if (baseEl && baseEl.href) return baseEl.href;
         return '/';
+    }
+
+    function consultarNome(nome, abrirModalQuandoDuplicado) {
+        const nomeNormalizado = (nome || '').trim();
+        if (!nomeNormalizado) {
+            ultimoNomeConsultado = '';
+            ultimosMatches = [];
+            hiddenConfirm.value = '0';
+            return Promise.resolve([]);
+        }
+
+        const payload = new URLSearchParams();
+        payload.set('nome_pac', nomeNormalizado);
+        const checkUrl = String(buildBaseUrl()).replace(/\/?$/, '/') + 'ajax/check_paciente_nome.php';
+
+        return fetch(checkUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: payload.toString()
+        })
+            .then(function (resp) { return resp.json(); })
+            .then(function (data) {
+                const rows = Array.isArray(data && data.matches) ? data.matches : [];
+                ultimoNomeConsultado = nomeNormalizado;
+                ultimosMatches = rows;
+                hiddenConfirm.value = rows.length ? '0' : '1';
+
+                if (rows.length && abrirModalQuandoDuplicado) {
+                    return openDuplicatePopup(rows).then(function (ok) {
+                        if (ok) {
+                            hiddenConfirm.value = '1';
+                            return rows;
+                        }
+                        hiddenConfirm.value = '0';
+                        return rows;
+                    });
+                }
+                return rows;
+            });
+    }
+
+    if (nomeInput.dataset.homonimoBlurBound !== '1') {
+        nomeInput.dataset.homonimoBlurBound = '1';
+        nomeInput.addEventListener('input', function () {
+            // Mudou o nome -> exige nova confirmação
+            hiddenConfirm.value = '0';
+            ultimoNomeConsultado = '';
+            ultimosMatches = [];
+        });
+        nomeInput.addEventListener('blur', function () {
+            const nome = (nomeInput.value || '').trim();
+            if (!nome) return;
+            consultarNome(nome, true).catch(function () {
+                alert('Não foi possível verificar duplicidade de nome agora. Tente novamente.');
+            });
+        });
     }
 
     form.addEventListener('submit', function (e) {
@@ -331,29 +406,33 @@ function initPacienteHomonimoCheck(root = document) {
         if (typeof e.stopImmediatePropagation === 'function') {
             e.stopImmediatePropagation();
         }
-        const payload = new URLSearchParams();
-        payload.set('nome_pac', nome);
-        const checkUrl = String(buildBaseUrl()).replace(/\/?$/, '/') + 'ajax/check_paciente_nome.php';
-
-        fetch(checkUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: payload.toString()
-        })
-            .then(function (resp) { return resp.json(); })
-            .then(function (data) {
-                const rows = Array.isArray(data && data.matches) ? data.matches : [];
-                if (!rows.length) {
+        const jaConsultado = (ultimoNomeConsultado === nome);
+        const possuiDuplicadosJaConhecidos = jaConsultado && Array.isArray(ultimosMatches) && ultimosMatches.length > 0;
+        if (possuiDuplicadosJaConhecidos) {
+            openDuplicatePopup(ultimosMatches).then(function (ok) {
+                if (ok) {
                     hiddenConfirm.value = '1';
+                    pendingSubmit = true;
+                    form.requestSubmit();
+                }
+            });
+            return;
+        }
+
+        consultarNome(nome, false)
+            .then(function (rows) {
+                if (!rows.length) {
                     pendingSubmit = true;
                     form.requestSubmit();
                     return;
                 }
-                renderRows(rows);
-                if (modal) modal.show();
+                openDuplicatePopup(rows).then(function (ok) {
+                    if (ok) {
+                        hiddenConfirm.value = '1';
+                        pendingSubmit = true;
+                        form.requestSubmit();
+                    }
+                });
             })
             .catch(function () {
                 hiddenConfirm.value = '1';

@@ -46,6 +46,13 @@ if ($type === "create") {
     // Receber os dados dos inputs
     $nome_pac = filter_input(INPUT_POST, "nome_pac", FILTER_SANITIZE_SPECIAL_CHARS);
     $nome_pac = strtoupper($nome_pac);
+    $nomePacNormalizado = preg_replace('/\s+/', ' ', trim((string)$nome_pac));
+    $nomeTokens = array_values(array_filter(explode(' ', $nomePacNormalizado), function ($t) {
+        return mb_strlen(trim((string)$t), 'UTF-8') >= 3;
+    }));
+    if (count($nomeTokens) > 4) {
+        $nomeTokens = array_slice($nomeTokens, 0, 4);
+    }
     $confirmarHomonimo = filter_input(INPUT_POST, "confirmar_homonimo_pac");
     $confirmarHomonimo = in_array(strtolower((string)$confirmarHomonimo), ['1', 's', 'sim', 'true'], true);
     $nome_social_pac = filter_input(INPUT_POST, "nome_social_pac", FILTER_SANITIZE_SPECIAL_CHARS);
@@ -138,14 +145,33 @@ if ($type === "create") {
     // Validação mínima de dados4
     if (3 < 4) {
         if (!$confirmarHomonimo) {
+            $nomeLike = '%' . str_replace(' ', '%', $nomePacNormalizado) . '%';
+            $tokenClause = '';
+            if (!empty($nomeTokens)) {
+                $tokenParts = [];
+                foreach ($nomeTokens as $idx => $tk) {
+                    $tokenParts[] = "UPPER(nome_pac) LIKE UPPER(:tk{$idx})";
+                }
+                $tokenClause = '(' . implode(' AND ', $tokenParts) . ')';
+            }
+
+            $whereNome = "(UPPER(TRIM(nome_pac)) = UPPER(TRIM(:nome)) OR UPPER(nome_pac) LIKE UPPER(:nome_like))";
+            if ($tokenClause !== '') {
+                $whereNome = '(' . $whereNome . ' OR ' . $tokenClause . ')';
+            }
+
             $stmtDupNome = $conn->prepare("
                 SELECT id_paciente, nome_pac, matricula_pac, cpf_pac, data_nasc_pac
                   FROM tb_paciente
-                 WHERE UPPER(TRIM(nome_pac)) = UPPER(TRIM(:nome))
+                 WHERE {$whereNome}
                    AND IFNULL(deletado_pac, 'n') <> 's'
                  LIMIT 1
             ");
-            $stmtDupNome->bindValue(':nome', $nome_pac);
+            $stmtDupNome->bindValue(':nome', $nomePacNormalizado);
+            $stmtDupNome->bindValue(':nome_like', $nomeLike);
+            foreach ($nomeTokens as $idx => $tk) {
+                $stmtDupNome->bindValue(":tk{$idx}", '%' . $tk . '%');
+            }
             $stmtDupNome->execute();
             $dupNome = $stmtDupNome->fetch(PDO::FETCH_ASSOC);
             if ($dupNome) {
