@@ -6,8 +6,6 @@
 // --- Debug opcional na tela: use ?debug=1 para ver erros/prints ---
 $__DEBUG = isset($_GET['debug']) && $_GET['debug'] == '1';
 if ($__DEBUG) {
-    ini_set('display_errors', '1');
-    ini_set('display_startup_errors', '1');
     error_reporting(E_ALL);
 }
 function dbg(...$args)

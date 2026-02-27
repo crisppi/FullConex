@@ -11,7 +11,6 @@ declare(strict_types=1);
 
 // ===================== CONFIG BÁSICA =====================
 $DEBUG = isset($_GET['debug']) && $_GET['debug'] == '1';
-@ini_set('display_errors', $DEBUG ? '1' : '0');
 error_reporting(E_ALL);
 
 // Pasta de logs (ajuste se quiser)

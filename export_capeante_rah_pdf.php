@@ -34,7 +34,6 @@ $HEALTH   = isset($_GET['health'])   && $_GET['health']   === '1';
 $COMPACT  = isset($_GET['compact'])  && $_GET['compact']  === '1';
 $ULTRA    = isset($_GET['ultra'])    && $_GET['ultra']    === '1';
 
-@ini_set('display_errors', $DEBUG ? '1' : '0');
 // error_reporting(EALL);
 
 /* ---------- LOG ---------- */

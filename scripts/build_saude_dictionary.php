@@ -12,7 +12,6 @@
 declare(strict_types=1);
 
 error_reporting(E_ALL);
-ini_set('display_errors', '1');
 
 $rootDir = dirname(__DIR__);
 $csvFile = $rootDir . '/scripts/correlacaotuss-rol_2021_site.csv';

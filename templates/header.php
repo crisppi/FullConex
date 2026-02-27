@@ -8,8 +8,6 @@ header("Content-type: text/html; charset=utf-8");
 // Caminho default
 $defaultFoto = $BASE_URL . 'img/user-default.png';
 
-// ini_set('display_errors', 1);
-// ini_set('display_startup_errors', 1);
 // error_reporting(E_ALL);
 
 $sessionNivel = isset($_SESSION['nivel']) ? (int) $_SESSION['nivel'] : 0;
