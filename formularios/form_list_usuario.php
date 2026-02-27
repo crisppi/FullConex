@@ -447,7 +447,6 @@ function resetSenha(id_user, evt) {
         type: 'POST',
         data: formData,
         success: function(response) {
-            console.log("Sucesso:", response);
 
             $('#responseMessage').html('Senha resetada com sucesso.');
         },

@@ -192,7 +192,6 @@ include_once("templates/header.php");
                 }
             },
             error: function(xhr, status, error) {
-                console.log("Erro ao carregar mensagens: " + error);
             }
         });
     }

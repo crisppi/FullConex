@@ -1,7 +1,6 @@
 $("form#minhaForm").on("submit", function(event) {
     event.preventDefault();
     let dados = $(this).serialize();
-    console.log(dados);
 
     $('#deletar-btn').val('nao');
     let mudancaStatus = ($('#deletar-btn').val())
@@ -25,8 +24,6 @@ $("form#minhaForm").on("submit", function(event) {
                         //SUCESSO
                         success: function(data) {
                             //$('#info').html('Enviado com sucesso');
-                            console.log("dentro do sucesss!!!!!!");
-                            console.log(dados);
                             //console.log(dados);
                             $('#deletar-btn').val('nao');
                         },

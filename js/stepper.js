@@ -55,7 +55,6 @@ function prevStep(step) {
     document.getElementById('step-' + step).style.display = 'block';
 
     // Atualizar a barra de progresso
-    console.log(step)
     document.getElementById('progressBar').style.width = (step) * 33.4 + '%';
     document.getElementById('progressBar').innerHTML = `Etapa ${step} de 3`;
 }
@@ -99,7 +98,6 @@ function prevStep2(step) {
     document.getElementById('step-' + step).style.display = 'block';
 
     // Atualizar a barra de progresso
-    console.log(step)
     document.getElementById('progressBar').style.width = (step) * 25 + '%';
     document.getElementById('progressBar').innerHTML = `Etapa ${step} de 4`;
 }
@@ -116,7 +114,6 @@ function validarCpfExistente(i, t) {
             contentType: false, // Não definir o tipo de conteúdo
             data: formData, // Dados a serem enviados
             success: function (response) {
-                console.log(response);
                 if (response == 0) {
                     document.getElementById("validar_cpf").style.display = 'none'
                     document.getElementById("step-1").disabled = false
@@ -127,7 +124,6 @@ function validarCpfExistente(i, t) {
 
             },
             error: function () {
-                console.log("error")
             }
         });
     }
@@ -159,7 +155,6 @@ function validarMatriculaExistente() {
             contentType: false,
             data: formData,
             success: function (response) {
-                console.log(response);
                 if (response == 0) {
                     document.getElementById("validar_matricula").style.display = 'none';
                     // var elRN = document.getElementById("validar_matricula_rn");
@@ -173,7 +168,6 @@ function validarMatriculaExistente() {
                 }
             },
             error: function () {
-                console.log("error");
             }
         });
     }
@@ -260,6 +254,121 @@ function handleMaeTitularChange() {
     }
 }
 
+function initPacienteHomonimoCheck(root = document) {
+    if (!root) return;
+    const form = root.querySelector ? root.querySelector('#multi-step-form') : document.getElementById('multi-step-form');
+    if (!form || form.dataset.homonimoBound === '1') return;
+
+    const hiddenConfirm = form.querySelector('#confirmar_homonimo_pac');
+    const nomeInput = form.querySelector('#nome_pac');
+    const bodyEl = form.querySelector('#dupPacienteBody') || document.getElementById('dupPacienteBody');
+    const confirmBtn = form.querySelector('#btnConfirmarHomonimo') || document.getElementById('btnConfirmarHomonimo');
+    const modalEl = form.querySelector('#modalNomeDuplicadoPaciente') || document.getElementById('modalNomeDuplicadoPaciente');
+    if (!hiddenConfirm || !nomeInput || !bodyEl || !confirmBtn || !modalEl) return;
+
+    form.dataset.homonimoBound = '1';
+    const modal = (window.bootstrap && modalEl) ? new bootstrap.Modal(modalEl) : null;
+    let pendingSubmit = false;
+
+    function fmtDate(value) {
+        if (!value) return '-';
+        const m = String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (!m) return value;
+        return m[3] + '/' + m[2] + '/' + m[1];
+    }
+
+    function renderRows(rows) {
+        if (!Array.isArray(rows) || rows.length === 0) {
+            bodyEl.innerHTML = '<tr><td colspan="6" class="text-muted text-center">Sem dados.</td></tr>';
+            return;
+        }
+        bodyEl.innerHTML = rows.map(function (r) {
+            return '<tr>'
+                + '<td>' + (r.id_paciente || '-') + '</td>'
+                + '<td>' + (r.nome_pac || '-') + '</td>'
+                + '<td>' + (r.matricula_pac || '-') + '</td>'
+                + '<td>' + (r.cpf_pac_formatado || '-') + '</td>'
+                + '<td>' + fmtDate(r.data_nasc_pac) + '</td>'
+                + '<td>' + (r.seguradora_seg || '-') + '</td>'
+                + '</tr>';
+        }).join('');
+    }
+
+    if (confirmBtn.dataset.homonimoBound !== '1') {
+        confirmBtn.dataset.homonimoBound = '1';
+        confirmBtn.addEventListener('click', function () {
+            hiddenConfirm.value = '1';
+            pendingSubmit = true;
+            if (modal) modal.hide();
+            form.requestSubmit();
+        });
+    }
+
+    function buildBaseUrl() {
+        if (typeof window.BASE_URL === 'string' && window.BASE_URL.length) {
+            return window.BASE_URL;
+        }
+        const baseEl = document.querySelector('base[href]');
+        if (baseEl && baseEl.href) return baseEl.href;
+        return '/';
+    }
+
+    form.addEventListener('submit', function (e) {
+        const typeInput = form.querySelector('input[name="type"]');
+        const formType = typeInput ? String(typeInput.value || '') : '';
+        if (formType !== 'create') return;
+        if (pendingSubmit) {
+            pendingSubmit = false;
+            return;
+        }
+        if (hiddenConfirm.value === '1') return;
+
+        const nome = (nomeInput.value || '').trim();
+        if (!nome) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof e.stopImmediatePropagation === 'function') {
+            e.stopImmediatePropagation();
+        }
+        const payload = new URLSearchParams();
+        payload.set('nome_pac', nome);
+        const checkUrl = String(buildBaseUrl()).replace(/\/?$/, '/') + 'ajax/check_paciente_nome.php';
+
+        fetch(checkUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: payload.toString()
+        })
+            .then(function (resp) { return resp.json(); })
+            .then(function (data) {
+                const rows = Array.isArray(data && data.matches) ? data.matches : [];
+                if (!rows.length) {
+                    hiddenConfirm.value = '1';
+                    pendingSubmit = true;
+                    form.requestSubmit();
+                    return;
+                }
+                renderRows(rows);
+                if (modal) modal.show();
+            })
+            .catch(function () {
+                hiddenConfirm.value = '1';
+                pendingSubmit = true;
+                form.requestSubmit();
+            });
+    }, true);
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    initPacienteHomonimoCheck(document);
+});
+
+window.initPacienteHomonimoCheck = initPacienteHomonimoCheck;
+
 
 function handleMaeTitularChange() {
 
@@ -273,7 +382,6 @@ function handleMaeTitularChange() {
     if (!recem || !maeTitularSelect || !matriculaTitularGroup || !matriculaInput) return;
 
     if (recem.value !== 's') return;
-    console.log("mae change", recem.value, maeTitularSelect.value)
     if (maeTitularSelect.value === 'n') {
         // Mãe NÃO é titular -> pedir matrícula da titular
         matriculaTitularGroup.style.display = 'block';

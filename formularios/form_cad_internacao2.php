@@ -1451,7 +1451,6 @@ $("#myForm").submit(function(event) {
 
         error: function(xhr, status, error) {
             console.error("AJAX Error:", status, error);
-            console.log("XHR response:", xhr.responseText);
         }
     });
 });

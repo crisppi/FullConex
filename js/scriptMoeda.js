@@ -93,6 +93,5 @@ $(document).ready(function() {
 function cancelar() {
     let idAcoes = (document.getElementById('id-confirmacao'));
     idAcoes.style.display = 'none';
-    console.log("chegou no cancelar");
 
 };

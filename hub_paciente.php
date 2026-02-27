@@ -717,12 +717,9 @@ $complexInfo = $complexMap[$effectiveLevel];
 <script>
   (function() {
     try {
-      console.log('[hub_paciente] DOM ready:', document.readyState);
       window.addEventListener('load', function() {
-        console.log('[hub_paciente] window load fired');
       });
       setTimeout(function() {
-        console.log('[hub_paciente] 3s after load. readyState=', document.readyState);
       }, 3000);
     } catch (e) {}
   })();

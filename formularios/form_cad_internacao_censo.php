@@ -327,7 +327,6 @@ extract($query);
 $('#select_gestao').change(function() {
     var option = $('#select_gestao').find(":selected").text();
 
-    console.log(option);
     if (option == "Sim") {
         var divGes = document.querySelector("#container-gestao");
         var divPro = document.querySelector("#container-prorrog");
@@ -360,7 +359,6 @@ $('#select_gestao').change(function() {
 $('#select_uti').change(function() {
     var option = $('#select_uti').find(":selected").text();
 
-    console.log(option);
     if (option == "Sim") {
         var divGes = document.querySelector("#container-gestao");
         var divPro = document.querySelector("#container-prorrog");
@@ -394,7 +392,6 @@ $('#select_uti').change(function() {
 $('#select_prorrog').change(function() {
     var option = $('#select_prorrog').find(":selected").val();
 
-    console.log(option);
     if (option == "Sim") {
         var divGes = document.querySelector("#container-gestao");
         var divPro = document.querySelector("#container-prorrog");
@@ -428,7 +425,6 @@ $('#select_prorrog').change(function() {
 $('#select_negoc').change(function() {
     var option = $('#select_negoc').find(":selected").text();
 
-    console.log(option);
     if (option == "Sim") {
         var divGes = document.querySelector("#container-gestao");
         var divPro = document.querySelector("#container-prorrog");

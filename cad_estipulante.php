@@ -267,7 +267,6 @@ if (empty($id_estipulante)) {
     // console.log(imagem);
 
     imagem.addEventListener("change", function (e) {
-        console.log(imagem.files[0].size);
         if (imagem.files[0].size > (1024 * 1024 * 2)) {
 
             // Apresentar a mensagem de erro

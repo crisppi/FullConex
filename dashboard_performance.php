@@ -48,10 +48,6 @@ function perfFetchValue(PDO $conn, string $sql, array $params = [], $default = 0
 function perfFetchAll(PDO $conn, string $sql, array $params = []): array
 {
     try {
-        error_log('[PERF_RANKING] Executando query...');
-        error_log('[PERF_RANKING] SQL: ' . substr($sql, 0, 200) . '...');
-        error_log('[PERF_RANKING] PARAMS: ' . json_encode($params));
-
         $stmt = $conn->prepare($sql);
         foreach ($params as $key => $value) {
             $stmt->bindValue($key, $value);
@@ -59,18 +55,9 @@ function perfFetchAll(PDO $conn, string $sql, array $params = []): array
         $stmt->execute();
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        error_log('[PERF_RANKING] ✓ Sucesso! Linhas retornadas: ' . count($result));
-        if (count($result) > 0) {
-            error_log('[PERF_RANKING] Primeira linha: ' . json_encode($result[0]));
-        }
-
         return $result;
     } catch (Throwable $e) {
-        error_log('[PERF_RANKING] ✗ ERRO: ' . $e->getMessage());
-        error_log('[PERF_RANKING] CÓDIGO: ' . $e->getCode());
-        error_log('[PERF_RANKING] SQL COMPLETO: ' . $sql);
-        error_log('[PERF_RANKING] PARAMS: ' . json_encode($params));
-        error_log('[PERF_RANKING] TRACE: ' . $e->getTraceAsString());
+        error_log('[PERF_RANKING] ' . $e->getMessage());
         return [];
     }
 }
@@ -463,9 +450,6 @@ if (!empty($internTempoRows)) {
     }
 }
 
-error_log('[PERF_RANKING] Iniciando query de contas por usuário...');
-error_log('[PERF_RANKING] Período: ' . $rangeParams[':dt_ini'] . ' até ' . $rangeParams[':dt_fim']);
-
 $rankingContaUsers = perfFetchAll(
     $conn,
     "SELECT 
@@ -500,8 +484,6 @@ $rankingContaUsers = perfFetchAll(
     LIMIT 10",
     $rangeParams
 );
-
-error_log('[PERF_RANKING] Query finalizada. Registros: ' . count($rankingContaUsers));
 
 if (empty($rankingContaUsers)) {
     $rankingContaUsers = perfFetchAll(

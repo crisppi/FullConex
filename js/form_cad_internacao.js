@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (match && match.value) {
             pacienteSelect.value = match.value;
             if (window.jQuery && window.jQuery.fn && window.jQuery(pacienteSelect).hasClass('selectpicker')) {
-                window.jQuery(pacienteSelect).selectpicker('refresh');
+                window.jQuery(pacienteSelect).selectpicker('val', match.value);
             }
             handlePacienteChange();
             return true;
@@ -249,7 +249,7 @@ if (config.prefillPacienteId) {
             $sel.val(idPac);
 
             if ($.fn.selectpicker && $sel.hasClass('selectpicker')) {
-                $sel.selectpicker('refresh');
+                $sel.selectpicker('val', idPac);
             }
 
             if (typeof window.triggerInternacaoCheck === 'function') {
@@ -302,29 +302,18 @@ document.addEventListener('DOMContentLoaded', function() {
 // selectpicker só se o plugin existir (evita quebrar tudo)
 $(function() {
     if ($.fn.selectpicker) {
-        var $allPickers = $('.selectpicker');
-        var $primaryPickers = $('#hospital_selected.selectpicker, #fk_paciente_int.selectpicker');
-
-        $primaryPickers.each(function() {
+        var $allPickers = $('.selectpicker').filter(function() {
+            return $(this).attr('data-fcx-picker-locked') !== '1';
+        });
+        $allPickers.each(function() {
             var $el = $(this);
             if (!$el.data('selectpicker')) {
                 $el.selectpicker();
             }
         });
-        $primaryPickers.selectpicker('refresh');
 
-        setTimeout(function() {
-            $allPickers.not($primaryPickers).each(function() {
-                var $el = $(this);
-                if (!$el.data('selectpicker')) {
-                    $el.selectpicker();
-                }
-            });
-            $allPickers.not($primaryPickers).selectpicker('refresh');
-        }, 0);
-
-        $('.selectpicker').on('loaded.bs.select', function() {
-            $('.bs-searchbox input').attr('placeholder', 'Digite para pesquisar...');
+        $allPickers.on('loaded.bs.select', function() {
+            $(this).parent().find('.bs-searchbox input').attr('placeholder', 'Digite para pesquisar...');
         });
     }
 });
@@ -1253,7 +1242,6 @@ $("#myForm").submit(function(event) {
 
         error: function(xhr, status, error) {
             console.error("AJAX Error:", status, error);
-            console.log("XHR response:", xhr.responseText);
         }
     });
 });
@@ -1558,7 +1546,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 pacienteSelect.value = '';
                 if (window.jQuery && jQuery.fn.selectpicker && jQuery(pacienteSelect).hasClass(
                         'selectpicker')) {
-                    jQuery(pacienteSelect).selectpicker('refresh');
+                    jQuery(pacienteSelect).selectpicker('val', '');
                 }
             }
         });

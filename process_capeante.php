@@ -468,7 +468,6 @@ if ($type === "update") {
         $capeanteUpdate->fk_id_aud_med = $fk_id_aud_med;
         $capeanteUpdate->fk_id_aud_adm = $fk_id_aud_adm;
         $capeanteUpdate->fk_id_aud_hosp = $fk_id_aud_hosp;
-        error_log("Atualizando capeante:" . print_r($capeanteUpdate, true));
         $capeanteDao->update($capeanteUpdate);
     }
     if ($checkbox_imprimir == '1') {

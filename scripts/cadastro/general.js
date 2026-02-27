@@ -24,7 +24,6 @@ function consultarCEP(i, sufixo) {
                 // Verifica se a requisição foi bem sucedida
                 if (!data.erro) {
                     // O endereço completo está disponível em data
-                    console.log('Endereço:', data);
                     document.getElementById("endereco_" + sufixo).value = data.logradouro
                     document.getElementById("bairro_" + sufixo).value = data.bairro
                     document.getElementById("cidade_" + sufixo).value = data.localidade
@@ -115,7 +114,6 @@ function checkIdListEmpty() {
 checkIdListEmpty();
 
 function addList(id) {
-    console.log(id)
     var index = idCensoList.indexOf(id);
     if (index === -1) {
         idCensoList.push(id); // Add ID to the list if it's not already present
@@ -259,7 +257,6 @@ function mascaraTelefone(event) {
 function aumentarTextObs() {
     // mudar linhas da obs paciente 
     var text_obs = document.getElementsByName("obs_pac");
-    console.log(text_obs)
     if (text_obs.rows == "2") {
         text_obs.rows = "20"
     } else {
@@ -284,7 +281,6 @@ function openModal(page) {
             $('#content-php').html(tableContent);
         },
         error: function () {
-            console.log('Error loading content');
         }
     });
 }
@@ -310,7 +306,6 @@ function openModalPat(page) {
             });
         },
         error: function () {
-            console.log('Error loading content');
         }
     });
 }
@@ -337,7 +332,6 @@ function openModalAnt(page) {
             });
         },
         error: function () {
-            console.log('Error loading content');
         }
     });
 }
@@ -360,7 +354,6 @@ function loadContent(url) {
             $('#table-content').html(tableContent);
         },
         error: function () {
-            console.log('Error loading content');
         }
     });
 }

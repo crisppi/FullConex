@@ -185,12 +185,6 @@
     var criteriaMessage = document.querySelector("#criteria_message");
 
     document.addEventListener("DOMContentLoaded", function() {
-        console.log("Página carregada, verificando elementos...");
-        console.log("DVA:", dva);
-        console.log("VM:", vm);
-        console.log("Glasgow:", glasgow);
-        console.log("Distúrbio Metabólico:", dist);
-        console.log("Suporte Ventilatório:", suporteVent);
     });
 
     function avaliarStatus() {
@@ -198,12 +192,6 @@
         let score = "";
         let color = "";
 
-        console.log("Valores atuais:");
-        console.log("DVA:", dva?.value);
-        console.log("VM:", vm?.value);
-        console.log("Glasgow:", glasgow?.value);
-        console.log("Distúrbio Metabólico:", dist?.value);
-        console.log("Suporte Ventilatório:", suporteVent?.value);
 
         if (dva?.value === "s" || vm?.value === "s" ||
             (glasgow?.value === "3-4" || glasgow?.value === "5-8" || glasgow?.value === "8-10") || dist?.value === "s"
@@ -246,7 +234,6 @@
     [dva, vm, glasgow, dist, suporteVent].forEach((element) => {
         if (element) {
             element.addEventListener("change", () => {
-                console.log(`Campo ${element.id} alterado para ${element.value}`);
                 avaliarStatus();
             });
         } else {

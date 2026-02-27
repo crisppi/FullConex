@@ -1178,6 +1178,9 @@ if (!empty($sessionIdUsuario)) {
                             }
                             return;
                         }
+                        if (payload && payload.success === false) {
+                            throw new Error(payload.message || 'Não foi possível salvar o formulário.');
+                        }
                         if (payload && payload.html) {
                             const temp = document.createElement('div');
                             temp.innerHTML = payload.html;
@@ -1188,8 +1191,9 @@ if (!empty($sessionIdUsuario)) {
                         }
                         throw new Error('Resposta inesperada');
                     })
-                    .catch(() => {
-                        container.innerHTML = '<div class="p-4 text-danger">Erro ao processar o formulário.</div>';
+                    .catch((err) => {
+                        const msg = (err && err.message) ? err.message : 'Erro ao processar o formulário.';
+                        container.innerHTML = '<div class="p-4 text-danger">' + msg + '</div>';
                     })
                     .finally(() => {
                         if (submitBtn) submitBtn.disabled = false;
@@ -1210,6 +1214,9 @@ if (!empty($sessionIdUsuario)) {
         } catch (_) {}
 
         setupModalForms(target, modalEl);
+        if (typeof window.initPacienteHomonimoCheck === 'function') {
+            window.initPacienteHomonimoCheck(target);
+        }
     }
 
     if (typeof window.openModalPac !== 'function') {
@@ -1323,7 +1330,6 @@ if (!empty($sessionIdUsuario)) {
                 q
             })
             .done(res => {
-                console.log('[BUSCA OK]', res);
                 renderResults(res);
             })
             .fail((jqXHR, textStatus, errorThrown) => {
@@ -1535,6 +1541,10 @@ if (!empty($sessionIdUsuario)) {
         if (window.$ && $.fn.selectpicker) {
             $('.selectpicker', form).each(function() {
                 try {
+                    var id = this.id || '';
+                    if (id === 'hospital_selected' || id === 'fk_paciente_int') {
+                        return;
+                    }
                     $(this).selectpicker('refresh');
                 } catch (_) {}
             });

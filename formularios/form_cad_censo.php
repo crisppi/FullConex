@@ -195,7 +195,6 @@
             type: request_method,
             data: form_data,
             success: function(result) {
-                console.log(result);
                 $('form').trigger("reset");
                 var btnSelected = document.querySelector("#hospital_selected").value;
                 const btnHospital = document.querySelector("#fk_hospital_censo");

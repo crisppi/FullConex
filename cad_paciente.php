@@ -31,6 +31,7 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
 
         <input type="hidden" name="type" value="create">
         <input type="hidden" name="deletado_pac" value="n">
+        <input type="hidden" name="confirmar_homonimo_pac" id="confirmar_homonimo_pac" value="0">
 
         <!-- Step 1: Personal Information -->
         <div id="step-1" class="step">
@@ -277,6 +278,53 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
             </button>
         </div>
     </form>
+</div>
+
+<div class="modal fade" id="modalNomeDuplicadoPaciente" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-warning">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                    Possível paciente já cadastrado
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-2">
+                    Encontramos paciente(s) com nome igual ou muito parecido. Confirme se é homônimo antes de continuar.
+                </p>
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Paciente</th>
+                                <th>Matrícula</th>
+                                <th>CPF</th>
+                                <th>Nascimento</th>
+                                <th>Seguradora</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dupPacienteBody">
+                            <tr>
+                                <td colspan="6" class="text-muted text-center">Sem dados.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <small class="text-muted d-block mt-2">
+                    Se for a mesma pessoa, cancele e use o cadastro existente.
+                </small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnConfirmarHomonimo">
+                    É outro paciente, continuar
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"></script>

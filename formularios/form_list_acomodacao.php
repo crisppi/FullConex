@@ -372,7 +372,6 @@ function loadContent(url) {
             $('#table-content').html(tableContent);
         },
         error: function() {
-            console.log('Error loading content');
         }
     });
 }

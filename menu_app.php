@@ -1095,7 +1095,6 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
             });
         }
     } catch (error) {
-        console.log(error);
     }
 
     toastr.options = {

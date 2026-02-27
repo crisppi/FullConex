@@ -92,10 +92,6 @@ if (!function_exists('internacaoCreateDebugLog')) {
     }
 }
 
-// Depurar dados enviados via POST
-error_log("Dados recebidos para salvar internação:");
-error_log(print_r($_POST, true));
-
 $internAntecedenteDao = new InternacaoAntecedenteDAO($conn, $BASE_URL);
 $userDao = new UserDAO($conn, $BASE_URL);
 $internacaoDao = new InternacaoDAO($conn, $BASE_URL);
@@ -165,11 +161,9 @@ if ($type === "create") {
                 'json_error' => json_last_error_msg()
             ]);
         } else {
-            error_log("JSON recebido: " . $jsonAntec);
             flowLog($flowCtx, 'create.antecedentes', 'INFO', ['json_status' => 'ok']);
         }
     } else {
-        error_log("Nenhum JSON foi recebido.");
         flowLog($flowCtx, 'create.antecedentes', 'INFO', ['json_status' => 'empty']);
     }
 
@@ -416,10 +410,8 @@ if ($type === "create") {
         exit;
     }
 
-    error_log("Salvando internação com os seguintes dados: " . print_r($internacao, true));
     $lastIntern = $internacaoDao->create($internacao);
     if ($lastIntern) {
-        error_log("Internação salva com sucesso. Último ID: " . $internacaoDao->findLastId()['0']['id_intern']);
         flowLog($flowCtx, 'create.internacao.persist', 'INFO', ['status' => 'ok']);
     } else {
         error_log("Erro ao salvar internação.");
@@ -656,7 +648,6 @@ if ($type === "create") {
         }
 
         // NEGOCIAÇÃO
-        error_log("[DEBUG] select_negoc=" . ($select_negoc ?? "NULO"));
         if ($select_negoc === "s") {
             $negociacoesJSON = $_POST['negociacoes_json'] ?? '[]';
             $negociacoesArray = json_decode($negociacoesJSON, true);

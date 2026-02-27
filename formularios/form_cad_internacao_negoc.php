@@ -195,17 +195,42 @@ function findOptionValueByToken(selectEl, token) {
     const wanted = (TOKEN_SYNONYMS[token] || [token.toLowerCase()]);
     const opts = Array.from(selectEl.options);
 
-    // tenta match por sinônimo
-    for (const opt of opts) {
-        const t = jsNorm(opt.text);
-        if (wanted.some(w => t.includes(w))) return opt.value;
-    }
-    // fallback: tenta igualdade direta por texto/valor
+    const normalizedWanted = wanted.map(w => jsNorm(w));
     const tokenNorm = jsNorm(token);
+    let best = null;
+
     for (const opt of opts) {
-        if (jsNorm(opt.text) === tokenNorm || jsNorm(opt.value) === tokenNorm) return opt.value;
+        const textNorm = jsNorm(opt.text).trim();
+        const valueNorm = jsNorm(opt.value).trim();
+        if (!textNorm && !valueNorm) continue;
+
+        let score = 0;
+
+        // 1) Match exato é prioridade máxima (evita SEMI cair em SEMI NEO)
+        if (normalizedWanted.includes(textNorm) || normalizedWanted.includes(valueNorm) || textNorm === tokenNorm || valueNorm === tokenNorm) {
+            score = 300;
+        } else {
+            // 2) Match por prefixo (mais específico que "contains")
+            const starts = normalizedWanted.some(w => textNorm.startsWith(w) || valueNorm.startsWith(w));
+            if (starts) {
+                score = 200;
+            } else {
+                // 3) Match por contains (fallback)
+                const contains = normalizedWanted.some(w => textNorm.includes(w) || valueNorm.includes(w));
+                if (contains) score = 100;
+            }
+        }
+
+        if (!score) continue;
+
+        // Em empate, preferir opção mais curta (ex.: "SEMI" ao invés de "SEMI NEO")
+        const len = (textNorm || valueNorm).length;
+        if (!best || score > best.score || (score === best.score && len < best.len)) {
+            best = { value: opt.value, score, len };
+        }
     }
-    return '';
+
+    return best ? best.value : '';
 }
 
 // aplica regra de TROCA no container atual
@@ -401,6 +426,28 @@ function exibirAlerta(msg) {
     }, 4000);
 }
 
+function calcularDiariasEntreDatas(dataInicioStr, dataFimStr) {
+    if (!dataInicioStr || !dataFimStr) return null;
+    const inicio = new Date(dataInicioStr + 'T00:00:00');
+    const fim = new Date(dataFimStr + 'T00:00:00');
+    if (Number.isNaN(inicio.getTime()) || Number.isNaN(fim.getTime())) return null;
+    if (fim < inicio) return null;
+    const umDiaMs = 24 * 60 * 60 * 1000;
+    return Math.floor((fim - inicio) / umDiaMs); // exclusivo do dia final
+}
+
+function syncQuantidadeFromDates(container) {
+    const dataInicioEl = container.find('input[name="data_inicio_negoc"]');
+    const dataFimEl = container.find('input[name="data_fim_negoc"]');
+    const qtdEl = container.find('input[name="qtd"]');
+    if (!dataInicioEl.length || !dataFimEl.length || !qtdEl.length) return;
+
+    const diarias = calcularDiariasEntreDatas(dataInicioEl.val(), dataFimEl.val());
+    if (diarias && diarias > 0) {
+        qtdEl.val(diarias);
+    }
+}
+
 function validarTodasDatas() {
     const dataInternEl = document.getElementById("data_intern_int");
     if (!dataInternEl || !dataInternEl.value) return true;
@@ -459,6 +506,9 @@ document.addEventListener('DOMContentLoaded', function() {
         'select[name="troca_de"], select[name="troca_para"], input[name="qtd"], input[name="data_inicio_negoc"], input[name="data_fim_negoc"]',
         function() {
             const $cont = $(this).closest('.negotiation-field-container');
+            if ($(this).is('input[name="data_inicio_negoc"], input[name="data_fim_negoc"]')) {
+                syncQuantidadeFromDates($cont);
+            }
             calculateSaving($cont);
             validarTodasDatas();
             generateNegotiationsJSON();

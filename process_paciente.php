@@ -46,6 +46,8 @@ if ($type === "create") {
     // Receber os dados dos inputs
     $nome_pac = filter_input(INPUT_POST, "nome_pac", FILTER_SANITIZE_SPECIAL_CHARS);
     $nome_pac = strtoupper($nome_pac);
+    $confirmarHomonimo = filter_input(INPUT_POST, "confirmar_homonimo_pac");
+    $confirmarHomonimo = in_array(strtolower((string)$confirmarHomonimo), ['1', 's', 'sim', 'true'], true);
     $nome_social_pac = filter_input(INPUT_POST, "nome_social_pac", FILTER_SANITIZE_SPECIAL_CHARS);
     $nome_social_pac = strtoupper($nome_social_pac);
     $endereco_pac = filter_input(INPUT_POST, "endereco_pac", FILTER_SANITIZE_SPECIAL_CHARS);
@@ -135,6 +137,31 @@ if ($type === "create") {
     $paciente = new Paciente();
     // Validação mínima de dados4
     if (3 < 4) {
+        if (!$confirmarHomonimo) {
+            $stmtDupNome = $conn->prepare("
+                SELECT id_paciente, nome_pac, matricula_pac, cpf_pac, data_nasc_pac
+                  FROM tb_paciente
+                 WHERE UPPER(TRIM(nome_pac)) = UPPER(TRIM(:nome))
+                   AND IFNULL(deletado_pac, 'n') <> 's'
+                 LIMIT 1
+            ");
+            $stmtDupNome->bindValue(':nome', $nome_pac);
+            $stmtDupNome->execute();
+            $dupNome = $stmtDupNome->fetch(PDO::FETCH_ASSOC);
+            if ($dupNome) {
+                if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+                    header('Content-Type: application/json; charset=utf-8');
+                    echo json_encode([
+                        'success' => false,
+                        'code' => 'nome_duplicado',
+                        'message' => 'Paciente com nome já cadastrado. Confirme homônimo para continuar.'
+                    ]);
+                    exit;
+                }
+                $message->setMessage("Já existe paciente com esse nome. Confirme se é homônimo antes de cadastrar.", "error", "back");
+                exit;
+            }
+        }
 
         $paciente->nome_pac = $nome_pac;
         $paciente->nome_social_pac = $nome_social_pac;

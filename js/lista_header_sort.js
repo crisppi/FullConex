@@ -162,13 +162,15 @@
 
     const isLegacyListRoute = page.startsWith('list_');
     const isFriendlyListRoute = pathname.includes('/listas/') || pathname.endsWith('/censo/lista');
+    const isPacientesRoute = pathname.endsWith('/pacientes') || page === 'pacientes';
 
-    if (!isLegacyListRoute && !isFriendlyListRoute) return;
+    if (!isLegacyListRoute && !isFriendlyListRoute && !isPacientesRoute) return;
     if (page === 'list_internacao.php' || page === 'list_internacao_sem_senha.php') return;
 
     const tables = document.querySelectorAll('.table-responsive table.table, table.table');
     tables.forEach((table) => prepareTable(table));
   }
 
+  window.applyHeaderSortOnListPages = applyHeaderSortOnListPages;
   document.addEventListener('DOMContentLoaded', applyHeaderSortOnListPages);
 })();

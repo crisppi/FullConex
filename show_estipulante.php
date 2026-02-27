@@ -156,7 +156,6 @@ $estipulante->telefone02_est = $telefone02_format;
 function apareceOpcoes() {
     $('#deletar-btn').val('nao');
     let mudancaStatus = ($('#deletar-btn').val())
-    console.log(mudancaStatus);
     let idAcoes = (document.getElementById('id-confirmacao'));
     idAcoes.style.display = 'block';
 }
@@ -171,7 +170,6 @@ function deletar() {
 function cancelar() {
     let idAcoes = (document.getElementById('id-confirmacao'));
     idAcoes.style.display = 'none';
-    console.log("chegou no cancelar");
     window.location = "<?= $BASE_URL ?>estipulantes";
 
 

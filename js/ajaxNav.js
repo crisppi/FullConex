@@ -76,6 +76,9 @@ function edit(url) {
                     $('.selectpicker').selectpicker();
                     $('.selectpicker').selectpicker('refresh');
                 }
+                if (typeof window.applyHeaderSortOnListPages === 'function') {
+                    window.applyHeaderSortOnListPages();
+                }
             });
         },
         error: function () {
@@ -106,10 +109,12 @@ function loadContent(url) {
                 if ($.fn.selectpicker) {
                     $('.selectpicker').selectpicker('refresh');
                 }
+                if (typeof window.applyHeaderSortOnListPages === 'function') {
+                    window.applyHeaderSortOnListPages();
+                }
             });
         },
         error: function () {
-            console.log('Error loading content');
         }
     });
 }

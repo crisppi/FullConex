@@ -1,6 +1,5 @@
 // limpar a notificacacao do glosa med
 function checkDataAlta() {
-    console.log("Teste alyta")
     let dataInt = document.getElementById("data_intern_int");
     let data_alta = document.getElementById("data_alta_alt");
     let data_alta_alt = document.getElementById("data_alta_alt");

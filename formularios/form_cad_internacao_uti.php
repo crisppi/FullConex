@@ -294,7 +294,6 @@ function avaliarStatus() {
 [dva, vm, glasgow, dist, suporteVent].forEach((element) => {
     if (element) {
         element.addEventListener("change", () => {
-            console.log(`Campo ${element.id} alterado para ${element.value}`);
             avaliarStatus();
         });
     } else {

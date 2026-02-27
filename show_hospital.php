@@ -140,7 +140,6 @@ $hospital->telefone02_hosp = $telefone02_format;
 function apareceOpcoes() {
     $('#deletar-btn').val('nao');
     let mudancaStatus = ($('#deletar-btn').val())
-    console.log(mudancaStatus);
     let idAcoes = (document.getElementById('id-confirmacao'));
     idAcoes.style.display = 'block';
 }

@@ -25,7 +25,7 @@
   const stateContas = { loaded: false, page: 1, total: 0 };
 
   // ================== UTILS ==================
-  const log = (...a) => console.log('[hub_paciente]', ...a);
+  const log = () => {};
 
   const debounce = (fn, wait = 150) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), wait); }; };
 

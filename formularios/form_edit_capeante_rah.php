@@ -34,7 +34,6 @@ $rahJsonB64 = base64_encode($rahJson ?: '{}');
       const form = document.getElementById('form-capeante-rah');
       if (!form) return;
 
-      console.log('[RAH][populate] payload', data);
 
       const formatMoney = (val) => {
         if (val === null || typeof val === 'undefined' || val === '') return '';

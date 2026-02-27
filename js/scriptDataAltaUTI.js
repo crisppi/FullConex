@@ -22,12 +22,9 @@ data_alta_UTI.addEventListener("blur", function() {
         dataAltaDao = new Date(data_alta_UTI_intV);
 
         var diaInt = (dataIntDao.getTime());
-        console.log(diaInt);
         var diaAlta = (dataAltaDao.getTime());
-        console.log(diaAlta);
 
         var dif2 = diaAlta < diaInt; // ver se a data inicial da prorrogacao é menor que a data da internacao
-        console.log(dif2);
 
         var divMsg2 = document.querySelector("#notif-input2");
 

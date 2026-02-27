@@ -256,22 +256,16 @@ try {
         $d->liminar_det               = filter_input(INPUT_POST, 'liminar_det');
         $d->parto_det                 = filter_input(INPUT_POST, 'parto_det');
 
-        error_log('[detalhes] Dados recebidos: ' . print_r($d, true));
-
         if (!$idDetalhes) {
             unset($d->id_detalhes);
-            error_log('[detalhes] Criando novo registro de detalhes');
             $detalhesDao->create($d);
         } else {
-            error_log('[detalhes] Atualizando registro de detalhes com ID: ' . $idDetalhes);
             $detalhesDao->update($d);
         }
     }
 
     /*──────── UTI (CREATE/UPDATE) ────────*/
     if (filter_input(INPUT_POST, 'select_uti') === 's') {
-        error_log("DADOS RECEBIDOS EM UTI:\n" . print_r($_POST, true));
-
         $u = new uti();
         $u->id_uti              = filter_input(INPUT_POST, 'id_uti', FILTER_VALIDATE_INT);
         $u->fk_internacao_uti   = filter_input(INPUT_POST, 'fk_internacao_uti', FILTER_VALIDATE_INT);

@@ -116,7 +116,6 @@ if (strlen($usuario->telefone02_user) > 0) {
 function apareceOpcoes() {
     $('#deletar-btn').val('nao');
     let mudancaStatus = ($('#deletar-btn').val())
-    console.log(mudancaStatus);
     let idAcoes = (document.getElementById('id-confirmacao'));
     idAcoes.style.display = 'block';
 }
@@ -131,7 +130,6 @@ function deletar() {
 
 $(function() {
     $('#btn-cancelar').on('click', function() {
-        console.log("cancelou")
         // Volta para a listagem sem precisar de onclick inline
         window.location.href = '<?= $BASE_URL ?>list_usuario.php';
     });

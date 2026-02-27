@@ -198,7 +198,19 @@
                                     if (!is_array($pacientes)) {
                                         $pacientes = [];
                                     };
-                                    usort($pacientes, fn($a, $b) => ((int) $b["id_paciente"]) <=> ((int) $a["id_paciente"]));
+                                    $pacientesById = [];
+                                    foreach ($pacientes as $pacienteRow) {
+                                        $pacienteId = (int) ($pacienteRow["id_paciente"] ?? 0);
+                                        if ($pacienteId > 0) {
+                                            $pacientesById[$pacienteId] = $pacienteRow;
+                                        }
+                                    }
+                                    $pacientes = array_values($pacientesById);
+                                    usort($pacientes, function ($a, $b) {
+                                        $nomeA = mb_strtolower(trim((string) ($a["nome_pac"] ?? "")), 'UTF-8');
+                                        $nomeB = mb_strtolower(trim((string) ($b["nome_pac"] ?? "")), 'UTF-8');
+                                        return $nomeA <=> $nomeB;
+                                    });
                                     foreach ($pacientes as $paciente): ?>
                                         <?php
                                         $matriculaPac = trim((string) ($paciente["matricula_pac"] ?? ""));
@@ -229,6 +241,19 @@
                                     </div>
                                 </div>
                             </div>
+                            <script>
+                                (function() {
+                                    if (!window.jQuery || !jQuery.fn || !jQuery.fn.selectpicker) return;
+                                    ['#hospital_selected', '#fk_paciente_int'].forEach(function(sel) {
+                                        var $el = jQuery(sel);
+                                        if (!$el.length) return;
+                                        if (!$el.data('selectpicker')) {
+                                            $el.selectpicker();
+                                        }
+                                        $el.attr('data-fcx-picker-locked', '1');
+                                    });
+                                })();
+                            </script>
 
                             <div class="form-group col-6 col-sm-2">
                                 <label class="control-label" for="matricula_paciente_display">Matrícula</label>
