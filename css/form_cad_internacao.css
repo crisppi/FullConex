@@ -1,0 +1,735 @@
+        body {
+            background: linear-gradient(180deg, #f6f3ff 0%, #ede6fa 100%);
+            min-height: 100vh;
+        }
+
+        /* z-index do dropdown do header */
+        .navbar .dropdown-menu {
+            z-index: 1055;
+        }
+
+        /* Selects roxos (tabelas adicionais) */
+        .select-purple,
+        .select-purple:focus {
+            background-color: #5e2363 !important;
+            color: #fff !important;
+            border: 1px solid #5e2363 !important;
+        }
+
+        .bootstrap-select .dropdown-toggle.select-purple,
+        .bootstrap-select .dropdown-toggle.select-purple .filter-option,
+        .bootstrap-select .dropdown-toggle.select-purple .filter-option-inner,
+        .bootstrap-select .dropdown-toggle.select-purple .filter-option-inner-inner,
+        .bootstrap-select .dropdown-toggle.select-purple.btn {
+            background-color: #5e2363 !important;
+            color: #fff !important;
+            border: 1px solid #5e2363 !important;
+            font-weight: 600 !important;
+            box-shadow: none !important;
+        }
+
+        .detail-select,
+        .detail-select:focus {
+            background-color: #5e2363 !important;
+            color: #fff !important;
+            border: 1px solid #5e2363 !important;
+            font-weight: 700;
+            box-shadow: none !important;
+        }
+
+        .detail-select option {
+            background-color: #5e2363 !important;
+            color: #fff !important;
+            font-weight: 700;
+        }
+
+        .detail-select option {
+            background-color: #fff !important;
+            color: #2d114c !important;
+            font-weight: 700;
+        }
+
+        .is-invalid {
+            border-color: #dc3545 !important;
+        }
+
+        .retroativa-banner {
+            width: 100%;
+            margin-top: 6px;
+            padding: 14px 18px;
+            border-radius: 8px;
+            border: 1px solid #f5c2c7;
+            background: #f8d7da;
+            color: #842029;
+            font-size: .95rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .retroativa-banner i {
+            font-size: 1.15rem;
+        }
+
+        .hospital-select-wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            flex-wrap: nowrap;
+        }
+
+        .hospital-select-wrapper select {
+            flex: 1 1 100%;
+            min-width: 100%;
+        }
+
+        .hospital-tip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 0;
+            position: relative;
+            flex: 0 0 auto;
+        }
+
+        @media (max-width: 767.98px) {
+            .hospital-select-wrapper {
+                flex-wrap: wrap;
+            }
+
+            .hospital-tip {
+                margin-top: 6px;
+            }
+        }
+
+        .hospital-tip button:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
+        @media (min-width: 768px) {
+
+            .hospital-col,
+            .patient-col {
+                flex: 0 0 33.333333%;
+                max-width: 33.333333%;
+            }
+        }
+
+        .internacao-head-row {
+            margin-left: -6px;
+            margin-right: -6px;
+        }
+
+        .internacao-head-row>.form-group {
+            padding-left: 6px;
+            padding-right: 6px;
+        }
+
+        .internacao-head-row label {
+            margin-bottom: 4px;
+        }
+
+        /* Padroniza altura dos campos da linha CID/Grupo/Origem/Senha/Atendimento */
+        #grupo_patologia_int,
+        #origem_int,
+        #senha_int,
+        #num_atendimento_int {
+            min-height: 42px;
+            height: 42px;
+        }
+
+        .bootstrap-select>.dropdown-toggle[data-id="fk_cid_int"] {
+            min-height: 42px !important;
+            height: 42px !important;
+            padding-top: 8px !important;
+            padding-bottom: 8px !important;
+        }
+
+        .bootstrap-select>.dropdown-toggle[data-id="fk_cid_int"] .filter-option-inner-inner {
+            line-height: 24px !important;
+        }
+
+        /* Padroniza altura da faixa de Dados Essenciais */
+        #matricula_paciente_display,
+        #data_intern_int_dt,
+        #data_lancamento_int,
+        #data_visita_int,
+        #internado_int,
+        #data_alta_alt,
+        #tipo_alta_alt {
+            min-height: 42px !important;
+            height: 42px !important;
+        }
+
+        #data_alta_alt,
+        #tipo_alta_alt {
+            padding-top: 8px;
+            padding-bottom: 8px;
+            line-height: 24px;
+        }
+
+        .bootstrap-select>.dropdown-toggle[data-id="hospital_selected"],
+        .bootstrap-select>.dropdown-toggle[data-id="fk_paciente_int"] {
+            min-height: 42px !important;
+            height: 42px !important;
+            padding-top: 8px !important;
+            padding-bottom: 8px !important;
+        }
+
+        .bootstrap-select>.dropdown-toggle[data-id="hospital_selected"] .filter-option-inner-inner,
+        .bootstrap-select>.dropdown-toggle[data-id="fk_paciente_int"] .filter-option-inner-inner {
+            line-height: 24px !important;
+        }
+
+        .hospital-col label {
+            margin-bottom: 0px;
+        }
+
+        .hospital-col .d-flex.mb-1 {
+            margin-bottom: 0 !important;
+        }
+
+        .hospital-col .hospital-select-wrapper {
+            margin-top: -2px;
+        }
+
+        .hospital-name-slot {
+            flex: 1 1 auto;
+            min-width: 260px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-left: 18px;
+        }
+
+        .hospital-name-chip {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            min-width: 240px;
+            max-width: 90%;
+            height: 60px;
+            padding: 0 40px;
+            border: 2px solid #640764;
+            border-radius: 8px;
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #000;
+            background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
+        }
+
+        @media (max-width: 991.98px) {
+            .hospital-name-slot {
+                width: 100%;
+                justify-content: flex-start;
+                padding-left: 0;
+                margin-top: 10px;
+            }
+
+            .hospital-name-chip {
+                max-width: 100%;
+            }
+        }
+
+        #myForm {
+            transition: filter .2s ease, opacity .2s ease;
+        }
+
+        .hospital-tip-popover {
+            min-width: 220px;
+            background: #fff;
+            border: 1px solid #e1d4ef;
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: .85rem;
+            color: #4a2c60;
+            box-shadow: 0 6px 22px rgba(57, 15, 94, 0.12);
+            display: none;
+        }
+
+        .hospital-tip-popover strong {
+            color: #2e1146;
+        }
+
+        .hospital-tip-popover.show {
+            display: block;
+        }
+
+        .hospital-uti-alert {
+            display: none;
+            margin-top: 10px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            background: #fff2f2;
+            border: 1px solid #f4bebe;
+            color: #851010;
+            font-weight: 600;
+            font-size: .9rem;
+        }
+
+        .hospital-uti-alert.show {
+            display: block;
+        }
+
+        .patient-insight-card {
+            margin-top: 6px;
+            border: 1px solid #ebe2f3;
+            border-radius: 14px;
+            padding: 10px 14px;
+            background: #faf8ff;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6);
+            font-size: .85rem;
+            color: #4a2c60;
+        }
+
+        .patient-insight-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .patient-insight-header .label {
+            font-weight: 700;
+            color: #5e2363;
+        }
+
+        .patient-insight-header a {
+            font-size: .78rem;
+            text-decoration: none;
+            color: #5e2363;
+            font-weight: 600;
+        }
+
+        .patient-insight-header a.disabled {
+            pointer-events: none;
+            opacity: .5;
+        }
+
+        .patient-insight-metrics {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .patient-insight-metrics div {
+            background: #fff;
+            border: 1px solid #e1d4ef;
+            border-radius: 10px;
+            padding: 6px 10px;
+            font-size: .78rem;
+            line-height: 1.2;
+            min-width: 120px;
+        }
+
+        .patient-insight-metrics div strong {
+            display: block;
+            font-size: 1rem;
+            color: #2d1144;
+        }
+
+        .patient-insight-inline-btn {
+            border: none;
+            background: #f4e9fb;
+            color: #5e2363;
+            border-radius: 999px;
+            width: 26px;
+            height: 26px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform .15s ease, background .15s ease;
+        }
+
+        .patient-insight-inline-btn:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
+        .patient-insight-inline-btn.active {
+            background: #5e2363;
+            color: #fff;
+        }
+
+        .patient-insight-inline-btn:not(:disabled):hover {
+            transform: translateY(-1px);
+        }
+
+        .patient-select-btn {
+            height: 34px !important;
+            padding: 6px 10px !important;
+            border: 2px solid #7a1e57 !important;
+            box-shadow: 0 3px 8px rgba(122, 30, 87, 0.12) !important;
+        }
+
+        .hospital-select-btn {
+            height: 34px !important;
+            padding: 6px 10px !important;
+            border: 1px solid #555 !important;
+            box-shadow: none !important;
+            background-color: #fff !important;
+            color: #000 !important;
+        }
+
+        .hospital-select-btn:focus,
+        .hospital-select-btn:active,
+        .bootstrap-select.show>.hospital-select-btn {
+            border-color: #5e2363 !important;
+            box-shadow: 0 0 0 0.15rem rgba(94, 35, 99, 0.15) !important;
+        }
+
+        .patient-select-btn .filter-option {
+            display: flex;
+            align-items: center;
+        }
+
+        .patient-select-btn:focus,
+        .patient-select-btn:active,
+        .bootstrap-select.show>.patient-select-btn {
+            border-color: #5e2363 !important;
+            box-shadow: 0 0 0 0.2rem rgba(94, 35, 99, 0.2) !important;
+        }
+
+        /* Mantém nativo visível no primeiro paint (evita aparecer "por último") */
+        #hospital_selected.selectpicker,
+        #fk_paciente_int.selectpicker {
+            display: block !important;
+        }
+
+        /* Esconde o nativo apenas após bootstrap-select inicializar */
+        #hospital_selected.selectpicker.bs-select-hidden,
+        #fk_paciente_int.selectpicker.bs-select-hidden {
+            display: none !important;
+        }
+
+        .internacao-page {
+            width: 100%;
+            margin: -26px 0 0;
+            padding: 0 0 60px;
+        }
+
+        .internacao-page__hero {
+            background: linear-gradient(135deg, #5a2f78, #a06bd4);
+            color: #fff;
+            border-radius: 32px;
+            padding: 18px 26px;
+            box-shadow: 0 25px 50px rgba(24, 0, 30, 0.35);
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 24px;
+            margin: -12px 0 4px;
+        }
+
+        .internacao-page__hero h1 {
+            margin: 0 0 6px;
+            font-size: 1.6rem;
+            letter-spacing: .02em;
+            color: #fff;
+        }
+
+        .internacao-page__hero p {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.9);
+            max-width: 480px;
+        }
+
+        .internacao-page__tag {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 18px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: .8rem;
+        }
+
+        .internacao-page__content {
+            margin-top: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .internacao-card {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.9));
+            border-radius: 28px;
+            padding: 18px 10px;
+            border: 1px solid #ece6f2;
+            box-shadow: 0 20px 50px rgba(94, 35, 99, 0.08);
+            margin: 0;
+            width: 100%;
+        }
+
+        .internacao-card__header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .internacao-card__eyebrow {
+            text-transform: uppercase;
+            letter-spacing: .35em;
+            font-size: .65rem;
+            margin: 0;
+            color: #000;
+        }
+
+        .internacao-card__title {
+            margin: 2px 0 0;
+            font-size: 1.4rem;
+            color: #000;
+            font-weight: 600;
+        }
+
+        .internacao-card__tag {
+            background: #f8eefc;
+            color: #5e2363;
+            padding: 6px 16px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: .8rem;
+        }
+
+        .internacao-card__body {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .internacao-card--central .internacao-card__body {
+            gap: 8px;
+        }
+
+        .internacao-card--central {
+            border-color: #c7aedc;
+            background: #f5f5f9;
+            padding: 14px 22px 10px;
+        }
+
+        .internacao-card--central .internacao-card__header {
+            margin-bottom: 2px;
+        }
+
+        #cadastro-central-wrapper .form-group {
+            margin-bottom: 4px;
+        }
+
+        .internacao-card--general {
+            border-color: #c7aedc;
+            background: #f5f5f9;
+        }
+
+        .internacao-card--fields,
+        .internacao-card--notes,
+        .detalhes-card,
+        .tabelas-adicionais-card {
+            border-color: #ebe1f5;
+            border-width: 1px;
+            border-style: solid;
+            background: #f5f5f9;
+            box-shadow: 0 12px 24px rgba(45, 18, 70, .08);
+        }
+
+        .internacao-card--fields .internacao-card__body {
+            gap: 8px;
+        }
+
+        .internacao-card--fields .internacao-card__body .row,
+        .internacao-card--fields .internacao-card__body .form-group.row {
+            margin-top: 0;
+        }
+
+        .internacao-card--fields .form-group {
+            margin-bottom: 6px;
+        }
+
+        .internacao-card--fields .form-group.row {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        .internacao-card--fields .form-check {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin: 0 6px;
+        }
+
+        .internacao-card--fields .form-check label {
+            margin-left: 0 !important;
+            font-weight: 600;
+            color: #2b1f3b;
+        }
+
+        .detalhes-card {
+            border-radius: 22px;
+            background: #f5f5f9;
+            border: 1px solid #ebe1f5;
+            box-shadow: 0 12px 24px rgba(45, 18, 70, .08);
+            padding: 12px 20px 6px;
+            margin: 0;
+        }
+
+        .detalhes-card__header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .detalhes-card__controls {
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-start;
+            gap: 18px;
+            margin-bottom: 4px;
+            flex-wrap: wrap;
+        }
+
+        .detalhes-card__controls .form-group {
+            margin-bottom: 0;
+        }
+
+        .detalhes-card__controls #text-detalhado {
+            margin: 8px 0 0;
+            text-align: left;
+            max-width: 260px;
+        }
+
+        #relatorio-detalhado {
+            min-width: 180px;
+            background-color: #fff;
+            border: 1px solid #4caf50;
+            color: #2d114c;
+            font-weight: 700;
+            box-shadow: none;
+        }
+
+        #relatorio-detalhado:focus {
+            box-shadow: 0 0 0 .2rem rgba(76, 175, 80, .25);
+            border-color: #2e7d32;
+        }
+
+        .detalhes-card__title {
+            display: flex;
+            align-items: center;
+            margin: 0;
+            color: #3a184f;
+            font-weight: 600;
+        }
+
+        .detalhes-card__marker {
+            width: 6px;
+            height: 26px;
+            border-radius: 10px;
+            margin-right: 12px;
+            background: linear-gradient(180deg, #a45cc4, #d28ff1);
+        }
+
+        .tabelas-adicionais-card {
+            border-radius: 22px;
+            background: #f5f5f9;
+            border: 1px solid #ebe1f5;
+            box-shadow: 0 12px 24px rgba(45, 18, 70, .08);
+            padding: 12px 20px 10px;
+            margin-top: 24px;
+            clear: both;
+        }
+
+        .tabelas-adicionais-card .form-group {
+            flex: 0 0 150px;
+            max-width: 150px;
+        }
+
+        @media (max-width: 992px) {
+            .tabelas-adicionais-card .form-group {
+                flex: 0 0 45%;
+                max-width: 100%;
+            }
+        }
+
+        .tabelas-adicionais-card__header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .tabelas-adicionais-card__title {
+            display: flex;
+            align-items: center;
+            margin: 0;
+            color: #3a184f;
+            font-weight: 600;
+        }
+
+        .tabelas-adicionais-card__marker {
+            width: 6px;
+            height: 26px;
+            border-radius: 10px;
+            margin-right: 12px;
+            background: linear-gradient(180deg, #7b3f99, #b279d0);
+        }
+
+        .tabelas-selects {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
+        .tabelas-selects .tabelas-col {
+            flex: 1 1 240px;
+            max-width: 270px;
+        }
+
+        /* Placeholder mais claro em todos inputs/textarea */
+        input::placeholder,
+        textarea::placeholder {
+            color: #c4c4c4 !important;
+            opacity: 1;
+        }
+
+        /* Placeholder do search do bootstrap-select */
+        .bootstrap-select .dropdown-menu .bs-searchbox input::placeholder {
+            color: #c4c4c4 !important;
+            opacity: 1;
+        }
+
+        /* Texto “placeholder” dos selects (bootstrap-select e nativo) */
+        .bootstrap-select>.dropdown-toggle.bs-placeholder,
+        .bootstrap-select>.dropdown-toggle.bs-placeholder .filter-option,
+        .bootstrap-select>.dropdown-toggle.bs-placeholder .filter-option-inner-inner {
+            color: #c4c4c4 !important;
+            font-weight: 500;
+        }
+
+        .bootstrap-select>.dropdown-toggle.select-placeholder,
+        .bootstrap-select>.dropdown-toggle.select-placeholder .filter-option,
+        .bootstrap-select>.dropdown-toggle.select-placeholder .filter-option-inner-inner {
+            color: #c4c4c4 !important;
+            font-weight: 500;
+        }
+
+        select:required:invalid {
+            color: #c4c4c4 !important;
+        }
+
+        option[value=""] {
+            color: #c4c4c4;
+        }
+
+        @media (max-width: 768px) {
+            .tabelas-selects .tabelas-col {
+                flex: 0 0 48%;
+                max-width: 48%;
+            }
+        }

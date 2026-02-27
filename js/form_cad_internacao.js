@@ -302,13 +302,27 @@ document.addEventListener('DOMContentLoaded', function() {
 // selectpicker só se o plugin existir (evita quebrar tudo)
 $(function() {
     if ($.fn.selectpicker) {
-        $('.selectpicker').each(function() {
+        var $allPickers = $('.selectpicker');
+        var $primaryPickers = $('#hospital_selected.selectpicker, #fk_paciente_int.selectpicker');
+
+        $primaryPickers.each(function() {
             var $el = $(this);
             if (!$el.data('selectpicker')) {
                 $el.selectpicker();
             }
         });
-        $('.selectpicker').selectpicker('refresh');
+        $primaryPickers.selectpicker('refresh');
+
+        setTimeout(function() {
+            $allPickers.not($primaryPickers).each(function() {
+                var $el = $(this);
+                if (!$el.data('selectpicker')) {
+                    $el.selectpicker();
+                }
+            });
+            $allPickers.not($primaryPickers).selectpicker('refresh');
+        }, 0);
+
         $('.selectpicker').on('loaded.bs.select', function() {
             $('.bs-searchbox input').attr('placeholder', 'Digite para pesquisar...');
         });
