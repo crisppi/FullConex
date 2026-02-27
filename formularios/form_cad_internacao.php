@@ -316,6 +316,46 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
         margin-top: -2px;
     }
 
+    .hospital-name-slot {
+        flex: 1 1 auto;
+        min-width: 260px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding-left: 18px;
+    }
+
+    .hospital-name-chip {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        min-width: 240px;
+        max-width: 90%;
+        height: 60px;
+        padding: 0 40px;
+        border: 2px solid #640764;
+        border-radius: 8px;
+        font-size: 1.2em;
+        font-weight: 600;
+        color: #000;
+        background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        white-space: nowrap;
+    }
+
+    @media (max-width: 991.98px) {
+        .hospital-name-slot {
+            width: 100%;
+            justify-content: flex-start;
+            padding-left: 0;
+            margin-top: 10px;
+        }
+
+        .hospital-name-chip {
+            max-width: 100%;
+        }
+    }
+
     #myForm {
         transition: filter .2s ease, opacity .2s ease;
     }
@@ -1079,26 +1119,8 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                                 </select>
                             </div>
                         </div>
-                        <div class="d-flex justify-content-center align-items-center" style="flex:1">
-                            <div id="hospitalNomeTexto" style="
-  display: none;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  max-width: 800px;
-  margin-left: 450px;
-  height: 60px;
-  padding: 0 40px;
-  border: 2px solid #640764ff;
-  border-radius: 8px;
-  font-size: 1.2em;
-  font-weight: 600;
-  color: #000;
-	background-image: linear-gradient(135deg, #ffffff 0%, #f5f0f8 40%, #e5cdee 90%);
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  white-space: nowrap;
-">
-                            </div>
+                        <div class="hospital-name-slot">
+                            <div id="hospitalNomeTexto" class="hospital-name-chip"></div>
                         </div>
                     </div>
                     <div class="form-group row internacao-head-row">
@@ -1193,7 +1215,6 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                                 value="" name="data_intern_int_dt">
                             <input type="hidden" id="data_intern_int" name="data_intern_int" value="">
                             <input type="hidden" id="hora_intern_int" name="hora_intern_int" value="">
-                            <p id="erro-data-internacao" style="color:red;font-size:.7em;display:none;margin-top:5px;"></p>
                         </div>
 
                         <div class="form-group col-sm-1">
@@ -1236,6 +1257,12 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                                     <option value="<?= htmlspecialchars($alta); ?>"><?= htmlspecialchars($alta); ?></option>
                                 <?php endforeach; ?>
                             </select>
+                        </div>
+
+                        <div class="form-group col-12">
+                            <div id="erro-data-internacao"
+                                style="display:none;margin-top:6px;padding:8px 10px;border-radius:6px;font-size:.8em;line-height:1.25;"
+                                role="alert"></div>
                         </div>
 
                         <div class="form-group col-12 d-none" id="retroativa-container">
@@ -2138,38 +2165,60 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
         if (divUti) divUti.style.display = (this.value === "UTI") ? "block" : "none";
     });
 
-    // Validação de datas
-    document.getElementById("data_intern_int").addEventListener("blur", function() {
-        const input = this;
-        const dataInternacao = new Date(input.value);
-        const dataHoje = new Date();
+    // Validação de data/hora da internação (campo visível)
+    (function() {
+        const dataInternDt = document.getElementById("data_intern_int_dt");
+        const dataIntern = document.getElementById("data_intern_int");
+        const horaIntern = document.getElementById("hora_intern_int");
         const erroDiv = document.getElementById("erro-data-internacao");
+        let alertTimer = null;
 
-        erroDiv.style.display = "none";
-        erroDiv.textContent = "";
-        if (!input.value) return;
-        const dataFormatadaHoje = dataHoje.toISOString().split("T")[0];
-
-        if (input.value > dataFormatadaHoje) {
-            erroDiv.textContent = "A data da internação não pode ser maior que a data atual.";
-            erroDiv.style.display = "block";
-            input.value = "";
-            return setTimeout(() => {
-                erroDiv.style.display = "none";
-                erroDiv.textContent = "";
-            }, 5000);
+        function hideInternacaoAlert() {
+            if (!erroDiv) return;
+            erroDiv.style.display = "none";
+            erroDiv.textContent = "";
         }
 
-        const diffDias = (dataHoje - dataInternacao) / (1000 * 60 * 60 * 24);
-        if (diffDias > 30) {
-            erroDiv.textContent = "Deseja prorrogar acima de 30 dias?";
+        function showInternacaoAlert(message, type) {
+            if (!erroDiv) return;
+            const isWarning = type === "warning";
             erroDiv.style.display = "block";
-            setTimeout(() => {
-                erroDiv.style.display = "none";
-                erroDiv.textContent = "";
-            }, 7000);
+            erroDiv.textContent = message;
+            erroDiv.style.color = isWarning ? "#8a5a00" : "#8b1e25";
+            erroDiv.style.backgroundColor = isWarning ? "#fff3cd" : "#f8d7da";
+            erroDiv.style.border = isWarning ? "1px solid #ffecb5" : "1px solid #f5c2c7";
+            if (alertTimer) clearTimeout(alertTimer);
+            alertTimer = setTimeout(hideInternacaoAlert, 5000);
         }
-    });
+
+        function validarDataInternacao() {
+            if (!dataInternDt) return;
+            hideInternacaoAlert();
+            if (!dataInternDt.value) return;
+
+            const dataSelecionada = new Date(dataInternDt.value);
+            if (Number.isNaN(dataSelecionada.getTime())) return;
+
+            const agora = new Date();
+            if (dataSelecionada > agora) {
+                showInternacaoAlert("A data da internação não pode ser maior que a data atual.", "error");
+                dataInternDt.value = "";
+                if (dataIntern) dataIntern.value = "";
+                if (horaIntern) horaIntern.value = "";
+                return;
+            }
+
+            const diffDias = (agora - dataSelecionada) / (1000 * 60 * 60 * 24);
+            if (diffDias > 30) {
+                showInternacaoAlert("Internação com mais de 30 dias. Verifique a necessidade de prorrogação.", "warning");
+            }
+        }
+
+        if (dataInternDt) {
+            dataInternDt.addEventListener("change", validarDataInternacao);
+            dataInternDt.addEventListener("blur", validarDataInternacao);
+        }
+    })();
 
     document.getElementById("data_visita_int").addEventListener("change", function() {
         const dataInternacao = new Date(document.getElementById("data_intern_int").value);
@@ -3265,6 +3314,58 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
 
         window.clearInternacaoDraft = clearDraft;
         if (!restored) setStatus('Rascunho automático: ativo');
+    })();
+</script>
+<script>
+    (function setupInternacaoDateAlertsSafe() {
+        const dtField = document.getElementById('data_intern_int_dt');
+        const dataHidden = document.getElementById('data_intern_int');
+        const horaHidden = document.getElementById('hora_intern_int');
+        const alertBox = document.getElementById('erro-data-internacao');
+        if (!dtField || !alertBox) return;
+
+        let timerId = null;
+
+        function hideAlert() {
+            alertBox.style.display = 'none';
+            alertBox.textContent = '';
+        }
+
+        function showAlert(message, warning) {
+            alertBox.textContent = message;
+            alertBox.style.display = 'block';
+            alertBox.style.color = warning ? '#8a5a00' : '#8b1e25';
+            alertBox.style.backgroundColor = warning ? '#fff3cd' : '#f8d7da';
+            alertBox.style.border = warning ? '1px solid #ffecb5' : '1px solid #f5c2c7';
+            if (timerId) clearTimeout(timerId);
+            timerId = setTimeout(hideAlert, 5000);
+        }
+
+        function validateInternacaoDate() {
+            hideAlert();
+            const raw = dtField.value;
+            if (!raw) return;
+
+            const selected = new Date(raw);
+            if (Number.isNaN(selected.getTime())) return;
+
+            const now = new Date();
+            if (selected > now) {
+                showAlert('A data da internação não pode ser maior que a data atual.', false);
+                dtField.value = '';
+                if (dataHidden) dataHidden.value = '';
+                if (horaHidden) horaHidden.value = '';
+                return;
+            }
+
+            const diffDays = (now - selected) / 86400000;
+            if (diffDays > 30) {
+                showAlert('Internação com mais de 30 dias. Verifique a necessidade de prorrogação.', true);
+            }
+        }
+
+        dtField.addEventListener('change', validateInternacaoDate);
+        dtField.addEventListener('blur', validateInternacaoDate);
     })();
 </script>
 <script src="<?= $BASE_URL ?>js/form_cad_internacao.js"></script>

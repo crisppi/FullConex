@@ -44,6 +44,19 @@
     padding: 10px;
     font-size: 1rem;
 }
+
+.prorrogacao-container .prorrog-alert {
+    display: none;
+    width: 100%;
+    margin: 4px 0 0;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #f5c2c7;
+    background: #f8d7da;
+    color: #8b1e25;
+    font-size: 0.85em;
+    line-height: 1.2;
+}
 .adicional-card {
     background:#fff;
     border-radius:22px;
@@ -166,7 +179,7 @@
                 <button type="button" class="btn btn-add" onclick="addField()">+</button>
             </div>
 
-            <p class="error-message" style="color:red; font-size:0.8em; display:none;"></p>
+            <div class="error-message prorrog-alert" role="alert"></div>
         </div>
     </div>
 
@@ -318,7 +331,7 @@ function createProrrogationField() {
                 <button type="button" class="btn btn-add" onclick="addField()">+</button>
             </div>
 
-            <p class="error-message" style="color:red; font-size:0.8em; display:none;"></p>
+            <div class="error-message prorrog-alert" role="alert"></div>
         </div>
     `;
 }
@@ -401,9 +414,14 @@ function calculateDiarias(container) {
     }
 }
 
-// Validação automática ao alterar datas/seleções (delegado)
-document.getElementById("fieldsContainer").addEventListener("input", (event) => {
-    const fieldContainer = event.target.closest(".field-container");
+// Validação automática apenas após sair do campo de data (blur/focusout)
+document.getElementById("fieldsContainer").addEventListener("focusout", (event) => {
+    const target = event.target;
+    if (!target) return;
+    const isDateField = target.matches('[name="prorrog1_ini_pror"], [name="prorrog1_fim_pror"]');
+    if (!isDateField) return;
+
+    const fieldContainer = target.closest(".field-container");
     if (fieldContainer) calculateDiarias(fieldContainer);
 });
 

@@ -503,38 +503,60 @@ document.getElementById("acomodacao_int").addEventListener("change", function() 
     if (divUti) divUti.style.display = (this.value === "UTI") ? "block" : "none";
 });
 
-// Validação de datas
-document.getElementById("data_intern_int").addEventListener("blur", function() {
-    const input = this;
-    const dataInternacao = new Date(input.value);
-    const dataHoje = new Date();
+// Validação de data/hora da internação (campo visível)
+(function() {
+    const dataInternDt = document.getElementById("data_intern_int_dt");
+    const dataIntern = document.getElementById("data_intern_int");
+    const horaIntern = document.getElementById("hora_intern_int");
     const erroDiv = document.getElementById("erro-data-internacao");
+    let alertTimer = null;
 
-    erroDiv.style.display = "none";
-    erroDiv.textContent = "";
-    if (!input.value) return;
-    const dataFormatadaHoje = dataHoje.toISOString().split("T")[0];
-
-    if (input.value > dataFormatadaHoje) {
-        erroDiv.textContent = "A data da internação não pode ser maior que a data atual.";
-        erroDiv.style.display = "block";
-        input.value = "";
-        return setTimeout(() => {
-            erroDiv.style.display = "none";
-            erroDiv.textContent = "";
-        }, 5000);
+    function hideInternacaoAlert() {
+        if (!erroDiv) return;
+        erroDiv.style.display = "none";
+        erroDiv.textContent = "";
     }
 
-    const diffDias = (dataHoje - dataInternacao) / (1000 * 60 * 60 * 24);
-    if (diffDias > 30) {
-        erroDiv.textContent = "Deseja prorrogar acima de 30 dias?";
+    function showInternacaoAlert(message, type) {
+        if (!erroDiv) return;
+        const isWarning = type === "warning";
         erroDiv.style.display = "block";
-        setTimeout(() => {
-            erroDiv.style.display = "none";
-            erroDiv.textContent = "";
-        }, 7000);
+        erroDiv.textContent = message;
+        erroDiv.style.color = isWarning ? "#8a5a00" : "#8b1e25";
+        erroDiv.style.backgroundColor = isWarning ? "#fff3cd" : "#f8d7da";
+        erroDiv.style.border = isWarning ? "1px solid #ffecb5" : "1px solid #f5c2c7";
+        if (alertTimer) clearTimeout(alertTimer);
+        alertTimer = setTimeout(hideInternacaoAlert, 5000);
     }
-});
+
+    function validarDataInternacao() {
+        if (!dataInternDt) return;
+        hideInternacaoAlert();
+        if (!dataInternDt.value) return;
+
+        const dataSelecionada = new Date(dataInternDt.value);
+        if (Number.isNaN(dataSelecionada.getTime())) return;
+
+        const agora = new Date();
+        if (dataSelecionada > agora) {
+            showInternacaoAlert("A data da internação não pode ser maior que a data atual.", "error");
+            dataInternDt.value = "";
+            if (dataIntern) dataIntern.value = "";
+            if (horaIntern) horaIntern.value = "";
+            return;
+        }
+
+        const diffDias = (agora - dataSelecionada) / (1000 * 60 * 60 * 24);
+        if (diffDias > 30) {
+            showInternacaoAlert("Internação com mais de 30 dias. Verifique a necessidade de prorrogação.", "warning");
+        }
+    }
+
+    if (dataInternDt) {
+        dataInternDt.addEventListener("change", validarDataInternacao);
+        dataInternDt.addEventListener("blur", validarDataInternacao);
+    }
+})();
 
 document.getElementById("data_visita_int").addEventListener("change", function() {
     const dataInternacao = new Date(document.getElementById("data_intern_int").value);
