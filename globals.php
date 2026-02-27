@@ -97,6 +97,31 @@ require_once __DIR__ . '/db.php';   // aqui dentro você cria $conn (PDO)
 // ------------------ 6) Guard (autorização) -----------------
 require_once __DIR__ . '/authz.php';
 
+if (!function_exists('enforce_authenticated_session')) {
+    function enforce_authenticated_session(string $BASE_URL): void
+    {
+        $idUser = (int)($_SESSION['id_usuario'] ?? 0);
+        $ativo  = strtolower((string)($_SESSION['ativo'] ?? ''));
+        $isAuth = $idUser > 0 && $ativo === 's';
+        if ($isAuth) return;
+
+        $accept = strtolower($_SERVER['HTTP_ACCEPT'] ?? '');
+        $isAjax = (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower((string)$_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
+            || str_contains($accept, 'application/json')
+            || str_contains(strtolower($_SERVER['CONTENT_TYPE'] ?? ''), 'application/json');
+
+        if ($isAjax) {
+            http_response_code(401);
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['status' => 'error', 'message' => 'Não autenticado.'], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+
+        header('Location: ' . rtrim($BASE_URL, '/') . '/index.php', true, 303);
+        exit;
+    }
+}
+
 // Métodos que alteram estado
 $__method     = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 $__scriptBase = strtolower(basename($_SERVER['SCRIPT_NAME'] ?? ''));
@@ -110,8 +135,15 @@ $__guardSkip = [
     'nova_senha.php',    // troca de senha inicial
     'process_recuperar_senha.php',
     'process_redefinir_senha.php',
+    'process_reset_senha.php',
     // acrescente aqui quaisquer webhooks ou callbacks públicos, se existirem
 ];
+
+// Qualquer endpoint process_* (exceto os públicos acima) exige sessão válida,
+// inclusive em GET, para bloquear execução por link direto sem autenticação.
+if (str_starts_with($__scriptBase, 'process_') && !in_array($__scriptBase, $__guardSkip, true)) {
+    enforce_authenticated_session($BASE_URL);
+}
 
 // Só aplica o Gate em métodos mutantes e quando o script NÃO está na whitelist
 if (in_array($__method, ['POST', 'PUT', 'PATCH', 'DELETE'], true) && !in_array($__scriptBase, $__guardSkip, true)) {
