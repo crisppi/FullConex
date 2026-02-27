@@ -941,25 +941,6 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                                     </option>
                                 <?php endforeach; ?>
                             </select>
-                            <script>
-                                (function initPacienteSelectpicker() {
-                                    var tries = 0;
-
-                                    function attempt() {
-                                        if (window.jQuery && jQuery.fn && typeof jQuery.fn.selectpicker === 'function') {
-                                            var $sel = jQuery('#fk_paciente_int');
-                                            if ($sel.length && !$sel.data('selectpicker')) {
-                                                $sel.selectpicker();
-                                                $sel.selectpicker('refresh');
-                                            }
-                                            return;
-                                        }
-                                        if (++tries < 60) setTimeout(attempt, 50);
-                                    }
-
-                                    attempt();
-                                })();
-                            </script>
                             <div style="display:flex;justify-content:space-between;align-items:center;">
                                 <a style="font-size:.8em;margin-left:7px;color:blue;" href="#"
                                     onclick="openModalPac('<?= $BASE_URL ?>cad_paciente.php', 'Cadastrar paciente'); return false;">
@@ -1523,6 +1504,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
     </div>
 </div>
 
+<?php if (false): ?>
 <script>
     function aumentarText(id) {
         const el = document.getElementById(id);
@@ -1597,6 +1579,70 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                 updateSelectPlaceholder($(this));
             });
         }
+    });
+
+    // Matrícula -> seleciona paciente (fluxo inline para evitar dependência do JS externo)
+    document.addEventListener('DOMContentLoaded', function() {
+        const pacienteSelect = document.getElementById('fk_paciente_int');
+        const matriculaField = document.getElementById('matricula_paciente_display');
+        if (!pacienteSelect || !matriculaField) return;
+
+        function normalizeMatricula(value) {
+            return (value || '').toLowerCase().replace(/[^0-9a-z]/g, '');
+        }
+
+        function syncMatriculaFromPaciente() {
+            const opt = pacienteSelect.options[pacienteSelect.selectedIndex];
+            const matricula = opt ? (opt.getAttribute('data-matricula') || '') : '';
+            matriculaField.value = pacienteSelect.value ? matricula : '';
+        }
+
+        function selectPacienteByMatricula(rawValue, allowPartial) {
+            const needle = normalizeMatricula(rawValue);
+            if (!needle) return false;
+
+            const options = Array.from(pacienteSelect.options || []);
+            let match = options.find(function(opt) {
+                return normalizeMatricula(opt.getAttribute('data-matricula') || '') === needle;
+            });
+
+            if (!match && allowPartial && needle.length >= 3) {
+                match = options.find(function(opt) {
+                    return normalizeMatricula(opt.getAttribute('data-matricula') || '').includes(needle);
+                });
+            }
+
+            if (!match || !match.value) return false;
+
+            pacienteSelect.value = match.value;
+            if (window.jQuery && $.fn.selectpicker && $(pacienteSelect).hasClass('selectpicker')) {
+                $(pacienteSelect).selectpicker('val', String(match.value));
+                $(pacienteSelect).selectpicker('refresh');
+            }
+            pacienteSelect.dispatchEvent(new Event('change', {
+                bubbles: true
+            }));
+            return true;
+        }
+
+        pacienteSelect.addEventListener('change', syncMatriculaFromPaciente);
+        if (window.jQuery && $.fn.selectpicker && $(pacienteSelect).hasClass('selectpicker')) {
+            $(pacienteSelect).on('changed.bs.select', syncMatriculaFromPaciente);
+        }
+
+        matriculaField.addEventListener('keydown', function(evt) {
+            if (evt.key !== 'Enter') return;
+            evt.preventDefault();
+            selectPacienteByMatricula(matriculaField.value, true);
+        });
+        matriculaField.addEventListener('blur', function() {
+            selectPacienteByMatricula(matriculaField.value, true);
+        });
+        matriculaField.addEventListener('input', function() {
+            selectPacienteByMatricula(matriculaField.value, false);
+        });
+
+        syncMatriculaFromPaciente();
     });
 
     const hospitalInsightsHelper = (function() {
@@ -3161,6 +3207,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
         dtField.addEventListener('blur', validateInternacaoDate);
     })();
 </script>
+<?php endif; ?>
 <script src="<?= $BASE_URL ?>js/form_cad_internacao.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous">

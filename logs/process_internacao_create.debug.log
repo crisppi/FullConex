@@ -52,3 +52,8 @@
 [2026-02-27 01:59:42] VISITA create ok id_int=645 id_visita=684
 [2026-02-27 01:59:42] GESTAO skip id_int=645 select= evento=n tipo=
 [2026-02-27 01:59:42] START type=create select_gestao= evento_adverso_ges=n tipo_evento=
+[2026-02-27 02:40:07] START type=create select_gestao= evento_adverso_ges=n tipo_evento=
+[2026-02-27 02:40:07] CREATE internacao ok id=646
+[2026-02-27 02:40:07] VISITA create ok id_int=646 id_visita=685
+[2026-02-27 02:40:07] GESTAO skip id_int=646 select= evento=n tipo=
+[2026-02-27 02:40:07] END ok id=646
