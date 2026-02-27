@@ -72,6 +72,21 @@
             font-size: 1.15rem;
         }
 
+        .alta-obrigatoria-box {
+            margin-top: 6px;
+            padding: 10px 12px;
+            border: 2px solid #9f1f59;
+            border-radius: 10px;
+            background: #fff2f7;
+        }
+
+        .alta-obrigatoria-box__title {
+            margin-bottom: 8px;
+            font-size: .86rem;
+            font-weight: 700;
+            color: #7a173f;
+        }
+
         .hospital-select-wrapper {
             display: flex;
             align-items: flex-start;

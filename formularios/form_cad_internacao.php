@@ -273,25 +273,34 @@
                                 </select>
                             </div>
 
-                            <div class="form-group col-sm-2" id="div-data-alta" style="display:none">
-                                <label class="control-label" for="data_alta_alt"> Data/Hora Alta</label>
-                                <input type="datetime-local" class="form-control input-lg-fullcare" id="data_alta_alt"
-                                    name="data_alta_alt" step="60">
-                            </div>
+                            <div class="form-group col-12 d-none" id="alta-obrigatoria-container">
+                                <div class="alta-obrigatoria-box">
+                                    <div class="alta-obrigatoria-box__title">
+                                        <span style="color:red;">*</span> Alta obrigatória para internação retroativa (paciente internado em outro hospital)
+                                    </div>
+                                    <div class="row">
+                                        <div class="form-group col-sm-3 mb-0" id="div-data-alta" style="display:none">
+                                            <label class="control-label" for="data_alta_alt"> Data/Hora Alta</label>
+                                            <input type="datetime-local" class="form-control input-lg-fullcare" id="data_alta_alt"
+                                                name="data_alta_alt" step="60">
+                                        </div>
 
-                            <div class="form-group col-sm-2" id="div-motivo-alta" style="display:none">
-                                <label class="control-label" for="tipo_alta_alt"> Motivo Alta</label>
-                                <select class="form-control input-lg-fullcare" id="tipo_alta_alt" name="tipo_alta_alt">
-                                    <option value="">Selecione o motivo da alta</option>
-                                    <?php
-                                    if (!is_array($dados_alta)) {
-                                        $dados_alta = [];
-                                    };
-                                    sort($dados_alta, SORT_ASC);
-                                    foreach ($dados_alta as $alta): ?>
-                                        <option value="<?= htmlspecialchars($alta); ?>"><?= htmlspecialchars($alta); ?></option>
-                                    <?php endforeach; ?>
-                                </select>
+                                        <div class="form-group col-sm-3 mb-0" id="div-motivo-alta" style="display:none">
+                                            <label class="control-label" for="tipo_alta_alt"> Motivo Alta</label>
+                                            <select class="form-control input-lg-fullcare" id="tipo_alta_alt" name="tipo_alta_alt">
+                                                <option value="">Selecione o motivo da alta</option>
+                                                <?php
+                                                if (!is_array($dados_alta)) {
+                                                    $dados_alta = [];
+                                                };
+                                                sort($dados_alta, SORT_ASC);
+                                                foreach ($dados_alta as $alta): ?>
+                                                    <option value="<?= htmlspecialchars($alta); ?>"><?= htmlspecialchars($alta); ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="form-group col-12">

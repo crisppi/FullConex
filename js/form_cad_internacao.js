@@ -753,49 +753,51 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Mostrar/ocultar campos de alta conforme "Internado"
 document.addEventListener("DOMContentLoaded", function() {
-    const selectInternado = document.getElementById("internado_int");
+    const altaContainer = document.getElementById("alta-obrigatoria-container");
     const divDataAlta = document.getElementById("div-data-alta");
     const divMotivoAlta = document.getElementById("div-motivo-alta");
     const dataAltaInput = document.getElementById("data_alta_alt");
     const motivoAltaInput = document.getElementById("tipo_alta_alt");
     const retroativaInput = document.getElementById("retroativa_confirmada");
 
-    if (!selectInternado || !divDataAlta || !divMotivoAlta) return;
+    if (!altaContainer || !divDataAlta || !divMotivoAlta) return;
 
-    function toggleDataAlta(clearOnInternado) {
-        if (selectInternado.value === "s") {
+    function toggleAltaObrigatoria(ativa, clearValues) {
+        if (!ativa) {
+            altaContainer.classList.add('d-none');
             divDataAlta.style.display = "none";
             divMotivoAlta.style.display = "none";
+            altaContainer.hidden = true;
             divDataAlta.hidden = true;
             divMotivoAlta.hidden = true;
+            if (dataAltaInput) dataAltaInput.required = false;
+            if (motivoAltaInput) motivoAltaInput.required = false;
             divDataAlta.classList.add('d-none');
             divMotivoAlta.classList.add('d-none');
-            if (clearOnInternado) {
+            if (clearValues) {
                 if (dataAltaInput) dataAltaInput.value = "";
                 if (motivoAltaInput) motivoAltaInput.value = "";
             }
         } else {
+            altaContainer.classList.remove('d-none');
             divDataAlta.style.display = "block";
             divMotivoAlta.style.display = "block";
+            altaContainer.hidden = false;
             divDataAlta.hidden = false;
             divMotivoAlta.hidden = false;
+            if (dataAltaInput) dataAltaInput.required = true;
+            if (motivoAltaInput) motivoAltaInput.required = true;
             divDataAlta.classList.remove('d-none');
             divMotivoAlta.classList.remove('d-none');
         }
     }
 
-    window.syncAltaFieldsByInternado = function(clearOnInternado) {
-        toggleDataAlta(Boolean(clearOnInternado));
+    window.setAltaObrigatoriaForRetroativa = function(ativa, opts) {
+        var clearValues = Boolean(opts && opts.clearValues);
+        toggleAltaObrigatoria(Boolean(ativa), clearValues);
     };
 
-    // Estado inicial padrão: Internado = Sim (exceto quando retroativa já confirmada)
-    if (retroativaInput?.value !== '1') {
-        selectInternado.value = 's';
-    }
-    toggleDataAlta(true);
-    selectInternado.addEventListener("change", function() {
-        toggleDataAlta(true);
-    });
+    toggleAltaObrigatoria(retroativaInput?.value === '1', false);
 });
 
 
@@ -1190,8 +1192,8 @@ $("#myForm").submit(function(event) {
                 document.getElementById("internado_int").querySelector("option[value='s']")
                     .selected = true;
                 document.getElementById("internado_int").dispatchEvent(new Event('change'));
-                if (typeof window.syncAltaFieldsByInternado === 'function') {
-                    window.syncAltaFieldsByInternado(true);
+                if (typeof window.setAltaObrigatoriaForRetroativa === 'function') {
+                    window.setAltaObrigatoriaForRetroativa(false, { clearValues: true });
                 }
 
                 // 6. Hide containers
@@ -1459,6 +1461,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (retroContainer) retroContainer.classList.add('d-none');
         if (retroBanner) retroBanner.classList.add('d-none');
         if (retroInput) retroInput.value = '0';
+        if (typeof window.setAltaObrigatoriaForRetroativa === 'function') {
+            window.setAltaObrigatoriaForRetroativa(false, { clearValues: true });
+        }
     }
 
     function showRetroBanner(info) {
@@ -1537,6 +1542,9 @@ document.addEventListener('DOMContentLoaded', function() {
         confirmBtn.addEventListener('click', function() {
             if (retroInput) retroInput.value = '1';
             if (activeInfo) showRetroBanner(activeInfo);
+            if (typeof window.setAltaObrigatoriaForRetroativa === 'function') {
+                window.setAltaObrigatoriaForRetroativa(true, { clearValues: false });
+            }
             forcarAltaCampos();
             modalInstance && modalInstance.hide();
         });
