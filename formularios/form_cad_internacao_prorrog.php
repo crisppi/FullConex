@@ -272,17 +272,40 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 // Preenche a data inicial da primeira linha com a data da internação
+function getInternacaoDateForProrrog() {
+    const hidden = document.getElementById("data_intern_int");
+    const visibleDt = document.getElementById("data_intern_int_dt");
+
+    if (hidden && hidden.value) return hidden.value;
+    if (visibleDt && visibleDt.value) {
+        const parts = String(visibleDt.value).split("T");
+        return parts[0] || "";
+    }
+    return "";
+}
+
 function setFirstProrrogationDate() {
-    const dataInternacaoEl = document.getElementById("data_intern_int");
-    if (!dataInternacaoEl) return;
-    const dataInternacao = dataInternacaoEl.value;
+    const dataInternacao = getInternacaoDateForProrrog();
     const firstContainer = document.querySelector(".field-container");
-    if (firstContainer && dataInternacao) {
-        firstContainer.querySelector('[name="prorrog1_ini_pror"]').value = dataInternacao;
+    if (!firstContainer || !dataInternacao) return;
+
+    const iniInput = firstContainer.querySelector('[name="prorrog1_ini_pror"]');
+    if (iniInput) {
+        iniInput.value = dataInternacao;
     }
 }
+
 const dataInternInput = document.getElementById("data_intern_int");
-if (dataInternInput) dataInternInput.addEventListener("change", setFirstProrrogationDate);
+const dataInternVisible = document.getElementById("data_intern_int_dt");
+if (dataInternInput) {
+    dataInternInput.addEventListener("change", setFirstProrrogationDate);
+    dataInternInput.addEventListener("input", setFirstProrrogationDate);
+}
+if (dataInternVisible) {
+    dataInternVisible.addEventListener("change", setFirstProrrogationDate);
+    dataInternVisible.addEventListener("input", setFirstProrrogationDate);
+    dataInternVisible.addEventListener("blur", setFirstProrrogationDate);
+}
 document.addEventListener("DOMContentLoaded", setFirstProrrogationDate);
 
 // Template de novas linhas (com "-" e "+")
@@ -363,8 +386,7 @@ function removeField(button) {
 // Calcula diárias e valida datas
 function calculateDiarias(container) {
     const dataAtual = new Date().toISOString().split("T")[0];
-    const dataInternacaoEl = document.getElementById("data_intern_int");
-    const dataInternacao = dataInternacaoEl ? dataInternacaoEl.value : null;
+    const dataInternacao = getInternacaoDateForProrrog();
     const maxDate = window.PRORROG_MAX_DATE || dataAtual;
 
     const dataInicial = container.querySelector('[name="prorrog1_ini_pror"]').value;
@@ -373,18 +395,28 @@ function calculateDiarias(container) {
     const errorMessage = container.querySelector(".error-message");
 
     errorMessage.textContent = ""; // limpa
+    errorMessage.style.display = "none";
+
+    if (dataInicial) {
+        const inicio = new Date(dataInicial);
+        const internacao = dataInternacao ? new Date(dataInternacao) : null;
+        if (internacao && inicio < internacao) {
+            errorMessage.textContent = "A data inicial não pode ser menor que a data de internação.";
+            errorMessage.style.display = "block";
+            const dataInicialInput = container.querySelector('[name="prorrog1_ini_pror"]');
+            if (dataInicialInput) {
+                dataInicialInput.value = "";
+                dataInicialInput.focus();
+            }
+            if (diariasField) diariasField.value = "";
+            generateProrJSON();
+            return;
+        }
+    }
 
     if (dataInicial && dataFinal) {
         const inicio = new Date(dataInicial);
         const fim = new Date(dataFinal);
-        const internacao = dataInternacao ? new Date(dataInternacao) : null;
-
-        if (internacao && inicio < internacao) {
-            errorMessage.textContent = "A data inicial não pode ser menor que a data de internação.";
-            errorMessage.style.display = "block";
-            diariasField.value = "";
-            return;
-        }
         if (fim < inicio) {
             errorMessage.textContent = "A data final não pode ser menor que a data inicial.";
             errorMessage.style.display = "block";
@@ -409,8 +441,9 @@ function calculateDiarias(container) {
         const diffTime = Math.abs(fim - inicio);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         diariasField.value = diffDays;
-        errorMessage.style.display = "none";
         generateProrJSON();
+    } else if (diariasField) {
+        diariasField.value = "";
     }
 }
 

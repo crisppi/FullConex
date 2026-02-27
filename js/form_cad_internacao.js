@@ -53,12 +53,57 @@ function triggerInternacaoAutoSave() {
     }, 150);
 }
 
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function() {
     var form = document.getElementById('myForm');
     var timerField = document.getElementById('timer_int');
     var pacienteSelect = document.getElementById('fk_paciente_int');
+    var matriculaField = document.getElementById('matricula_paciente_display');
+    var dataInternDt = document.getElementById('data_intern_int_dt');
+    var dataIntern = document.getElementById('data_intern_int');
+    var horaIntern = document.getElementById('hora_intern_int');
     var timerStart = null;
     var intervalId = null;
+    var lastMatriculaMatch = '';
+
+    function normalizeMatricula(value) {
+        return (value || '').toLowerCase().replace(/[^0-9a-z]/g, '');
+    }
+
+    function selectPacienteByMatricula(value, options = {}) {
+        if (!pacienteSelect) return;
+        var search = normalizeMatricula(value);
+        if (!search) return;
+        var listOptions = Array.from(pacienteSelect.options || []);
+        var match = listOptions.find(function(opt) {
+            return normalizeMatricula(opt.getAttribute('data-matricula') || '') === search;
+        });
+        if (!match && (options.allowPartial !== false) && search.length >= 3) {
+            match = listOptions.find(function(opt) {
+                return normalizeMatricula(opt.getAttribute('data-matricula') || '').includes(search);
+            });
+        }
+        if (match && match.value) {
+            pacienteSelect.value = match.value;
+            if (window.jQuery && window.jQuery.fn && window.jQuery(pacienteSelect).hasClass('selectpicker')) {
+                window.jQuery(pacienteSelect).selectpicker('refresh');
+            }
+            handlePacienteChange();
+            return true;
+        }
+        return false;
+    }
+
+    window.sortPacienteOptionsDesc = function() {
+        var select = document.getElementById('fk_paciente_int');
+        if (!select || select.options.length <= 1) return;
+        var options = Array.from(select.options).slice(1);
+        options.sort(function(a, b) {
+            return parseInt(b.value || '0', 10) - parseInt(a.value || '0', 10);
+        });
+        options.forEach(function(opt) {
+            select.appendChild(opt);
+        });
+    };
 
     function startTimer() {
         if (timerStart === null) {
@@ -72,20 +117,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function scheduleValueWatch() {
         if (!pacienteSelect || intervalId) return;
-        intervalId = setInterval(function () {
+        intervalId = setInterval(function() {
             if (pacienteSelect.value) {
                 startTimer();
-                if (typeof handlePacienteChange === 'function') {
-                    handlePacienteChange();
-                }
+                handlePacienteChange();
             }
         }, 700);
     }
 
     function handlePacienteChange() {
         if (!pacienteSelect) return;
-        const selectedText = pacienteSelect.options[pacienteSelect.selectedIndex]?.text?.trim() || '';
-        const id = pacienteSelect.value;
+        var selectedText = pacienteSelect.options[pacienteSelect.selectedIndex]?.text?.trim() || '';
+        var id = pacienteSelect.value;
+        if (matriculaField) {
+            var opt = pacienteSelect.options[pacienteSelect.selectedIndex];
+            var matricula = opt ? (opt.getAttribute('data-matricula') || '') : '';
+            matriculaField.value = id ? matricula : '';
+        }
         if (id) startTimer();
         if (patientInsightsHelper && typeof patientInsightsHelper.fetch === 'function') {
             patientInsightsHelper.fetch(id, selectedText);
@@ -93,6 +141,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (pacienteSelect) {
+        window.sortPacienteOptionsDesc();
         if (pacienteSelect.value) {
             startTimer();
             handlePacienteChange();
@@ -101,8 +150,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         pacienteSelect.addEventListener('change', handlePacienteChange);
 
-        if (window.jQuery && typeof jQuery.fn.on === 'function') {
-            jQuery(function ($) {
+        if (window.jQuery && window.jQuery.fn && typeof window.jQuery.fn.on === 'function') {
+            window.jQuery(function() {
                 $('#fk_paciente_int').on('changed.bs.select', function () {
                     handlePacienteChange();
                 });
@@ -112,18 +161,75 @@ document.addEventListener('DOMContentLoaded', function () {
         startTimer();
     }
 
-    ['pacienteSelecionado', 'paciente-selecionado'].forEach(function (evtName) {
+    function triggerMatriculaSearch(eventSource) {
+        if (!matriculaField) return;
+        var value = matriculaField.value;
+        if (eventSource === 'input') {
+            var normalized = normalizeMatricula(value);
+            if (!normalized) {
+                lastMatriculaMatch = '';
+                return;
+            }
+            if (normalized === lastMatriculaMatch) return;
+            if (selectPacienteByMatricula(value, {
+                    allowPartial: false
+                })) {
+                lastMatriculaMatch = normalized;
+            }
+            return;
+        }
+        lastMatriculaMatch = '';
+        selectPacienteByMatricula(value);
+    }
+
+    if (matriculaField) {
+        matriculaField.addEventListener('keydown', function(evt) {
+            if (evt.key === 'Enter') {
+                evt.preventDefault();
+                triggerMatriculaSearch('enter');
+            }
+        });
+        matriculaField.addEventListener('blur', function() {
+            triggerMatriculaSearch('blur');
+        });
+        matriculaField.addEventListener('input', function() {
+            triggerMatriculaSearch('input');
+        });
+    }
+
+    ['pacienteSelecionado', 'paciente-selecionado'].forEach(function(evtName) {
         document.addEventListener(evtName, startTimer);
     });
 
     if (form && timerField) {
-        form.addEventListener('submit', function () {
+        form.addEventListener('submit', function() {
             var elapsed = 0;
             if (timerStart !== null) {
                 elapsed = Math.max(0, Math.round((Date.now() - timerStart) / 1000));
             }
             timerField.value = elapsed;
         });
+    }
+
+    function syncInternacaoHidden() {
+        if (!dataInternDt || !dataIntern || !horaIntern) return;
+        if (!dataInternDt.value) {
+            dataIntern.value = '';
+            horaIntern.value = '';
+            return;
+        }
+        var parts = dataInternDt.value.split('T');
+        dataIntern.value = parts[0] || '';
+        horaIntern.value = parts[1] ? parts[1].slice(0, 5) : '';
+    }
+
+    if (dataInternDt) {
+        dataInternDt.addEventListener('change', syncInternacaoHidden);
+        dataInternDt.addEventListener('input', syncInternacaoHidden);
+        syncInternacaoHidden();
+    }
+    if (form) {
+        form.addEventListener('submit', syncInternacaoHidden);
     }
 });
 
