@@ -271,6 +271,15 @@ function initPacienteHomonimoCheck(root = document) {
     let pendingSubmit = false;
     let ultimoNomeConsultado = '';
     let ultimosMatches = [];
+    let confirmandoHomonimo = false;
+
+    function resetNomeAposCancelar() {
+        hiddenConfirm.value = '0';
+        ultimoNomeConsultado = '';
+        ultimosMatches = [];
+        nomeInput.value = '';
+        nomeInput.focus();
+    }
 
     function fmtDate(value) {
         if (!value) return '-';
@@ -300,10 +309,22 @@ function initPacienteHomonimoCheck(root = document) {
     if (confirmBtn && confirmBtn.dataset.homonimoBound !== '1') {
         confirmBtn.dataset.homonimoBound = '1';
         confirmBtn.addEventListener('click', function () {
+            confirmandoHomonimo = true;
             hiddenConfirm.value = '1';
             pendingSubmit = true;
             if (modal) modal.hide();
             form.requestSubmit();
+        });
+    }
+
+    if (modalEl && modalEl.dataset.homonimoCancelBound !== '1') {
+        modalEl.dataset.homonimoCancelBound = '1';
+        modalEl.addEventListener('hidden.bs.modal', function () {
+            if (confirmandoHomonimo) {
+                confirmandoHomonimo = false;
+                return;
+            }
+            resetNomeAposCancelar();
         });
     }
 
@@ -317,7 +338,12 @@ function initPacienteHomonimoCheck(root = document) {
             return '#'+ (r.id_paciente || '-') + ' - ' + (r.nome_pac || '-') + ' / Mat: ' + (r.matricula_pac || '-');
         }).join('\n');
         const msg = "Já existe paciente com nome igual/parecido.\n\n" + preview + "\n\nÉ outro paciente (homônimo)?";
-        return Promise.resolve(window.confirm(msg));
+        return Promise.resolve(window.confirm(msg)).then(function (ok) {
+            if (!ok) {
+                resetNomeAposCancelar();
+            }
+            return ok;
+        });
     }
 
     function buildBaseUrl() {

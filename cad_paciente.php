@@ -24,7 +24,7 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
 <link rel="stylesheet" href="css/form_cad_internacao.css">
 <style>
     #main-container.internacao-page {
-        margin: 8px 0 0 !important;
+        margin: 2px 0 0 !important;
         padding-top: 0 !important;
         width: auto !important;
         max-width: 100% !important;
@@ -194,6 +194,7 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
 
         <!-- Step 2: Address Information -->
         <div id="step-2" class="step">
+            <p class="internacao-card__eyebrow mb-3">Dados de endereço</p>
             <div class="row">
                 <div class="form-group col-md-3 mb-3">
                     <label for="cep_pac">CEP</label>
@@ -248,6 +249,7 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
 
         <!-- Step 3: Contact & Other Information -->
         <div id="step-3" class="step">
+            <p class="internacao-card__eyebrow mb-3">Dados de contato</p>
             <div class="row">
                 <div class="form-group col-md-6 mb-3">
                     <label for="email01_pac">Email Principal</label>
