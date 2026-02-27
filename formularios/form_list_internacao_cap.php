@@ -115,23 +115,54 @@ if (!$isDiretor && empty($id_hosp) && count($hospitals) === 1) {
 // =====================================================================
 // WHERE (filtro principal) – prefixos corretos
 // =====================================================================
-$condicoes = [
-    strlen((string) $id_hosp) ? 'ho.id_hospital = ' . (int) $id_hosp : NULL,
+$condicoes = [];
+$whereParams = [];
 
-    strlen($pesquisa_nome) ? 'ho.nome_hosp LIKE "%' . $pesquisa_nome . '%"' : NULL,
-    strlen($pesquisa_pac) ? 'pa.nome_pac  LIKE "%' . $pesquisa_pac . '%"' : NULL,
-    strlen($pesquisa_matricula) ? 'pa.matricula_pac LIKE "%' . $pesquisa_matricula . '%"' : NULL,
-    strlen($lote) ? 'ca.lote_cap = "' . $lote . '"' : NULL,
-    strlen($idcapeante) ? 'ca.id_capeante LIKE "%' . $idcapeante . '%"' : NULL,
-
-    strlen($senha_fin) ? 'ca.senha_finalizada = "' . $senha_fin . '"' : NULL,
-    ($conta_parada === 's' || $conta_parada === 'n') ? 'ca.conta_parada_cap = "' . $conta_parada . '"' : NULL,
-    strlen($senha_int) ? 'ac.senha_int LIKE "%' . $senha_int . '%"' : NULL,
-    strlen($data_intern_int) ? 'ac.data_intern_int BETWEEN "' . $data_intern_int . '" AND "' . $data_intern_int_max . '"' : NULL,
-
-    (!$isDiretor && strlen((string) $userId)) ? 'hos.fk_usuario_hosp = "' . $userId . '"' : NULL
-];
-$condicoes = array_filter($condicoes);
+if (strlen((string)$id_hosp)) {
+    $condicoes[] = 'ho.id_hospital = :id_hosp';
+    $whereParams[':id_hosp'] = (int)$id_hosp;
+}
+if (strlen($pesquisa_nome)) {
+    $condicoes[] = 'ho.nome_hosp LIKE :pesquisa_nome';
+    $whereParams[':pesquisa_nome'] = '%' . $pesquisa_nome . '%';
+}
+if (strlen($pesquisa_pac)) {
+    $condicoes[] = 'pa.nome_pac LIKE :pesquisa_pac';
+    $whereParams[':pesquisa_pac'] = '%' . $pesquisa_pac . '%';
+}
+if (strlen($pesquisa_matricula)) {
+    $condicoes[] = 'pa.matricula_pac LIKE :pesquisa_matricula';
+    $whereParams[':pesquisa_matricula'] = '%' . $pesquisa_matricula . '%';
+}
+if (strlen($lote)) {
+    $condicoes[] = 'ca.lote_cap = :lote';
+    $whereParams[':lote'] = $lote;
+}
+if (strlen($idcapeante)) {
+    $condicoes[] = 'ca.id_capeante LIKE :idcapeante';
+    $whereParams[':idcapeante'] = '%' . $idcapeante . '%';
+}
+if (strlen($senha_fin)) {
+    $condicoes[] = 'ca.senha_finalizada = :senha_fin';
+    $whereParams[':senha_fin'] = $senha_fin;
+}
+if ($conta_parada === 's' || $conta_parada === 'n') {
+    $condicoes[] = 'ca.conta_parada_cap = :conta_parada';
+    $whereParams[':conta_parada'] = $conta_parada;
+}
+if (strlen($senha_int)) {
+    $condicoes[] = 'ac.senha_int LIKE :senha_int';
+    $whereParams[':senha_int'] = '%' . $senha_int . '%';
+}
+if (strlen((string)$data_intern_int)) {
+    $condicoes[] = 'ac.data_intern_int BETWEEN :data_intern_int AND :data_intern_int_max';
+    $whereParams[':data_intern_int'] = (string)$data_intern_int;
+    $whereParams[':data_intern_int_max'] = (string)$data_intern_int_max;
+}
+if (!$isDiretor && strlen((string)$userId)) {
+    $condicoes[] = 'hos.fk_usuario_hosp = :user_id';
+    $whereParams[':user_id'] = (int)$userId;
+}
 
 switch ($status_conta) {
     case 'encerrado':
@@ -165,7 +196,12 @@ $sqlTotal = "
     LEFT JOIN tb_capeante AS ca   ON ac.id_internacao     = ca.fk_int_capeante
     " . (strlen($where) ? 'WHERE ' . $where : '') . "
 ";
-$rowTotal = $conn->query($sqlTotal)->fetch(PDO::FETCH_ASSOC);
+$stmtTotal = $conn->prepare($sqlTotal);
+foreach ($whereParams as $key => $value) {
+    $stmtTotal->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+}
+$stmtTotal->execute();
+$rowTotal = $stmtTotal->fetch(PDO::FETCH_ASSOC);
 $qtdIntItens = (int) ($rowTotal['total'] ?? 0);
 
 // =====================================================================
@@ -233,7 +269,12 @@ $sqlList = "
     ORDER BY $orderBy
     LIMIT $limitSql
 ";
-$query = $conn->query($sqlList)->fetchAll(PDO::FETCH_ASSOC);
+$stmtList = $conn->prepare($sqlList);
+foreach ($whereParams as $key => $value) {
+    $stmtList->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+}
+$stmtList->execute();
+$query = $stmtList->fetchAll(PDO::FETCH_ASSOC);
 
 // =====================================================================
 // URL base de paginação (corrigido 'ordenar' e data_intern_int)

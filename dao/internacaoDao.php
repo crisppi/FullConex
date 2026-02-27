@@ -1217,16 +1217,28 @@ class internacaoDAO implements internacaoDAOInterface
         return $QtdTotalInt;
     }
     // MODELO DE FILTRO COM SELECT ATUAL COM FILTROS E PAGINACAO
-    public function selectAllInternacaoList($where = null, $order = null, $limit = null)
+    public function selectAllInternacaoList($where = null, $order = null, $limit = null, array $params = [])
     {
         //DADOS DA QUERY
         $where = strlen($where) ? 'WHERE ' . $where : '';
         $order = ($order !== null && $order !== '') ? 'ORDER BY ' . $order : '';
-        $limit = ($limit !== null && $limit !== '') ? 'LIMIT ' . $limit : '';
+        if ($limit !== null && $limit !== '') {
+            $limitParts = array_map('trim', explode(',', (string)$limit));
+            if (count($limitParts) === 2) {
+                $offset = max(0, (int)$limitParts[0]);
+                $qty = max(0, (int)$limitParts[1]);
+                $limit = "LIMIT {$offset}, {$qty}";
+            } else {
+                $qty = max(0, (int)$limitParts[0]);
+                $limit = "LIMIT {$qty}";
+            }
+        } else {
+            $limit = '';
+        }
         $group = ' GROUP BY ac.id_internacao ';
 
         //MONTA A QUERY
-        $query = $this->conn->query('SELECT 
+        $sql = 'SELECT 
         ac.id_internacao, 
         ac.acoes_int, 
         ac.data_intern_int,
@@ -1314,8 +1326,13 @@ class internacaoDAO implements internacaoDAOInterface
             LEFT JOIN tb_intern_antec AS an on
             ac.id_internacao = fK_internacao_ant_int
             
-             ' . $where . ' ' . $group . ' ' . $order . ' ' . $limit);
+             ' . $where . ' ' . $group . ' ' . $order . ' ' . $limit;
 
+        $query = $this->conn->prepare($sql);
+        foreach ($params as $key => $value) {
+            $paramType = is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR;
+            $query->bindValue($key, $value, $paramType);
+        }
         $query->execute();
 
         $hospital = $query->fetchAll();
@@ -1432,14 +1449,25 @@ class internacaoDAO implements internacaoDAOInterface
     // ********* \\ ********
     // ********* MODELO DE FILTRO COM SELECT ATUAL COM FILTROS E PAGINACAO CAPEANTE ********
     // ********* \\ ********
-    public function selectAllInternacaoCap($where = null, $order = null, $limit = null)
+    public function selectAllInternacaoCap($where = null, $order = null, $limit = null, array $params = [])
     {
         $where = ($where !== null && $where !== '') ? 'WHERE ' . $where : '';
         $order = ($order !== null && $order !== '') ? 'ORDER BY ' . $order : '';
-        $limit = ($limit !== null && $limit !== '') ? 'LIMIT ' . $limit : '';
+        if ($limit !== null && $limit !== '') {
+            $limitParts = array_map('trim', explode(',', (string)$limit));
+            if (count($limitParts) === 2) {
+                $offset = max(0, (int)$limitParts[0]);
+                $qty = max(0, (int)$limitParts[1]);
+                $limit = "LIMIT {$offset}, {$qty}";
+            } else {
+                $qty = max(0, (int)$limitParts[0]);
+                $limit = "LIMIT {$qty}";
+            }
+        } else {
+            $limit = '';
+        }
 
-        $query = $this->conn->query(
-            'SELECT 
+        $sql = 'SELECT 
     ac.id_internacao, 
     ac.acoes_int, 
     ac.data_intern_int,
@@ -1536,9 +1564,13 @@ class internacaoDAO implements internacaoDAOInterface
         LEFT JOIN tb_paciente AS pa ON ac.fk_paciente_int = pa.id_paciente 
         LEFT JOIN tb_capeante AS ca ON ac.id_internacao = ca.fk_int_capeante 
         
-        ' . $where . ' ' . $order . ' ' . $limit
-        );
+        ' . $where . ' ' . $order . ' ' . $limit;
 
+        $query = $this->conn->prepare($sql);
+        foreach ($params as $key => $value) {
+            $paramType = is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR;
+            $query->bindValue($key, $value, $paramType);
+        }
         $query->execute();
         return $query->fetchAll();
     }

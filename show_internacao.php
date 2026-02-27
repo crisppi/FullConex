@@ -315,7 +315,8 @@ usort($visitas_recent, function ($a, $b) use ($recentOrder) {
     $tb = strtotime(($b['_date'] ?? '1970-01-01') . ' ' . ($b['_time'] ?? '00:00')) ?: 0;
     return $recentOrder === 'asc' ? ($ta <=> $tb) : ($tb <=> $ta);
 });
-$visitas_recent = array_slice($visitas_recent, 0, $recentLimit);
+// Busca com folga para manter a quantidade desejada mesmo removendo a visita ativa.
+$visitas_recent = array_slice($visitas_recent, 0, $recentLimit + 1);
 
 $minD = $visitas_norm ? $visitas_norm[0]['_date'] : null;
 $maxD = $visitas_norm ? $visitas_norm[count($visitas_norm) - 1]['_date'] : null;
@@ -359,6 +360,16 @@ $visitaBtnClass = $initId ? 'btn-success' : 'btn-outline-secondary';
 $visitaPdfBase = $BASE_URL . 'process_visita_pdf.php?id_internacao=' . urlencode((string)$id_internacao) . '&id_visita=';
 $visitaPdfHref = $initId ? $visitaPdfBase . urlencode((string)$initId) : '#';
 $visitaRangePdfBase = $BASE_URL . 'process_visita_pdf.php?range=1&id_internacao=' . urlencode((string)$id_internacao);
+
+// Evita duplicar no layout a visita já destacada no card principal.
+$visitas_recent_exibicao = $visitas_recent;
+if ($initId) {
+    $visitas_recent_exibicao = array_values(array_filter($visitas_recent_exibicao, function ($item) use ($initId) {
+        return (int)($item['_id'] ?? 0) !== (int)$initId;
+    }));
+}
+$visitas_recent_exibicao = array_slice($visitas_recent_exibicao, 0, $recentLimit);
+$visitas_recent_exibicao_count = count($visitas_recent_exibicao);
 
 /* =========================================================
    PRORROGAÇÕES
@@ -924,7 +935,7 @@ $editarNegocUrl = $BASE_URL . 'edit_internacao.php?id_internacao=' . (int)$id_in
 
                                     <div class="mt-3">
                                         <div class="d-flex flex-wrap justify-content-end align-items-stretch gap-2 mb-2 btn-visitas-row">
-                                            <?php if (!empty($visitas_norm)): ?>
+                                            <?php if ($visitas_recent_exibicao_count > 0): ?>
                                                 <button type="button" class="btn btn-sm btn-outline-danger btn-ultimas-visitas btn-visitas-eq"
                                                     data-bs-toggle="modal" data-bs-target="#modalUltimasVisitas">
                                                     <i class="fa-solid fa-clock-rotate-left me-1"></i> Últimas visitas
@@ -1009,13 +1020,14 @@ $editarNegocUrl = $BASE_URL . 'edit_internacao.php?id_internacao=' . (int)$id_in
                                 </div>
                             </div>
 
-                            <?php if (!empty($visitas_recent)): ?>
-                                <div class="mt-4 p-3 rounded-4 shadow-sm border" style="border-color:#e0e3ea;background:#f9f9fb;">
-                                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-                                        <h6 class="text-uppercase small fw-semibold text-muted mb-0">
-                                            Últimas <?= e($recentLimit) ?> visitas registradas
+                            <?php if ($visitas_recent_exibicao_count > 0): ?>
+                                <div class="ux-recent-wrap mt-4">
+                                    <div class="ux-recent-header">
+                                        <h6 class="ux-recent-title mb-0">
+                                            <i class="fa-solid fa-layer-group me-2"></i>
+                                            Últimas <?= e($visitas_recent_exibicao_count) ?> visitas registradas
                                         </h6>
-                                        <form class="d-flex flex-wrap align-items-center gap-2" method="get" action="<?= e($_SERVER['PHP_SELF']) ?>#visitas">
+                                        <form class="ux-recent-controls d-flex flex-wrap align-items-center gap-2" method="get" action="<?= e($_SERVER['PHP_SELF']) ?>#visitas">
                                             <input type="hidden" name="id_internacao" value="<?= (int)$id_internacao ?>">
                                             <input type="hidden" name="aba" value="visitas">
                                             <?php if (!empty($vid_req)): ?>
@@ -1042,16 +1054,17 @@ $editarNegocUrl = $BASE_URL . 'edit_internacao.php?id_internacao=' . (int)$id_in
                                     </div>
 
                                     <div class="d-flex flex-column gap-3">
-                                        <?php foreach ($visitas_recent as $recent):
+                                        <?php foreach ($visitas_recent_exibicao as $recent):
                                             $recentDate = $recent['_date'] ? date('d/m/Y', strtotime($recent['_date'])) : '—';
                                             $recentText = trim((string)($recent['_text'] ?? ''));
                                             $recentAud  = trim((string)($recent['_auditor'] ?? ''));
                                             $recentId   = $recent['_id'] ?? ($recent['_raw']['id_visita'] ?? null);
                                         ?>
-                                            <div class="p-3 rounded-3 bg-white border" style="border-color:#e0e3ea;">
+                                            <div class="ux-recent-item">
                                                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                                                    <div class="text-secondary fw-semibold">
-                                                        Relatório da visita: <span class="text-dark"><?= e($recentDate) ?></span>
+                                                    <div class="ux-recent-item-title">
+                                                        Relatório da visita:
+                                                        <span class="ux-recent-date-chip"><?= e($recentDate) ?></span>
                                                     </div>
                                                     <?php if ($recentId): ?>
                                                         <span class="badge bg-secondary-subtle text-secondary-emphasis">ID <?= e($recentId) ?></span>
@@ -1059,12 +1072,12 @@ $editarNegocUrl = $BASE_URL . 'edit_internacao.php?id_internacao=' . (int)$id_in
                                                 </div>
 
                                                 <?php if ($recentAud): ?>
-                                                    <div class="mt-2 small text-muted">
+                                                    <div class="ux-recent-auditor mt-2">
                                                         <i class="fa-solid fa-user-doctor me-1"></i><?= e($recentAud) ?>
                                                     </div>
                                                 <?php endif; ?>
 
-                                                <div class="mt-3 p-3 rounded bg-light border" style="border-color:#e0e3ea;">
+                                                <div class="ux-recent-evolucao mt-3">
                                                     <div class="small text-muted text-uppercase mb-1">Evolução</div>
                                                     <p class="mb-0"><?= nl2br(e($recentText !== '' ? $recentText : '-')) ?></p>
                                                 </div>
@@ -1097,7 +1110,7 @@ $editarNegocUrl = $BASE_URL . 'edit_internacao.php?id_internacao=' . (int)$id_in
                             </div>
                         <?php endif; ?>
 
-                        <?php if (!empty($visitas_recent)): ?>
+                        <?php if ($visitas_recent_exibicao_count > 0): ?>
                             <div class="modal fade modal-ultimas-visitas" id="modalUltimasVisitas" tabindex="-1" aria-hidden="true">
                                 <div class="modal-dialog modal-xl modal-dialog-centered">
                                     <div class="modal-content">
@@ -1114,7 +1127,7 @@ $editarNegocUrl = $BASE_URL . 'edit_internacao.php?id_internacao=' . (int)$id_in
                                                 <div>Profissional</div>
                                             </div>
                                             <div class="visita-list">
-                                                <?php foreach ($visitas_recent as $vis):
+                                                <?php foreach ($visitas_recent_exibicao as $vis):
                                                     $d = $vis['_date'] ? date('d/m/Y', strtotime($vis['_date'])) : '-';
                                                     $relatorio = trim((string)($vis['_text'] ?? ''));
                                                     $idVis = $vis['_id'] ?? ($vis['_raw']['id_visita'] ?? null);
@@ -2037,6 +2050,66 @@ $editarNegocUrl = $BASE_URL . 'edit_internacao.php?id_internacao=' . (int)$id_in
         color: var(--brand-800)
     }
 
+    .ux-recent-wrap {
+        border: 1px solid #e2e5ec;
+        border-radius: 16px;
+        background: linear-gradient(180deg, #fbfcff 0%, #f7f8fc 100%);
+        box-shadow: 0 8px 24px rgba(17, 24, 39, 0.06);
+        padding: 14px 16px;
+    }
+
+    .ux-recent-header {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+
+    .ux-recent-title {
+        text-transform: uppercase;
+        font-size: .86rem;
+        font-weight: 700;
+        letter-spacing: .04em;
+        color: #64707d;
+    }
+
+    .ux-recent-item {
+        border: 1px solid #e3e6ee;
+        border-radius: 14px;
+        background: #fff;
+        box-shadow: 0 4px 16px rgba(17, 24, 39, 0.04);
+        padding: 14px 16px;
+    }
+
+    .ux-recent-item-title {
+        color: #6b7280;
+        font-weight: 600;
+    }
+
+    .ux-recent-date-chip {
+        display: inline-block;
+        margin-left: 4px;
+        padding: 2px 10px;
+        border-radius: 999px;
+        background: #f2e8f7;
+        color: #4b1c50;
+        font-weight: 700;
+    }
+
+    .ux-recent-auditor {
+        font-size: .92rem;
+        color: #667085;
+    }
+
+    .ux-recent-evolucao {
+        border: 1px solid #e7e9f0;
+        border-radius: 10px;
+        background: #f8fafc;
+        padding: 12px 14px;
+    }
+
     .btn-ultimas-visitas {
         border: 2px solid #c62828;
         color: #c62828;
@@ -2129,6 +2202,12 @@ $editarNegocUrl = $BASE_URL . 'edit_internacao.php?id_internacao=' . (int)$id_in
         }
         .ux-actions-sticky {
             top: 58px;
+        }
+        .ux-recent-wrap {
+            padding: 12px;
+        }
+        .ux-recent-controls {
+            width: 100%;
         }
     }
 

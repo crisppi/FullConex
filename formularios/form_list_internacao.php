@@ -674,6 +674,7 @@ if (typeof jQuery !== 'undefined') {
                                 </span>
                             </button>
                             <a href="<?= htmlspecialchars(rtrim($BASE_URL, '/') . '/internacoes/lista', ENT_QUOTES, 'UTF-8') ?>"
+                                id="btnClearFiltersIcon"
                                 class="btn btn-light btn-sm btn-filtro-limpar btn-filtro-limpar-icon"
                                 style="margin-top:0;" title="Limpar filtros" aria-label="Limpar filtros">
                                 <i class="bi bi-x-lg"></i>
@@ -719,22 +720,54 @@ if (typeof jQuery !== 'undefined') {
             $pesquisa_seguradora = $seguradoraUserNome !== '' ? $seguradoraUserNome : $pesquisa_seguradora;
         }
 
-        $condicoes = [
-            strlen($pesquisa_nome)       ? 'ho.nome_hosp LIKE "%' . $pesquisa_nome . '%"'                  : null,
-            strlen($pesquisa_pac)        ? 'pa.nome_pac LIKE "%' . $pesquisa_pac . '%"'                    : null,
-            strlen($pesquisa_seguradora) ? 's.seguradora_seg LIKE "%' . $pesquisa_seguradora . '%"'        : null,
-            strlen($pesquisa_matricula)  ? 'pa.matricula_pac LIKE "%' . $pesquisa_matricula . '%"'         : null,
-            strlen($pesqInternado)       ? 'internado_int = "' . $pesqInternado . '"'                      : null,
-            strlen($data_intern_int)     ? 'data_intern_int BETWEEN "' . $data_intern_int . '" AND "' . $data_intern_int_max . '"' : null,
-            strlen($senha_int)           ? 'ac.senha_int LIKE "%' . $senha_int . '%"'                         : null,
-            strlen($auditor)             ? 'hos.fk_usuario_hosp = "' . $auditor . '"'                      : null,
-            $onlySemSenha ? '(ac.senha_int IS NULL OR TRIM(ac.senha_int) = "")' : null,
-            $isGestorSeguradora
-                ? ($seguradoraUserId > 0 ? 'pa.fk_seguradora_pac = ' . $seguradoraUserId : '1=0')
-                : null,
-        ];
+        $condicoes = [];
+        $whereParams = [];
 
-        $condicoes = array_filter($condicoes);
+        if (strlen($pesquisa_nome)) {
+            $condicoes[] = 'ho.nome_hosp LIKE :pesquisa_nome';
+            $whereParams[':pesquisa_nome'] = '%' . $pesquisa_nome . '%';
+        }
+        if (strlen($pesquisa_pac)) {
+            $condicoes[] = 'pa.nome_pac LIKE :pesquisa_pac';
+            $whereParams[':pesquisa_pac'] = '%' . $pesquisa_pac . '%';
+        }
+        if (strlen($pesquisa_seguradora)) {
+            $condicoes[] = 's.seguradora_seg LIKE :pesquisa_seguradora';
+            $whereParams[':pesquisa_seguradora'] = '%' . $pesquisa_seguradora . '%';
+        }
+        if (strlen($pesquisa_matricula)) {
+            $condicoes[] = 'pa.matricula_pac LIKE :pesquisa_matricula';
+            $whereParams[':pesquisa_matricula'] = '%' . $pesquisa_matricula . '%';
+        }
+        if (strlen($pesqInternado)) {
+            $condicoes[] = 'internado_int = :pesq_internado';
+            $whereParams[':pesq_internado'] = $pesqInternado;
+        }
+        if (strlen((string)$data_intern_int)) {
+            $condicoes[] = 'data_intern_int BETWEEN :data_intern_int AND :data_intern_int_max';
+            $whereParams[':data_intern_int'] = (string)$data_intern_int;
+            $whereParams[':data_intern_int_max'] = (string)$data_intern_int_max;
+        }
+        if (strlen($senha_int)) {
+            $condicoes[] = 'ac.senha_int LIKE :senha_int';
+            $whereParams[':senha_int'] = '%' . $senha_int . '%';
+        }
+        if (strlen((string)$auditor)) {
+            $condicoes[] = 'hos.fk_usuario_hosp = :auditor_id';
+            $whereParams[':auditor_id'] = (int)$auditor;
+        }
+        if ($onlySemSenha) {
+            $condicoes[] = '(ac.senha_int IS NULL OR TRIM(ac.senha_int) = "")';
+        }
+        if ($isGestorSeguradora) {
+            if ($seguradoraUserId > 0) {
+                $condicoes[] = 'pa.fk_seguradora_pac = :seguradora_user_id';
+                $whereParams[':seguradora_user_id'] = (int)$seguradoraUserId;
+            } else {
+                $condicoes[] = '1=0';
+            }
+        }
+
         $where     = implode(' AND ', $condicoes);
 
         $sortableColumns = [
@@ -767,7 +800,12 @@ if (typeof jQuery !== 'undefined') {
              LEFT JOIN tb_intern_antec AS an ON ac.id_internacao = fk_internacao_ant_int
                 {$whereCount}
             ";
-            $qtdIntItens = (int)$conn->query($sqlCount)->fetchColumn();
+            $stmtCount = $conn->prepare($sqlCount);
+            foreach ($whereParams as $key => $value) {
+                $stmtCount->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+            }
+            $stmtCount->execute();
+            $qtdIntItens = (int)$stmtCount->fetchColumn();
         } catch (Throwable $th) {
             $qtdIntItens = 0;
             error_log('[LIST_INT][COUNT] ' . $th->getMessage());
@@ -789,7 +827,7 @@ if (typeof jQuery !== 'undefined') {
         $obPagination = new pagination($qtdIntItens, $paginaAtualParam, $limite ?? 10);
         $obLimite     = $obPagination->getLimit();
 
-        $query = $internacao->selectAllInternacaoList($where, $order, $obLimite);
+        $query = $internacao->selectAllInternacaoList($where, $order, $obLimite, $whereParams);
 
         $internIds = [];
         foreach ($query as $internRow) {
@@ -1782,6 +1820,7 @@ if (typeof window.paginateInternacao !== 'function') {
     const btnApplyLast = document.getElementById('btnApplyLastFilter');
     const btnSaveFav = document.getElementById('btnSaveFavFilter');
     const btnClear = document.getElementById('btnClearFilters');
+    const btnClearIcon = document.getElementById('btnClearFiltersIcon');
     const favoritesWrap = document.getElementById('filterFavorites');
     const favoritesHint = document.getElementById('filterFavoritesHint');
     const smartInput = document.getElementById('smartSearchPhrase');
@@ -1851,6 +1890,13 @@ if (typeof window.paginateInternacao !== 'function') {
         });
     }
 
+    function submitFiltersWithoutRefresh() {
+        form.dispatchEvent(new Event('submit', {
+            bubbles: true,
+            cancelable: true
+        }));
+    }
+
     function persistLastFilter(values) {
         if (!storageAvailable) return;
         localStorage.setItem(storageKeys.last, JSON.stringify(values));
@@ -1917,7 +1963,7 @@ if (typeof window.paginateInternacao !== 'function') {
         const fav = favorites[index];
         if (!fav) return;
         fillFormValues(fav.values);
-        form.submit();
+        submitFiltersWithoutRefresh();
     }
 
     function removeFavorite(index) {
@@ -1957,7 +2003,7 @@ if (typeof window.paginateInternacao !== 'function') {
             const segField = form.elements.namedItem('pesquisa_seguradora');
             if (segField) segField.value = seguradoraNomeEscopo;
         }
-        form.submit();
+        submitFiltersWithoutRefresh();
     }
 
     function handleClearFilters() {
@@ -1986,7 +2032,7 @@ if (typeof window.paginateInternacao !== 'function') {
         if (storageAvailable) {
             localStorage.removeItem(storageKeys.last);
         }
-        form.submit();
+        submitFiltersWithoutRefresh();
     }
 
     function parseSmartPhrase(phrase) {
@@ -2111,15 +2157,10 @@ if (typeof window.paginateInternacao !== 'function') {
             clearSmartError();
         }
         fillFormValues(parsed);
-        form.submit();
+        submitFiltersWithoutRefresh();
     }
 
     if (storageAvailable) {
-        const hasQuery = window.location.search.length > 1;
-        const last = getLastFilter();
-        if (last && !hasQuery) {
-            fillFormValues(last);
-        }
         renderFavorites();
     } else {
         if (favoritesHint) {
@@ -2136,6 +2177,10 @@ if (typeof window.paginateInternacao !== 'function') {
     if (btnSaveFav) btnSaveFav.addEventListener('click', handleSaveFavorite);
     if (btnApplyLast) btnApplyLast.addEventListener('click', handleApplyLast);
     if (btnClear) btnClear.addEventListener('click', handleClearFilters);
+    if (btnClearIcon) btnClearIcon.addEventListener('click', (event) => {
+        event.preventDefault();
+        handleClearFilters();
+    });
     if (btnSmart) btnSmart.addEventListener('click', handleSmartSearch);
     if (smartInput) {
         smartInput.addEventListener('input', clearSmartError);
