@@ -34,6 +34,22 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
     #main-container.internacao-page .internacao-page__hero {
         margin: 0 0 6px !important;
     }
+
+    #multi-step-form .form-control {
+        min-height: 42px;
+        border-radius: 8px;
+    }
+
+    #multi-step-form select.form-control {
+        height: 42px;
+        padding-top: .375rem;
+        padding-bottom: .375rem;
+    }
+
+    #multi-step-form textarea.form-control {
+        min-height: 120px;
+        border-radius: 8px;
+    }
 </style>
 
 <div class="internacao-page" id="main-container">
@@ -62,7 +78,7 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
         <!-- Step 1: Personal Information -->
         <div id="step-1" class="step">
             <div class="row">
-                <div class="form-group col-md-4 mb-3">
+                <div class="form-group col-md-2 mb-3">
                     <label for="cpf_pac">CPF</label>
                     <input class="form-control" type="text" oninput="mascara(this, 'cpf')" id="cpf_pac" name="cpf_pac"
                         placeholder="000.000.000-00">
@@ -73,16 +89,14 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
                         CPF já cadastrado.
                     </div>
                 </div>
-                <div class="form-group col-md-8 mb-3">
+                <div class="form-group col-md-6 mb-3">
                     <label for="nome_pac">Nome</label>
                     <input type="text" class="form-control" id="nome_pac" name="nome_pac" required>
                     <div class="invalid-feedback">
                         Por favor, insira o nome.
                     </div>
                 </div>
-            </div>
-            <div class="row">
-                <div class="form-group col-md-4 mb-3">
+                <div class="form-group col-md-2 mb-3">
                     <label for="recem_nascido_pac">Recém-nascido?</label>
                     <select class="form-control" id="recem_nascido_pac" name="recem_nascido_pac"
                         onchange="handleRecemNascidoChange()">
@@ -91,6 +105,15 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
                         <option value="n" selected>Não</option>
                     </select>
                 </div>
+                <div class="form-group col-md-2 mb-3">
+                    <label for="data_nasc_pac">Nascimento</label>
+                    <input type="date" class="form-control" id="data_nasc_pac" name="data_nasc_pac">
+                    <div class="invalid-feedback">
+                        Por favor, insira a data de nascimento.
+                    </div>
+                </div>
+            </div>
+            <div class="row">
                 <!-- <div class="invalid-feedback" id="validar_matricula_rn" style="display: none;">
                     Matrícula já cadastrada para RN.
                 </div> -->
@@ -124,14 +147,7 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
                 </div>
             </div>
             <div class="row">
-                <div class="form-group col-md-4 mb-3">
-                    <label for="data_nasc_pac">Nascimento</label>
-                    <input type="date" class="form-control" id="data_nasc_pac" name="data_nasc_pac">
-                    <div class="invalid-feedback">
-                        Por favor, insira a data de nascimento.
-                    </div>
-                </div>
-                <div class="form-group col-md-4 mb-2">
+                <div class="form-group col-md-3 mb-2">
                     <label for="matricula_pac">Matrícula</label>
                     <input type="text" class="form-control" onkeyup="validarMatriculaExistente()" id="matricula_pac"
                         name="matricula_pac" required>
@@ -143,7 +159,7 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
                     </div>
 
                 </div>
-                <div class="form-group col-md-4 mb-2">
+                <div class="form-group col-md-3 mb-2">
                     <label for="sexo_pac">Sexo</label>
                     <select class="form-control" name="sexo_pac" id="sexo_pac">
                         <option value="" selected disabled>Selecione...</option>
@@ -152,15 +168,7 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
                     </select>
                     <div class="invalid-feedback">Por favor, selecione o sexo.</div>
                 </div>
-
-            </div>
-            <!-- <div class="form-group col-md-8 mb-3">
-                    <label for="mae_pac">Mãe</label>
-                    <input type="text" class="form-control" id="mae_pac" name="mae_pac">
-                </div> -->
-
-            <div class="row">
-                <div class="form-group col-md-6 mb-3">
+                <div class="form-group col-md-3 mb-3">
                     <label for="fk_seguradora_pac">Seguradora</label>
                     <select class="form-control" id="fk_seguradora_pac" name="fk_seguradora_pac">
                         <option value="1">Selecione</option>
@@ -170,7 +178,7 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div class="form-group col-md-6 mb-3">
+                <div class="form-group col-md-3 mb-3">
                     <label for="fk_estipulante_pac">Estipulante</label>
                     <select class="form-control" id="fk_estipulante_pac" name="fk_estipulante_pac">
                         <option value="1">Selecione</option>
@@ -180,10 +188,6 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <!-- <div class="form-group col-md-6 mb-3">
-                    <label for="matricula_pac">Matrícula</label>
-                    <input type="text" class="form-control" id="matricula_pac" name="matricula_pac">
-                </div> -->
             </div>
             <hr>
         </div>
