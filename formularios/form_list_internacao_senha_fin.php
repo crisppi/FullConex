@@ -111,7 +111,7 @@ $data_intern_int_max = filter_input(INPUT_GET, 'data_intern_int_max') ?: null;
                     </select>
                 </div>
             </div>
-            <div style="margin-top:-24px" class="form-group row">
+            <div style="margin-top:-24px; margin-bottom:14px;" class="form-group row">
                 <div class="form-group col-sm-1">
                     <select class="form-control mb-3 form-control-sm"
                         style="margin-top:7px;font-size:.8em; color:#878787" id="med_check" name="med_check">

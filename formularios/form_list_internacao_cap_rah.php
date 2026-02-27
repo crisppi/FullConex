@@ -329,17 +329,30 @@ $idcapeante          = filter_input(INPUT_GET, 'idcapeante') ?: NULL;
                     <div class="form-group row">
                         <!-- SELECT de Hospital (sem duplicidade) -->
                         <div class="form-group col-sm-3" style="padding:2px !important;padding-left:16px !important;">
-                            <select class="form-control form-control-sm"
-                                style="margin-top:7px; font-size:.8em; color:#878787" name="id_hosp" id="id_hosp">
-                                <option value=""><?= $isDiretor ? 'Todos os Hospitais' : 'Selecione o Hospital' ?>
-                                </option>
+                            <?php
+                                $hospitalSelecionadoNome = '';
+                                foreach ($hospitals as $h) {
+                                    if ((string)$id_hosp === (string)($h['id_hospital'] ?? '')) {
+                                        $hospitalSelecionadoNome = (string)($h['nome_hosp'] ?? '');
+                                        break;
+                                    }
+                                }
+                            ?>
+                            <input type="hidden" name="id_hosp" id="id_hosp" value="<?= htmlspecialchars((string)$id_hosp, ENT_QUOTES, 'UTF-8') ?>">
+                            <input class="form-control form-control-sm"
+                                style="margin-top:7px; font-size:.8em; color:#878787"
+                                type="text"
+                                id="id_hosp_nome"
+                                list="rahHospitaisList"
+                                placeholder="<?= $isDiretor ? 'Todos os Hospitais' : 'Selecione o Hospital' ?>"
+                                value="<?= htmlspecialchars($hospitalSelecionadoNome, ENT_QUOTES, 'UTF-8') ?>">
+                            <datalist id="rahHospitaisList">
                                 <?php foreach ($hospitals as $h): ?>
-                                <option value="<?= (int)$h['id_hospital'] ?>"
-                                    <?= ((string)$id_hosp === (string)$h['id_hospital']) ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars((string)$h['nome_hosp']) ?>
-                                </option>
+                                    <option
+                                        data-id="<?= (int)$h['id_hospital'] ?>"
+                                        value="<?= htmlspecialchars((string)$h['nome_hosp'], ENT_QUOTES, 'UTF-8') ?>"></option>
                                 <?php endforeach; ?>
-                            </select>
+                            </datalist>
                         </div>
 
                         <div class="form-group col-sm-2" style="padding:2px !important">
@@ -384,7 +397,7 @@ $idcapeante          = filter_input(INPUT_GET, 'idcapeante') ?: NULL;
                         </div>
                     </div>
 
-                    <div class="form-group row" style="margin-top:-20px">
+                    <div class="form-group row" style="margin-top:-20px; margin-bottom:14px;">
                         <div class="form-group col-sm-1" style="padding:2px !important;padding-left:16px !important;">
                             <select class="form-control form-control-sm"
                                 style="margin-top:7px;font-size:.8em; color:#878787" id="ordenar" name="ordenar">
@@ -457,6 +470,7 @@ $idcapeante          = filter_input(INPUT_GET, 'idcapeante') ?: NULL;
                                 <span class="material-icons" style="margin-left:-3px;margin-top:-2px;">search</span>
                             </button>
                             <a href="<?= htmlspecialchars(rtrim($BASE_URL, '/') . '/' . ltrim((string)$rahFormAction, '/'), ENT_QUOTES, 'UTF-8') ?>"
+                                id="btnRahClearFiltersIcon"
                                 class="btn btn-light btn-sm btn-filtro-limpar btn-filtro-limpar-icon"
                                 style="margin-top:7px;" title="Limpar filtros" aria-label="Limpar filtros">
                                 <i class="bi bi-x-lg"></i>
@@ -874,6 +888,63 @@ $(document).ready(function() {
             }
         });
     });
+
+    $('#btnRahClearFiltersIcon').on('click', function(e) {
+        e.preventDefault();
+        var $form = $('#select-internacao-form');
+        if (!$form.length) return;
+
+        // Limpa filtros para reaproveitar o submit AJAX já existente.
+        [
+            'id_hosp',
+            'id_hosp_nome',
+            'pesquisa_pac',
+            'pesquisa_matricula',
+            'senha_int',
+            'lote',
+            'idcapeante',
+            'ordenar',
+            'senha_fin',
+            'encerrado_cap',
+            'conta_parada',
+            'data_intern_int',
+            'data_intern_int_max'
+        ].forEach(function(name) {
+            var $field = $form.find('[name="' + name + '"]');
+            if ($field.length) $field.val('');
+        });
+
+        var $limite = $form.find('[name="limite"]');
+        if ($limite.length) $limite.val('10');
+
+        $form.trigger('submit');
+    });
+
+    function syncHospitalIdFromName() {
+        var $nome = $('#id_hosp_nome');
+        var $id = $('#id_hosp');
+        if (!$nome.length || !$id.length) return;
+
+        var typed = ($nome.val() || '').trim().toLowerCase();
+        if (!typed) {
+            $id.val('');
+            return;
+        }
+
+        var matchedId = '';
+        $('#rahHospitaisList option').each(function() {
+            var optVal = String($(this).attr('value') || '').trim().toLowerCase();
+            if (optVal === typed) {
+                matchedId = $(this).data('id') || '';
+                return false;
+            }
+        });
+
+        $id.val(matchedId ? String(matchedId) : '');
+    }
+
+    $('#id_hosp_nome').on('input change blur', syncHospitalIdFromName);
+    $('#select-internacao-form').on('submit', syncHospitalIdFromName);
 });
 
 // Carregamento inicial

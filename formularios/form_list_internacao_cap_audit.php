@@ -317,7 +317,7 @@ if ($qtdIntItens > $limite) {
                     </div>
                 </div>
 
-                <div class="form-group row" style="margin-top:-20px">
+                <div class="form-group row" style="margin-top:-20px; margin-bottom:14px;">
                     <div class="form-group col-sm-1" style="padding:2px !important;padding-left:16px !important;">
                         <select class="form-control form-control-sm"
                             style="margin-top:7px;font-size:.8em; color:#878787" id="med_check" name="med_check">

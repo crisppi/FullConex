@@ -601,7 +601,7 @@ if (typeof jQuery !== 'undefined') {
                     <div class="filter-favorites" id="filterFavorites"></div>
                     <div class="filter-empty-hint" id="filterFavoritesHint">Nenhum favorito salvo ainda.</div>
                 </div>
-                <div class="form-group row filter-inline-row">
+                <div class="form-group row filter-inline-row" style="margin-bottom:14px;">
                     <div class="form-group col-sm-2 filter-inline-field filter-inline--wide" style="padding:2px;padding-left:16px !important;">
                         <input class="form-control form-control-sm" type="text" style="color:#878787;margin-top:0;"
                             name="pesquisa_nome" list="internacaoHospitaisList" placeholder="Selecione o Hospital"

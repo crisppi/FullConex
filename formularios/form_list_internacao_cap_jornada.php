@@ -58,8 +58,15 @@ foreach (['faturada', 'aberta', 'auditoria', 'encerrada'] as $k) {
 // WHERE
 // ---------------------
 $condicoes = [];
-if ($pesquisa_nome !== '') $condicoes[] = 'ho.nome_hosp LIKE "%' . addslashes($pesquisa_nome) . '%"';
-if ($pesquisa_pac  !== '') $condicoes[] = 'pa.nome_pac  LIKE "%' . addslashes($pesquisa_pac)  . '%"';
+$whereParams = [];
+if ($pesquisa_nome !== '') {
+  $condicoes[] = 'ho.nome_hosp LIKE :pesquisa_nome';
+  $whereParams[':pesquisa_nome'] = '%' . $pesquisa_nome . '%';
+}
+if ($pesquisa_pac  !== '') {
+  $condicoes[] = 'pa.nome_pac LIKE :pesquisa_pac';
+  $whereParams[':pesquisa_pac'] = '%' . $pesquisa_pac . '%';
+}
 
 if ($faturada === 's') {
   $condicoes[] = "ca.conta_faturada_cap = 's'";
@@ -104,7 +111,11 @@ $whereSql = $where !== '' ? (' WHERE ' . $where) : '';
 $totalDeItensUnicos = 0;
 try {
   $sqlCount = 'SELECT COUNT(DISTINCT ac.id_internacao) AS total ' . $baseFromSql . $whereSql;
-  $stmtCount = $conn->query($sqlCount);
+  $stmtCount = $conn->prepare($sqlCount);
+  foreach ($whereParams as $key => $value) {
+    $stmtCount->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+  }
+  $stmtCount->execute();
   $totalDeItensUnicos = (int)($stmtCount->fetchColumn() ?: 0);
 } catch (Throwable $e) {
   error_log('[JORNADA][COUNT] ' . $e->getMessage());
@@ -120,7 +131,11 @@ if ($totalDeItensUnicos > 0) {
   try {
     $sqlIds = 'SELECT DISTINCT ac.id_internacao ' . $baseFromSql . $whereSql .
       ' ORDER BY ' . $ordenarSql . ' LIMIT ' . $offset . ',' . $qtde;
-    $stmtIds = $conn->query($sqlIds);
+    $stmtIds = $conn->prepare($sqlIds);
+    foreach ($whereParams as $key => $value) {
+      $stmtIds->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+    $stmtIds->execute();
     $idsDaPagina = array_map(
       'intval',
       array_column($stmtIds->fetchAll(PDO::FETCH_ASSOC), 'id_internacao')
@@ -134,8 +149,15 @@ if ($totalDeItensUnicos > 0) {
 $linhasFiltradas = [];
 if (!empty($idsDaPagina)) {
   $wherePagina = $where;
-  $wherePagina .= ($wherePagina !== '' ? ' AND ' : '') . 'ac.id_internacao IN (' . implode(',', $idsDaPagina) . ')';
-  $linhasFiltradas = $internacaoDAO->selectAllInternacaoCap($wherePagina, $ordenarSql, null);
+  $wherePaginaParams = $whereParams;
+  $idPlaceholders = [];
+  foreach (array_values($idsDaPagina) as $idx => $idPagina) {
+    $ph = ':id_pagina_' . $idx;
+    $idPlaceholders[] = $ph;
+    $wherePaginaParams[$ph] = (int)$idPagina;
+  }
+  $wherePagina .= ($wherePagina !== '' ? ' AND ' : '') . 'ac.id_internacao IN (' . implode(',', $idPlaceholders) . ')';
+  $linhasFiltradas = $internacaoDAO->selectAllInternacaoCap($wherePagina, $ordenarSql, null, $wherePaginaParams);
 }
 
 // agrega por id_internacao

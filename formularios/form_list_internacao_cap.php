@@ -390,7 +390,7 @@ if ($havePages) {
 
                 </div>
 
-                <div class="form-group row" style="margin-top:-15px">
+                <div class="form-group row" style="margin-top:-15px; margin-bottom:14px;">
                     <div class="form-group col-sm-2" style="padding-left:16px !important;">
                         <select class="form-control form-control-sm"
                             style="margin-top:7px;font-size:.8em; color:#878787" id="ordenar" name="ordenar">
