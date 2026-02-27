@@ -206,6 +206,35 @@
     $id_internacao = filter_input(INPUT_GET, 'id_internacao') ? filter_input(INPUT_GET, 'id_internacao') : 1;
 
     $intern = $internacaoDao->findByIdArray($id_internacao)[0];
+    $altaAtual = [
+        'data_alta_alt' => '',
+        'tipo_alta_alt' => ''
+    ];
+    try {
+        $stmtAltaAtual = $conn->prepare("
+            SELECT data_alta_alt, tipo_alta_alt
+            FROM tb_alta
+            WHERE fk_id_int_alt = :id
+            ORDER BY id_alta DESC
+            LIMIT 1
+        ");
+        $stmtAltaAtual->bindValue(':id', (int) $id_internacao, PDO::PARAM_INT);
+        $stmtAltaAtual->execute();
+        $altaRow = $stmtAltaAtual->fetch(PDO::FETCH_ASSOC) ?: [];
+        if (!empty($altaRow)) {
+            $altaAtual['data_alta_alt'] = (string) ($altaRow['data_alta_alt'] ?? '');
+            $altaAtual['tipo_alta_alt'] = (string) ($altaRow['tipo_alta_alt'] ?? '');
+        }
+    } catch (Throwable $e) {
+        $altaAtual = ['data_alta_alt' => '', 'tipo_alta_alt' => ''];
+    }
+    $altaDataHoraValue = '';
+    if (!empty($altaAtual['data_alta_alt']) && $altaAtual['data_alta_alt'] !== '0000-00-00 00:00:00') {
+        $tsAlta = strtotime($altaAtual['data_alta_alt']);
+        if ($tsAlta) {
+            $altaDataHoraValue = date('Y-m-d\TH:i', $tsAlta);
+        }
+    }
     $dataLancamentoAtual = '';
     if (!empty($intern['data_lancamento_int']) && $intern['data_lancamento_int'] !== '0000-00-00 00:00:00') {
         $tsLanc = strtotime($intern['data_lancamento_int']);
@@ -341,6 +370,27 @@
                         <select class="form-control-sm form-control" id="internado_int" name="internado_int">
                             <option value="s" <?= $intern['internado_int'] == 's' ? 'selected' : '' ?>>Sim</option>
                             <option value="n" <?= $intern['internado_int'] == 'n' ? 'selected' : '' ?>>Não</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group col-sm-2 mb-2" id="div-data-alta" style="display:none">
+                        <label class="control-label" for="data_alta_alt">Data/Hora Alta</label>
+                        <input type="datetime-local" class="form-control form-control-sm" id="data_alta_alt"
+                            name="data_alta_alt" value="<?= htmlspecialchars($altaDataHoraValue) ?>" step="60">
+                    </div>
+
+                    <div class="form-group col-sm-2 mb-2" id="div-motivo-alta" style="display:none">
+                        <label class="control-label" for="tipo_alta_alt">Motivo Alta</label>
+                        <select class="form-control form-control-sm" id="tipo_alta_alt" name="tipo_alta_alt">
+                            <option value="">Selecione o motivo da alta</option>
+                            <?php
+                            $dados_alta = is_array($dados_alta ?? null) ? $dados_alta : [];
+                            sort($dados_alta, SORT_ASC);
+                            foreach ($dados_alta as $alta): ?>
+                                <option value="<?= htmlspecialchars($alta); ?>" <?= ($altaAtual['tipo_alta_alt'] ?? '') === $alta ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($alta); ?>
+                                </option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
 
@@ -1245,6 +1295,31 @@
                 }
             }
         });
+
+        // Mostrar/ocultar Data/Hora Alta e Motivo Alta conforme "Internado"
+        document.addEventListener("DOMContentLoaded", function() {
+            const selectInternado = document.getElementById("internado_int");
+            const divDataAlta = document.getElementById("div-data-alta");
+            const divMotivoAlta = document.getElementById("div-motivo-alta");
+            const dataAltaInput = document.getElementById("data_alta_alt");
+            const motivoAltaInput = document.getElementById("tipo_alta_alt");
+            if (!selectInternado || !divDataAlta || !divMotivoAlta) return;
+
+            function toggleDataAlta() {
+                if (selectInternado.value === "s") {
+                    divDataAlta.style.display = "none";
+                    divMotivoAlta.style.display = "none";
+                    if (dataAltaInput) dataAltaInput.value = "";
+                    if (motivoAltaInput) motivoAltaInput.value = "";
+                } else {
+                    divDataAlta.style.display = "block";
+                    divMotivoAlta.style.display = "block";
+                }
+            }
+
+            toggleDataAlta();
+            selectInternado.addEventListener("change", toggleDataAlta);
+        });
     </script>
 
     <script>
@@ -1411,5 +1486,11 @@
         .internacao-card--general {
             border-color: #c7aedc;
             background: #fff;
+        }
+
+        #accordionInternacao .accordion-item,
+        #accordionInternacao .accordion-body {
+            background: #f5f5f9;
+            border-color: #ebe1f5;
         }
     </style>

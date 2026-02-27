@@ -138,6 +138,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (patientInsightsHelper && typeof patientInsightsHelper.fetch === 'function') {
             patientInsightsHelper.fetch(id, selectedText);
         }
+        if (typeof window.triggerInternacaoCheck === 'function') {
+            window.triggerInternacaoCheck();
+        }
     }
 
     if (pacienteSelect) {
@@ -739,20 +742,46 @@ document.addEventListener("DOMContentLoaded", function() {
     const selectInternado = document.getElementById("internado_int");
     const divDataAlta = document.getElementById("div-data-alta");
     const divMotivoAlta = document.getElementById("div-motivo-alta");
+    const dataAltaInput = document.getElementById("data_alta_alt");
+    const motivoAltaInput = document.getElementById("tipo_alta_alt");
+    const retroativaInput = document.getElementById("retroativa_confirmada");
 
-    function toggleDataAlta() {
+    if (!selectInternado || !divDataAlta || !divMotivoAlta) return;
+
+    function toggleDataAlta(clearOnInternado) {
         if (selectInternado.value === "s") {
             divDataAlta.style.display = "none";
             divMotivoAlta.style.display = "none";
-            document.getElementById("data_alta_alt").value = "";
-            document.getElementById("tipo_alta_alt").value = "";
+            divDataAlta.hidden = true;
+            divMotivoAlta.hidden = true;
+            divDataAlta.classList.add('d-none');
+            divMotivoAlta.classList.add('d-none');
+            if (clearOnInternado) {
+                if (dataAltaInput) dataAltaInput.value = "";
+                if (motivoAltaInput) motivoAltaInput.value = "";
+            }
         } else {
             divDataAlta.style.display = "block";
             divMotivoAlta.style.display = "block";
+            divDataAlta.hidden = false;
+            divMotivoAlta.hidden = false;
+            divDataAlta.classList.remove('d-none');
+            divMotivoAlta.classList.remove('d-none');
         }
     }
-    toggleDataAlta();
-    selectInternado.addEventListener("change", toggleDataAlta);
+
+    window.syncAltaFieldsByInternado = function(clearOnInternado) {
+        toggleDataAlta(Boolean(clearOnInternado));
+    };
+
+    // Estado inicial padrão: Internado = Sim (exceto quando retroativa já confirmada)
+    if (retroativaInput?.value !== '1') {
+        selectInternado.value = 's';
+    }
+    toggleDataAlta(true);
+    selectInternado.addEventListener("change", function() {
+        toggleDataAlta(true);
+    });
 });
 
 
@@ -1100,9 +1129,31 @@ $("#myForm").submit(function(event) {
                 // document.getElementById("hospital_selected").value = hospitalSelected; // Não precisa redefinir aqui
 
                 // 4. Atualiza outros selects (exceto o de hospitais)
-                $('#fk_paciente_int').val('').selectpicker('refresh');
-                $('#fk_patologia2').val('').selectpicker('refresh');
-                $('#fk_patologia_int').val('').selectpicker('refresh');
+                const forceClearPicker = (selector) => {
+                    const el = document.querySelector(selector);
+                    if (!el) return;
+                    el.value = '';
+                    el.selectedIndex = 0;
+                    Array.from(el.options || []).forEach((opt, idx) => {
+                        opt.selected = idx === 0;
+                    });
+                    if (window.jQuery && $.fn.selectpicker && $(el).hasClass('selectpicker')) {
+                        $(el).selectpicker('val', '');
+                        $(el).selectpicker('render');
+                        $(el).selectpicker('refresh');
+                    }
+                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                };
+
+                forceClearPicker('#fk_paciente_int');
+                forceClearPicker('#fk_cid_int');
+                forceClearPicker('#fk_patologia2');
+                forceClearPicker('#fk_patologia_int');
+                $('#matricula_paciente_display').val('');
+                if (typeof window.triggerInternacaoCheck === 'function') {
+                    window.triggerInternacaoCheck();
+                    setTimeout(window.triggerInternacaoCheck, 120);
+                }
 
                 // 5. Update other values
                 const adicionarValor = parseInt(document.querySelector("#proximoId_int")
@@ -1124,6 +1175,10 @@ $("#myForm").submit(function(event) {
                 document.getElementById("internado_int").value = "s";
                 document.getElementById("internado_int").querySelector("option[value='s']")
                     .selected = true;
+                document.getElementById("internado_int").dispatchEvent(new Event('change'));
+                if (typeof window.syncAltaFieldsByInternado === 'function') {
+                    window.syncAltaFieldsByInternado(true);
+                }
 
                 // 6. Hide containers
                 const containers = [
@@ -1454,6 +1509,14 @@ document.addEventListener('DOMContentLoaded', function() {
             hideRetroBanner();
             consultarInternacaoAtiva(this.value, false);
         });
+        if (window.jQuery && jQuery.fn && typeof jQuery.fn.on === 'function') {
+            jQuery(function($) {
+                $('#fk_paciente_int').on('changed.bs.select', function() {
+                    hideRetroBanner();
+                    consultarInternacaoAtiva(this.value, false);
+                });
+            });
+        }
     }
 
     if (confirmBtn) {

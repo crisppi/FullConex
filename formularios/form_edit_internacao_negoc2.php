@@ -158,7 +158,7 @@ if (!function_exists('sel')) {
             flex-wrap: wrap;
             gap: 15px;
             margin-bottom: 12px;
-            background: #fff
+            background: #f5f5f9
         }
 
         .negoc-row label {

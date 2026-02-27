@@ -182,7 +182,7 @@ if ($internStartTs && $internEndTs && $internEndTs > $internStartTs) {
 /* Aparência da linha */
 .pror-row {
     border: 1px solid rgba(0, 0, 0, .08);
-    background: #fff;
+    background: #f5f5f9;
 }
 
 .pror-row label {
@@ -434,6 +434,23 @@ function diffDays(d1, d2) {
     return Math.ceil((new Date(d2) - new Date(d1)) / 86400000);
 }
 
+function getInternacaoDateForProrrog() {
+    const internDateField = document.getElementById('data_intern_int');
+    if (!internDateField || !internDateField.value) return null;
+    const internDate = new Date(internDateField.value + 'T00:00:00');
+    return Number.isNaN(internDate.getTime()) ? null : internDate;
+}
+
+function setFirstProrrogationDate() {
+    const firstInitialDateField = document.querySelector('#prorContainer .pror-row [name$="[ini]"]');
+    const firstFinalDateField = document.querySelector('#prorContainer .pror-row [name$="[fim]"]');
+    const internDate = getInternacaoDateForProrrog();
+    if (!firstInitialDateField || !internDate || firstInitialDateField.value) return;
+    const internDateFormatted = internDate.toISOString().split('T')[0];
+    firstInitialDateField.value = internDateFormatted;
+    if (firstFinalDateField) firstFinalDateField.min = internDateFormatted;
+}
+
 function reindexNames() {
     $('#prorContainer .pror-row').each(function(i) {
         $(this).find('[name]').each(function() {
@@ -462,9 +479,21 @@ function recalcRow($row, changedName) {
     const fim = $row.find('[name$="[fim]"]').val();
     const $dia = $row.find('[name$="[diarias]"]');
     const maxDate = window.PRORROG_MAX_DATE;
+    const internDate = getInternacaoDateForProrrog();
 
     if (changedName && changedName.endsWith('[ini]')) {
         $row.find('[name$="[fim]"]').attr('min', ini || null);
+    }
+
+    if (internDate && ini) {
+        const initialDate = new Date(ini + 'T00:00:00');
+        if (Number.isNaN(initialDate.getTime()) || initialDate < internDate) {
+            openErrorDialog('A data inicial da prorrogação não pode ser menor que a data de internação.');
+            $row.find('[name$="[ini]"]').val('').focus();
+            $dia.val('');
+            syncJson();
+            return;
+        }
     }
 
     if (maxDate && ini && new Date(ini) > new Date(maxDate)) {
@@ -565,6 +594,21 @@ $(function() {
         if (ini) $row.find('[name$="[fim]"]').attr('min', ini);
         recalcRow($row);
     });
+
+    setFirstProrrogationDate();
+    const internDateField = document.getElementById('data_intern_int');
+    if (internDateField) {
+        const syncInitialDate = function() {
+            setFirstProrrogationDate();
+            const $firstRow = $container.find('.pror-row').first();
+            if ($firstRow.length) recalcRow($firstRow, 'pror[0][ini]');
+            syncJson();
+        };
+        ['change', 'input', 'blur'].forEach(function(evtName) {
+            internDateField.addEventListener(evtName, syncInitialDate);
+        });
+    }
+
     // preenche datas iniciais vazias com a última data prorrogada
     let last = '';
     $container.find('.pror-row').each(function() {

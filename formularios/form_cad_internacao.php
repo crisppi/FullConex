@@ -286,9 +286,18 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
     #data_intern_int_dt,
     #data_lancamento_int,
     #data_visita_int,
-    #internado_int {
-        min-height: 42px;
-        height: 42px;
+    #internado_int,
+    #data_alta_alt,
+    #tipo_alta_alt {
+        min-height: 42px !important;
+        height: 42px !important;
+    }
+
+    #data_alta_alt,
+    #tipo_alta_alt {
+        padding-top: 8px;
+        padding-bottom: 8px;
+        line-height: 24px;
     }
 
     .bootstrap-select>.dropdown-toggle[data-id="hospital_selected"],
@@ -1021,7 +1030,7 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
 
                         <div class="form-group col-sm-2" id="div-motivo-alta" style="display:none">
                             <label class="control-label" for="tipo_alta_alt"> Motivo Alta</label>
-                            <select class="form-control" id="tipo_alta_alt" name="tipo_alta_alt">
+                            <select class="form-control input-lg-fullcare" id="tipo_alta_alt" name="tipo_alta_alt">
                                 <option value="">Selecione o motivo da alta</option>
                                 <?php
                                 if (!is_array($dados_alta)) {
@@ -2005,20 +2014,46 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
         const selectInternado = document.getElementById("internado_int");
         const divDataAlta = document.getElementById("div-data-alta");
         const divMotivoAlta = document.getElementById("div-motivo-alta");
+        const dataAltaInput = document.getElementById("data_alta_alt");
+        const motivoAltaInput = document.getElementById("tipo_alta_alt");
+        const retroativaInput = document.getElementById("retroativa_confirmada");
 
-        function toggleDataAlta() {
+        if (!selectInternado || !divDataAlta || !divMotivoAlta) return;
+
+        function toggleDataAlta(clearOnInternado) {
             if (selectInternado.value === "s") {
                 divDataAlta.style.display = "none";
                 divMotivoAlta.style.display = "none";
-                document.getElementById("data_alta_alt").value = "";
-                document.getElementById("tipo_alta_alt").value = "";
+                divDataAlta.hidden = true;
+                divMotivoAlta.hidden = true;
+                divDataAlta.classList.add('d-none');
+                divMotivoAlta.classList.add('d-none');
+                if (clearOnInternado) {
+                    if (dataAltaInput) dataAltaInput.value = "";
+                    if (motivoAltaInput) motivoAltaInput.value = "";
+                }
             } else {
                 divDataAlta.style.display = "block";
                 divMotivoAlta.style.display = "block";
+                divDataAlta.hidden = false;
+                divMotivoAlta.hidden = false;
+                divDataAlta.classList.remove('d-none');
+                divMotivoAlta.classList.remove('d-none');
             }
         }
-        toggleDataAlta();
-        selectInternado.addEventListener("change", toggleDataAlta);
+
+        window.syncAltaFieldsByInternado = function(clearOnInternado) {
+            toggleDataAlta(Boolean(clearOnInternado));
+        };
+
+        // Estado inicial padrão: Internado = Sim (exceto quando retroativa já confirmada)
+        if (retroativaInput?.value !== '1') {
+            selectInternado.value = 's';
+        }
+        toggleDataAlta(true);
+        selectInternado.addEventListener("change", function() {
+            toggleDataAlta(true);
+        });
     });
 
 
@@ -2419,9 +2454,33 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                     // document.getElementById("hospital_selected").value = hospitalSelected; // Não precisa redefinir aqui
 
                     // 4. Atualiza outros selects (exceto o de hospitais)
-                    $('#fk_paciente_int').val('').selectpicker('refresh');
-                    $('#fk_patologia2').val('').selectpicker('refresh');
-                    $('#fk_patologia_int').val('').selectpicker('refresh');
+                    const forceClearPicker = (selector) => {
+                        const el = document.querySelector(selector);
+                        if (!el) return;
+                        el.value = '';
+                        el.selectedIndex = 0;
+                        Array.from(el.options || []).forEach((opt, idx) => {
+                            opt.selected = idx === 0;
+                        });
+                        if (window.jQuery && $.fn.selectpicker && $(el).hasClass('selectpicker')) {
+                            $(el).selectpicker('val', '');
+                            $(el).selectpicker('render');
+                            $(el).selectpicker('refresh');
+                        }
+                        el.dispatchEvent(new Event('change', {
+                            bubbles: true
+                        }));
+                    };
+
+                    forceClearPicker('#fk_paciente_int');
+                    forceClearPicker('#fk_cid_int');
+                    forceClearPicker('#fk_patologia2');
+                    forceClearPicker('#fk_patologia_int');
+                    $('#matricula_paciente_display').val('');
+                    if (typeof window.triggerInternacaoCheck === 'function') {
+                        window.triggerInternacaoCheck();
+                        setTimeout(window.triggerInternacaoCheck, 120);
+                    }
 
                     // 5. Update other values
                     const adicionarValor = parseInt(document.querySelector("#proximoId_int")
@@ -2443,6 +2502,10 @@ if (!isset($listaHospitais) || !is_array($listaHospitais)) {
                     document.getElementById("internado_int").value = "s";
                     document.getElementById("internado_int").querySelector("option[value='s']")
                         .selected = true;
+                    document.getElementById("internado_int").dispatchEvent(new Event('change'));
+                    if (typeof window.syncAltaFieldsByInternado === 'function') {
+                        window.syncAltaFieldsByInternado(true);
+                    }
 
                     // 6. Hide containers
                     const containers = [
