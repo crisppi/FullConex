@@ -3,9 +3,6 @@ include_once("check_logado.php");
 include_once("templates/header.php");
 include_once("models/message.php");
 
-include_once("models/pacital.php");
-include_once("dao/pacitalDao.php");
-
 include_once("models/seguradora.php");
 include_once("dao/seguradoraDao.php");
 
