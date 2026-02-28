@@ -113,6 +113,45 @@ function formatarTelefone($telefone)
     #multi-step-form select.form-control {
         height: 42px;
     }
+
+    .confirm-delete-modal .modal-content {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #cfd4dc;
+    }
+
+    .confirm-delete-modal .modal-header {
+        background: #8b95a5;
+        color: #fff !important;
+        border-bottom: 0;
+        padding: 10px 14px;
+    }
+
+    .confirm-delete-modal .modal-title {
+        font-size: 1rem;
+        font-weight: 700;
+        margin: 0;
+        color: #ffffff !important;
+    }
+
+    .confirm-delete-modal .close {
+        color: #fff;
+        opacity: .9;
+        text-shadow: none;
+    }
+
+    .confirm-delete-modal .close:hover {
+        color: #fff;
+        opacity: 1;
+    }
+
+    .confirm-delete-modal .modal-body {
+        padding: 14px;
+    }
+
+    .confirm-delete-modal .modal-footer {
+        border-top: 1px solid #e8ebf0;
+    }
 </style>
 
 <div id="main-container" class="internacao-page">
@@ -307,21 +346,21 @@ function formatarTelefone($telefone)
                     </button>
                 </div>
             </div>
-            <div class="modal fade" id="modalConfirmDelete" tabindex="-1" aria-hidden="true" style="display:none;">
+            <div class="modal fade confirm-delete-modal" id="modalConfirmDelete" tabindex="-1" aria-hidden="true" style="display:none;">
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title">Confirmar inativação</h5>
+                            <h5 class="modal-title">Confirmar exclusão</h5>
                             <button type="button" class="close" data-bs-dismiss="modal" data-dismiss="modal" aria-label="Fechar" onclick="hideConfirmDelete()">
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
                         <div class="modal-body">
-                            Este registro será inativado. Deseja continuar?
+                            Este registro será deletado. Deseja continuar?
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-dismiss="modal" onclick="hideConfirmDelete()">Não</button>
-                            <button type="button" class="btn btn-danger" onclick="confirmAction()">Sim, inativar</button>
+                            <button type="button" class="btn btn-danger" onclick="confirmAction()">Sim, deletar</button>
                         </div>
                     </div>
                 </div>
