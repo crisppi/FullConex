@@ -63,6 +63,18 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
     #multi-step-form select.form-control {
         height: 42px;
     }
+
+    #acomodacao-inline-card {
+        background: #f7f5fb;
+        border: 1px solid #e8def1;
+        border-radius: 14px;
+        padding: 14px;
+    }
+
+    #acomodacoesTable th,
+    #acomodacoesTable td {
+        vertical-align: middle;
+    }
 </style>
 
 <div class="internacao-page" id="main-container">
@@ -100,8 +112,8 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
                     <div class="invalid-feedback">Por favor, insira um CNPJ válido.</div>
                 </div>
                 <div class="form-group col-md-6 mb-3">
-                    <label for="nome_hosp">Nome do Hospital</label>
-                    <input type="text" class="form-control" id="nome_hosp" name="nome_hosp"
+                    <label for="nome_hosp"><span style="color:red;">*</span> Nome do Hospital</label>
+                    <input type="text" class="form-control" id="nome_hosp" name="nome_hosp" required
                         placeholder="Digite o nome do hospital">
                     <div class="invalid-feedback">Por favor, insira o nome do hospital.</div>
                 </div>
@@ -225,6 +237,56 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
                 </div>
             </div>
 
+            <p class="internacao-card__eyebrow mb-3">Acomodações do hospital</p>
+            <div id="acomodacao-inline-card" class="mb-3">
+                <div class="row">
+                    <div class="form-group col-md-4 mb-2">
+                        <label for="acomodacao_nome_inline">Acomodação</label>
+                        <select class="form-control" id="acomodacao_nome_inline">
+                            <option value="">Selecione</option>
+                            <?php
+                            sort($dados_acomodacao, SORT_ASC);
+                            foreach ($dados_acomodacao as $acomd): ?>
+                            <option value="<?= htmlspecialchars($acomd, ENT_QUOTES, 'UTF-8') ?>">
+                                <?= htmlspecialchars($acomd, ENT_QUOTES, 'UTF-8') ?>
+                            </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-4 mb-2">
+                        <label for="acomodacao_valor_inline">Valor diária</label>
+                        <input type="text" class="form-control" id="acomodacao_valor_inline" placeholder="R$ 0,00">
+                    </div>
+                    <div class="form-group col-md-3 mb-2">
+                        <label for="acomodacao_data_inline">Data contrato</label>
+                        <input type="date" class="form-control" id="acomodacao_data_inline">
+                    </div>
+                    <div class="form-group col-md-1 mb-2 d-flex align-items-end">
+                        <button type="button" id="btnAddAcomodacaoInline" class="btn btn-primary w-100">+</button>
+                    </div>
+                </div>
+
+                <div class="table-responsive mt-3">
+                    <table class="table table-sm table-striped mb-0" id="acomodacoesTable">
+                        <thead>
+                            <tr>
+                                <th>Acomodação</th>
+                                <th>Valor diária</th>
+                                <th>Data contrato</th>
+                                <th style="width: 80px;">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="acomodacoesTableBody">
+                            <tr id="acomodacoesTableEmpty">
+                                <td colspan="4" class="text-muted text-center">Nenhuma acomodação adicionada.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="acomodacoesHiddenContainer"></div>
+            </div>
+
             <hr>
             <button type="submit" class="btn btn-success">
                 <i class="fas fa-check"></i> Cadastrar
@@ -237,6 +299,108 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
 </div>
 
 <script>
+    (function () {
+        const nomeEl = document.getElementById('acomodacao_nome_inline');
+        const valorEl = document.getElementById('acomodacao_valor_inline');
+        const dataEl = document.getElementById('acomodacao_data_inline');
+        const addBtn = document.getElementById('btnAddAcomodacaoInline');
+        const tbody = document.getElementById('acomodacoesTableBody');
+        const hiddenContainer = document.getElementById('acomodacoesHiddenContainer');
+        const emptyRow = document.getElementById('acomodacoesTableEmpty');
+
+        if (!nomeEl || !valorEl || !dataEl || !addBtn || !tbody || !hiddenContainer || !emptyRow) {
+            return;
+        }
+
+        let index = 0;
+
+        function createHidden(name, value) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = name;
+            input.value = value || '';
+            return input;
+        }
+
+        function onlyDigits(value) {
+            return String(value || '').replace(/\D+/g, '');
+        }
+
+        function formatCurrencyBR(value) {
+            const digits = onlyDigits(value);
+            if (!digits) return '';
+            const cents = Number(digits) / 100;
+            return 'R$ ' + cents.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function formatDateBR(value) {
+            const raw = String(value || '').trim();
+            if (!raw) return '';
+            const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if (!m) return raw;
+            return `${m[3]}/${m[2]}/${m[1]}`;
+        }
+
+        function addRow(nome, valor, data) {
+            if (emptyRow) emptyRow.style.display = 'none';
+            const dataView = formatDateBR(data);
+
+            const row = document.createElement('tr');
+            row.dataset.index = String(index);
+            row.innerHTML = `
+                <td>${nome}</td>
+                <td>${valor || '-'}</td>
+                <td>${dataView || '-'}</td>
+                <td><button type="button" class="btn btn-sm btn-outline-danger">Remover</button></td>
+            `;
+
+            const wrap = document.createElement('div');
+            wrap.dataset.index = String(index);
+            wrap.appendChild(createHidden('acomodacao_nome[]', nome));
+            wrap.appendChild(createHidden('acomodacao_valor[]', valor));
+            wrap.appendChild(createHidden('acomodacao_data[]', data));
+            hiddenContainer.appendChild(wrap);
+
+            row.querySelector('button').addEventListener('click', function () {
+                row.remove();
+                wrap.remove();
+                if (!tbody.querySelector('tr')) {
+                    emptyRow.style.display = '';
+                    tbody.appendChild(emptyRow);
+                }
+            });
+
+            tbody.appendChild(row);
+            index += 1;
+        }
+
+        valorEl.addEventListener('input', function () {
+            const formatted = formatCurrencyBR(valorEl.value);
+            valorEl.value = formatted;
+        });
+
+        addBtn.addEventListener('click', function () {
+            const nome = (nomeEl.value || '').trim();
+            const valor = formatCurrencyBR(valorEl.value);
+            const data = (dataEl.value || '').trim();
+
+            if (!nome) {
+                alert('Selecione a acomodação.');
+                nomeEl.focus();
+                return;
+            }
+
+            addRow(nome, valor, data);
+            nomeEl.value = '';
+            valorEl.value = '';
+            dataEl.value = '';
+            nomeEl.focus();
+        });
+    })();
+
     // validacao de tamanho do arquivo de imagem
     const imagem = document.querySelector("#logo_hosp")
     // console.log(imagem);

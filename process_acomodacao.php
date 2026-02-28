@@ -34,6 +34,21 @@ $message = new Message($BASE_URL);
 $userDao = new UserDAO($conn, $BASE_URL);
 $acomodacaoDao = new acomodacaoDAO($conn, $BASE_URL);
 
+$redirect_hospital_id = filter_input(INPUT_POST, "redirect_hospital_id", FILTER_VALIDATE_INT);
+if (!$redirect_hospital_id) {
+    $redirect_hospital_id = filter_input(INPUT_GET, "redirect_hospital_id", FILTER_VALIDATE_INT);
+}
+
+function redirectAcomodacao($BASE_URL, $redirect_hospital_id)
+{
+    if (!empty($redirect_hospital_id)) {
+        header("Location: " . rtrim($BASE_URL, '/') . "/hospital_acomodacoes.php?id_hospital=" . (int) $redirect_hospital_id);
+    } else {
+        header('location:list_acomodacao.php');
+    }
+    exit;
+}
+
 // Resgata o tipo do formulário
 $type = filter_input(INPUT_POST, "type");
 
@@ -71,7 +86,7 @@ if ($type === "create") {
         $acomodacao->data_create_acomodacao = $data_create_acomodacao;
 
         $acomodacaoDao->create($acomodacao);
-        header('location:list_acomodacao.php');
+        redirectAcomodacao($BASE_URL, $redirect_hospital_id ?: $fk_hospital);
     } else {
 
         $message->setMessage("Você precisa adicionar pelo menos: acomodacao_aco do acomodacao!", "error", "back");
@@ -106,14 +121,20 @@ if ($type === "create") {
     $acomodacao['data_contrato_aco'] = $data_contrato_aco;
     $acomodacaoDao->update($acomodacao);
 
-    header('location:list_acomodacao.php');
+    redirectAcomodacao($BASE_URL, $redirect_hospital_id ?: $fk_hospital);
 }
 
-$type = filter_input(INPUT_GET, "type");
+$typeDelete = filter_input(INPUT_GET, "type");
+if (!$typeDelete) {
+    $typeDelete = filter_input(INPUT_POST, "type");
+}
 
-if ($type === "delete") {
+if ($typeDelete === "delete") {
     // Recebe os dados do form
-    $id_acomodacao = filter_input(INPUT_GET, "id_acomodacao");
+    $id_acomodacao = filter_input(INPUT_POST, "id_acomodacao", FILTER_VALIDATE_INT);
+    if (!$id_acomodacao) {
+        $id_acomodacao = filter_input(INPUT_GET, "id_acomodacao", FILTER_VALIDATE_INT);
+    }
 
     $acomodacaoDao = new acomodacaoDAO($conn, $BASE_URL);
 
@@ -121,13 +142,13 @@ if ($type === "delete") {
     if ($acomodacao) {
 
         $acomodacaoDao->destroy($id_acomodacao);
-
-        header('location:list_acomodacao.php');
+        $fk_hosp = isset($acomodacao['fk_hospital']) ? (int) $acomodacao['fk_hospital'] : 0;
+        redirectAcomodacao($BASE_URL, $redirect_hospital_id ?: $fk_hosp);
     } else {
 
         $message->setMessage("Informações inválidas!", "error", "index.php");
     }
-    header('location:list_acomodacao.php');
+    redirectAcomodacao($BASE_URL, $redirect_hospital_id);
 }
 
 
@@ -135,9 +156,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_hospital'])) {
     $id_hospital = filter_var($_POST['id_hospital'], FILTER_VALIDATE_INT);
 
     if ($id_hospital) {
-        // Debug para o console do backend
-        error_log("Processando o ID do hospital: $id_hospital");
-
         // Defina a condição para o WHERE
         $where = 'ho.id_hospital = ' . $id_hospital;
 

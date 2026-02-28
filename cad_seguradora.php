@@ -89,8 +89,8 @@ $id_seguradora = filter_input(INPUT_GET, "id_seguradora");
                     <div id="step-1" class="step">
                         <div class="row">
                             <div class="form-group col-md-6 mb-3">
-                                <label for="seguradora_seg">Seguradora</label>
-                                <input type="text" class="form-control" id="seguradora_seg" name="seguradora_seg" autofocus
+                                <label for="seguradora_seg"><span style="color:red;">*</span> Seguradora</label>
+                                <input type="text" class="form-control" id="seguradora_seg" name="seguradora_seg" required autofocus
                                     placeholder="Digite o nome da seguradora">
                             </div>
                             <div class="form-group col-md-6 mb-3">

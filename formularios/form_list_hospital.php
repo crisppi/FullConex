@@ -178,6 +178,13 @@
                                         </button>
                                         <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
                                             <li>
+                                                <a class="btn btn-default" style="font-size: .9rem;"
+                                                    href="<?= htmlspecialchars(rtrim($BASE_URL, '/') . '/hospital_acomodacoes.php?id_hospital=' . (int) $id_hospital, ENT_QUOTES, 'UTF-8') ?>">
+                                                    <i class="fa-solid fa-bed"
+                                                        style="font-size: 1rem;margin-right:5px; color: #5e2363;"></i>Acomodações
+                                                </a>
+                                            </li>
+                                            <li>
                                                 <button class="btn btn-default" style="font-size: .9rem;"
                                                     onclick="openModal('<?= $BASE_URL ?>show_hospital.php?id_hospital=<?= $id_hospital ?>')"
                                                     data-bs-toggle="modal" data-bs-target="#myModal"><i
