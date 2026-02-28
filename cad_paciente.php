@@ -25,6 +25,7 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
 <style>
     #main-container.internacao-page {
         margin: 2px 0 0 !important;
+        padding-inline: 5px !important;
         padding-top: 0 !important;
         width: auto !important;
         max-width: 100% !important;
@@ -33,6 +34,32 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
 
     #main-container.internacao-page .internacao-page__hero {
         margin: 0 0 6px !important;
+    }
+
+    #main-container.internacao-page .hero-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    #main-container.internacao-page .hero-back-btn {
+        border-radius: 999px;
+        border: 1px solid #d9c3f4;
+        color: #5e2363;
+        padding: 7px 14px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: .85rem;
+        background: #f4ecfb;
+    }
+
+    #main-container.internacao-page .hero-back-btn:hover {
+        color: #4a1b4e;
+        background: #eadcf8;
+    }
+
+    #main-container.internacao-page .internacao-card__eyebrow {
+        font-weight: 700 !important;
     }
 
     #multi-step-form .form-control {
@@ -57,7 +84,12 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
         <div>
             <h1>Cadastrar paciente</h1>
         </div>
-        <span class="internacao-page__tag">Campos obrigatórios em destaque</span>
+        <div class="hero-actions">
+            <a class="hero-back-btn" href="<?= htmlspecialchars($BASE_URL . 'pacientes', ENT_QUOTES, 'UTF-8') ?>">
+                Voltar para lista
+            </a>
+            <span class="internacao-page__tag">Campos obrigatórios em destaque</span>
+        </div>
     </div>
     <div class="internacao-page__content">
         <form action="<?= $BASE_URL ?>process_paciente.php" id="multi-step-form" method="POST" enctype="multipart/form-data"

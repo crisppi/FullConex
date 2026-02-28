@@ -76,11 +76,11 @@
         <div class="d-flex justify-content-between align-items-center" style="margin-bottom: 0;">
             <h4 class="page-title">Hospitais</h4>
             <div style="margin-left: auto;">
-                <button onclick="openModal('cad_hospital.php')" data-bs-toggle="modal" data-bs-target="#myModal"
+                <a href="<?= htmlspecialchars(rtrim($BASE_URL, '/') . '/cad_hospital.php', ENT_QUOTES, 'UTF-8') ?>"
                     class="btn btn-success styled"
                     style="border-radius:10px;background-color: #35bae1;font-family:var(--bs-font-sans-serif);box-shadow: 0px 10px 15px -3px rgba(0,0,0,0.1);border:none">
                     <i class="fa-solid fa-plus" style='font-size: 1rem;margin-right:5px;'></i>Novo Hospital
-                </button>
+                </a>
             </div>
         </div>
 
