@@ -33,6 +33,111 @@ $message = new Message($BASE_URL);
 $userDao = new UserDAO($conn, $BASE_URL);
 $hospitalDao = new hospitalDAO($conn, $BASE_URL);
 
+function normalizeDigits(?string $value): string
+{
+    return preg_replace('/\D+/', '', (string) $value) ?? '';
+}
+
+function normalizeMoneyToFloat(?string $value): ?float
+{
+    $raw = str_replace(['R$', ' '], '', (string) $value);
+    $raw = str_replace('.', '', $raw);
+    $raw = str_replace(',', '.', $raw);
+    return is_numeric($raw) ? (float) $raw : null;
+}
+
+function postArray(string $key): array
+{
+    $values = filter_input(INPUT_POST, $key, FILTER_DEFAULT, FILTER_REQUIRE_ARRAY);
+    return is_array($values) ? $values : [];
+}
+
+function insertHospitalRelatedRows(PDO $conn, int $idHospital, array $enderecos, array $telefones, array $contatos): void
+{
+    if ($idHospital <= 0) {
+        return;
+    }
+
+    $stmtEnd = $conn->prepare("
+        INSERT INTO tb_hospital_endereco (
+            fk_hospital, tipo_endereco, cep_endereco, endereco_endereco, numero_endereco,
+            bairro_endereco, cidade_endereco, estado_endereco, complemento_endereco,
+            principal_endereco, ativo_endereco, data_create_endereco
+        ) VALUES (
+            :fk_hospital, :tipo_endereco, :cep_endereco, :endereco_endereco, :numero_endereco,
+            :bairro_endereco, :cidade_endereco, :estado_endereco, :complemento_endereco,
+            :principal_endereco, 's', NOW()
+        )
+    ");
+    foreach ($enderecos as $item) {
+        $endereco = trim((string) ($item['endereco'] ?? ''));
+        if ($endereco === '') {
+            continue;
+        }
+        $stmtEnd->execute([
+            ':fk_hospital' => $idHospital,
+            ':tipo_endereco' => trim((string) ($item['tipo'] ?? '')),
+            ':cep_endereco' => normalizeDigits((string) ($item['cep'] ?? '')),
+            ':endereco_endereco' => $endereco,
+            ':numero_endereco' => trim((string) ($item['numero'] ?? '')),
+            ':bairro_endereco' => trim((string) ($item['bairro'] ?? '')),
+            ':cidade_endereco' => trim((string) ($item['cidade'] ?? '')),
+            ':estado_endereco' => trim((string) ($item['estado'] ?? '')),
+            ':complemento_endereco' => trim((string) ($item['complemento'] ?? '')),
+            ':principal_endereco' => ((string) ($item['principal'] ?? 'n') === 's') ? 1 : 0,
+        ]);
+    }
+
+    $stmtTel = $conn->prepare("
+        INSERT INTO tb_hospital_telefone (
+            fk_hospital, tipo_telefone, numero_telefone, ramal_telefone,
+            contato_telefone, principal_telefone, ativo_telefone, data_create_telefone
+        ) VALUES (
+            :fk_hospital, :tipo_telefone, :numero_telefone, :ramal_telefone,
+            :contato_telefone, :principal_telefone, 's', NOW()
+        )
+    ");
+    foreach ($telefones as $item) {
+        $numero = normalizeDigits((string) ($item['numero'] ?? ''));
+        if ($numero === '') {
+            continue;
+        }
+        $stmtTel->execute([
+            ':fk_hospital' => $idHospital,
+            ':tipo_telefone' => trim((string) ($item['tipo'] ?? '')),
+            ':numero_telefone' => $numero,
+            ':ramal_telefone' => trim((string) ($item['ramal'] ?? '')),
+            ':contato_telefone' => trim((string) ($item['contato'] ?? '')),
+            ':principal_telefone' => ((string) ($item['principal'] ?? 'n') === 's') ? 1 : 0,
+        ]);
+    }
+
+    $stmtCont = $conn->prepare("
+        INSERT INTO tb_hospital_contato (
+            fk_hospital, nome_contato, cargo_contato, setor_contato, email_contato,
+            telefone_contato, principal_contato, ativo_contato, data_create_contato
+        ) VALUES (
+            :fk_hospital, :nome_contato, :cargo_contato, :setor_contato, :email_contato,
+            :telefone_contato, :principal_contato, 's', NOW()
+        )
+    ");
+    foreach ($contatos as $item) {
+        $nome = trim((string) ($item['nome'] ?? ''));
+        if ($nome === '') {
+            continue;
+        }
+        $stmtCont->execute([
+            ':fk_hospital' => $idHospital,
+            ':nome_contato' => $nome,
+            ':cargo_contato' => trim((string) ($item['cargo'] ?? '')),
+            ':setor_contato' => trim((string) ($item['setor'] ?? '')),
+            ':email_contato' => trim((string) ($item['email'] ?? '')),
+            ':telefone_contato' => normalizeDigits((string) ($item['telefone'] ?? '')),
+            ':principal_contato' => ((string) ($item['principal'] ?? 'n') === 's') ? 1 : 0,
+        ]);
+    }
+}
+
 // Resgata o tipo do formulário
 $type = filter_input(INPUT_POST, "type");
 $typeDel = filter_input(INPUT_POST, "typeDel");
@@ -52,23 +157,12 @@ if ($type === "create") {
     $cidade_hosp = filter_input(INPUT_POST, "cidade_hosp");
     $estado_hosp = filter_input(INPUT_POST, "estado_hosp");
     $ativo_hosp = filter_input(INPUT_POST, "ativo_hosp");
-    $cep_hosp = filter_input(INPUT_POST, "cep_hosp");
-    $cep_hosp = str_replace('-', '', $cep_hosp);
+    $cep_hosp = normalizeDigits(filter_input(INPUT_POST, "cep_hosp"));
 
-    $cnpj_hosp = filter_input(INPUT_POST, "cnpj_hosp");
-    $cnpj_hosp = str_replace('/', '', $cnpj_hosp);
-    $cnpj_hosp = str_replace('-', '', $cnpj_hosp);
-    $cnpj_hosp = str_replace('.', '', $cnpj_hosp);
+    $cnpj_hosp = normalizeDigits(filter_input(INPUT_POST, "cnpj_hosp"));
 
-    $telefone01_hosp = filter_input(INPUT_POST, "telefone01_hosp");
-    $telefone01_hosp = str_replace('-', '', $telefone01_hosp);
-    $telefone01_hosp = str_replace('(', '', $telefone01_hosp);
-    $telefone01_hosp = str_replace(') ', '', $telefone01_hosp);
-
-    $telefone02_hosp = filter_input(INPUT_POST, "telefone02_hosp");
-    $telefone02_hosp = str_replace('-', '', $telefone02_hosp);
-    $telefone02_hosp = str_replace('(', '', $telefone02_hosp);
-    $telefone02_hosp = str_replace(') ', '', $telefone02_hosp);
+    $telefone01_hosp = normalizeDigits(filter_input(INPUT_POST, "telefone01_hosp"));
+    $telefone02_hosp = normalizeDigits(filter_input(INPUT_POST, "telefone02_hosp"));
 
     $numero_hosp = filter_input(INPUT_POST, "numero_hosp");
     $bairro_hosp = filter_input(INPUT_POST, "bairro_hosp");
@@ -114,6 +208,100 @@ if ($type === "create") {
         $hospitalDao->create($hospital);
 
         $id_hospital_novo = (int) $conn->lastInsertId();
+
+        $enderecos = [];
+        $endTipo = postArray("end_tipo");
+        $endCep = postArray("end_cep");
+        $endLogradouro = postArray("end_logradouro");
+        $endNumero = postArray("end_numero");
+        $endBairro = postArray("end_bairro");
+        $endCidade = postArray("end_cidade");
+        $endEstado = postArray("end_estado");
+        $endComplemento = postArray("end_complemento");
+        $endPrincipal = postArray("end_principal");
+        $endCount = max(count($endTipo), count($endLogradouro));
+        for ($i = 0; $i < $endCount; $i++) {
+            $enderecos[] = [
+                'tipo' => $endTipo[$i] ?? '',
+                'cep' => $endCep[$i] ?? '',
+                'endereco' => $endLogradouro[$i] ?? '',
+                'numero' => $endNumero[$i] ?? '',
+                'bairro' => $endBairro[$i] ?? '',
+                'cidade' => $endCidade[$i] ?? '',
+                'estado' => $endEstado[$i] ?? '',
+                'complemento' => $endComplemento[$i] ?? '',
+                'principal' => $endPrincipal[$i] ?? 'n',
+            ];
+        }
+        if (empty($enderecos) && !empty($endereco_hosp)) {
+            array_unshift($enderecos, [
+                'tipo' => 'Principal',
+                'cep' => $cep_hosp,
+                'endereco' => $endereco_hosp,
+                'numero' => $numero_hosp,
+                'bairro' => $bairro_hosp,
+                'cidade' => $cidade_hosp,
+                'estado' => $estado_hosp,
+                'complemento' => '',
+                'principal' => 's',
+            ]);
+        }
+
+        $telefones = [];
+        $telTipo = postArray("tel_tipo");
+        $telNumero = postArray("tel_numero");
+        $telRamal = postArray("tel_ramal");
+        $telContato = postArray("tel_contato");
+        $telPrincipal = postArray("tel_principal");
+        $telCount = max(count($telTipo), count($telNumero));
+        for ($i = 0; $i < $telCount; $i++) {
+            $telefones[] = [
+                'tipo' => $telTipo[$i] ?? '',
+                'numero' => $telNumero[$i] ?? '',
+                'ramal' => $telRamal[$i] ?? '',
+                'contato' => $telContato[$i] ?? '',
+                'principal' => $telPrincipal[$i] ?? 'n',
+            ];
+        }
+        if (empty($telefones) && !empty($telefone01_hosp)) {
+            array_unshift($telefones, [
+                'tipo' => 'Principal',
+                'numero' => $telefone01_hosp,
+                'ramal' => '',
+                'contato' => '',
+                'principal' => 's',
+            ]);
+            if (!empty($telefone02_hosp)) {
+                $telefones[] = [
+                    'tipo' => 'Alternativo',
+                    'numero' => $telefone02_hosp,
+                    'ramal' => '',
+                    'contato' => '',
+                    'principal' => 'n',
+                ];
+            }
+        }
+
+        $contatos = [];
+        $contNome = postArray("cont_nome");
+        $contCargo = postArray("cont_cargo");
+        $contSetor = postArray("cont_setor");
+        $contEmail = postArray("cont_email");
+        $contTelefone = postArray("cont_telefone");
+        $contPrincipal = postArray("cont_principal");
+        $contCount = max(count($contNome), count($contEmail));
+        for ($i = 0; $i < $contCount; $i++) {
+            $contatos[] = [
+                'nome' => $contNome[$i] ?? '',
+                'cargo' => $contCargo[$i] ?? '',
+                'setor' => $contSetor[$i] ?? '',
+                'email' => $contEmail[$i] ?? '',
+                'telefone' => $contTelefone[$i] ?? '',
+                'principal' => $contPrincipal[$i] ?? 'n',
+            ];
+        }
+
+        insertHospitalRelatedRows($conn, $id_hospital_novo, $enderecos, $telefones, $contatos);
         if ($id_hospital_novo > 0) {
             $acomodacoesNome = filter_input(INPUT_POST, "acomodacao_nome", FILTER_DEFAULT, FILTER_REQUIRE_ARRAY) ?: [];
             $acomodacoesValor = filter_input(INPUT_POST, "acomodacao_valor", FILTER_DEFAULT, FILTER_REQUIRE_ARRAY) ?: [];
@@ -144,11 +332,7 @@ if ($type === "create") {
                         continue;
                     }
 
-                    $valorRaw = isset($acomodacoesValor[$i]) ? (string) $acomodacoesValor[$i] : '';
-                    $valorRaw = str_replace(['R$', ' '], '', $valorRaw);
-                    $valorRaw = str_replace('.', '', $valorRaw);
-                    $valorRaw = str_replace(',', '.', $valorRaw);
-                    $valorAco = is_numeric($valorRaw) ? (float) $valorRaw : null;
+                    $valorAco = normalizeMoneyToFloat(isset($acomodacoesValor[$i]) ? (string) $acomodacoesValor[$i] : '');
 
                     $dataContrato = isset($acomodacoesData[$i]) ? trim((string) $acomodacoesData[$i]) : '';
                     if ($dataContrato === '') {
@@ -191,23 +375,12 @@ if ($type === "update") {
     $cidade_hosp = filter_input(INPUT_POST, "cidade_hosp");
     $estado_hosp = filter_input(INPUT_POST, "estado_hosp");
     $ativo_hosp = filter_input(INPUT_POST, "ativo_hosp");
-    $cep_hosp = filter_input(INPUT_POST, "cep_hosp");
-    $cep_hosp = str_replace('-', '', $cep_hosp);
+    $cep_hosp = normalizeDigits(filter_input(INPUT_POST, "cep_hosp"));
 
-    $cnpj_hosp = filter_input(INPUT_POST, "cnpj_hosp");
-    $cnpj_hosp = str_replace('/', '', $cnpj_hosp);
-    $cnpj_hosp = str_replace('-', '', $cnpj_hosp);
-    $cnpj_hosp = str_replace('.', '', $cnpj_hosp);
+    $cnpj_hosp = normalizeDigits(filter_input(INPUT_POST, "cnpj_hosp"));
 
-    $telefone01_hosp = filter_input(INPUT_POST, "telefone01_hosp");
-    $telefone01_hosp = str_replace('-', '', $telefone01_hosp);
-    $telefone01_hosp = str_replace('(', '', $telefone01_hosp);
-    $telefone01_hosp = str_replace(') ', '', $telefone01_hosp);
-
-    $telefone02_hosp = filter_input(INPUT_POST, "telefone02_hosp");
-    $telefone02_hosp = str_replace('-', '', $telefone02_hosp);
-    $telefone02_hosp = str_replace('(', '', $telefone02_hosp);
-    $telefone02_hosp = str_replace(') ', '', $telefone02_hosp);
+    $telefone01_hosp = normalizeDigits(filter_input(INPUT_POST, "telefone01_hosp"));
+    $telefone02_hosp = normalizeDigits(filter_input(INPUT_POST, "telefone02_hosp"));
 
 
     $numero_hosp = filter_input(INPUT_POST, "numero_hosp");
@@ -242,6 +415,104 @@ if ($type === "update") {
     $hospitalData->ativo_hosp = $ativo_hosp;
 
     $hospitalDao->update($hospitalData);
+
+    $conn->prepare("DELETE FROM tb_hospital_endereco WHERE fk_hospital = :id")->execute([':id' => (int) $id_hospital]);
+    $conn->prepare("DELETE FROM tb_hospital_telefone WHERE fk_hospital = :id")->execute([':id' => (int) $id_hospital]);
+    $conn->prepare("DELETE FROM tb_hospital_contato WHERE fk_hospital = :id")->execute([':id' => (int) $id_hospital]);
+
+    $enderecos = [];
+    $endTipo = postArray("end_tipo");
+    $endCep = postArray("end_cep");
+    $endLogradouro = postArray("end_logradouro");
+    $endNumero = postArray("end_numero");
+    $endBairro = postArray("end_bairro");
+    $endCidade = postArray("end_cidade");
+    $endEstado = postArray("end_estado");
+    $endComplemento = postArray("end_complemento");
+    $endPrincipal = postArray("end_principal");
+    $endCount = max(count($endTipo), count($endLogradouro));
+    for ($i = 0; $i < $endCount; $i++) {
+        $enderecos[] = [
+            'tipo' => $endTipo[$i] ?? '',
+            'cep' => $endCep[$i] ?? '',
+            'endereco' => $endLogradouro[$i] ?? '',
+            'numero' => $endNumero[$i] ?? '',
+            'bairro' => $endBairro[$i] ?? '',
+            'cidade' => $endCidade[$i] ?? '',
+            'estado' => $endEstado[$i] ?? '',
+            'complemento' => $endComplemento[$i] ?? '',
+            'principal' => $endPrincipal[$i] ?? 'n',
+        ];
+    }
+    if (empty($enderecos) && !empty($endereco_hosp)) {
+        array_unshift($enderecos, [
+            'tipo' => 'Principal',
+            'cep' => $cep_hosp,
+            'endereco' => $endereco_hosp,
+            'numero' => $numero_hosp,
+            'bairro' => $bairro_hosp,
+            'cidade' => $cidade_hosp,
+            'estado' => $estado_hosp,
+            'complemento' => '',
+            'principal' => 's',
+        ]);
+    }
+
+    $telefones = [];
+    $telTipo = postArray("tel_tipo");
+    $telNumero = postArray("tel_numero");
+    $telRamal = postArray("tel_ramal");
+    $telContato = postArray("tel_contato");
+    $telPrincipal = postArray("tel_principal");
+    $telCount = max(count($telTipo), count($telNumero));
+    for ($i = 0; $i < $telCount; $i++) {
+        $telefones[] = [
+            'tipo' => $telTipo[$i] ?? '',
+            'numero' => $telNumero[$i] ?? '',
+            'ramal' => $telRamal[$i] ?? '',
+            'contato' => $telContato[$i] ?? '',
+            'principal' => $telPrincipal[$i] ?? 'n',
+        ];
+    }
+    if (empty($telefones) && !empty($telefone01_hosp)) {
+        array_unshift($telefones, [
+            'tipo' => 'Principal',
+            'numero' => $telefone01_hosp,
+            'ramal' => '',
+            'contato' => '',
+            'principal' => 's',
+        ]);
+        if (!empty($telefone02_hosp)) {
+            $telefones[] = [
+                'tipo' => 'Alternativo',
+                'numero' => $telefone02_hosp,
+                'ramal' => '',
+                'contato' => '',
+                'principal' => 'n',
+            ];
+        }
+    }
+
+    $contatos = [];
+    $contNome = postArray("cont_nome");
+    $contCargo = postArray("cont_cargo");
+    $contSetor = postArray("cont_setor");
+    $contEmail = postArray("cont_email");
+    $contTelefone = postArray("cont_telefone");
+    $contPrincipal = postArray("cont_principal");
+    $contCount = max(count($contNome), count($contEmail));
+    for ($i = 0; $i < $contCount; $i++) {
+        $contatos[] = [
+            'nome' => $contNome[$i] ?? '',
+            'cargo' => $contCargo[$i] ?? '',
+            'setor' => $contSetor[$i] ?? '',
+            'email' => $contEmail[$i] ?? '',
+            'telefone' => $contTelefone[$i] ?? '',
+            'principal' => $contPrincipal[$i] ?? 'n',
+        ];
+    }
+
+    insertHospitalRelatedRows($conn, (int) $id_hospital, $enderecos, $telefones, $contatos);
 
     $deleteExistingIds = filter_input(INPUT_POST, "delete_existing_acomodacao_ids", FILTER_DEFAULT, FILTER_REQUIRE_ARRAY) ?: [];
     if (!empty($deleteExistingIds)) {
@@ -286,11 +557,7 @@ if ($type === "update") {
                 continue;
             }
 
-            $valorRaw = isset($acomodacoesValor[$i]) ? (string) $acomodacoesValor[$i] : '';
-            $valorRaw = str_replace(['R$', ' '], '', $valorRaw);
-            $valorRaw = str_replace('.', '', $valorRaw);
-            $valorRaw = str_replace(',', '.', $valorRaw);
-            $valorAco = is_numeric($valorRaw) ? (float) $valorRaw : null;
+            $valorAco = normalizeMoneyToFloat(isset($acomodacoesValor[$i]) ? (string) $acomodacoesValor[$i] : '');
 
             $dataContrato = isset($acomodacoesData[$i]) ? trim((string) $acomodacoesData[$i]) : '';
             if ($dataContrato === '') {
@@ -352,26 +619,3 @@ if ($type === "delete") {
 //     var_dump($_POST); // Exibe os dados enviados
 //     exit;
 // }
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_hospital'])) {
-    // Salva o conteúdo de $_POST em uma variável
-    $dadosPost = $_POST;
-
-    // Filtra o ID do hospital para garantir que é um inteiro válido
-    $id_hospital = filter_var($dadosPost['id_hospital'], FILTER_VALIDATE_INT);
-
-    if ($id_hospital) {
-        echo "ID do Hospital Selecionado: " . $id_hospital; // Retorna o ID do hospital
-    } else {
-        echo "ID inválido.";
-    }
-} else {
-    // Salva os dados do array $_POST em uma variável, mesmo sem id_hospital definido
-    $dadosPost = $_POST;
-
-    // Exibe os dados enviados para debug
-    echo "Dados recebidos: ";
-    print_r($dadosPost);
-
-    echo "Nenhum hospital foi selecionado.";
-}

@@ -34,6 +34,69 @@ $message = new Message($BASE_URL);
 $userDao = new UserDAO($conn, $BASE_URL);
 $estipulanteDao = new estipulanteDAO($conn, $BASE_URL);
 
+function normalizeDigitsEst(?string $value): string
+{
+    return preg_replace('/\D+/', '', (string) $value) ?? '';
+}
+
+function postArrayEst(string $key): array
+{
+    $values = filter_input(INPUT_POST, $key, FILTER_DEFAULT, FILTER_REQUIRE_ARRAY);
+    return is_array($values) ? $values : [];
+}
+
+function insertEstipulanteRelatedRows(PDO $conn, int $idEstipulante, array $enderecos, array $telefones, array $contatos): void
+{
+    if ($idEstipulante <= 0) return;
+
+    $stmtEnd = $conn->prepare("INSERT INTO tb_estipulante_endereco (fk_estipulante, tipo_endereco, cep_endereco, endereco_endereco, numero_endereco, bairro_endereco, cidade_endereco, estado_endereco, complemento_endereco, principal_endereco, ativo_endereco, data_create_endereco) VALUES (:fk_estipulante, :tipo_endereco, :cep_endereco, :endereco_endereco, :numero_endereco, :bairro_endereco, :cidade_endereco, :estado_endereco, :complemento_endereco, :principal_endereco, 's', NOW())");
+    foreach ($enderecos as $item) {
+        $logradouro = trim((string) ($item['endereco'] ?? ''));
+        if ($logradouro === '') continue;
+        $stmtEnd->execute([
+            ':fk_estipulante' => $idEstipulante,
+            ':tipo_endereco' => trim((string) ($item['tipo'] ?? '')),
+            ':cep_endereco' => normalizeDigitsEst((string) ($item['cep'] ?? '')),
+            ':endereco_endereco' => $logradouro,
+            ':numero_endereco' => trim((string) ($item['numero'] ?? '')),
+            ':bairro_endereco' => trim((string) ($item['bairro'] ?? '')),
+            ':cidade_endereco' => trim((string) ($item['cidade'] ?? '')),
+            ':estado_endereco' => trim((string) ($item['estado'] ?? '')),
+            ':complemento_endereco' => trim((string) ($item['complemento'] ?? '')),
+            ':principal_endereco' => ((string) ($item['principal'] ?? 'n') === 's') ? 1 : 0,
+        ]);
+    }
+
+    $stmtTel = $conn->prepare("INSERT INTO tb_estipulante_telefone (fk_estipulante, tipo_telefone, numero_telefone, ramal_telefone, contato_telefone, principal_telefone, ativo_telefone, data_create_telefone) VALUES (:fk_estipulante, :tipo_telefone, :numero_telefone, :ramal_telefone, :contato_telefone, :principal_telefone, 's', NOW())");
+    foreach ($telefones as $item) {
+        $numero = normalizeDigitsEst((string) ($item['numero'] ?? ''));
+        if ($numero === '') continue;
+        $stmtTel->execute([
+            ':fk_estipulante' => $idEstipulante,
+            ':tipo_telefone' => trim((string) ($item['tipo'] ?? '')),
+            ':numero_telefone' => $numero,
+            ':ramal_telefone' => trim((string) ($item['ramal'] ?? '')),
+            ':contato_telefone' => trim((string) ($item['contato'] ?? '')),
+            ':principal_telefone' => ((string) ($item['principal'] ?? 'n') === 's') ? 1 : 0,
+        ]);
+    }
+
+    $stmtCont = $conn->prepare("INSERT INTO tb_estipulante_contato (fk_estipulante, nome_contato, cargo_contato, setor_contato, email_contato, telefone_contato, principal_contato, ativo_contato, data_create_contato) VALUES (:fk_estipulante, :nome_contato, :cargo_contato, :setor_contato, :email_contato, :telefone_contato, :principal_contato, 's', NOW())");
+    foreach ($contatos as $item) {
+        $nome = trim((string) ($item['nome'] ?? ''));
+        if ($nome === '') continue;
+        $stmtCont->execute([
+            ':fk_estipulante' => $idEstipulante,
+            ':nome_contato' => $nome,
+            ':cargo_contato' => trim((string) ($item['cargo'] ?? '')),
+            ':setor_contato' => trim((string) ($item['setor'] ?? '')),
+            ':email_contato' => trim((string) ($item['email'] ?? '')),
+            ':telefone_contato' => normalizeDigitsEst((string) ($item['telefone'] ?? '')),
+            ':principal_contato' => ((string) ($item['principal'] ?? 'n') === 's') ? 1 : 0,
+        ]);
+    }
+}
+
 // Resgata o tipo do formulário
 $type = filter_input(INPUT_POST, "type");
 $typeDel = filter_input(INPUT_POST, "typeDel");
@@ -142,6 +205,60 @@ if ($type === "create") {
 
 
             $estipulanteDao->create($estipulante);
+
+            $idNovo = (int) $conn->lastInsertId();
+            $enderecos = [];
+            $endTipo = postArrayEst('end_tipo');
+            $endCep = postArrayEst('end_cep');
+            $endLog = postArrayEst('end_logradouro');
+            $endNum = postArrayEst('end_numero');
+            $endBairro = postArrayEst('end_bairro');
+            $endCidade = postArrayEst('end_cidade');
+            $endEstado = postArrayEst('end_estado');
+            $endComp = postArrayEst('end_complemento');
+            $endPrin = postArrayEst('end_principal');
+            $endCount = max(count($endTipo), count($endLog));
+            for ($i = 0; $i < $endCount; $i++) {
+                $enderecos[] = ['tipo' => $endTipo[$i] ?? '', 'cep' => $endCep[$i] ?? '', 'endereco' => $endLog[$i] ?? '', 'numero' => $endNum[$i] ?? '', 'bairro' => $endBairro[$i] ?? '', 'cidade' => $endCidade[$i] ?? '', 'estado' => $endEstado[$i] ?? '', 'complemento' => $endComp[$i] ?? '', 'principal' => $endPrin[$i] ?? 'n'];
+            }
+            if (empty($enderecos) && !empty($endereco_est)) {
+                $enderecos[] = ['tipo' => 'Principal', 'cep' => $cep_est, 'endereco' => $endereco_est, 'numero' => $numero_est, 'bairro' => $bairro_est, 'cidade' => $cidade_est, 'estado' => $estado_est, 'complemento' => '', 'principal' => 's'];
+            }
+
+            $telefones = [];
+            $telTipo = postArrayEst('tel_tipo');
+            $telNumero = postArrayEst('tel_numero');
+            $telRamal = postArrayEst('tel_ramal');
+            $telContato = postArrayEst('tel_contato');
+            $telPrin = postArrayEst('tel_principal');
+            $telCount = max(count($telTipo), count($telNumero));
+            for ($i = 0; $i < $telCount; $i++) {
+                $telefones[] = ['tipo' => $telTipo[$i] ?? '', 'numero' => $telNumero[$i] ?? '', 'ramal' => $telRamal[$i] ?? '', 'contato' => $telContato[$i] ?? '', 'principal' => $telPrin[$i] ?? 'n'];
+            }
+            if (empty($telefones) && !empty($telefone01_est)) {
+                $telefones[] = ['tipo' => 'Principal', 'numero' => $telefone01_est, 'ramal' => '', 'contato' => '', 'principal' => 's'];
+                if (!empty($telefone02_est)) $telefones[] = ['tipo' => 'Alternativo', 'numero' => $telefone02_est, 'ramal' => '', 'contato' => '', 'principal' => 'n'];
+            }
+
+            $contatos = [];
+            $contNome = postArrayEst('cont_nome');
+            $contCargo = postArrayEst('cont_cargo');
+            $contSetor = postArrayEst('cont_setor');
+            $contEmail = postArrayEst('cont_email');
+            $contTelefone = postArrayEst('cont_telefone');
+            $contPrin = postArrayEst('cont_principal');
+            $contCount = max(count($contNome), count($contEmail));
+            for ($i = 0; $i < $contCount; $i++) {
+                $contatos[] = ['nome' => $contNome[$i] ?? '', 'cargo' => $contCargo[$i] ?? '', 'setor' => $contSetor[$i] ?? '', 'email' => $contEmail[$i] ?? '', 'telefone' => $contTelefone[$i] ?? '', 'principal' => $contPrin[$i] ?? 'n'];
+            }
+            if (empty($contatos) && !empty($nome_contato_est)) {
+                $contatos[] = ['nome' => $nome_contato_est, 'cargo' => 'Contato', 'setor' => '', 'email' => $email_contato_est, 'telefone' => $telefone_contato_est, 'principal' => 's'];
+            }
+            if (empty($contatos) && !empty($nome_responsavel_est)) {
+                $contatos[] = ['nome' => $nome_responsavel_est, 'cargo' => 'Responsável', 'setor' => '', 'email' => $email_responsavel_est, 'telefone' => $telefone_responsavel_est, 'principal' => 's'];
+            }
+
+            insertEstipulanteRelatedRows($conn, $idNovo, $enderecos, $telefones, $contatos);
         } else {
 
             $message->setMessage("Você precisa adicionar pelo menos: nome_est do estipulante!", "error", "back");
@@ -247,6 +364,67 @@ if ($type === "update") {
     $estipulanteData->cep_est = $cep_est;
 
     $estipulanteDao->update($estipulanteData);
+
+    $hasRelatedPayload = isset($_POST['end_tipo']) || isset($_POST['tel_tipo']) || isset($_POST['cont_nome']);
+    if ($hasRelatedPayload) {
+        $conn->prepare("DELETE FROM tb_estipulante_endereco WHERE fk_estipulante = :id")->execute([':id' => (int) $id_estipulante]);
+        $conn->prepare("DELETE FROM tb_estipulante_telefone WHERE fk_estipulante = :id")->execute([':id' => (int) $id_estipulante]);
+        $conn->prepare("DELETE FROM tb_estipulante_contato WHERE fk_estipulante = :id")->execute([':id' => (int) $id_estipulante]);
+    }
+
+    $enderecos = [];
+    $endTipo = postArrayEst('end_tipo');
+    $endCep = postArrayEst('end_cep');
+    $endLog = postArrayEst('end_logradouro');
+    $endNum = postArrayEst('end_numero');
+    $endBairro = postArrayEst('end_bairro');
+    $endCidade = postArrayEst('end_cidade');
+    $endEstado = postArrayEst('end_estado');
+    $endComp = postArrayEst('end_complemento');
+    $endPrin = postArrayEst('end_principal');
+    $endCount = max(count($endTipo), count($endLog));
+    for ($i = 0; $i < $endCount; $i++) {
+        $enderecos[] = ['tipo' => $endTipo[$i] ?? '', 'cep' => $endCep[$i] ?? '', 'endereco' => $endLog[$i] ?? '', 'numero' => $endNum[$i] ?? '', 'bairro' => $endBairro[$i] ?? '', 'cidade' => $endCidade[$i] ?? '', 'estado' => $endEstado[$i] ?? '', 'complemento' => $endComp[$i] ?? '', 'principal' => $endPrin[$i] ?? 'n'];
+    }
+    if (empty($enderecos) && !empty($endereco_est)) {
+        $enderecos[] = ['tipo' => 'Principal', 'cep' => $cep_est, 'endereco' => $endereco_est, 'numero' => $numero_est, 'bairro' => $bairro_est, 'cidade' => $cidade_est, 'estado' => $estado_est, 'complemento' => '', 'principal' => 's'];
+    }
+
+    $telefones = [];
+    $telTipo = postArrayEst('tel_tipo');
+    $telNumero = postArrayEst('tel_numero');
+    $telRamal = postArrayEst('tel_ramal');
+    $telContato = postArrayEst('tel_contato');
+    $telPrin = postArrayEst('tel_principal');
+    $telCount = max(count($telTipo), count($telNumero));
+    for ($i = 0; $i < $telCount; $i++) {
+        $telefones[] = ['tipo' => $telTipo[$i] ?? '', 'numero' => $telNumero[$i] ?? '', 'ramal' => $telRamal[$i] ?? '', 'contato' => $telContato[$i] ?? '', 'principal' => $telPrin[$i] ?? 'n'];
+    }
+    if (empty($telefones) && !empty($telefone01_est)) {
+        $telefones[] = ['tipo' => 'Principal', 'numero' => $telefone01_est, 'ramal' => '', 'contato' => '', 'principal' => 's'];
+        if (!empty($telefone02_est)) $telefones[] = ['tipo' => 'Alternativo', 'numero' => $telefone02_est, 'ramal' => '', 'contato' => '', 'principal' => 'n'];
+    }
+
+    $contatos = [];
+    $contNome = postArrayEst('cont_nome');
+    $contCargo = postArrayEst('cont_cargo');
+    $contSetor = postArrayEst('cont_setor');
+    $contEmail = postArrayEst('cont_email');
+    $contTelefone = postArrayEst('cont_telefone');
+    $contPrin = postArrayEst('cont_principal');
+    $contCount = max(count($contNome), count($contEmail));
+    for ($i = 0; $i < $contCount; $i++) {
+        $contatos[] = ['nome' => $contNome[$i] ?? '', 'cargo' => $contCargo[$i] ?? '', 'setor' => $contSetor[$i] ?? '', 'email' => $contEmail[$i] ?? '', 'telefone' => $contTelefone[$i] ?? '', 'principal' => $contPrin[$i] ?? 'n'];
+    }
+    if (empty($contatos) && !empty($nome_contato_est)) {
+        $contatos[] = ['nome' => $nome_contato_est, 'cargo' => 'Contato', 'setor' => '', 'email' => $email_contato_est, 'telefone' => $telefone_contato_est, 'principal' => 's'];
+    }
+    if (empty($contatos) && !empty($nome_responsavel_est)) {
+        $contatos[] = ['nome' => $nome_responsavel_est, 'cargo' => 'Responsável', 'setor' => '', 'email' => $email_responsavel_est, 'telefone' => $telefone_responsavel_est, 'principal' => 's'];
+    }
+    if ($hasRelatedPayload) {
+        insertEstipulanteRelatedRows($conn, (int) $id_estipulante, $enderecos, $telefones, $contatos);
+    }
 
     header('Location: ' . $BASE_URL . 'estipulantes');
 }

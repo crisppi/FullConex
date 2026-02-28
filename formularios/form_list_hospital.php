@@ -178,21 +178,21 @@
                                         </button>
                                         <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
                                             <li>
-                                                <a class="btn btn-default" style="font-size: .9rem;"
+                                                <a class="btn btn-default" style="font-size: .9rem; font-weight: 400 !important; text-transform: none !important;"
                                                     href="<?= htmlspecialchars(rtrim($BASE_URL, '/') . '/hospital_acomodacoes.php?id_hospital=' . (int) $id_hospital, ENT_QUOTES, 'UTF-8') ?>">
                                                     <i class="fa-solid fa-bed"
                                                         style="font-size: 1rem;margin-right:5px; color: #5e2363;"></i>Acomodações
                                                 </a>
                                             </li>
                                             <li>
-                                                <button class="btn btn-default" style="font-size: .9rem;"
+                                                <button class="btn btn-default" style="font-size: .9rem; font-weight: 400 !important; text-transform: none !important;"
                                                     onclick="openModal('<?= $BASE_URL ?>show_hospital.php?id_hospital=<?= $id_hospital ?>')"
                                                     data-bs-toggle="modal" data-bs-target="#myModal"><i
                                                         class="fas fa-eye"
                                                         style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i>Ver</button>
                                             </li>
                                             <li>
-                                                <a class="btn btn-default" style="font-size: .9rem;"
+                                                <a class="btn btn-default" style="font-size: .9rem; font-weight: 400 !important; text-transform: none !important;"
                                                     href="<?= htmlspecialchars(rtrim($BASE_URL, '/') . '/edit_hospital.php?id_hospital=' . (int) $id_hospital, ENT_QUOTES, 'UTF-8') ?>">
                                                     <i style="font-size: 1rem;margin-right:5px; color: rgb(67, 125, 525);"
                                                         name="type" value="edite"

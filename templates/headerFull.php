@@ -141,19 +141,14 @@ header("Content-type: text/html; charset=utf-8");
                                 <li><a class="dropdown-item" href="<?= $BASE_URL ?>seguradoras"><span
                                             class=" bi bi-heart-pulse"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(178, 156, 55);"></span>
-                                        Seguradora</a></li>
+                                        Seguradoras</a></li>
                                 <li><a class="dropdown-item" href="<?= $BASE_URL ?>estipulantes"><i
                                             class="bi bi-building"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(213, 12, 155);"></i>
-                                        Estipulante</a></li>
+                                        Estipulantes</a></li>
                                 <li>
-
                                     <hr class="dropdown-divider">
                                 </li>
-                                <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_acomodacao.php"><i
-                                            class=" bi bi-clipboard-heart"
-                                            style="font-size: 1rem;margin-right:5px; color: rgb(145, 156, 55);"></i>
-                                        Acomodação</a></li>
                                 <li><a class="dropdown-item" href="<?php $BASE_URL ?>list_patologia.php"><span
                                             class=" bi bi-virus"
                                             style="font-size: 1rem;margin-right:5px; color: rgb(178, 155, 155);"></span>

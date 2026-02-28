@@ -141,6 +141,42 @@ class EstipulanteDAO implements EstipulanteDAOInterface
         return $estipulante;
     }
 
+    public function findEnderecosByEstipulante($id_estipulante)
+    {
+        try {
+            $stmt = $this->conn->prepare("SELECT * FROM tb_estipulante_endereco WHERE fk_estipulante = :id ORDER BY principal_endereco DESC, id_estipulante_endereco ASC");
+            $stmt->bindValue(":id", (int) $id_estipulante, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Throwable $e) {
+            return [];
+        }
+    }
+
+    public function findTelefonesByEstipulante($id_estipulante)
+    {
+        try {
+            $stmt = $this->conn->prepare("SELECT * FROM tb_estipulante_telefone WHERE fk_estipulante = :id ORDER BY principal_telefone DESC, id_estipulante_telefone ASC");
+            $stmt->bindValue(":id", (int) $id_estipulante, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Throwable $e) {
+            return [];
+        }
+    }
+
+    public function findContatosByEstipulante($id_estipulante)
+    {
+        try {
+            $stmt = $this->conn->prepare("SELECT * FROM tb_estipulante_contato WHERE fk_estipulante = :id ORDER BY principal_contato DESC, id_estipulante_contato ASC");
+            $stmt->bindValue(":id", (int) $id_estipulante, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Throwable $e) {
+            return [];
+        }
+    }
+
     public function findByTitle($title)
     {
 

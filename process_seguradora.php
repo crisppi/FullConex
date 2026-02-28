@@ -38,6 +38,69 @@ $message = new Message($BASE_URL);
 $userDao = new UserDAO($conn, $BASE_URL);
 $seguradoraDao = new seguradoraDAO($conn, $BASE_URL);
 
+function normalizeDigitsSeg(?string $value): string
+{
+    return preg_replace('/\D+/', '', (string) $value) ?? '';
+}
+
+function postArraySeg(string $key): array
+{
+    $values = filter_input(INPUT_POST, $key, FILTER_DEFAULT, FILTER_REQUIRE_ARRAY);
+    return is_array($values) ? $values : [];
+}
+
+function insertSeguradoraRelatedRows(PDO $conn, int $idSeguradora, array $enderecos, array $telefones, array $contatos): void
+{
+    if ($idSeguradora <= 0) return;
+
+    $stmtEnd = $conn->prepare("INSERT INTO tb_seguradora_endereco (fk_seguradora, tipo_endereco, cep_endereco, endereco_endereco, numero_endereco, bairro_endereco, cidade_endereco, estado_endereco, complemento_endereco, principal_endereco, ativo_endereco, data_create_endereco) VALUES (:fk_seguradora, :tipo_endereco, :cep_endereco, :endereco_endereco, :numero_endereco, :bairro_endereco, :cidade_endereco, :estado_endereco, :complemento_endereco, :principal_endereco, 's', NOW())");
+    foreach ($enderecos as $item) {
+        $logradouro = trim((string) ($item['endereco'] ?? ''));
+        if ($logradouro === '') continue;
+        $stmtEnd->execute([
+            ':fk_seguradora' => $idSeguradora,
+            ':tipo_endereco' => trim((string) ($item['tipo'] ?? '')),
+            ':cep_endereco' => normalizeDigitsSeg((string) ($item['cep'] ?? '')),
+            ':endereco_endereco' => $logradouro,
+            ':numero_endereco' => trim((string) ($item['numero'] ?? '')),
+            ':bairro_endereco' => trim((string) ($item['bairro'] ?? '')),
+            ':cidade_endereco' => trim((string) ($item['cidade'] ?? '')),
+            ':estado_endereco' => trim((string) ($item['estado'] ?? '')),
+            ':complemento_endereco' => trim((string) ($item['complemento'] ?? '')),
+            ':principal_endereco' => ((string) ($item['principal'] ?? 'n') === 's') ? 1 : 0,
+        ]);
+    }
+
+    $stmtTel = $conn->prepare("INSERT INTO tb_seguradora_telefone (fk_seguradora, tipo_telefone, numero_telefone, ramal_telefone, contato_telefone, principal_telefone, ativo_telefone, data_create_telefone) VALUES (:fk_seguradora, :tipo_telefone, :numero_telefone, :ramal_telefone, :contato_telefone, :principal_telefone, 's', NOW())");
+    foreach ($telefones as $item) {
+        $numero = normalizeDigitsSeg((string) ($item['numero'] ?? ''));
+        if ($numero === '') continue;
+        $stmtTel->execute([
+            ':fk_seguradora' => $idSeguradora,
+            ':tipo_telefone' => trim((string) ($item['tipo'] ?? '')),
+            ':numero_telefone' => $numero,
+            ':ramal_telefone' => trim((string) ($item['ramal'] ?? '')),
+            ':contato_telefone' => trim((string) ($item['contato'] ?? '')),
+            ':principal_telefone' => ((string) ($item['principal'] ?? 'n') === 's') ? 1 : 0,
+        ]);
+    }
+
+    $stmtCont = $conn->prepare("INSERT INTO tb_seguradora_contato (fk_seguradora, nome_contato, cargo_contato, setor_contato, email_contato, telefone_contato, principal_contato, ativo_contato, data_create_contato) VALUES (:fk_seguradora, :nome_contato, :cargo_contato, :setor_contato, :email_contato, :telefone_contato, :principal_contato, 's', NOW())");
+    foreach ($contatos as $item) {
+        $nome = trim((string) ($item['nome'] ?? ''));
+        if ($nome === '') continue;
+        $stmtCont->execute([
+            ':fk_seguradora' => $idSeguradora,
+            ':nome_contato' => $nome,
+            ':cargo_contato' => trim((string) ($item['cargo'] ?? '')),
+            ':setor_contato' => trim((string) ($item['setor'] ?? '')),
+            ':email_contato' => trim((string) ($item['email'] ?? '')),
+            ':telefone_contato' => normalizeDigitsSeg((string) ($item['telefone'] ?? '')),
+            ':principal_contato' => ((string) ($item['principal'] ?? 'n') === 's') ? 1 : 0,
+        ]);
+    }
+}
+
 $type = filter_input(INPUT_POST, "type");
 $typeDel = filter_input(INPUT_POST, "typeDel");
 
@@ -144,6 +207,57 @@ if ($type === "create") {
             $seguradora->cep_seg = $cep_seg;
 
             $seguradoraDao->create($seguradora);
+            $idNovo = (int) $conn->lastInsertId();
+
+            $enderecos = [];
+            $endTipo = postArraySeg('end_tipo');
+            $endCep = postArraySeg('end_cep');
+            $endLog = postArraySeg('end_logradouro');
+            $endNum = postArraySeg('end_numero');
+            $endBairro = postArraySeg('end_bairro');
+            $endCidade = postArraySeg('end_cidade');
+            $endEstado = postArraySeg('end_estado');
+            $endComp = postArraySeg('end_complemento');
+            $endPrin = postArraySeg('end_principal');
+            $endCount = max(count($endTipo), count($endLog));
+            for ($i = 0; $i < $endCount; $i++) {
+                $enderecos[] = ['tipo' => $endTipo[$i] ?? '', 'cep' => $endCep[$i] ?? '', 'endereco' => $endLog[$i] ?? '', 'numero' => $endNum[$i] ?? '', 'bairro' => $endBairro[$i] ?? '', 'cidade' => $endCidade[$i] ?? '', 'estado' => $endEstado[$i] ?? '', 'complemento' => $endComp[$i] ?? '', 'principal' => $endPrin[$i] ?? 'n'];
+            }
+            if (empty($enderecos) && !empty($endereco_seg)) {
+                $enderecos[] = ['tipo' => 'Principal', 'cep' => $cep_seg, 'endereco' => $endereco_seg, 'numero' => $numero_seg, 'bairro' => $bairro_seg, 'cidade' => $cidade_seg, 'estado' => $estado_seg, 'complemento' => '', 'principal' => 's'];
+            }
+
+            $telefones = [];
+            $telTipo = postArraySeg('tel_tipo');
+            $telNumero = postArraySeg('tel_numero');
+            $telRamal = postArraySeg('tel_ramal');
+            $telContato = postArraySeg('tel_contato');
+            $telPrin = postArraySeg('tel_principal');
+            $telCount = max(count($telTipo), count($telNumero));
+            for ($i = 0; $i < $telCount; $i++) {
+                $telefones[] = ['tipo' => $telTipo[$i] ?? '', 'numero' => $telNumero[$i] ?? '', 'ramal' => $telRamal[$i] ?? '', 'contato' => $telContato[$i] ?? '', 'principal' => $telPrin[$i] ?? 'n'];
+            }
+            if (empty($telefones) && !empty($telefone01_seg)) {
+                $telefones[] = ['tipo' => 'Principal', 'numero' => $telefone01_seg, 'ramal' => '', 'contato' => '', 'principal' => 's'];
+                if (!empty($telefone02_seg)) $telefones[] = ['tipo' => 'Alternativo', 'numero' => $telefone02_seg, 'ramal' => '', 'contato' => '', 'principal' => 'n'];
+            }
+
+            $contatos = [];
+            $contNome = postArraySeg('cont_nome');
+            $contCargo = postArraySeg('cont_cargo');
+            $contSetor = postArraySeg('cont_setor');
+            $contEmail = postArraySeg('cont_email');
+            $contTelefone = postArraySeg('cont_telefone');
+            $contPrin = postArraySeg('cont_principal');
+            $contCount = max(count($contNome), count($contEmail));
+            for ($i = 0; $i < $contCount; $i++) {
+                $contatos[] = ['nome' => $contNome[$i] ?? '', 'cargo' => $contCargo[$i] ?? '', 'setor' => $contSetor[$i] ?? '', 'email' => $contEmail[$i] ?? '', 'telefone' => $contTelefone[$i] ?? '', 'principal' => $contPrin[$i] ?? 'n'];
+            }
+            if (empty($contatos) && !empty($contato_seg)) {
+                $contatos[] = ['nome' => $contato_seg, 'cargo' => 'Contato', 'setor' => '', 'email' => $email01_seg, 'telefone' => $telefone01_seg, 'principal' => 's'];
+            }
+
+            insertSeguradoraRelatedRows($conn, $idNovo, $enderecos, $telefones, $contatos);
             header("Location: " . $BASE_URL . "seguradoras");
         }
     }
@@ -247,6 +361,65 @@ if ($type === "create") {
         $seguradoraData->cep_seg = $cep_seg;
 
         $seguradoraDao->update($seguradoraData);
+
+        $hasRelatedPayload = isset($_POST['end_tipo']) || isset($_POST['tel_tipo']) || isset($_POST['cont_nome']);
+        if ($hasRelatedPayload) {
+            $conn->prepare("DELETE FROM tb_seguradora_endereco WHERE fk_seguradora = :id")->execute([':id' => (int) $id_seguradora]);
+            $conn->prepare("DELETE FROM tb_seguradora_telefone WHERE fk_seguradora = :id")->execute([':id' => (int) $id_seguradora]);
+            $conn->prepare("DELETE FROM tb_seguradora_contato WHERE fk_seguradora = :id")->execute([':id' => (int) $id_seguradora]);
+        }
+
+        $enderecos = [];
+        $endTipo = postArraySeg('end_tipo');
+        $endCep = postArraySeg('end_cep');
+        $endLog = postArraySeg('end_logradouro');
+        $endNum = postArraySeg('end_numero');
+        $endBairro = postArraySeg('end_bairro');
+        $endCidade = postArraySeg('end_cidade');
+        $endEstado = postArraySeg('end_estado');
+        $endComp = postArraySeg('end_complemento');
+        $endPrin = postArraySeg('end_principal');
+        $endCount = max(count($endTipo), count($endLog));
+        for ($i = 0; $i < $endCount; $i++) {
+            $enderecos[] = ['tipo' => $endTipo[$i] ?? '', 'cep' => $endCep[$i] ?? '', 'endereco' => $endLog[$i] ?? '', 'numero' => $endNum[$i] ?? '', 'bairro' => $endBairro[$i] ?? '', 'cidade' => $endCidade[$i] ?? '', 'estado' => $endEstado[$i] ?? '', 'complemento' => $endComp[$i] ?? '', 'principal' => $endPrin[$i] ?? 'n'];
+        }
+        if (empty($enderecos) && !empty($endereco_seg)) {
+            $enderecos[] = ['tipo' => 'Principal', 'cep' => $cep_seg, 'endereco' => $endereco_seg, 'numero' => $numero_seg, 'bairro' => $bairro_seg, 'cidade' => $cidade_seg, 'estado' => $estado_seg, 'complemento' => '', 'principal' => 's'];
+        }
+
+        $telefones = [];
+        $telTipo = postArraySeg('tel_tipo');
+        $telNumero = postArraySeg('tel_numero');
+        $telRamal = postArraySeg('tel_ramal');
+        $telContato = postArraySeg('tel_contato');
+        $telPrin = postArraySeg('tel_principal');
+        $telCount = max(count($telTipo), count($telNumero));
+        for ($i = 0; $i < $telCount; $i++) {
+            $telefones[] = ['tipo' => $telTipo[$i] ?? '', 'numero' => $telNumero[$i] ?? '', 'ramal' => $telRamal[$i] ?? '', 'contato' => $telContato[$i] ?? '', 'principal' => $telPrin[$i] ?? 'n'];
+        }
+        if (empty($telefones) && !empty($telefone01_seg)) {
+            $telefones[] = ['tipo' => 'Principal', 'numero' => $telefone01_seg, 'ramal' => '', 'contato' => '', 'principal' => 's'];
+            if (!empty($telefone02_seg)) $telefones[] = ['tipo' => 'Alternativo', 'numero' => $telefone02_seg, 'ramal' => '', 'contato' => '', 'principal' => 'n'];
+        }
+
+        $contatos = [];
+        $contNome = postArraySeg('cont_nome');
+        $contCargo = postArraySeg('cont_cargo');
+        $contSetor = postArraySeg('cont_setor');
+        $contEmail = postArraySeg('cont_email');
+        $contTelefone = postArraySeg('cont_telefone');
+        $contPrin = postArraySeg('cont_principal');
+        $contCount = max(count($contNome), count($contEmail));
+        for ($i = 0; $i < $contCount; $i++) {
+            $contatos[] = ['nome' => $contNome[$i] ?? '', 'cargo' => $contCargo[$i] ?? '', 'setor' => $contSetor[$i] ?? '', 'email' => $contEmail[$i] ?? '', 'telefone' => $contTelefone[$i] ?? '', 'principal' => $contPrin[$i] ?? 'n'];
+        }
+        if (empty($contatos) && !empty($contato_seg)) {
+            $contatos[] = ['nome' => $contato_seg, 'cargo' => 'Contato', 'setor' => '', 'email' => $email01_seg, 'telefone' => $telefone01_seg, 'principal' => 's'];
+        }
+
+        if ($hasRelatedPayload) {
+            insertSeguradoraRelatedRows($conn, (int) $id_seguradora, $enderecos, $telefones, $contatos);
+        }
 
         header("Location: " . $BASE_URL . "seguradoras");
         exit;

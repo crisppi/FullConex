@@ -164,6 +164,7 @@ if (!in_array($__scriptBase, $__schemaSkip, true)) {
     ensure_schema_version_table($conn);
     ensure_password_reset_table($conn);
     ensure_operational_list_indexes($conn);
+    ensure_hospital_related_tables($conn);
 }
 require_once __DIR__ . '/app/version.php';
 

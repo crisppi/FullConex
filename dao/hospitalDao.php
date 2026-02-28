@@ -125,6 +125,57 @@ class HospitalDAO implements HospitalDAOInterface
         return $data ? $this->buildHospital($data) : null;
     }
 
+    public function findEnderecosByHospital($id_hospital)
+    {
+        try {
+            $stmt = $this->conn->prepare("
+                SELECT *
+                  FROM tb_hospital_endereco
+                 WHERE fk_hospital = :id
+                 ORDER BY principal_endereco DESC, id_hospital_endereco ASC
+            ");
+            $stmt->bindValue(":id", (int) $id_hospital, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Throwable $e) {
+            return [];
+        }
+    }
+
+    public function findTelefonesByHospital($id_hospital)
+    {
+        try {
+            $stmt = $this->conn->prepare("
+                SELECT *
+                  FROM tb_hospital_telefone
+                 WHERE fk_hospital = :id
+                 ORDER BY principal_telefone DESC, id_hospital_telefone ASC
+            ");
+            $stmt->bindValue(":id", (int) $id_hospital, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Throwable $e) {
+            return [];
+        }
+    }
+
+    public function findContatosByHospital($id_hospital)
+    {
+        try {
+            $stmt = $this->conn->prepare("
+                SELECT *
+                  FROM tb_hospital_contato
+                 WHERE fk_hospital = :id
+                 ORDER BY principal_contato DESC, id_hospital_contato ASC
+            ");
+            $stmt->bindValue(":id", (int) $id_hospital, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Throwable $e) {
+            return [];
+        }
+    }
+
     /* ================== CREATE / UPDATE / DELETE ================== */
 
     public function create(Hospital $hospital)

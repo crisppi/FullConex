@@ -10,9 +10,31 @@ require_once("models/message.php");
 
 $seguradoraDao = new seguradoraDAO($conn, $BASE_URL);
 $seguradoras = $seguradoraDao->findAll();
+// Evita nomes duplicados no select (mantem o registro mais recente: ORDER BY id DESC)
+$seguradorasSelect = [];
+$seguradorasSeen = [];
+foreach ($seguradoras as $seguradoraItem) {
+    $nomeKey = strtolower(trim((string) ($seguradoraItem['seguradora_seg'] ?? '')));
+    if ($nomeKey === '' || isset($seguradorasSeen[$nomeKey])) {
+        continue;
+    }
+    $seguradorasSeen[$nomeKey] = true;
+    $seguradorasSelect[] = $seguradoraItem;
+}
 
 $estipulanteDao = new estipulanteDAO($conn, $BASE_URL);
 $estipulantes = $estipulanteDao->findAll();
+// Evita nomes duplicados no select (mantem o registro mais recente: ORDER BY id DESC)
+$estipulantesSelect = [];
+$estipulantesSeen = [];
+foreach ($estipulantes as $estipulanteItem) {
+    $nomeKey = strtolower(trim((string) ($estipulanteItem['nome_est'] ?? '')));
+    if ($nomeKey === '' || isset($estipulantesSeen[$nomeKey])) {
+        continue;
+    }
+    $estipulantesSeen[$nomeKey] = true;
+    $estipulantesSelect[] = $estipulanteItem;
+}
 
 // Receber id do usuário
 $id_hospital = filter_input(INPUT_GET, "id_hospital");
@@ -204,7 +226,7 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
                     <label for="fk_seguradora_pac">Seguradora</label>
                     <select class="form-control" id="fk_seguradora_pac" name="fk_seguradora_pac">
                         <option value="1">Selecione</option>
-                        <?php foreach ($seguradoras as $seguradora): ?>
+                        <?php foreach ($seguradorasSelect as $seguradora): ?>
                         <option value="<?= $seguradora["id_seguradora"] ?>"><?= $seguradora['seguradora_seg'] ?>
                         </option>
                         <?php endforeach; ?>
@@ -214,7 +236,7 @@ $id_hospital = filter_input(INPUT_GET, "id_hospital");
                     <label for="fk_estipulante_pac">Estipulante</label>
                     <select class="form-control" id="fk_estipulante_pac" name="fk_estipulante_pac">
                         <option value="1">Selecione</option>
-                        <?php foreach ($estipulantes as $estipulante): ?>
+                        <?php foreach ($estipulantesSelect as $estipulante): ?>
                         <option value="<?= $estipulante["id_estipulante"] ?>"><?= $estipulante['nome_est'] ?>
                         </option>
                         <?php endforeach; ?>

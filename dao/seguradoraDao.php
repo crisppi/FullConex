@@ -145,6 +145,42 @@ class seguradoraDAO implements seguradoraDAOInterface
         return $seguradora;
     }
 
+    public function findEnderecosBySeguradora($id_seguradora)
+    {
+        try {
+            $stmt = $this->conn->prepare("SELECT * FROM tb_seguradora_endereco WHERE fk_seguradora = :id ORDER BY principal_endereco DESC, id_seguradora_endereco ASC");
+            $stmt->bindValue(":id", (int) $id_seguradora, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Throwable $e) {
+            return [];
+        }
+    }
+
+    public function findTelefonesBySeguradora($id_seguradora)
+    {
+        try {
+            $stmt = $this->conn->prepare("SELECT * FROM tb_seguradora_telefone WHERE fk_seguradora = :id ORDER BY principal_telefone DESC, id_seguradora_telefone ASC");
+            $stmt->bindValue(":id", (int) $id_seguradora, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Throwable $e) {
+            return [];
+        }
+    }
+
+    public function findContatosBySeguradora($id_seguradora)
+    {
+        try {
+            $stmt = $this->conn->prepare("SELECT * FROM tb_seguradora_contato WHERE fk_seguradora = :id ORDER BY principal_contato DESC, id_seguradora_contato ASC");
+            $stmt->bindValue(":id", (int) $id_seguradora, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Throwable $e) {
+            return [];
+        }
+    }
+
     public function findByTitle($title)
     {
 

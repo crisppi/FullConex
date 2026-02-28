@@ -17,9 +17,31 @@ include_once("dao/pacienteDao.php");
 
 $seguradoraDao = new seguradoraDAO($conn, $BASE_URL);
 $seguradoras = $seguradoraDao->findAll();
+// Evita nomes duplicados no select (mantem o registro mais recente: ORDER BY id DESC)
+$seguradorasSelect = [];
+$seguradorasSeen = [];
+foreach ($seguradoras as $seguradoraItem) {
+    $nomeKey = strtolower(trim((string) ($seguradoraItem['seguradora_seg'] ?? '')));
+    if ($nomeKey === '' || isset($seguradorasSeen[$nomeKey])) {
+        continue;
+    }
+    $seguradorasSeen[$nomeKey] = true;
+    $seguradorasSelect[] = $seguradoraItem;
+}
 
 $estipulanteDao = new estipulanteDAO($conn, $BASE_URL);
 $estipulantes = $estipulanteDao->findAll();
+// Evita nomes duplicados no select (mantem o registro mais recente: ORDER BY id DESC)
+$estipulantesSelect = [];
+$estipulantesSeen = [];
+foreach ($estipulantes as $estipulanteItem) {
+    $nomeKey = strtolower(trim((string) ($estipulanteItem['nome_est'] ?? '')));
+    if ($nomeKey === '' || isset($estipulantesSeen[$nomeKey])) {
+        continue;
+    }
+    $estipulantesSeen[$nomeKey] = true;
+    $estipulantesSelect[] = $estipulanteItem;
+}
 
 $user = new Paciente();
 $pacienteDao = new pacienteDAO($conn, $BASE_URL);
@@ -314,7 +336,8 @@ $telefone02_pac = !empty($paciente['0']['telefone02_pac']) ? formatPhone($pacien
                         <option value="<?= $paciente['0']['fk_seguradora_pac'] ?>" selected>
                             <?= $paciente['0']['seguradora_seg'] ?>
                         </option>
-                        <?php foreach ($seguradoras as $seguradora): ?>
+                        <?php foreach ($seguradorasSelect as $seguradora): ?>
+                            <?php if ((string) $seguradora['id_seguradora'] === (string) $paciente['0']['fk_seguradora_pac']) continue; ?>
                             <option value="<?= $seguradora['id_seguradora'] ?>"><?= $seguradora['seguradora_seg'] ?>
                             </option>
                         <?php endforeach; ?>
@@ -326,8 +349,9 @@ $telefone02_pac = !empty($paciente['0']['telefone02_pac']) ? formatPhone($pacien
                         <option value="<?= $paciente['0']['fk_estipulante_pac'] ?>" selected>
                             <?= $paciente['0']['nome_est'] ?>
                         </option>
-                        <?php foreach ($estipulantes as $estipulantes): ?>
-                            <option value="<?= $estipulantes['id_estipulante'] ?>"><?= $estipulantes['nome_est'] ?>
+                        <?php foreach ($estipulantesSelect as $estipulanteItem): ?>
+                            <?php if ((string) $estipulanteItem['id_estipulante'] === (string) $paciente['0']['fk_estipulante_pac']) continue; ?>
+                            <option value="<?= $estipulanteItem['id_estipulante'] ?>"><?= $estipulanteItem['nome_est'] ?>
                             </option>
                         <?php endforeach; ?>
                     </select>

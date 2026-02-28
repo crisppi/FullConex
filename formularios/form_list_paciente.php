@@ -344,7 +344,7 @@
                                         <ul class="dropdown-menu" aria-labelledby="navbarScrollingDropdown">
 
                                             <li>
-                                                <a class="btn btn-default" style="font-size: .9rem;"
+                                                <a class="btn btn-default" style="font-size: .9rem; font-weight: 400 !important; text-transform: none !important;"
                                                     href="<?= htmlspecialchars(rtrim($BASE_URL, '/') . '/edit_paciente.php?id_paciente=' . (int) $id_paciente, ENT_QUOTES, 'UTF-8') ?>">
                                                     <i style="font-size: 1rem;margin-right:5px; color: rgb(67, 125, 525);"
                                                         name="type" value="edite"
@@ -352,7 +352,7 @@
                                                 </a>
                                             </li>
                                             <li>
-                                                <button class="btn btn-default" style="font-size: .9rem;"
+                                                <button class="btn btn-default" style="font-size: .9rem; font-weight: 400 !important; text-transform: none !important;"
                                                     onclick="openModal('<?= $BASE_URL ?>show_paciente_historico.php?id_paciente=<?= $id_paciente ?>')"
                                                     data-bs-toggle="modal" data-bs-target="#myModal"><i
                                                         style="font-size: 1rem; margin-right:5px; color: rgb(67, 125, 525);"
@@ -361,7 +361,7 @@
                                             </li>
                                             <li>
                                                 <a href="<?= $BASE_URL ?>hub_paciente/paciente<?= $id_paciente ?>"
-                                                    class="btn" style="font-size: .9rem;">
+                                                    class="btn" style="font-size: .9rem; font-weight: 400 !important; text-transform: none !important;">
                                                     <i class="fa-solid fas fa-book-medical"
                                                         style="font-size: 1rem; margin-right:5px; color: rgb(0, 123, 255);"></i>
                                                     Hub Paciente
@@ -370,7 +370,7 @@
 
                                             <li>
                                                 <a href="<?= $BASE_URL ?>internacoes/nova?id_paciente=<?= (int)$id_paciente ?>"
-                                                    class="btn" style="font-size:.9rem;">
+                                                    class="btn" style="font-size:.9rem; font-weight: 400 !important; text-transform: none !important;">
                                                     <i class="fa-solid fa-notes-medical"
                                                         style="font-size:1rem;margin-right:5px;color:#007bff;"></i>
                                                     Internação
