@@ -623,6 +623,37 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
     }
 }
 
+@media (max-width: 1200px) {
+    .grid-container {
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: auto;
+    }
+}
+
+@media (max-width: 860px) {
+    .grid-container {
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: auto;
+        gap: 10px;
+    }
+
+    .grid-item {
+        height: 118px;
+    }
+}
+
+@media (max-width: 520px) {
+    .grid-container {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+        gap: 10px;
+    }
+
+    .grid-item {
+        height: 116px;
+    }
+}
+
 /* Forca alinhamento dos cards do topo, mesmo com CSS global carregado depois */
 .grid-container .grid-item .title-item {
     left: 12px !important;

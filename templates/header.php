@@ -348,6 +348,39 @@ if (!empty($sessionIdUsuario)) {
             color: #5c5c5c;
         }
 
+        @media (max-width: 991.98px) {
+            #navbarScroll {
+                max-height: calc(100vh - 140px);
+                overflow-y: auto;
+                padding-bottom: 8px;
+            }
+
+            .navbar-nav.navbar-nav-scroll {
+                --bs-scroll-height: none !important;
+                max-height: none !important;
+                overflow: visible !important;
+                width: 100%;
+                align-items: flex-start !important;
+            }
+
+            .header-actions {
+                width: 100%;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                padding: 0 12px 10px;
+                margin-top: 6px;
+            }
+
+            .header-actions #global-patient-search {
+                min-width: 240px;
+                flex: 1 0 auto;
+            }
+
+            .header-zoom-actions {
+                display: none !important;
+            }
+        }
+
         @media (max-width: 575.98px) {
             .header-actions {
                 width: 100%;
@@ -391,7 +424,7 @@ if (!empty($sessionIdUsuario)) {
                 </button>
                 <div class="collapse navbar-collapse" id="navbarScroll">
                     <ul class="nav-tabs navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll align-items-center"
-                        style="--bs-scroll-height: 80px;">
+                        style="--bs-scroll-height: 75vh;">
                         <!-- Ícone de mensagem -->
 
                         <?php if ($sessionNivel > 0) { ?>

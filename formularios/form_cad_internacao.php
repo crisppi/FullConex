@@ -808,6 +808,71 @@
     </div>
 
     <script src="<?= $BASE_URL ?>js/form_cad_internacao.js"></script>
+    <script>
+        (function() {
+            var dataInternDt = document.getElementById('data_intern_int_dt');
+            var dataIntern = document.getElementById('data_intern_int');
+            var horaIntern = document.getElementById('hora_intern_int');
+            var erroDiv = document.getElementById('erro-data-internacao');
+            var alertTimer = null;
+
+            if (!dataInternDt || !erroDiv) return;
+
+            function hideAlert() {
+                erroDiv.classList.add('d-none');
+                erroDiv.classList.remove('alert-danger');
+                erroDiv.textContent = '';
+            }
+
+            function showAlert(message) {
+                erroDiv.classList.remove('d-none');
+                erroDiv.classList.add('alert-danger');
+                erroDiv.textContent = message;
+                erroDiv.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+                if (alertTimer) clearTimeout(alertTimer);
+                alertTimer = setTimeout(hideAlert, 5000);
+            }
+
+            function parseLocalDateTime(value) {
+                if (!value || value.indexOf('T') === -1) return null;
+                var parts = value.split('T');
+                var d = (parts[0] || '').split('-').map(Number);
+                var t = (parts[1] || '').split(':').map(Number);
+                if (d.length !== 3 || t.length < 2) return null;
+                if (!d[0] || !d[1] || !d[2] || Number.isNaN(t[0]) || Number.isNaN(t[1])) return null;
+                return new Date(d[0], d[1] - 1, d[2], t[0], t[1], 0, 0);
+            }
+
+            function validateFutureInternacaoDate() {
+                hideAlert();
+                if (!dataInternDt.value) return true;
+
+                var selecionada = parseLocalDateTime(dataInternDt.value);
+                if (!selecionada || Number.isNaN(selecionada.getTime())) return true;
+
+                var agora = new Date();
+                if (selecionada > agora) {
+                    showAlert('A data da internação não pode ser maior que a data atual.');
+                    dataInternDt.value = '';
+                    if (dataIntern) dataIntern.value = '';
+                    if (horaIntern) horaIntern.value = '';
+                    dataInternDt.focus();
+                    return false;
+                }
+                return true;
+            }
+
+            dataInternDt.addEventListener('change', validateFutureInternacaoDate);
+            dataInternDt.addEventListener('blur', validateFutureInternacaoDate);
+            dataInternDt.addEventListener('input', validateFutureInternacaoDate);
+
+            // Garante a validação também no submit (o JS externo já usa essa função)
+            window.validateDataInternacaoFuture = validateFutureInternacaoDate;
+        })();
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous">
     </script>

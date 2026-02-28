@@ -368,6 +368,12 @@ p {
     margin-top: 60px;
 }
 
+@media (max-width: 991.98px) {
+    .form_container {
+        margin-top: 150px !important;
+    }
+}
+
 
 [data-tooltip] {
     position: relative;
@@ -944,5 +950,31 @@ input:invalid {
 
     .fc-list-action .dropdown:hover > .dropdown-toggle {
         color: #401742 !important;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .complete-table {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .complete-table table {
+        min-width: 900px;
+    }
+
+    .list-header-row {
+        flex-wrap: wrap !important;
+        gap: 8px;
+    }
+
+    .list-header-row .list-action-slot {
+        width: 100%;
+        margin-left: 0 !important;
+    }
+
+    .list-header-row .list-action-slot .btn {
+        width: 100%;
+        max-width: none;
     }
 }
