@@ -299,6 +299,10 @@
                                 </select>
                             </div>
 
+                            <div class="form-group col-12 mb-2">
+                                <div id="erro-data-internacao" class="alert d-none w-100 mb-0" role="alert"></div>
+                            </div>
+
                             <div class="form-group col-12 d-none" id="alta-obrigatoria-container">
                                 <div class="alta-obrigatoria-box">
                                     <div class="alta-obrigatoria-box__title">
@@ -327,12 +331,6 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-
-                            <div class="form-group col-12">
-                                <div id="erro-data-internacao"
-                                    style="display:none;margin-top:6px;padding:8px 10px;border-radius:6px;font-size:.8em;line-height:1.25;"
-                                    role="alert"></div>
                             </div>
 
                             <div class="form-group col-12 d-none" id="retroativa-container">

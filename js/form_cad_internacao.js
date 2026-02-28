@@ -625,49 +625,79 @@ document.getElementById("acomodacao_int").addEventListener("change", function() 
 
     function hideInternacaoAlert() {
         if (!erroDiv) return;
-        erroDiv.style.display = "none";
+        erroDiv.classList.add("d-none");
+        erroDiv.classList.remove("alert-danger", "alert-warning");
         erroDiv.textContent = "";
     }
 
     function showInternacaoAlert(message, type) {
         if (!erroDiv) return;
         const isWarning = type === "warning";
-        erroDiv.style.display = "block";
+        erroDiv.classList.remove("d-none");
+        erroDiv.classList.remove("alert-danger", "alert-warning");
+        erroDiv.classList.add(isWarning ? "alert-warning" : "alert-danger");
         erroDiv.textContent = message;
-        erroDiv.style.color = isWarning ? "#8a5a00" : "#8b1e25";
-        erroDiv.style.backgroundColor = isWarning ? "#fff3cd" : "#f8d7da";
-        erroDiv.style.border = isWarning ? "1px solid #ffecb5" : "1px solid #f5c2c7";
+        erroDiv.scrollIntoView({ behavior: "smooth", block: "start" });
         if (alertTimer) clearTimeout(alertTimer);
         alertTimer = setTimeout(hideInternacaoAlert, 5000);
     }
 
-    function validarDataInternacao() {
-        if (!dataInternDt) return;
-        hideInternacaoAlert();
-        if (!dataInternDt.value) return;
+    function parseLocalDateTime(value) {
+        if (!value || value.indexOf('T') === -1) return null;
+        const parts = value.split('T');
+        const datePart = parts[0] || '';
+        const timePart = parts[1] || '';
+        const d = datePart.split('-').map(Number);
+        const t = timePart.split(':').map(Number);
+        if (d.length !== 3 || t.length < 2) return null;
+        const year = d[0];
+        const month = d[1];
+        const day = d[2];
+        const hour = t[0];
+        const minute = t[1];
+        if (!year || !month || !day || Number.isNaN(hour) || Number.isNaN(minute)) return null;
+        return new Date(year, month - 1, day, hour, minute, 0, 0);
+    }
 
-        const dataSelecionada = new Date(dataInternDt.value);
-        if (Number.isNaN(dataSelecionada.getTime())) return;
+    function clearInternacaoDateField() {
+        if (dataInternDt) {
+            dataInternDt.value = "";
+            dataInternDt.focus();
+        }
+        if (dataIntern) dataIntern.value = "";
+        if (horaIntern) horaIntern.value = "";
+    }
+
+    function validarDataInternacao() {
+        if (!dataInternDt) return true;
+        hideInternacaoAlert();
+        if (!dataInternDt.value) return true;
+
+        const dataSelecionada = parseLocalDateTime(dataInternDt.value);
+        if (!dataSelecionada || Number.isNaN(dataSelecionada.getTime())) return true;
 
         const agora = new Date();
         if (dataSelecionada > agora) {
             showInternacaoAlert("A data da internação não pode ser maior que a data atual.", "error");
-            dataInternDt.value = "";
-            if (dataIntern) dataIntern.value = "";
-            if (horaIntern) horaIntern.value = "";
-            return;
+            clearInternacaoDateField();
+            return false;
         }
 
         const diffDias = (agora - dataSelecionada) / (1000 * 60 * 60 * 24);
         if (diffDias > 30) {
             showInternacaoAlert("Internação com mais de 30 dias. Verifique a necessidade de prorrogação.", "warning");
         }
+        return true;
     }
 
     if (dataInternDt) {
+        dataInternDt.removeAttribute("max");
         dataInternDt.addEventListener("change", validarDataInternacao);
         dataInternDt.addEventListener("blur", validarDataInternacao);
+        dataInternDt.addEventListener("input", validarDataInternacao);
     }
+
+    window.validateDataInternacaoFuture = validarDataInternacao;
 })();
 
 document.getElementById("data_visita_int").addEventListener("change", function() {
@@ -982,6 +1012,13 @@ $("#myForm").submit(function(event) {
     let post_url = $(this).attr("action"); // Obtém a URL de ação do formulário
     let request_method = $(this).attr("method"); // Obtém o método do formulário (GET/POST)
     let form_data = new FormData(this); // Cria um objeto FormData com os dados do formulário
+
+    if (typeof window.validateDataInternacaoFuture === 'function') {
+        const okDataInternacao = window.validateDataInternacaoFuture();
+        if (!okDataInternacao) {
+            return;
+        }
+    }
 
 
     // 1. Salva o valor selecionado do select de hospitais

@@ -290,6 +290,11 @@
             display: block;
         }
 
+        #erro-data-internacao {
+            position: relative;
+            z-index: 99999;
+        }
+
         .patient-insight-card {
             margin-top: 6px;
             border: 1px solid #ebe2f3;
