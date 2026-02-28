@@ -63,17 +63,74 @@ function formatarTelefone($telefone)
 
 ?>
 <script src="css/ocultar.css"></script>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/form_cad_internacao.css">
+<style>
+    #main-container.internacao-page {
+        margin: 2px 0 0 !important;
+        padding-inline: 5px !important;
+        padding-top: 0 !important;
+        width: auto !important;
+        max-width: 100% !important;
+        overflow-x: hidden;
+    }
 
-<div id="main-container" class="container">
-    <!-- Progress bar -->
-    <div class="progress mb-4">
-        <div class="progress-bar bg-success" role="progressbar" id="progressBar" style="width: 33%;" aria-valuenow="33"
-            aria-valuemin="0" aria-valuemax="100">Etapa 1 de 3</div>
+    #main-container.internacao-page .internacao-page__hero {
+        margin: 0 0 6px !important;
+    }
+
+    #main-container.internacao-page .hero-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    #main-container.internacao-page .hero-back-btn {
+        border-radius: 999px;
+        border: 1px solid #d9c3f4;
+        color: #5e2363;
+        padding: 7px 14px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: .85rem;
+        background: #f4ecfb;
+    }
+
+    #main-container.internacao-page .hero-back-btn:hover {
+        color: #4a1b4e;
+        background: #eadcf8;
+    }
+
+    #main-container.internacao-page .internacao-card__eyebrow {
+        font-weight: 700 !important;
+    }
+
+    #multi-step-form .form-control {
+        min-height: 42px;
+        border-radius: 8px;
+    }
+
+    #multi-step-form select.form-control {
+        height: 42px;
+    }
+</style>
+
+<div id="main-container" class="internacao-page">
+    <div class="internacao-page__hero">
+        <div><h1>Editar seguradora</h1></div>
+        <div class="hero-actions">
+            <a class="hero-back-btn" href="<?= htmlspecialchars(rtrim($BASE_URL, '/') . '/seguradoras', ENT_QUOTES, 'UTF-8') ?>">Voltar para lista</a>
+            <span class="internacao-page__tag">Campos obrigatórios em destaque</span>
+        </div>
     </div>
-
-    <div class="row">
+    <div class="internacao-page__content">
         <form class="container-fluid fundo_tela_cadastros" action="<?= $BASE_URL ?>process_seguradora.php"
             id="multi-step-form" method="POST" enctype="multipart/form-data">
+            <div class="internacao-card internacao-card--general">
+                <div class="internacao-card__header">
+                    <div><p class="internacao-card__eyebrow">Dados da seguradora</p></div>
+                </div>
+                <div class="internacao-card__body">
             <input type="hidden" name="type" value="update">
             <input type="hidden" class="form-control" id="id_seguradora" name="id_seguradora"
                 value="<?= $seguradora->id_seguradora ?>">
@@ -82,9 +139,9 @@ function formatarTelefone($telefone)
             <div id="step-1" class="step">
                 <div class="row">
                     <div class="form-group col-md-6">
-                        <label for="seguradora_seg">Seguradora</label>
+                        <label for="seguradora_seg"><span style="color:red;">*</span> Seguradora</label>
                         <input type="text" class="form-control" id="seguradora_seg" name="seguradora_seg"
-                            value="<?= $seguradora->seguradora_seg ?>">
+                            value="<?= $seguradora->seguradora_seg ?>" required>
                     </div>
                     <div class="form-group col-md-6">
                         <label for="cnpj_seg">CNPJ</label>
@@ -94,41 +151,11 @@ function formatarTelefone($telefone)
                     </div>
                 </div>
                 <hr>
-                <div class="d-flex justify-content-between align-items-center">
-                    <button type="button" class="btn btn-primary" id="next-1" onclick="nextStep(2)">
-                        Próximo <i class="fas fa-arrow-right"></i>
-                    </button>
-                    <!-- Div de confirmação, oculta inicialmente -->
-                    <div id="confirm-delete-div" style="font-weight: bold" class="oculto">
-
-                        <div class="d-flex flex-column align-items-center px-3 my-3"
-                            style="background-color: #f1f1f1; border-radius: 10px; border: 1px solid #ddd; display: none;">
-
-                            <!-- Texto centralizado acima dos botões -->
-                            <p style="font-weight: bold;" class="mb-2 text-center">Confirma Deletar?</p>
-
-                            <!-- Botões de confirmação e cancelamento -->
-                            <div class="d-flex justify-content-center mb-3">
-                                <button type="button" class="btn btn-success mx-2" onclick="confirmAction()">
-                                    Sim <i class="fas fa-check"></i>
-                                </button>
-
-                                <button type="button" class="btn btn-danger mx-2" onclick="hideConfirmDelete()">
-                                    Não <i class="fas fa-ban"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button type="button" class="btn btn-danger float-end" onclick="showConfirmDelete()">
-                        Deletar <i class="fas fa-times"></i>
-                    </button>
-                </div>
-
             </div>
 
             <!-- Step 2: Endereço -->
-            <div id="step-2" class="step" style="display:none;">
+            <div id="step-2" class="step">
+                <p class="internacao-card__eyebrow mb-3">Dados de endereço</p>
                 <div class="row">
                     <div class="form-group col-md-6">
                         <label for="cep_seg">CEP</label>
@@ -171,16 +198,11 @@ function formatarTelefone($telefone)
                     </div>
                 </div>
                 <hr>
-                <button type="button" class="btn btn-secondary" onclick="prevStep(1)">
-                    <i class="fas fa-arrow-left"></i> Voltar
-                </button>
-                <button type="button" class="btn btn-primary" onclick="nextStep(3)">
-                    Próximo <i class="fas fa-arrow-right"></i>
-                </button>
             </div>
 
             <!-- Step 3: Contato e Informações Complementares -->
-            <div id="step-3" class="step" style="display:none;">
+            <div id="step-3" class="step">
+                <p class="internacao-card__eyebrow mb-3">Dados de contato</p>
                 <div class="row">
                     <div class="form-group col-md-6">
                         <label for="email01_seg">Email Principal</label>
@@ -276,34 +298,68 @@ function formatarTelefone($telefone)
                     <?php endif; ?>
                 </div>
                 <hr>
-                <button type="button" class="btn btn-secondary" onclick="prevStep(2)">
-                    <i class="fas fa-arrow-left"></i> Voltar
-                </button>
-                <button type="submit" class="btn btn-success">
-                    <i class="fas fa-check"></i> Atualizar
-                </button>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check"></i> Atualizar
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="showConfirmDelete()">
+                        Deletar <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="modal fade" id="modalConfirmDelete" tabindex="-1" aria-hidden="true" style="display:none;">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Confirmar inativação</h5>
+                            <button type="button" class="close" data-bs-dismiss="modal" data-dismiss="modal" aria-label="Fechar" onclick="hideConfirmDelete()">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            Este registro será inativado. Deseja continuar?
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-dismiss="modal" onclick="hideConfirmDelete()">Não</button>
+                            <button type="button" class="btn btn-danger" onclick="confirmAction()">Sim, inativar</button>
+                        </div>
+                    </div>
+                </div>
             </div>
             <script>
-            // Função para mostrar a div de confirmação
-            function showConfirmDelete() {
-                const confirmDiv = document.getElementById("confirm-delete-div");
-                if (confirmDiv) {
-                    confirmDiv.style.display = "flex";
-                }
+        function showConfirmDelete() {
+            const modalEl = document.getElementById("modalConfirmDelete");
+            if (!modalEl) return;
+            modalEl.style.display = "block";
+            modalEl.classList.add("show");
+            modalEl.removeAttribute("aria-hidden");
+            modalEl.setAttribute("aria-modal", "true");
+            modalEl.setAttribute("role", "dialog");
+            document.body.classList.add("modal-open");
+            if (!document.getElementById("confirm-delete-backdrop")) {
+                const backdrop = document.createElement("div");
+                backdrop.id = "confirm-delete-backdrop";
+                backdrop.className = "modal-backdrop fade show";
+                backdrop.onclick = hideConfirmDelete;
+                document.body.appendChild(backdrop);
+            }
             }
 
-            // Função para ocultar a div de confirmação
             function hideConfirmDelete() {
-                const confirmDiv = document.getElementById("confirm-delete-div");
-                if (confirmDiv) {
-                    confirmDiv.style.display = "none";
-                }
+                const modalEl = document.getElementById("modalConfirmDelete");
+                if (!modalEl) return;
+                modalEl.classList.remove("show");
+                modalEl.style.display = "none";
+                modalEl.setAttribute("aria-hidden", "true");
+                modalEl.removeAttribute("aria-modal");
+                document.body.classList.remove("modal-open");
+                const backdrop = document.getElementById("confirm-delete-backdrop");
+                if (backdrop) backdrop.remove();
             }
 
             // Função para confirmar a exclusão
             function confirmAction() {
-                hideConfirmDelete(); // Oculta a div de confirmação
-
+                hideConfirmDelete();
                 // Inicia o processo de exclusão
                 const form = document.getElementById("multi-step-form");
                 form.action = "<?= $BASE_URL ?>process_seguradora.php";
@@ -325,22 +381,11 @@ function formatarTelefone($telefone)
                 form.submit();
             }
             </script>
+                </div>
+            </div>
         </form>
     </div>
 </div>
-
-<script>
-function nextStep(step) {
-    document.querySelectorAll('.step').forEach((el) => el.style.display = 'none');
-    document.querySelector('#step-' + step).style.display = 'block';
-    document.querySelector('#progressBar').style.width = (step * 33) + '%';
-    document.querySelector('#progressBar').innerText = `Etapa ${step} de 3`;
-}
-
-function prevStep(step) {
-    nextStep(step);
-}
-</script>
 
 <script>
 function mascara(i, t) {
@@ -397,15 +442,20 @@ function mascaraTelefone(event) {
 <script>
 const imagem = document.querySelector("#logo_seg");
 
-imagem.addEventListener("change", function(e) {
-    if (imagem.files[0].size > (1024 * 1024 * 2)) {
-        var notifImagem = document.querySelector("#notifImagem");
-        notifImagem.style.display = "block";
-        imagem.value = '';
-    }
-});
+if (imagem) {
+    imagem.addEventListener("change", function(e) {
+        if (!imagem.files || !imagem.files[0]) return;
+        if (imagem.files[0].size > (1024 * 1024 * 2)) {
+            var notifImagem = document.querySelector("#notifImagem");
+            if (notifImagem) notifImagem.style.display = "block";
+            imagem.value = '';
+        }
+    });
+}
 
 function novoArquivo() {
-    notifImagem.style.display = "none";
+    var notifImagem = document.querySelector("#notifImagem");
+    if (notifImagem) notifImagem.style.display = "none";
 }
 </script>
+<?php require_once("templates/footer.php"); ?>

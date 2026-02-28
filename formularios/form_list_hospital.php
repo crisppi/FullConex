@@ -192,12 +192,12 @@
                                                         style="font-size: 1rem;margin-right:5px; color: rgb(27,156, 55);"></i>Ver</button>
                                             </li>
                                             <li>
-                                                <button class="btn btn-default" style="font-size: .9rem;"
-                                                    onclick="openModal('<?= $BASE_URL ?>edit_hospital.php?id_hospital=<?= $id_hospital ?>')"
-                                                    data-bs-toggle="modal" data-bs-target="#myModal"><i
-                                                        style="font-size: 1rem;margin-right:5px; color: rgb(67, 125, 525);"
+                                                <a class="btn btn-default" style="font-size: .9rem;"
+                                                    href="<?= htmlspecialchars(rtrim($BASE_URL, '/') . '/edit_hospital.php?id_hospital=' . (int) $id_hospital, ENT_QUOTES, 'UTF-8') ?>">
+                                                    <i style="font-size: 1rem;margin-right:5px; color: rgb(67, 125, 525);"
                                                         name="type" value="edite"
-                                                        class="far fa-edit edit-icon"></i>Editar</button>
+                                                        class="far fa-edit edit-icon"></i>Editar
+                                                </a>
                                             </li>
 
                                         </ul>

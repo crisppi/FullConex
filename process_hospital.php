@@ -242,6 +242,72 @@ if ($type === "update") {
     $hospitalData->ativo_hosp = $ativo_hosp;
 
     $hospitalDao->update($hospitalData);
+
+    $deleteExistingIds = filter_input(INPUT_POST, "delete_existing_acomodacao_ids", FILTER_DEFAULT, FILTER_REQUIRE_ARRAY) ?: [];
+    if (!empty($deleteExistingIds)) {
+        $stmtDelAco = $conn->prepare("DELETE FROM tb_acomodacao WHERE id_acomodacao = :id AND fk_hospital = :fk_hospital");
+        foreach ($deleteExistingIds as $delIdRaw) {
+            $delId = (int) $delIdRaw;
+            if ($delId <= 0) {
+                continue;
+            }
+            $stmtDelAco->bindValue(':id', $delId, PDO::PARAM_INT);
+            $stmtDelAco->bindValue(':fk_hospital', (int) $id_hospital, PDO::PARAM_INT);
+            $stmtDelAco->execute();
+        }
+    }
+
+    $acomodacoesNome = filter_input(INPUT_POST, "acomodacao_nome", FILTER_DEFAULT, FILTER_REQUIRE_ARRAY) ?: [];
+    $acomodacoesValor = filter_input(INPUT_POST, "acomodacao_valor", FILTER_DEFAULT, FILTER_REQUIRE_ARRAY) ?: [];
+    $acomodacoesData = filter_input(INPUT_POST, "acomodacao_data", FILTER_DEFAULT, FILTER_REQUIRE_ARRAY) ?: [];
+
+    if (!empty($acomodacoesNome)) {
+        $stmtAco = $conn->prepare("INSERT INTO tb_acomodacao (
+            acomodacao_aco,
+            fk_hospital,
+            valor_aco,
+            fk_usuario_acomodacao,
+            usuario_create_acomodacao,
+            data_create_acomodacao,
+            data_contrato_aco
+        ) VALUES (
+            :acomodacao_aco,
+            :fk_hospital,
+            :valor_aco,
+            :fk_usuario_acomodacao,
+            :usuario_create_acomodacao,
+            :data_create_acomodacao,
+            :data_contrato_aco
+        )");
+
+        foreach ($acomodacoesNome as $i => $nomeAcoRaw) {
+            $nomeAco = trim((string) $nomeAcoRaw);
+            if ($nomeAco === '') {
+                continue;
+            }
+
+            $valorRaw = isset($acomodacoesValor[$i]) ? (string) $acomodacoesValor[$i] : '';
+            $valorRaw = str_replace(['R$', ' '], '', $valorRaw);
+            $valorRaw = str_replace('.', '', $valorRaw);
+            $valorRaw = str_replace(',', '.', $valorRaw);
+            $valorAco = is_numeric($valorRaw) ? (float) $valorRaw : null;
+
+            $dataContrato = isset($acomodacoesData[$i]) ? trim((string) $acomodacoesData[$i]) : '';
+            if ($dataContrato === '') {
+                $dataContrato = null;
+            }
+
+            $stmtAco->bindValue(':acomodacao_aco', $nomeAco);
+            $stmtAco->bindValue(':fk_hospital', (int) $id_hospital, PDO::PARAM_INT);
+            $stmtAco->bindValue(':valor_aco', $valorAco);
+            $stmtAco->bindValue(':fk_usuario_acomodacao', (int) ($_SESSION['id_usuario'] ?? 0), PDO::PARAM_INT);
+            $stmtAco->bindValue(':usuario_create_acomodacao', (string) ($_SESSION['email_user'] ?? ''));
+            $stmtAco->bindValue(':data_create_acomodacao', date('Y-m-d H:i:s'));
+            $stmtAco->bindValue(':data_contrato_aco', $dataContrato);
+            $stmtAco->execute();
+        }
+    }
+
     header("Location: " . $BASE_URL . "hospitais");
     exit;
 }
