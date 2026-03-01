@@ -3,6 +3,7 @@
     --select-focus: blue;
     --select-arrow: var(--select-border);
     --app-zoom: 0.9;
+    --header-offset: 100px;
 }
 
 * {
@@ -17,7 +18,7 @@
 /* Certifique-se de que o corpo da página tenha padding suficiente */
 
 body {
-    padding-top: 100px;
+    padding-top: var(--header-offset);
     zoom: 90%;
 
     /* Ajuste este valor de acordo com a altura real do seu header */
@@ -365,12 +366,12 @@ p {
 }
 
 .form_container {
-    margin-top: 60px;
+    margin-top: 8px;
 }
 
 @media (max-width: 991.98px) {
     .form_container {
-        margin-top: 150px !important;
+        margin-top: 8px !important;
     }
 }
 

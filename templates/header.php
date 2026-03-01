@@ -406,11 +406,8 @@ if (!empty($sessionIdUsuario)) {
             </div>
             <div class="container-fluid">
                 <a class="navbar-brand" href="index.php" style="gap:12px;">
-                    <img src="<?= $BASE_URL ?>img/LogoFullCare.png" class="logo-novo" style="max-width: 100%;
-                        height: auto;
-                        width: auto\9;
-                        max-height: 100px;
-                        min-height: 50px;" alt="FullCare">
+                    <img src="<?= $BASE_URL ?>img/LogoFullCare.png" class="logo-novo" width="224" height="56"
+                        style="max-width:100%;height:auto;" alt="FullCare">
                     <?php if (!empty($seguradoraHeaderLogoUrl)): ?>
                     <span class="brand-divider" aria-hidden="true"></span>
                     <img src="<?= htmlspecialchars($seguradoraHeaderLogoUrl, ENT_QUOTES, 'UTF-8') ?>"

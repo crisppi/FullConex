@@ -415,6 +415,7 @@ $buildListaAltaLink = function($pagina, $bloco) use ($paginationParams, $BASE_UR
                             <th scope="col" width="14%">Paciente</th>
                             <th scope="col" width="7%">Tipo Alta</th>
                             <th scope="col" width="8%">Data Alta</th>
+                            <th scope="col" width="6%">Ações</th>
                             <?php if (!$somenteListaAltas): ?>
                             <th scope="col" width="4%">Remover</th>
                             <?php endif; ?>
@@ -441,6 +442,13 @@ $buildListaAltaLink = function($pagina, $bloco) use ($paginationParams, $BASE_UR
                                 <td scope="row">
                                     <?= htmlspecialchars(date('d/m/Y', strtotime((string)$intern["data_alta_alt"]))) ?>
                                 </td>
+                                <td scope="row">
+                                    <a class="btn btn-sm btn-outline-primary"
+                                       href="<?= htmlspecialchars(rtrim($BASE_URL, '/') . '/show_internacao.php?id_internacao=' . (int)$intern["fk_id_int_alt"], ENT_QUOTES, 'UTF-8') ?>"
+                                       title="Visualizar internação">
+                                        <i class="fa-solid fa-eye me-1"></i> Ver
+                                    </a>
+                                </td>
                                 <?php if (!$somenteListaAltas): ?>
                                 <td>
                                     <input type="checkbox" class="ckAlta" value="<?= (int)$intern['id_alta'] ?>">
@@ -451,7 +459,7 @@ $buildListaAltaLink = function($pagina, $bloco) use ($paginationParams, $BASE_UR
 
                         <?php if ($qtdIntItens == 0): ?>
                             <tr>
-                                <td colspan="7" scope="row" class="col-id" style="font-size:15px">
+                                <td colspan="<?= !$somenteListaAltas ? 8 : 7 ?>" scope="row" class="col-id" style="font-size:15px">
                                     Sem registros para os filtros aplicados.<?= $isSeguradoraRole ? ' Você está visualizando somente dados da sua seguradora.' : '' ?>
                                 </td>
                             </tr>

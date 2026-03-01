@@ -48,9 +48,173 @@ function pctOrNull($current, $previous): ?float
     return (($current - $previous) / $previous) * 100;
 }
 
+function fmtPct($value, int $decimals = 1): string
+{
+    return number_format((float)$value, $decimals, ',', '.') . '%';
+}
+
+function trendLabel(?float $variation, string $up = 'aumento', string $down = 'reducao'): string
+{
+    if ($variation === null) {
+        return 'estabilidade';
+    }
+    return $variation >= 0 ? $up : $down;
+}
+
+function buildSelfUrlWithQuery(array $overrides = []): string
+{
+    $query = $_GET;
+    foreach ($overrides as $k => $v) {
+        if ($v === null || $v === '') {
+            unset($query[$k]);
+            continue;
+        }
+        $query[$k] = $v;
+    }
+    $basePath = strtok((string)($_SERVER['REQUEST_URI'] ?? ''), '?');
+    if (!$basePath) {
+        $basePath = '/bi/inteligencia';
+    }
+    $qs = http_build_query($query);
+    return $basePath . ($qs !== '' ? ('?' . $qs) : '');
+}
+
+function aiExtractText(array $responseJson): ?string
+{
+    if (!empty($responseJson['output_text']) && is_string($responseJson['output_text'])) {
+        return trim($responseJson['output_text']);
+    }
+    if (empty($responseJson['output']) || !is_array($responseJson['output'])) {
+        return null;
+    }
+    $parts = [];
+    foreach ($responseJson['output'] as $item) {
+        if (empty($item['content']) || !is_array($item['content'])) {
+            continue;
+        }
+        foreach ($item['content'] as $content) {
+            if (!empty($content['text']) && is_string($content['text'])) {
+                $parts[] = $content['text'];
+            }
+        }
+    }
+    if (!$parts) {
+        return null;
+    }
+    return trim(implode("\n", $parts));
+}
+
+function gerarNarrativaGerencialIA(array $indicadores, ?string &$erro = null): ?array
+{
+    $erro = null;
+    if (!function_exists('curl_init')) {
+        $erro = 'Extensão cURL não disponível no servidor.';
+        return null;
+    }
+    $apiKey = getenv('OPENAI_API_KEY') ?: ($_ENV['OPENAI_API_KEY'] ?? '');
+    if (!$apiKey) {
+        $erro = 'OPENAI_API_KEY não configurada no ambiente.';
+        return null;
+    }
+
+    $apiUrl = getenv('OPENAI_API_URL') ?: 'https://api.openai.com/v1/responses';
+    $model = getenv('OPENAI_MODEL') ?: 'gpt-4.1-mini';
+
+    $prompt = "Gere narrativa gerencial em português-BR, objetiva e executiva.\n"
+        . "Retorne SOMENTE JSON válido com as chaves: financeiro e produtividade.\n"
+        . "Cada chave deve conter texto com 2 a 3 parágrafos, sem markdown.\n"
+        . "Use apenas os dados fornecidos, sem inventar valores.\n\n"
+        . "DADOS (JSON):\n" . json_encode($indicadores, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+
+    $payload = [
+        'model' => $model,
+        'input' => [
+            [
+                'role' => 'system',
+                'content' => [
+                    ['type' => 'input_text', 'text' => 'Você é um redator executivo de saúde suplementar. Seja factual e preciso.'],
+                ],
+            ],
+            [
+                'role' => 'user',
+                'content' => [
+                    ['type' => 'input_text', 'text' => $prompt],
+                ],
+            ],
+        ],
+        'temperature' => 0.2,
+        'max_output_tokens' => 900,
+    ];
+
+    $ch = curl_init($apiUrl);
+    curl_setopt_array($ch, [
+        CURLOPT_POST => true,
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $apiKey,
+        ],
+        CURLOPT_POSTFIELDS => json_encode($payload, JSON_UNESCAPED_UNICODE),
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 25,
+    ]);
+
+    $raw = curl_exec($ch);
+    $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlErr = curl_error($ch);
+    curl_close($ch);
+
+    if ($raw === false || $curlErr) {
+        $erro = 'Falha de conexão com serviço de IA.';
+        return null;
+    }
+    if ($httpCode < 200 || $httpCode >= 300) {
+        $erro = 'Serviço de IA indisponível no momento.';
+        return null;
+    }
+
+    $json = json_decode($raw, true);
+    if (!is_array($json)) {
+        $erro = 'Resposta inválida da IA.';
+        return null;
+    }
+
+    $text = aiExtractText($json);
+    if (!$text) {
+        $erro = 'IA retornou resposta vazia.';
+        return null;
+    }
+
+    $decoded = json_decode($text, true);
+    if (!is_array($decoded)) {
+        // tentativa de limpar bloco markdown
+        $text = trim(preg_replace('/^```(?:json)?|```$/m', '', $text));
+        $decoded = json_decode($text, true);
+    }
+    if (!is_array($decoded)) {
+        $erro = 'Não foi possível interpretar a narrativa da IA.';
+        return null;
+    }
+
+    $financeiro = trim((string)($decoded['financeiro'] ?? ''));
+    $produtividade = trim((string)($decoded['produtividade'] ?? ''));
+    if ($financeiro === '' || $produtividade === '') {
+        $erro = 'IA retornou conteúdo incompleto.';
+        return null;
+    }
+
+    return [
+        'financeiro' => $financeiro,
+        'produtividade' => $produtividade,
+    ];
+}
+
 $ano = (int)(filter_input(INPUT_GET, 'ano', FILTER_VALIDATE_INT) ?: date('Y'));
 $hospitalId = filter_input(INPUT_GET, 'hospital_id', FILTER_VALIDATE_INT) ?: null;
 $tipoAdmissão = trim((string)(filter_input(INPUT_GET, 'tipo_admissao') ?? ''));
+$relatorioModo = strtolower(trim((string)(filter_input(INPUT_GET, 'relatorio_modo') ?? 'padrao')));
+if (!in_array($relatorioModo, ['padrao', 'ia'], true)) {
+    $relatorioModo = 'padrao';
+}
 
 $hospitais = $conn->query("SELECT id_hospital, nome_hosp FROM tb_hospital ORDER BY nome_hosp")
     ->fetchAll(PDO::FETCH_ASSOC);
@@ -204,6 +368,109 @@ function utiStats(PDO $conn, int $ano, ?int $hospitalId, string $tipoAdmissão):
     ];
 }
 
+function financeiroGerencialStats(PDO $conn, int $ano, ?int $hospitalId, string $tipoAdmissão): array
+{
+    $dateExpr = "COALESCE(NULLIF(ca.data_inicial_capeante,'0000-00-00'), NULLIF(ca.data_digit_capeante,'0000-00-00'), NULLIF(ca.data_fech_capeante,'0000-00-00'))";
+    $where = "ref_date IS NOT NULL AND ref_date <> '0000-00-00' AND YEAR(ref_date) = :ano";
+    $params = [':ano' => $ano];
+    if ($hospitalId) {
+        $where .= " AND fk_hospital_int = :hospital_id";
+        $params[':hospital_id'] = $hospitalId;
+    }
+    if ($tipoAdmissão !== '') {
+        $where .= " AND tipo_admissao_int = :tipo";
+        $params[':tipo'] = $tipoAdmissão;
+    }
+
+    $sql = "
+        SELECT
+            COUNT(*) AS total_contas,
+            SUM(COALESCE(valor_apresentado_capeante,0)) AS valor_apresentado,
+            SUM(COALESCE(valor_final_capeante,0)) AS valor_final,
+            SUM(COALESCE(valor_glosa_total,0)) AS valor_glosa,
+            SUM(COALESCE(valor_glosa_med,0)) AS valor_glosa_med,
+            SUM(COALESCE(valor_glosa_enf,0)) AS valor_glosa_enf
+        FROM (
+            SELECT
+                ca.valor_apresentado_capeante,
+                ca.valor_final_capeante,
+                ca.valor_glosa_total,
+                ca.valor_glosa_med,
+                ca.valor_glosa_enf,
+                {$dateExpr} AS ref_date,
+                i.fk_hospital_int,
+                i.tipo_admissao_int
+            FROM tb_capeante ca
+            INNER JOIN tb_internacao i ON i.id_internacao = ca.fk_int_capeante
+        ) t
+        WHERE {$where}
+    ";
+
+    $stmt = $conn->prepare($sql);
+    foreach ($params as $key => $value) {
+        $stmt->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+    $stmt->execute();
+    $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+    $totalContas = (int)($row['total_contas'] ?? 0);
+    $valorApresentado = (float)($row['valor_apresentado'] ?? 0);
+    $ticketMedio = $totalContas > 0 ? ($valorApresentado / $totalContas) : 0.0;
+
+    return [
+        'total_contas' => $totalContas,
+        'valor_apresentado' => $valorApresentado,
+        'valor_final' => (float)($row['valor_final'] ?? 0),
+        'valor_glosa' => (float)($row['valor_glosa'] ?? 0),
+        'valor_glosa_med' => (float)($row['valor_glosa_med'] ?? 0),
+        'valor_glosa_enf' => (float)($row['valor_glosa_enf'] ?? 0),
+        'ticket_medio' => $ticketMedio,
+    ];
+}
+
+function produtividadeGerencialStats(PDO $conn, int $ano, ?int $hospitalId, string $tipoAdmissão): array
+{
+    $where = "YEAR(v.data_visita_vis) = :ano";
+    $params = [':ano' => $ano];
+    if ($hospitalId) {
+        $where .= " AND i.fk_hospital_int = :hospital_id";
+        $params[':hospital_id'] = $hospitalId;
+    }
+    if ($tipoAdmissão !== '') {
+        $where .= " AND i.tipo_admissao_int = :tipo";
+        $params[':tipo'] = $tipoAdmissão;
+    }
+
+    $sql = "
+        SELECT
+            COUNT(*) AS total_visitas,
+            COUNT(DISTINCT DATE(v.data_visita_vis)) AS dias_com_visita,
+            COUNT(DISTINCT v.fk_internacao_vis) AS internacoes_visitadas,
+            COUNT(DISTINCT COALESCE(NULLIF(v.fk_usuario_vis, 0), NULL)) AS auditores_ativos
+        FROM tb_visita v
+        INNER JOIN tb_internacao i ON i.id_internacao = v.fk_internacao_vis
+        WHERE {$where}
+    ";
+    $stmt = $conn->prepare($sql);
+    foreach ($params as $key => $value) {
+        $stmt->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+    $stmt->execute();
+    $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+    $totalVisitas = (int)($row['total_visitas'] ?? 0);
+    $diasComVisita = (int)($row['dias_com_visita'] ?? 0);
+    $mediaVisitasDia = $diasComVisita > 0 ? round($totalVisitas / $diasComVisita, 2) : 0.0;
+
+    return [
+        'total_visitas' => $totalVisitas,
+        'dias_com_visita' => $diasComVisita,
+        'internacoes_visitadas' => (int)($row['internacoes_visitadas'] ?? 0),
+        'auditores_ativos' => (int)($row['auditores_ativos'] ?? 0),
+        'media_visitas_dia' => $mediaVisitasDia,
+    ];
+}
+
 $sinistroAtual = sinistroTotals($conn, $ano, $hospitalId, $tipoAdmissão);
 $sinistroPrev = sinistroTotals($conn, $ano - 1, $hospitalId, $tipoAdmissão);
 
@@ -213,6 +480,11 @@ $internacaoPrev = internacaoStats($conn, $ano - 1, $hospitalId, $tipoAdmissão);
 $utiAtual = utiStats($conn, $ano, $hospitalId, $tipoAdmissão);
 $utiPrev = utiStats($conn, $ano - 1, $hospitalId, $tipoAdmissão);
 
+$financeiroGerAtual = financeiroGerencialStats($conn, $ano, $hospitalId, $tipoAdmissão);
+$financeiroGerPrev = financeiroGerencialStats($conn, $ano - 1, $hospitalId, $tipoAdmissão);
+$produtividadeGerAtual = produtividadeGerencialStats($conn, $ano, $hospitalId, $tipoAdmissão);
+$produtividadeGerPrev = produtividadeGerencialStats($conn, $ano - 1, $hospitalId, $tipoAdmissão);
+
 $glosaPct = $sinistroAtual['valor_apresentado'] > 0
     ? ($sinistroAtual['valor_glosa'] / $sinistroAtual['valor_apresentado']) * 100
     : 0.0;
@@ -221,6 +493,39 @@ $apresentadoVar = pctOrNull($sinistroAtual['valor_apresentado'], $sinistroPrev['
 $internacoesVar = pctOrNull($internacaoAtual['total_internacoes'], $internacaoPrev['total_internacoes']);
 $diariasVar = pctOrNull($internacaoAtual['total_diarias'], $internacaoPrev['total_diarias']);
 $utiVar = pctOrNull($utiAtual['total_internacoes'], $utiPrev['total_internacoes']);
+$financeiroContasVar = pctOrNull($financeiroGerAtual['total_contas'], $financeiroGerPrev['total_contas']);
+$financeiroApresentadoVar = pctOrNull($financeiroGerAtual['valor_apresentado'], $financeiroGerPrev['valor_apresentado']);
+$financeiroFinalVar = pctOrNull($financeiroGerAtual['valor_final'], $financeiroGerPrev['valor_final']);
+$prodVisitasVar = pctOrNull($produtividadeGerAtual['total_visitas'], $produtividadeGerPrev['total_visitas']);
+$prodMediaDiaVar = pctOrNull($produtividadeGerAtual['media_visitas_dia'], $produtividadeGerPrev['media_visitas_dia']);
+
+$aproveitamentoFinanceiroPct = $financeiroGerAtual['valor_apresentado'] > 0
+    ? ($financeiroGerAtual['valor_final'] / $financeiroGerAtual['valor_apresentado']) * 100
+    : 0.0;
+$custoMedioDiariaGeral = $internacaoAtual['total_diarias'] > 0
+    ? ($financeiroGerAtual['valor_apresentado'] / $internacaoAtual['total_diarias'])
+    : 0.0;
+$custoMedioDiariaUti = $utiAtual['total_diarias'] > 0
+    ? ($financeiroGerAtual['valor_apresentado'] / $utiAtual['total_diarias'])
+    : 0.0;
+$utiParticipacaoInternacoesPct = $internacaoAtual['total_internacoes'] > 0
+    ? ($utiAtual['total_internacoes'] / $internacaoAtual['total_internacoes']) * 100
+    : 0.0;
+$utiParticipacaoDiariasPct = $internacaoAtual['total_diarias'] > 0
+    ? ($utiAtual['total_diarias'] / $internacaoAtual['total_diarias']) * 100
+    : 0.0;
+$visitasPorInternacao = $produtividadeGerAtual['internacoes_visitadas'] > 0
+    ? ($produtividadeGerAtual['total_visitas'] / $produtividadeGerAtual['internacoes_visitadas'])
+    : 0.0;
+$visitasPorAuditor = $produtividadeGerAtual['auditores_ativos'] > 0
+    ? ($produtividadeGerAtual['total_visitas'] / $produtividadeGerAtual['auditores_ativos'])
+    : 0.0;
+$glosaMedShare = $financeiroGerAtual['valor_glosa'] > 0
+    ? ($financeiroGerAtual['valor_glosa_med'] / $financeiroGerAtual['valor_glosa']) * 100
+    : 0.0;
+$glosaEnfShare = $financeiroGerAtual['valor_glosa'] > 0
+    ? ($financeiroGerAtual['valor_glosa_enf'] / $financeiroGerAtual['valor_glosa']) * 100
+    : 0.0;
 
 $hospitalNome = 'Todos Hospitais';
 if ($hospitalId) {
@@ -237,6 +542,36 @@ $temSinistro = hasSinistroData($sinistroAtual);
 $temInternação = hasInternaçãoData($internacaoAtual);
 $temUti = hasUtiData($utiAtual);
 $temAlgum = $temSinistro || $temInternação || $temUti;
+$selfReportUrl = $_SERVER['REQUEST_URI'] ?? (rtrim($BASE_URL, '/') . '/bi/inteligencia');
+$selfReportUrl = strtok((string)$selfReportUrl, '#') ?: (rtrim($BASE_URL, '/') . '/bi/inteligencia');
+
+$iaNarrativa = null;
+$iaErro = null;
+if ($relatorioModo === 'ia') {
+    $iaNarrativa = gerarNarrativaGerencialIA([
+        'contexto' => [
+            'ano' => $ano,
+            'hospital' => $hospitalNome,
+            'tipo_admissao' => $tipoLabel,
+        ],
+        'financeiro' => [
+            'atual' => $financeiroGerAtual,
+            'anterior' => $financeiroGerPrev,
+            'variacao_contas_pct' => $financeiroContasVar,
+            'variacao_apresentado_pct' => $financeiroApresentadoVar,
+        ],
+        'produtividade' => [
+            'atual' => $produtividadeGerAtual,
+            'anterior' => $produtividadeGerPrev,
+            'variacao_visitas_pct' => $prodVisitasVar,
+            'variacao_media_dia_pct' => $prodMediaDiaVar,
+        ],
+    ], $iaErro);
+}
+
+$modoPadraoUrl = buildSelfUrlWithQuery(['relatorio_modo' => 'padrao']);
+$modoIaUrl = buildSelfUrlWithQuery(['relatorio_modo' => 'ia']);
+
 ?>
 
 <link rel="stylesheet" href="<?= $BASE_URL ?>css/bi.css?v=20260110">
@@ -255,6 +590,7 @@ $temAlgum = $temSinistro || $temInternação || $temUti;
     </div>
 
     <form class="bi-panel bi-filters" method="get">
+        <input type="hidden" name="relatorio_modo" value="<?= e($relatorioModo) ?>">
         <div class="bi-filter">
             <label>Ano</label>
             <input type="number" name="ano" value="<?= e($ano) ?>">
@@ -286,6 +622,33 @@ $temAlgum = $temSinistro || $temInternação || $temUti;
         </div>
     </form>
 
+    <div class="bi-panel" style="margin-top:16px;">
+        <div class="d-flex flex-wrap align-items-center justify-content-between" style="gap:10px;">
+            <div class="text-white-50" style="font-size:.9rem;">
+                Relatórios gerenciais para o mesmo recorte selecionado (modo atual: <strong><?= e(strtoupper($relatorioModo)) ?></strong>)
+            </div>
+            <div class="d-flex flex-wrap" style="gap:10px;">
+                <a class="bi-btn <?= $relatorioModo === 'padrao' ? '' : 'bi-btn-secondary' ?>" href="<?= e($modoPadraoUrl) ?>#relatorio-gerencial-financeiro">
+                    Usar texto padrão
+                </a>
+                <a class="bi-btn <?= $relatorioModo === 'ia' ? '' : 'bi-btn-secondary' ?>" href="<?= e($modoIaUrl) ?>#relatorio-gerencial-financeiro">
+                    Gerar texto com IA
+                </a>
+                <a class="bi-btn bi-btn-secondary" href="<?= e($selfReportUrl) ?>#relatorio-gerencial-financeiro">
+                    Relatório Gerencial Financeiro
+                </a>
+                <a class="bi-btn bi-btn-secondary" href="<?= e($selfReportUrl) ?>#relatorio-gerencial-produtividade">
+                    Relatório Gerencial de Produtividade
+                </a>
+            </div>
+        </div>
+        <?php if ($relatorioModo === 'ia' && $iaNarrativa === null && $iaErro): ?>
+            <div class="alert alert-warning mt-3 mb-0" role="alert">
+                IA indisponível: <?= e($iaErro) ?>. Exibindo texto padrão.
+            </div>
+        <?php endif; ?>
+    </div>
+
     <div class="bi-panel bi-report">
         <h3>Relatório Anual de Sinistralidade Hospitalar - <?= e($hospitalNome) ?> - (<?= e($ano) ?>)</h3>
         <div class="bi-report-meta">Tipo admissão: <?= e($tipoLabel) ?></div>
@@ -301,11 +664,22 @@ $temAlgum = $temSinistro || $temInternação || $temUti;
                 O valor total das contas apresentadas no ano foi de <strong><?= fmtMoney($sinistroAtual['valor_apresentado']) ?></strong>.
                 <?php if ($sinistroPrev['valor_apresentado'] > 0): ?>
                     Em relacao a <?= e($ano - 1) ?> (<?= fmtMoney($sinistroPrev['valor_apresentado']) ?>), houve
-                    <?= $apresentadoVar !== null && $apresentadoVar >= 0 ? 'aumento' : 'reducao' ?>
-                    de <strong><?= number_format(abs($apresentadoVar ?? 0), 1, ',', '.') ?>%</strong>.
+                    <?= trendLabel($apresentadoVar, 'aumento', 'reducao') ?>
+                    de <strong><?= fmtPct(abs($apresentadoVar ?? 0), 1) ?></strong>.
                 <?php else: ?>
                     Nao ha base comparativa em <?= e($ano - 1) ?> para este recorte.
                 <?php endif; ?>
+            </p>
+            <p>
+                A base auditada contempla <strong><?= fmtInt($financeiroGerAtual['total_contas']) ?></strong> contas no período, com
+                ticket médio de apresentação em <strong><?= fmtMoney($financeiroGerAtual['ticket_medio']) ?></strong>.
+                Em termos de intensidade financeira por permanência, o custo médio apresentado por diária geral foi de
+                <strong><?= fmtMoney($custoMedioDiariaGeral) ?></strong>.
+            </p>
+            <p>
+                Leitura executiva: o movimento de contas apresentadas indica
+                <strong><?= trendLabel($financeiroContasVar, 'expansao', 'retracao') ?></strong> do volume faturado no recorte selecionado,
+                com impacto direto na pressão de auditoria e no planejamento de capacidade das equipes.
             </p>
         </div>
 
@@ -319,6 +693,17 @@ $temAlgum = $temSinistro || $temInternação || $temUti;
             <p class="bi-report-list">
                 Glosa medica: <strong><?= fmtMoney($sinistroAtual['valor_glosa_med']) ?></strong> | 
                 Glosa de enfermagem: <strong><?= fmtMoney($sinistroAtual['valor_glosa_enf']) ?></strong>
+            </p>
+            <p>
+                O índice de aproveitamento financeiro (valor final sobre valor apresentado) ficou em
+                <strong><?= fmtPct($aproveitamentoFinanceiroPct, 2) ?></strong>.
+                Na composição da glosa, a participação foi de <strong><?= fmtPct($glosaMedShare, 2) ?></strong> para frente médica e
+                <strong><?= fmtPct($glosaEnfShare, 2) ?></strong> para enfermagem.
+            </p>
+            <p>
+                Leitura executiva: o patamar de glosa observado sinaliza
+                <?= $glosaPct <= 2 ? '<strong>boa aderência documental e assistencial</strong>' : '<strong>oportunidade de reforço em qualidade de registro e negociação</strong>' ?>,
+                com potencial de melhorar resultado sem reduzir acesso assistencial.
             </p>
         </div>
         <?php endif; ?>
@@ -340,6 +725,18 @@ $temAlgum = $temSinistro || $temInternação || $temUti;
                     Nao ha historico comparativo para internacoes no ano anterior.
                 <?php endif; ?>
             </p>
+            <p>
+                A relação entre volume e permanência mantém a operação sob monitoramento de uso de leito:
+                cada internação consumiu em média <strong><?= number_format($internacaoAtual['mp'], 1, ',', '.') ?> dias</strong>,
+                com custo apresentado estimado em <strong><?= fmtMoney($custoMedioDiariaGeral) ?></strong> por diária.
+            </p>
+            <p>
+                Leitura executiva: variações simultâneas de internações e diárias sugerem
+                <?= ($internacoesVar !== null && $diariasVar !== null && abs($diariasVar) > abs($internacoesVar))
+                    ? '<strong>mudança de case mix/perfil de permanência</strong>'
+                    : '<strong>mudança principalmente de volume assistencial</strong>' ?>,
+                demandando acompanhamento conjunto de desfecho, permanência e custo.
+            </p>
         </div>
         <?php endif; ?>
 
@@ -359,8 +756,88 @@ $temAlgum = $temSinistro || $temInternação || $temUti;
                     Nao ha historico comparativo de UTI no ano anterior para este recorte.
                 <?php endif; ?>
             </p>
+            <p>
+                A UTI representou <strong><?= fmtPct($utiParticipacaoInternacoesPct, 1) ?></strong> das internações e
+                <strong><?= fmtPct($utiParticipacaoDiariasPct, 1) ?></strong> das diárias no período.
+                O custo apresentado por diária UTI (proxy do recorte atual) foi de <strong><?= fmtMoney($custoMedioDiariaUti) ?></strong>.
+            </p>
+            <p>
+                Leitura executiva: a participação de UTI e a MP UTI de
+                <strong><?= number_format($utiAtual['mp'], 1, ',', '.') ?> dias</strong> devem ser acompanhadas como indicadores críticos
+                de gravidade clínica, pressão de custo e risco operacional.
+            </p>
         </div>
         <?php endif; ?>
+
+        <div class="bi-report-section" id="relatorio-gerencial-financeiro">
+            <h4>5. Relatório Gerencial Financeiro</h4>
+            <?php if ($relatorioModo === 'ia' && $iaNarrativa !== null): ?>
+                <p style="white-space: pre-line;"><?= nl2br(e($iaNarrativa['financeiro'])) ?></p>
+            <?php else: ?>
+                <p>
+                    No recorte selecionado, foram analisadas <strong><?= fmtInt($financeiroGerAtual['total_contas']) ?></strong> contas,
+                    com valor apresentado de <strong><?= fmtMoney($financeiroGerAtual['valor_apresentado']) ?></strong> e
+                    valor final de <strong><?= fmtMoney($financeiroGerAtual['valor_final']) ?></strong>.
+                </p>
+                <p>
+                    A glosa total foi de <strong><?= fmtMoney($financeiroGerAtual['valor_glosa']) ?></strong>,
+                    sendo glosa médica de <strong><?= fmtMoney($financeiroGerAtual['valor_glosa_med']) ?></strong> e
+                    glosa de enfermagem de <strong><?= fmtMoney($financeiroGerAtual['valor_glosa_enf']) ?></strong>.
+                    O ticket médio por conta ficou em <strong><?= fmtMoney($financeiroGerAtual['ticket_medio']) ?></strong>.
+                </p>
+                <p>
+                    <?php if ($financeiroGerPrev['total_contas'] > 0 || $financeiroGerPrev['valor_apresentado'] > 0): ?>
+                        Em relação a <?= e($ano - 1) ?>, houve <strong><?= trendLabel($financeiroContasVar, 'aumento', 'reducao') ?></strong> de
+                        <strong><?= fmtPct(abs($financeiroContasVar ?? 0), 1) ?></strong> no total de contas,
+                        <strong><?= trendLabel($financeiroApresentadoVar, 'aumento', 'reducao') ?></strong> de
+                        <strong><?= fmtPct(abs($financeiroApresentadoVar ?? 0), 1) ?></strong> no valor apresentado e
+                        <strong><?= trendLabel($financeiroFinalVar, 'aumento', 'reducao') ?></strong> de
+                        <strong><?= fmtPct(abs($financeiroFinalVar ?? 0), 1) ?></strong> no valor final.
+                    <?php else: ?>
+                        Não há base comparativa suficiente em <?= e($ano - 1) ?> para o relatório financeiro gerencial.
+                    <?php endif; ?>
+                </p>
+                <p>
+                    Síntese gerencial: a performance financeira combina volume auditado, eficácia de glosa e conversão em valor final.
+                    O foco recomendado é preservar o equilíbrio entre sustentabilidade econômica e fluidez assistencial.
+                </p>
+            <?php endif; ?>
+        </div>
+
+        <div class="bi-report-section" id="relatorio-gerencial-produtividade">
+            <h4>6. Relatório Gerencial de Produtividade</h4>
+            <?php if ($relatorioModo === 'ia' && $iaNarrativa !== null): ?>
+                <p style="white-space: pre-line;"><?= nl2br(e($iaNarrativa['produtividade'])) ?></p>
+            <?php else: ?>
+                <p>
+                    Foram registradas <strong><?= fmtInt($produtividadeGerAtual['total_visitas']) ?></strong> visitas no período,
+                    distribuídas em <strong><?= fmtInt($produtividadeGerAtual['dias_com_visita']) ?></strong> dias com produção.
+                    A média diária foi de <strong><?= number_format($produtividadeGerAtual['media_visitas_dia'], 2, ',', '.') ?></strong> visitas/dia.
+                </p>
+                <p>
+                    As visitas cobriram <strong><?= fmtInt($produtividadeGerAtual['internacoes_visitadas']) ?></strong> internações,
+                    com <strong><?= fmtInt($produtividadeGerAtual['auditores_ativos']) ?></strong> auditores ativos no lançamento.
+                </p>
+                <p>
+                    <?php if ($produtividadeGerPrev['total_visitas'] > 0 || $produtividadeGerPrev['media_visitas_dia'] > 0): ?>
+                        Comparado a <?= e($ano - 1) ?>, houve variação de
+                        <strong><?= number_format(abs($prodVisitasVar ?? 0), 1, ',', '.') ?>%</strong> no volume de visitas e
+                        <strong><?= number_format(abs($prodMediaDiaVar ?? 0), 1, ',', '.') ?>%</strong> na produtividade média diária.
+                    <?php else: ?>
+                        Não há base comparativa suficiente em <?= e($ano - 1) ?> para o relatório de produtividade.
+                    <?php endif; ?>
+                </p>
+                <p>
+                    Indicadores operacionais complementares: média de <strong><?= number_format($visitasPorInternacao, 2, ',', '.') ?></strong>
+                    visitas por internação acompanhada e <strong><?= number_format($visitasPorAuditor, 2, ',', '.') ?></strong> visitas por auditor no período.
+                    Esses números apoiam decisões de dimensionamento de equipe e priorização de carteira.
+                </p>
+                <p>
+                    Síntese gerencial: produtividade deve ser lida em conjunto com qualidade do registro, tempo de resposta e desfecho,
+                    evitando otimização apenas de volume.
+                </p>
+            <?php endif; ?>
+        </div>
     </div>
 </div>
 

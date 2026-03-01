@@ -1,5 +1,16 @@
 RewriteEngine On
 
+# ------------------------------------------------------------------
+# Segurança: bloquear acesso web a artefatos sensíveis
+# - logs e arquivos temporários
+# - scripts de debug
+# - backups/cópias de código
+# ------------------------------------------------------------------
+RewriteRule (^|/)(logs|cache|Arquivos)/ - [F,L,NC]
+RewriteRule (^|/)(debug_[^/]*\.php|php-error\.log|debug_[^/]*\.log|[^/]*\.(?:debug|error)\.log|[^/]*\.(?:bak|old)|[^/]*~)$ - [F,L,NC]
+RewriteRule (^|/)[^/]*[[:space:]]copy(?:[[:space:]][0-9]+)?\.(?:php|js|css)$ - [F,L,NC]
+RewriteRule (^|/)[^/]*_BACKUP_[^/]*\.php$ - [F,L,NC]
+
 # Force HTTPS except on localhost/local IP (development)
 RewriteCond %{HTTPS} off
 RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)$ [NC]

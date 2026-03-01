@@ -48,6 +48,28 @@
 
     $totalcasos = ceil($qtdIntItens / 5);
 
+    $hospitalPaginationBaseParams = [
+        'pesquisa_nome' => $pesquisa_nome,
+        'limite_pag'    => $limite,
+        'ordenar'       => $ordenar,
+    ];
+
+    if (!function_exists('buildHospitalPaginationUrl')) {
+        function buildHospitalPaginationUrl(array $baseParams, array $override = []): string
+        {
+            $params = array_merge($baseParams, $override);
+            $params = array_filter($params, static function ($value) {
+                return $value !== null && $value !== '';
+            });
+
+            $query = http_build_query($params);
+            global $BASE_URL;
+            $baseUrl = rtrim($BASE_URL, '/') . '/hospitais';
+
+            return $query ? $baseUrl . '?' . $query : $baseUrl;
+        }
+    }
+
     // PAGINACAO
     if ($qtdIntItens > $limite) {
         $paginacao = '';
@@ -246,41 +268,71 @@
                                     $paginaAtual = isset($_GET['pag']) ? $_GET['pag'] : 1;
                                     ?>
                                 <?php if ($current_block > $first_block): ?>
+                                <?php
+                                        $firstPageUrl = buildHospitalPaginationUrl($hospitalPaginationBaseParams, [
+                                            'pag' => 1,
+                                            'bl'  => 0
+                                        ]);
+                                        ?>
                                 <li class="page-item">
-                                    <a class="page-link" id="blocoNovo" href="#"
-                                        onclick="loadContent('hospitais?pesquisa_nome=<?php print $pesquisa_nome ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print 1 ?>&bl=<?php print 0 ?>')">
+                                    <a class="page-link" id="blocoNovo" href="<?= htmlspecialchars($firstPageUrl) ?>"
+                                        onclick="return paginateHospitais('<?= htmlspecialchars($firstPageUrl, ENT_QUOTES) ?>');">
                                         <i class="fa-solid fa-angles-left"></i></a>
                                 </li>
                                 <?php endif; ?>
                                 <?php if ($current_block <= $last_block && $last_block > 1 && $current_block != 1): ?>
+                                <?php
+                                        $prevPageUrl = buildHospitalPaginationUrl($hospitalPaginationBaseParams, [
+                                            'pag' => max(1, $paginaAtual - 1),
+                                            'bl'  => max(0, $blocoAtual - 5)
+                                        ]);
+                                        ?>
                                 <li class="page-item">
-                                    <a class="page-link" href="#"
-                                        onclick="loadContent('hospitais?pesquisa_nome=<?php print $pesquisa_nome ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $paginaAtual - 1 ?>&bl=<?php print $blocoAtual - 5 ?>')">
+                                    <a class="page-link" href="<?= htmlspecialchars($prevPageUrl) ?>"
+                                        onclick="return paginateHospitais('<?= htmlspecialchars($prevPageUrl, ENT_QUOTES) ?>');">
                                         <i class="fa-solid fa-angle-left"></i> </a>
                                 </li>
                                 <?php endif; ?>
 
                                 <?php for ($i = $first_page_in_block; $i <= $last_page_in_block; $i++): ?>
+                                <?php
+                                        $pageUrl = buildHospitalPaginationUrl($hospitalPaginationBaseParams, [
+                                            'pag' => $i,
+                                            'bl'  => $blocoAtual
+                                        ]);
+                                        ?>
                                 <li class="page-item <?php print ($_GET['pag'] ?? 1) == $i ? "active" : "" ?>">
 
-                                    <a class="page-link" href="#"
-                                        onclick="loadContent('hospitais?pesquisa_nome=<?php print $pesquisa_nome ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $i ?>&bl=<?php print $blocoAtual ?>')">
+                                    <a class="page-link" href="<?= htmlspecialchars($pageUrl) ?>"
+                                        onclick="return paginateHospitais('<?= htmlspecialchars($pageUrl, ENT_QUOTES) ?>');">
                                         <?php echo $i; ?>
                                     </a>
                                 </li>
                                 <?php endfor; ?>
 
                                 <?php if ($current_block < $last_block): ?>
+                                <?php
+                                        $nextPageUrl = buildHospitalPaginationUrl($hospitalPaginationBaseParams, [
+                                            'pag' => min($total_pages, $paginaAtual + 1),
+                                            'bl'  => $blocoAtual + 5
+                                        ]);
+                                        ?>
                                 <li class="page-item">
-                                    <a class="page-link" id="blocoNovo" href="#"
-                                        onclick="loadContent('hospitais?pesquisa_nome=<?php print $pesquisa_nome ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print $paginaAtual + 1 ?>&bl=<?php print $blocoAtual + 5 ?>')"><i
+                                    <a class="page-link" id="blocoNovo" href="<?= htmlspecialchars($nextPageUrl) ?>"
+                                        onclick="return paginateHospitais('<?= htmlspecialchars($nextPageUrl, ENT_QUOTES) ?>');"><i
                                             class="fa-solid fa-angle-right"></i></a>
                                 </li>
                                 <?php endif; ?>
                                 <?php if ($current_block < $last_block): ?>
+                                <?php
+                                        $lastPageUrl = buildHospitalPaginationUrl($hospitalPaginationBaseParams, [
+                                            'pag' => count($paginas),
+                                            'bl'  => ($last_block - 1) * 5
+                                        ]);
+                                        ?>
                                 <li class="page-item">
-                                    <a class="page-link" id="blocoNovo" href="#"
-                                        onclick="loadContent('hospitais?pesquisa_nome=<?php print $pesquisa_nome ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print count($paginas) ?>&bl=<?php print ($last_block - 1) * 5 ?>')"><i
+                                    <a class="page-link" id="blocoNovo" href="<?= htmlspecialchars($lastPageUrl) ?>"
+                                        onclick="return paginateHospitais('<?= htmlspecialchars($lastPageUrl, ENT_QUOTES) ?>');"><i
                                             class="fa-solid fa-angles-right"></i></a>
                                 </li>
                                 <?php endif; ?>
@@ -330,10 +382,29 @@ $(document).ready(function() {
 });
 
 $(document).ready(function() {
-    loadContent(
-        'hospitais?pesquisa_nome=<?php print $pesquisa_nome ?>&limite_pag=<?php print $limite ?>&ordenar=<?php print $ordenar ?>&pag=<?php print 1 ?>&bl=<?php print 0 ?>'
-    );
+    var initialHospUrl = '<?= htmlspecialchars(buildHospitalPaginationUrl(
+        $hospitalPaginationBaseParams,
+        [
+            'pag' => $_GET['pag'] ?? 1,
+            'bl'  => $_GET['bl'] ?? 0
+        ]
+    ), ENT_QUOTES) ?>';
+    if (typeof loadContent === 'function') {
+        loadContent(initialHospUrl);
+    }
 });
+</script>
+<script>
+if (typeof window.paginateHospitais !== 'function') {
+    window.paginateHospitais = function(url) {
+        if (typeof loadContent === 'function') {
+            loadContent(url);
+            return false;
+        }
+        window.location.href = url;
+        return false;
+    };
+}
 </script>
 
 <style>

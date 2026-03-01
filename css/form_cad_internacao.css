@@ -418,13 +418,30 @@
             box-shadow: 0 0 0 0.2rem rgba(94, 35, 99, 0.2) !important;
         }
 
-        /* Mostra imediatamente no primeiro paint (sem atraso) */
-        #hospital_selected.selectpicker,
-        #fk_paciente_int.selectpicker {
+        /* Evita "pulo" no carregamento: nativo já nasce com a mesma caixa do picker */
+        #hospital_selected,
+        #fk_paciente_int {
             display: block !important;
+            width: 100% !important;
+            min-height: 42px !important;
+            height: 42px !important;
+            line-height: 24px !important;
+            padding-top: 8px !important;
+            padding-bottom: 8px !important;
+            border-radius: 6px !important;
+            box-sizing: border-box !important;
         }
 
-        /* Esconde o nativo assim que bootstrap-select inicializar */
+        #hospital_selected {
+            border: 1px solid #555 !important;
+        }
+
+        #fk_paciente_int {
+            border: 2px solid #7a1e57 !important;
+            box-shadow: 0 3px 8px rgba(122, 30, 87, 0.12) !important;
+        }
+
+        /* Quando o bootstrap-select assume, preserva o mesmo espaço */
         #hospital_selected.selectpicker.bs-select-hidden,
         #fk_paciente_int.selectpicker.bs-select-hidden {
             display: none !important;
@@ -434,7 +451,8 @@
         .patient-col .bootstrap-select {
             width: 100% !important;
             display: block !important;
-            min-height: 42px;
+            min-height: 42px !important;
+            height: 42px !important;
         }
 
         .internacao-page {
