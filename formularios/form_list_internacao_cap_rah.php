@@ -227,14 +227,40 @@ $idcapeante          = filter_input(INPUT_GET, 'idcapeante') ?: NULL;
 
     $mapOrder = [
         'id_internacao' => 'ac.id_internacao',
+        'id_internacao_desc' => 'ac.id_internacao DESC',
         'id_capeante_desc' => 'ca.id_capeante DESC',
         'id_capeante' => 'ca.id_capeante',
         'senha_int' => 'ac.senha_int',
+        'senha_int_desc' => 'ac.senha_int DESC',
         'nome_pac' => 'pa.nome_pac',
+        'nome_pac_desc' => 'pa.nome_pac DESC',
         'nome_hosp' => 'ho.nome_hosp',
+        'nome_hosp_desc' => 'ho.nome_hosp DESC',
         'data_intern_int' => 'ac.data_intern_int',
+        'data_intern_int_desc' => 'ac.data_intern_int DESC',
     ];
     $order = $mapOrder[$ordenar] ?? 'ca.id_capeante DESC';
+
+    $rahCurrentSort = $ordenar ?: 'id_capeante_desc';
+    $rahCurrentSortField = preg_replace('/_desc$/', '', $rahCurrentSort);
+    $rahCurrentSortDir = (substr($rahCurrentSort, -5) === '_desc') ? 'desc' : 'asc';
+    $rahBuildSortUrl = function (string $field) use ($rahCurrentSortField, $rahCurrentSortDir, $rahFormAction, $rahPaginationBaseParams): string {
+        $isCurrentField = ($rahCurrentSortField === $field);
+        $nextDir = ($isCurrentField && $rahCurrentSortDir === 'asc') ? 'desc' : 'asc';
+        $nextSort = ($nextDir === 'desc') ? ($field . '_desc') : $field;
+
+        return buildRahPaginationUrl($rahFormAction, $rahPaginationBaseParams, [
+            'ordenar' => $nextSort,
+            'pag' => 1,
+            'bl' => 0,
+        ]);
+    };
+    $rahSortIcon = function (string $field) use ($rahCurrentSortField, $rahCurrentSortDir): string {
+        if ($rahCurrentSortField !== $field) {
+            return '↕';
+        }
+        return $rahCurrentSortDir === 'asc' ? '↑' : '↓';
+    };
     $obPagination   = new pagination($qtdIntItens, $_GET['pag'] ?? 1, $limite ?? 10);
     $obLimite       = $obPagination->getLimit();
 
@@ -481,11 +507,31 @@ $idcapeante          = filter_input(INPUT_GET, 'idcapeante') ?: NULL;
             </div>
 
             <style>
-                .cap-rah-dropdown .dropdown-item,
-                .cap-rah-dropdown .dropdown-item span {
-                    text-transform: none !important;
-                    font-weight: 400 !important;
-                }
+            .cap-rah-dropdown .dropdown-item,
+            .cap-rah-dropdown .dropdown-item span {
+                text-transform: none !important;
+                font-weight: 400 !important;
+            }
+
+            .rah-sort-link {
+                color: inherit;
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .rah-sort-link:hover,
+            .rah-sort-link:focus {
+                color: inherit;
+                text-decoration: none;
+                opacity: .9;
+            }
+
+            .rah-sort-icon {
+                font-size: .85em;
+                opacity: .95;
+            }
             </style>
 
             <div>
@@ -494,12 +540,42 @@ $idcapeante          = filter_input(INPUT_GET, 'idcapeante') ?: NULL;
                     <table class="table table-sm table-striped  table-hover table-condensed">
                         <thead>
                             <tr>
-                                <th scope="col" style="width:4%">Reg Int</th>
-                                <th scope="col" style="width:6%">Capeante</th>
-                                <th scope="col" style="width:12%">Hospital</th>
-                                <th scope="col" style="width:16%">Paciente</th>
-                                <th scope="col" style="width:10%">Senha</th>
-                                <th scope="col" style="width:8%">Data internação</th>
+                                <th scope="col" style="width:4%">
+                                    <a class="rah-sort-link" href="<?= htmlspecialchars($rahBuildSortUrl('id_internacao'), ENT_QUOTES, 'UTF-8') ?>"
+                                        onclick="return paginateRah('<?= htmlspecialchars($rahBuildSortUrl('id_internacao'), ENT_QUOTES, 'UTF-8') ?>');">
+                                        <span>Reg Int</span><span class="rah-sort-icon"><?= $rahSortIcon('id_internacao') ?></span>
+                                    </a>
+                                </th>
+                                <th scope="col" style="width:6%">
+                                    <a class="rah-sort-link" href="<?= htmlspecialchars($rahBuildSortUrl('id_capeante'), ENT_QUOTES, 'UTF-8') ?>"
+                                        onclick="return paginateRah('<?= htmlspecialchars($rahBuildSortUrl('id_capeante'), ENT_QUOTES, 'UTF-8') ?>');">
+                                        <span>Capeante</span><span class="rah-sort-icon"><?= $rahSortIcon('id_capeante') ?></span>
+                                    </a>
+                                </th>
+                                <th scope="col" style="width:12%">
+                                    <a class="rah-sort-link" href="<?= htmlspecialchars($rahBuildSortUrl('nome_hosp'), ENT_QUOTES, 'UTF-8') ?>"
+                                        onclick="return paginateRah('<?= htmlspecialchars($rahBuildSortUrl('nome_hosp'), ENT_QUOTES, 'UTF-8') ?>');">
+                                        <span>Hospital</span><span class="rah-sort-icon"><?= $rahSortIcon('nome_hosp') ?></span>
+                                    </a>
+                                </th>
+                                <th scope="col" style="width:16%">
+                                    <a class="rah-sort-link" href="<?= htmlspecialchars($rahBuildSortUrl('nome_pac'), ENT_QUOTES, 'UTF-8') ?>"
+                                        onclick="return paginateRah('<?= htmlspecialchars($rahBuildSortUrl('nome_pac'), ENT_QUOTES, 'UTF-8') ?>');">
+                                        <span>Paciente</span><span class="rah-sort-icon"><?= $rahSortIcon('nome_pac') ?></span>
+                                    </a>
+                                </th>
+                                <th scope="col" style="width:10%">
+                                    <a class="rah-sort-link" href="<?= htmlspecialchars($rahBuildSortUrl('senha_int'), ENT_QUOTES, 'UTF-8') ?>"
+                                        onclick="return paginateRah('<?= htmlspecialchars($rahBuildSortUrl('senha_int'), ENT_QUOTES, 'UTF-8') ?>');">
+                                        <span>Senha</span><span class="rah-sort-icon"><?= $rahSortIcon('senha_int') ?></span>
+                                    </a>
+                                </th>
+                                <th scope="col" style="width:8%">
+                                    <a class="rah-sort-link" href="<?= htmlspecialchars($rahBuildSortUrl('data_intern_int'), ENT_QUOTES, 'UTF-8') ?>"
+                                        onclick="return paginateRah('<?= htmlspecialchars($rahBuildSortUrl('data_intern_int'), ENT_QUOTES, 'UTF-8') ?>');">
+                                        <span>Data internação</span><span class="rah-sort-icon"><?= $rahSortIcon('data_intern_int') ?></span>
+                                    </a>
+                                </th>
                                 <th scope="col" style="width:8%">Data fechamento</th>
                                 <th scope="col" style="width:8%">Data digitação</th>
                                 <th scope="col" style="width:6%;">Cap Encer</th>
@@ -608,12 +684,42 @@ $idcapeante          = filter_input(INPUT_GET, 'idcapeante') ?: NULL;
                     <table class="table table-sm table-striped  table-hover table-condensed">
                         <thead>
                             <tr>
-                                <th scope="col" style="width:4%">Reg Int</th>
-                                <th scope="col" style="width:6%">Capeante</th>
-                                <th scope="col" style="width:12%">Hospital</th>
-                                <th scope="col" style="width:16%">Paciente</th>
-                                <th scope="col" style="width:10%">Senha</th>
-                                <th scope="col" style="width:8%">Data internação</th>
+                                <th scope="col" style="width:4%">
+                                    <a class="rah-sort-link" href="<?= htmlspecialchars($rahBuildSortUrl('id_internacao'), ENT_QUOTES, 'UTF-8') ?>"
+                                        onclick="return paginateRah('<?= htmlspecialchars($rahBuildSortUrl('id_internacao'), ENT_QUOTES, 'UTF-8') ?>');">
+                                        <span>Reg Int</span><span class="rah-sort-icon"><?= $rahSortIcon('id_internacao') ?></span>
+                                    </a>
+                                </th>
+                                <th scope="col" style="width:6%">
+                                    <a class="rah-sort-link" href="<?= htmlspecialchars($rahBuildSortUrl('id_capeante'), ENT_QUOTES, 'UTF-8') ?>"
+                                        onclick="return paginateRah('<?= htmlspecialchars($rahBuildSortUrl('id_capeante'), ENT_QUOTES, 'UTF-8') ?>');">
+                                        <span>Capeante</span><span class="rah-sort-icon"><?= $rahSortIcon('id_capeante') ?></span>
+                                    </a>
+                                </th>
+                                <th scope="col" style="width:12%">
+                                    <a class="rah-sort-link" href="<?= htmlspecialchars($rahBuildSortUrl('nome_hosp'), ENT_QUOTES, 'UTF-8') ?>"
+                                        onclick="return paginateRah('<?= htmlspecialchars($rahBuildSortUrl('nome_hosp'), ENT_QUOTES, 'UTF-8') ?>');">
+                                        <span>Hospital</span><span class="rah-sort-icon"><?= $rahSortIcon('nome_hosp') ?></span>
+                                    </a>
+                                </th>
+                                <th scope="col" style="width:16%">
+                                    <a class="rah-sort-link" href="<?= htmlspecialchars($rahBuildSortUrl('nome_pac'), ENT_QUOTES, 'UTF-8') ?>"
+                                        onclick="return paginateRah('<?= htmlspecialchars($rahBuildSortUrl('nome_pac'), ENT_QUOTES, 'UTF-8') ?>');">
+                                        <span>Paciente</span><span class="rah-sort-icon"><?= $rahSortIcon('nome_pac') ?></span>
+                                    </a>
+                                </th>
+                                <th scope="col" style="width:10%">
+                                    <a class="rah-sort-link" href="<?= htmlspecialchars($rahBuildSortUrl('senha_int'), ENT_QUOTES, 'UTF-8') ?>"
+                                        onclick="return paginateRah('<?= htmlspecialchars($rahBuildSortUrl('senha_int'), ENT_QUOTES, 'UTF-8') ?>');">
+                                        <span>Senha</span><span class="rah-sort-icon"><?= $rahSortIcon('senha_int') ?></span>
+                                    </a>
+                                </th>
+                                <th scope="col" style="width:8%">
+                                    <a class="rah-sort-link" href="<?= htmlspecialchars($rahBuildSortUrl('data_intern_int'), ENT_QUOTES, 'UTF-8') ?>"
+                                        onclick="return paginateRah('<?= htmlspecialchars($rahBuildSortUrl('data_intern_int'), ENT_QUOTES, 'UTF-8') ?>');">
+                                        <span>Data internação</span><span class="rah-sort-icon"><?= $rahSortIcon('data_intern_int') ?></span>
+                                    </a>
+                                </th>
                                 <th scope="col" style="width:8%;">Data fechamento</th>
                                 <th scope="col" style="width:8%;">Data digitação</th>
                                 <th scope="col" style="width:6%;">Cap Encer</th>
@@ -852,7 +958,7 @@ $idcapeante          = filter_input(INPUT_GET, 'idcapeante') ?: NULL;
                         <div class="table-counter">
                             <p
                                 style="font-size:1em;font-weight:600;font-family:var(--bs-font-sans-serif);text-align:right;margin:0;">
-                                <?php echo "Total: " . (int)$__render_count ?>
+                                <?php echo "Total: " . (int)$qtdIntItens ?>
                             </p>
                         </div>
                     </div>
