@@ -87,7 +87,7 @@
     $pesquisa_nome = filter_input(INPUT_GET, 'pesquisa_nome', FILTER_SANITIZE_SPECIAL_CHARS);
     $buscaAtivo = filter_input(INPUT_GET, 'ativo_pac', FILTER_SANITIZE_SPECIAL_CHARS);
     $limite = filter_input(INPUT_GET, 'limite') ? filter_input(INPUT_GET, 'limite') : 10;
-    $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : '';
+    $ordenar = filter_input(INPUT_GET, 'ordenar') ? filter_input(INPUT_GET, 'ordenar') : 'id_paciente_desc';
     $buscaAtivo = in_array($buscaAtivo, ['s', 'n']) ?: "";
     $pacienteInicio = ' 1 ';
     $buscaMatriculaForcada = $busca;
@@ -119,7 +119,21 @@
 
     $condicoes = array_filter($condicoes);
     // print_r($condicoes);
-    $order = $ordenar ?: 'id_paciente DESC';
+    $orderMap = [
+        'id_paciente' => 'pa.id_paciente',
+        'id_paciente_desc' => 'pa.id_paciente DESC',
+        'nome_pac' => 'pa.nome_pac',
+        'nome_pac_desc' => 'pa.nome_pac DESC',
+        'matricula_pac' => 'pa.matricula_pac',
+        'matricula_pac_desc' => 'pa.matricula_pac DESC',
+        'cpf_pac' => 'pa.cpf_pac',
+        'cpf_pac_desc' => 'pa.cpf_pac DESC',
+        'seguradora_seg' => 'se.seguradora_seg',
+        'seguradora_seg_desc' => 'se.seguradora_seg DESC',
+        'cidade_pac' => 'pa.cidade_pac',
+        'cidade_pac_desc' => 'pa.cidade_pac DESC',
+    ];
+    $order = $orderMap[$ordenar] ?? 'pa.id_paciente DESC';
 
     // REMOVE POSICOES VAZIAS DO FILTRO
         $where = implode(' AND ', $condicoes);
@@ -157,6 +171,25 @@
         return $query ? $baseUrl . '?' . $query : $baseUrl;
         }
     }
+
+    $pacSortFieldCurrent = preg_replace('/_desc$/', '', (string)$ordenar);
+    $pacSortDirCurrent = (substr((string)$ordenar, -5) === '_desc') ? 'desc' : 'asc';
+    $buildPacienteSortUrl = function (string $field) use ($pacSortFieldCurrent, $pacSortDirCurrent, $pacientePaginationBaseParams) {
+        $isCurrentField = ($pacSortFieldCurrent === $field);
+        $nextDir = ($isCurrentField && $pacSortDirCurrent === 'asc') ? 'desc' : 'asc';
+        $nextOrder = ($nextDir === 'desc') ? ($field . '_desc') : $field;
+        return buildPacientePaginationUrl($pacientePaginationBaseParams, [
+            'ordenar' => $nextOrder,
+            'pag' => 1,
+            'bl' => 0,
+        ]);
+    };
+    $pacSortIcon = function (string $field) use ($pacSortFieldCurrent, $pacSortDirCurrent): string {
+        if ($pacSortFieldCurrent !== $field) {
+            return '↕';
+        }
+        return $pacSortDirCurrent === 'asc' ? '↑' : '↓';
+    };
 
     // PAGINACAO
     if ($qtdIntItens > $limite) {
@@ -249,11 +282,15 @@
                             <select class="form-control form-control-sm"
                                 style="margin-top:7px;font-size:.8em; color:#878787" id="ordenar" name="ordenar">
                                 <option value="">Classificar por</option>
-                                <option value="id_paciente" <?= $ordenar == 'id_paciente' ? 'selected' : null ?>>Id
+                                <option value="id_paciente_desc" <?= $ordenar == 'id_paciente_desc' ? 'selected' : null ?>>Id
                                     Paciente
                                 </option>
                                 <option value="nome_pac" <?= $ordenar == 'nome_pac' ? 'selected' : null ?>>Nome Paciente
                                 </option>
+                                <option value="matricula_pac" <?= $ordenar == 'matricula_pac' ? 'selected' : null ?>>Matrícula</option>
+                                <option value="cpf_pac" <?= $ordenar == 'cpf_pac' ? 'selected' : null ?>>CPF</option>
+                                <option value="seguradora_seg" <?= $ordenar == 'seguradora_seg' ? 'selected' : null ?>>Seguradora</option>
+                                <option value="cidade_pac" <?= $ordenar == 'cidade_pac' ? 'selected' : null ?>>Cidade</option>
                             </select>
                         </div>
 
@@ -279,13 +316,43 @@
                     <table class="table table-sm table-striped table-hover table-condensed">
                         <thead>
                             <tr>
-                                <th scope="col">Id</th>
-                                <th scope="col">Paciente</th>
-                                <th scope="col">Matrícula</th>
-                                <th scope="col">CPF</th>
-                                <th scope="col">Seguradora</th>
-                                <th scope="col">Cidade</th>
-                                <th scope="col" width="8%">Ações</th>
+                                <th scope="col" data-sort="false">
+                                    <a class="rah-sort-link" href="<?= htmlspecialchars($buildPacienteSortUrl('id_paciente'), ENT_QUOTES, 'UTF-8') ?>"
+                                        onclick="return paginatePacientes('<?= htmlspecialchars($buildPacienteSortUrl('id_paciente'), ENT_QUOTES, 'UTF-8') ?>');">
+                                        <span>Id</span><span class="rah-sort-icon"><?= $pacSortIcon('id_paciente') ?></span>
+                                    </a>
+                                </th>
+                                <th scope="col" data-sort="false">
+                                    <a class="rah-sort-link" href="<?= htmlspecialchars($buildPacienteSortUrl('nome_pac'), ENT_QUOTES, 'UTF-8') ?>"
+                                        onclick="return paginatePacientes('<?= htmlspecialchars($buildPacienteSortUrl('nome_pac'), ENT_QUOTES, 'UTF-8') ?>');">
+                                        <span>Paciente</span><span class="rah-sort-icon"><?= $pacSortIcon('nome_pac') ?></span>
+                                    </a>
+                                </th>
+                                <th scope="col" data-sort="false">
+                                    <a class="rah-sort-link" href="<?= htmlspecialchars($buildPacienteSortUrl('matricula_pac'), ENT_QUOTES, 'UTF-8') ?>"
+                                        onclick="return paginatePacientes('<?= htmlspecialchars($buildPacienteSortUrl('matricula_pac'), ENT_QUOTES, 'UTF-8') ?>');">
+                                        <span>Matrícula</span><span class="rah-sort-icon"><?= $pacSortIcon('matricula_pac') ?></span>
+                                    </a>
+                                </th>
+                                <th scope="col" data-sort="false">
+                                    <a class="rah-sort-link" href="<?= htmlspecialchars($buildPacienteSortUrl('cpf_pac'), ENT_QUOTES, 'UTF-8') ?>"
+                                        onclick="return paginatePacientes('<?= htmlspecialchars($buildPacienteSortUrl('cpf_pac'), ENT_QUOTES, 'UTF-8') ?>');">
+                                        <span>CPF</span><span class="rah-sort-icon"><?= $pacSortIcon('cpf_pac') ?></span>
+                                    </a>
+                                </th>
+                                <th scope="col" data-sort="false">
+                                    <a class="rah-sort-link" href="<?= htmlspecialchars($buildPacienteSortUrl('seguradora_seg'), ENT_QUOTES, 'UTF-8') ?>"
+                                        onclick="return paginatePacientes('<?= htmlspecialchars($buildPacienteSortUrl('seguradora_seg'), ENT_QUOTES, 'UTF-8') ?>');">
+                                        <span>Seguradora</span><span class="rah-sort-icon"><?= $pacSortIcon('seguradora_seg') ?></span>
+                                    </a>
+                                </th>
+                                <th scope="col" data-sort="false">
+                                    <a class="rah-sort-link" href="<?= htmlspecialchars($buildPacienteSortUrl('cidade_pac'), ENT_QUOTES, 'UTF-8') ?>"
+                                        onclick="return paginatePacientes('<?= htmlspecialchars($buildPacienteSortUrl('cidade_pac'), ENT_QUOTES, 'UTF-8') ?>');">
+                                        <span>Cidade</span><span class="rah-sort-icon"><?= $pacSortIcon('cidade_pac') ?></span>
+                                    </a>
+                                </th>
+                                <th scope="col" width="8%" data-sort="false">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -577,6 +644,26 @@ if (typeof window.paginatePacientes !== 'function') {
 </script>
 
 <style>
+.rah-sort-link {
+    color: inherit;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.rah-sort-link:hover,
+.rah-sort-link:focus {
+    color: inherit;
+    text-decoration: none;
+    opacity: .9;
+}
+
+.rah-sort-icon {
+    font-size: .85em;
+    opacity: .95;
+}
+
 .modal-backdrop {
     display: none;
 
