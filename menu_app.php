@@ -496,9 +496,13 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
 
 <style>
 .grid-container {
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+.kpi-grid-container {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    grid-template-rows: repeat(2, 1fr);
+    grid-template-columns: repeat(3, minmax(210px, 1fr));
     gap: 12px;
     width: 100%;
 }
@@ -510,16 +514,41 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
     justify-content: center;
     align-items: center;
     color: #3f2a59;
-    font-size: 1.4em;
     border-radius: 18px;
     background:
         radial-gradient(circle at 12% 110%, rgba(90, 197, 255, 0.16), transparent 55%),
         linear-gradient(145deg, #f5f0ff, #ece6f7);
-    height: 120px;
-    box-shadow: 0 10px 20px rgba(39, 24, 58, 0.12);
+    min-height: 120px;
+    box-shadow: 0 8px 18px rgba(39, 24, 58, 0.10);
     border: 1px solid rgba(134, 155, 204, 0.22);
     overflow: hidden;
-    padding: 8px 0;
+    padding: 10px 0;
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.grid-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 24px rgba(39, 24, 58, 0.14);
+}
+
+.grid-item-filter {
+    width: 100%;
+}
+
+.grid-item-kpi.kpi-neutral {
+    border-left: 4px solid #6d49ab;
+}
+
+.grid-item-kpi.kpi-info {
+    border-left: 4px solid #2b8dc2;
+}
+
+.grid-item-kpi.kpi-warning {
+    border-left: 4px solid #d19a2a;
+}
+
+.grid-item-kpi.kpi-critical {
+    border-left: 4px solid #c64c64;
 }
 
 .grid-item::before {
@@ -544,22 +573,22 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
 
 .title-item {
     position: absolute;
-    top: 12px;
-    left: 12px;
-    right: 12px;
+    top: 10px;
+    left: 14px;
+    right: 14px;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 8px;
     min-height: 40px;
-    width: calc(100% - 24px);
-    text-align: center;
+    width: calc(100% - 28px);
+    text-align: left;
     line-height: 1.2;
-    font-size: 0.8em;
+    font-size: 0.92rem;
     color: #34204f;
-    font-weight: 800;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: .04em;
+    letter-spacing: .02em;
     white-space: normal;
     text-shadow: none;
 }
@@ -570,37 +599,38 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
 
 .icon-item {
     position: absolute;
-    bottom: 12px;
-    left: 18px;
-    font-size: 1.1em;
+    bottom: 14px;
+    left: 16px;
+    font-size: .95rem;
     color: #ffffff;
     background: linear-gradient(145deg, #8354ba, #5e3a8a);
     border-radius: 50%;
-    width: 38px;
-    height: 38px;
+    width: 34px;
+    height: 34px;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 8px 14px rgba(46, 28, 70, 0.24);
+    box-shadow: 0 6px 12px rgba(46, 28, 70, 0.18);
+    opacity: .9;
 }
 
 .badge-item {
     position: absolute;
-    bottom: 14px;
+    bottom: 12px;
     right: 16px;
-    min-width: clamp(88px, 20vw, 118px);
+    min-width: clamp(92px, 20vw, 124px);
     max-width: calc(100% - 84px);
-    min-height: 46px;
+    min-height: 44px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     line-height: 1;
-    font-weight: 700;
+    font-weight: 800;
     color: #452b63 !important;
     background: linear-gradient(140deg, rgba(255, 255, 255, 0.9), rgba(248, 249, 255, 0.78)) !important;
     padding: 6px clamp(10px, 1.6vw, 14px);
     border-radius: 999px;
-    font-size: clamp(0.95rem, 1.2vw, 1.22rem);
+    font-size: clamp(1rem, 1.25vw, 1.32rem);
     text-align: center;
     border: 1px solid rgba(142, 161, 199, 0.28);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
@@ -624,16 +654,14 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
 }
 
 @media (max-width: 1200px) {
-    .grid-container {
+    .kpi-grid-container {
         grid-template-columns: repeat(3, 1fr);
-        grid-template-rows: auto;
     }
 }
 
 @media (max-width: 860px) {
-    .grid-container {
+    .kpi-grid-container {
         grid-template-columns: repeat(2, 1fr);
-        grid-template-rows: auto;
         gap: 10px;
     }
 
@@ -643,9 +671,8 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
 }
 
 @media (max-width: 520px) {
-    .grid-container {
+    .kpi-grid-container {
         grid-template-columns: 1fr;
-        grid-template-rows: auto;
         gap: 10px;
     }
 
@@ -656,13 +683,13 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
 
 /* Forca alinhamento dos cards do topo, mesmo com CSS global carregado depois */
 .grid-container .grid-item .title-item {
-    left: 12px !important;
-    right: 12px !important;
-    width: calc(100% - 24px) !important;
+    left: 14px !important;
+    right: 14px !important;
+    width: calc(100% - 28px) !important;
     display: flex !important;
     align-items: center !important;
-    justify-content: center !important;
-    text-align: center !important;
+    justify-content: flex-start !important;
+    text-align: left !important;
     line-height: 1.2 !important;
     white-space: normal !important;
 }
@@ -807,7 +834,7 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
             </div>
         <?php endif; ?>
         <div class="grid-container">
-            <div class="grid-item">
+            <div class="grid-item grid-item-filter">
                 <div class="title-item"><i class="fa-solid fa-hospital"></i> Filtrar Hospital</div>
                 <form id="filter-status-form" method="POST">
                     <div class="select-item">
@@ -838,56 +865,58 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
                     </div>
                 </form>
             </div>
+        </div>
 
-            <div class="grid-item">
+        <div class="kpi-grid-container">
+            <div class="grid-item grid-item-kpi kpi-neutral">
                 <div class="title-item"><i class="fa-solid fa-bed"></i> Total Internados</div>
                 <div class="icon-item"><i class="fa-solid fa-chart-simple"></i></div>
                 <div class="badge-item badge-neutral"><?= count($dados_internacoes) ?></div>
             </div>
 
-            <div class="grid-item">
+            <div class="grid-item grid-item-kpi kpi-warning">
                 <div class="title-item"><i class="fa-solid fa-clock"></i> Longa Permanência</div>
                 <div class="icon-item"><i class="fa-solid fa-chart-simple"></i></div>
                 <div class="badge-item badge-warning"><?= !empty($longa_perm) ? count($longa_perm) : 0 ?></div>
             </div>
 
-            <div class="grid-item">
+            <div class="grid-item grid-item-kpi kpi-warning">
                 <div class="title-item"><i class="fa-solid fa-bars-progress"></i> Reinternações &lt; 2 dias</div>
                 <div class="icon-item"><i class="fa-solid fa-chart-simple"></i></div>
                 <div class="badge-item badge-warning"><?= $total_reinternacoes ?? 0 ?></div>
             </div>
 
-            <div class="grid-item">
+            <div class="grid-item grid-item-kpi kpi-warning">
                 <div class="title-item"><i class="fa-solid fa-calendar"></i> Visitas em Atraso</div>
                 <div class="icon-item"><i class="fa-solid fa-chart-simple"></i></div>
                 <div class="badge-item badge-warning"><?= count($dados_visitas_atraso) ?></div>
             </div>
 
-            <div class="grid-item">
+            <div class="grid-item grid-item-kpi kpi-critical">
                 <div class="title-item"><i class="fa-solid fa-stethoscope"></i> Acima meta DRG</div>
                 <div class="icon-item"><i class="fa-solid fa-chart-simple"></i></div>
                 <div class="badge-item badge-critical"><?= $drg_acima[0] ?? 0 ?></div>
             </div>
 
-            <div class="grid-item">
+            <div class="grid-item grid-item-kpi kpi-info">
                 <div class="title-item"><i class="fa-solid fa-dollar-sign"></i> Contas em Auditoria</div>
                 <div class="icon-item"><i class="fa-solid fa-chart-simple"></i></div>
                 <div class="badge-item badge-info"><?= is_array($dados_capeante) ? count($dados_capeante) : 0 ?></div>
             </div>
 
-            <div class="grid-item">
+            <div class="grid-item grid-item-kpi kpi-critical">
                 <div class="title-item"><i class="fa-solid fa-circle-stop"></i> Contas Paradas</div>
                 <div class="icon-item"><i class="fa-solid fa-chart-simple"></i></div>
                 <div class="badge-item badge-critical"><?= $contas_paradas[0] ?? 0 ?></div>
             </div>
 
-            <div class="grid-item">
+            <div class="grid-item grid-item-kpi kpi-info">
                 <div class="title-item"><i class="fa-solid fa-percent"></i> Porcentagem em UTI</div>
                 <div class="icon-item"><i class="fa-solid fa-chart-simple"></i></div>
                 <div class="badge-item badge-info"><?= $perc_uti[0] ?? "0.00%" ?></div>
             </div>
 
-            <div class="grid-item">
+            <div class="grid-item grid-item-kpi kpi-critical">
                 <div class="title-item"><i class="fa-solid fa-heart"></i> UTI Não Pertinente</div>
                 <div class="icon-item"><i class="fa-solid fa-chart-simple"></i></div>
                 <div class="badge-item badge-critical"><?= $uti_nao_pertinente[0] ?? 0 ?></div>
@@ -899,7 +928,7 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
         <div class="row m-t-25">
             <div class="col-12">
                 <div class="header_div">
-                    <spam>Visitas em atraso</spam>
+                    <span>Visitas em atraso</span>
                 </div>
                 <div id="dash-visitas-atraso" class="dash-table-loading">
                     Carregando...
@@ -908,7 +937,7 @@ $total_reinternacoes = is_array($reinternacaohosp) ? count($reinternacaohosp) : 
 
             <div class="col-12" style="margin-top:20px;">
                 <div class="header_div">
-                    <spam>Pacientes de longa permanência</spam>
+                    <span>Pacientes de longa permanência</span>
                 </div>
                 <div id="dash-longa-perm" class="dash-table-loading">
                     Carregando...
